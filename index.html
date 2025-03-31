@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>타자선생님</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+
+    <style>
+        .game_a {
+            margin-left: auto;
+            margin-right: auto;
+            width: 800px;
+            height: 380px;
+            background: url('img/game_bal_bg1.jpg') no-repeat;
+            background-size: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #bal1 {
+            width: 100px;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        .btn {
+            border: 1px solid #777;
+            cursor: pointer;
+            padding: 3px 8px 3px 8px;
+            text-align: center;
+            background-color: #FFD600;
+            font-size: 14px;
+        }
+
+        .ip0, .ip1 {
+            border: 1px solid #999;
+            font-size: 22px;
+            padding: 4px;
+            width: 340px;
+            margin: 1px;
+        }
+
+        .ip0 {
+            background-color: #f5f5f5;
+            border-color: #eee;
+        }
+
+        .d1_a {
+            display: inline-block;
+            width: 40px;
+            text-align: center;
+            background-color: #111;
+            color: #f5f5f5;
+            padding: 3px;
+            margin-top: 1px;
+        }
+
+        .dlg_box {
+            display: inline-block;
+            padding: 4px 8px 4px 8px;
+            border-radius: 4px;
+            border: 3px solid #ffd600;
+        }
+
+        .tbl_game {
+            width: auto;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .tbl_game th, .tbl_game td {
+            padding: 3px;
+        }
+    </style>
+</head>
+<body>
+
+
+<div class="container">
+    <div class="section">
+
+
+        <h1>열기구 살리기</h1>
+        <div class="game_container">
+            <div id="game_a" class="game_a">
+                <img id="bal1" src="img/game_bal1.png" style="left:0px;top:0px;"/>
+            </div>
+        </div>
+
+        <div id="set_box" class="dlg_box" style="display:block;width:300px;margin-left:auto;margin-right:auto;margin-top:6px;">
+            <form name="f1" onsubmit="return false;">
+                <table border="0">
+                    <tr>
+                        <td>게임언어:</td>
+                        <td><label><input type="radio" name="lang" value="0" checked/><span>한글</span></label> <label><input type="radio" name="lang" value="1"/><span>영문</span></label></td>
+                    </tr>
+                    <tr>
+                        <td>게임레벨:</td>
+                        <td><select name="lv" class="browser-default" style="width:60px;">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
+                        </select></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td>
+                            <button class="btn" onclick="CBal.start()">게임시작</button>
+                        </td>
+                    </tr>
+                </table>
+            </form>
+        </div>
+
+        <div id="play_box" style="display:none;">
+            <form name="f2" onsubmit="return false">
+                <table class="tbl_game" border="0">
+                    <tr>
+                        <td width="130">
+                            <div class="dlg_box">
+                                현재단계:<span class="d1_a" id="c_lv">1</span><br/>
+                                남은기구:<span class="d1_a" id="b_cnt">1</span><br/>
+                                <div class="btn" onclick="CBal.reSet()" style="width:100%;margin-top:5px;">게임재시작</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="dlg_box">
+                                <input name="ip0" class="ip0" value="test" readOnly/><br/>
+                                <input name="ip1" class="ip1" value="" onchange="CBal.ckInput()"/>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </form>
+        </div>
+
+        <script>
+            //  아래 직접 가져옴 <script type="text/javascript" src="game_bal_js.php">
+
+            var CBal = {
+                lang    : 0,
+                p_x     : 0,
+                p_y     : 0,
+                p_w     : 100,
+                p_h     : 120,
+                d_x     : 10,
+                d_y     : 10,
+                p_y0    : 85,
+                lv      : 1,
+                bg_w    : 800,
+                bg_h    : 380,
+                o_bal   : null,
+                is_start: 0,
+                is_fire : 0,
+                itv     : null,
+                n_ok    : 0,
+                d_wd    : [],
+                d_wd_l  : 0,
+                d_wd_kr : [],
+                d_wd_en : [],
+
+                init : function (kr, en) {
+                    this.o_bal = document.getElementById('bal1');
+                    this.p_x = -this.p_w;
+                    this.p_y = this.p_y0;
+                    this.d_x = 5;
+                    this.d_y = 1;
+                    this.d_wd_kr = kr;
+                    this.d_wd_en = en;
+                },
+                start: function () {
+                    if (this.itv) clearInterval(this.itv);
+                    var fe = document.forms['f1'].elements, fe2 = document.forms['f2'].elements;
+                    this.lang = fe['lang'][0].checked ? 0 : 1;
+                    this.d_wd = (this.lang == 0) ? this.d_wd_kr : this.d_wd_en;
+                    this.d_wd_l = this.d_wd.length;
+                    this.lv = +fe['lv'].value;
+                    this.d_y = this.lv;
+                    this.n_ok = 0;
+                    this.is_start = true;
+                    this.reStart();
+                    this.itv = setInterval(function () {
+                        CBal.moveBal();
+                    }, 200);
+                    document.getElementById('c_lv').innerText = this.lv;
+                    fe2['ip0'].value = this.d_wd[Math.floor(Math.random() * this.d_wd_l)];
+                    fe2['ip1'].value = '';
+
+                    document.getElementById('set_box').style.display = 'none';
+                    document.getElementById('play_box').style.display = 'block';
+                    fe2['ip1'].focus();
+                },
+                reSet: function () {
+                    if (this.itv) clearInterval(this.itv);
+                    document.getElementById('set_box').style.display = 'block';
+                    document.getElementById('play_box').style.display = 'none';
+                },
+
+                reStart: function () { //기구 다음 출발
+                    this.p_x = -this.p_w;
+                    this.p_y = this.p_y0;
+                    if (++this.n_ok > 5) {
+                        this.gameSuccess();
+                        return;
+                    }
+                    document.getElementById('b_cnt').innerText = 5 - this.n_ok;
+                    document.forms['f2'].elements['ip1'].focus();
+                },
+
+                moveBal    : function () {
+                    var x = this.p_x + this.d_x, y = this.p_y + this.d_y;
+                    if (this.is_fire > 0) { //상승처리
+                        y = this.p_y -= 2;
+                        --this.is_fire;
+                    } else {
+                        if (y + this.p_h > this.bg_h) { //충돌
+                            this.gameFail();
+                            return;
+                        }
+                    }
+
+                    if (x >= this.bg_w) { //성공
+                        this.gameOk();
+                        return;
+                    }
+                    this.p_x = x;
+                    this.p_y = y;
+                    this.o_bal.style.left = x + 'px';
+                    this.o_bal.style.top = y + 'px';
+                },
+                fire       : function () {
+                    this.is_fire += 7;
+                },
+                gameOk     : function () { //성공..다음 출발
+                    //alert('성공..다음 기구 출발');
+                    this.reStart();
+                },
+                gameFail   : function () {
+                    this.reSet();
+                    alert('기구가 추락했습니다');
+                },
+                gameSuccess: function () {
+                    this.reSet();
+                    alert('축하합니다. 열기구 다섯개를 모두 성공적으로 살렸습니다.');
+                },
+                ckInput    : function () {
+                    ///alert('ckinput..');
+                    if (!this.is_start) return;
+                    var fe = document.forms['f2'].elements;
+                    var t0 = fe['ip0'].value, t1 = fe['ip1'].value;
+                    if (t0 == t1) { //성공
+                        this.fire();
+                        fe['ip0'].value = this.d_wd[Math.floor(Math.random() * this.d_wd_l)];
+                        fe['ip1'].value = '';
+                    } else { //오타
+                    }
+                    return false;
+                }
+            }
+
+            var d_wd_kr = "어머니 미나리 호미 미니 많이 호랑이 몰라 이러니 이런 호남인 이놈이 망나니 하노라 너머 이리 오너라 날아라 만남 난리 놀러와 하나님 하리라 모나미 나이 노모 할머니 할멈 나날이 나라 마나님 마리아 미리 몰라 모란 마님 말라리아 한마리 나날이 나란히 나홀로 너머 넘어라 놀림 노랑 놀람 말놀이 만만 말림 머리 멍멍이 모롱이 모르니 마무리 아롱아롱 아이 어린이 얼마나 알아라 아리랑 안마 알림 어림 얼마나 어머나 엄마 마마 엉망 옹이 이마 하나 호리호리 환호 호호호 히히히 하하하 아아아 나나나 이히히 컴퓨터 카타파하 크크크 큰일 찬물 파란 파랑 피리 푸하하 피아노 필통 나무 나팔 누나 눈물 노루 노을 놀이터 높이 눈치 느림 느티나무 마치 마루 마을 마무리 마음 마침 망치 마차 말초 포로 맡음 머루 모름 머리맡 무름 무리 물음 민물 밀림 한아름 아름 아울러 아우 아침 아픔 앞치마 어른 얼음 어름 어른 파파 푸르름 엉터리 오누이 오늘 오랑캐 온통 울타리 유난히 차라리 흰눈 참나무 초롱초롱 초라함 총총 추위 치우침 취침 치마 칭얼칭얼 칼날 캄캄 코앞 큰일 통나무 틈틈이 파란하늘 풀무 피눈물 피리 하품 하루 하마 허물 호통 흐름 할아버지 아버지 어머니 아빠 엄마 기린 가나다라 마바사아 보리 이렇게 요리 소리 나비 가노라 가닥 가라사대 가락 가랑비 가로막다 가리다 가만히 가시 가장자리 가지 갈다 갈대 갈림길 갈매기 감감하다 감돌다 감싸다 감자 갑갑하다 갑자기 갑절 강가 강아지 개나리 건지다 걷다 걸레 검다 겨냥 견디다 겸사겸사 계집 고깃배 고니 고대하다 고동 고랑 고래 고리 고삐 고사리 고소하다 고양이 고요하다 고이 고인돌 고작 고장 곤하다 기다리다 기대다 기러기 기반 기아 기와 기자 길이 길잡이 김장 까다롭다 깔때기 깜깜하다 깜찍하다 깨끗하다 껍데기 껍질 꼭지 꾀꼬리 낚시 날개 날다 날씨 내기 내려가다 노고지리 노다지 노래 놀다 녹말 다짐 단골 단단하다 달가닥 달맞이 달아나다 당기다 대롱 더럭 덩달아 도가니 도깨비 도끼 도라지 도랑 도마뱀 도시락 돋보기 돌다리 돕다 동산 돼지 땅거미 마지막 마감 마디 마지막 막내 막바지 만들다 만지다 말벗 말썽 매만지다 망아지 모기 메아리 메주 모내기 모래 먹거리 메기 며느리 모조리 모내기 무지개 바가지 바구니 바닥 바지 배짱 버리다 버선 번개 번데기 벌레 보배 보조개 봉오리 빨리 사나이 사다리 감가다 새김질 생각 선하다 소경 소나기 소나무 소리 솔바람 송사리 송아지 쇠고기 시시하다 신나다 실마리 아궁이 아기 아기자기 아깝다 아끼다 아낙네 아내 아주머니 아저씨 아지랑이 얌전하다 어기다 어깨 어둡다 억지 여름 여우 오막살이 올가미 올빼미 응달 작다 자갈 자리 자장가 잠자리 장난감 저고리 저녁밥 저절로 젊다 정어리 보바심 조약돌 종아리 지게 진달래 하지만  한글날 허전하다 헤어지다";
+            var d_wd_en = "Dallas KAL Kafka add all as ask dad fad faff fall flak flask half hall lad lass sad sal salad sass shall ABC Dallas KAL Kafka add all as ask back banana call cash dad fad faff fall flak flask half hall jam lad lass sad sal salad sand sass shall Dallas Friday KAL Kafka OK Tuesday add address adult afford after afterward age agree airport all apply april area art art artist as asia ask dad dark data daughter daylight dear deep desk destroy diary die dig dirty dish doll draw dress ear earth easy egg either error eye fad faff fall fare fast fat feed feel few fifty fight figure fill flak flask flight flood fly follow fool foolish foot forest forth forty free fresh full future garage gate gift giraffe grade grass great grow guard guess guide hair half halfway hall happy hard hat hate head health healthy hear hero herself hesitate hide high highway hill history hit hold holiday horse hotel hour huge idea if its itself joke just keep kid lad lady large lass last late lead leak leg letter lie life little load loaf lose loudly low off order ought outdoor outside pair paper part party pass passport pay perhaps pet photo pilot plate politely pool port post poster potato power pray properly proud pull purpose put quarter quiet quite railroad ready really relife reply report rest result ride rise road roar roll rope route rudely ruler sad safe sailor sal salad sale sass saturday seal seat sell series serious set shade shall shape sharp shell shirt shoe short shout show shower sigh sight sister skill sky sleepily slow softly sore south southeast speed spell spirit sport spot stair stare start steady step stop store straight strike stupid supper suppose sure surprise sweep tall taste tell test theater thief thirsty though throat through throw tightly tired today tool tooth top tour tourist toward tower toy treasure trip true truth try turtle type typewrite ultar use useful wait wake war wash waste weak wealth wealthy wear week wet whether while whole wide wife will wish wood word worker wrap write yellow yes yesterday you yourself";
+
+            CBal.init(d_wd_kr.split(' '), d_wd_en.split(' '));
+            //CBal.start();
+        </script>
+
+        <script>
+
+
+        </script>
+    </div><!--/section-->
+</div><!--/container-->
+
+
+</body>
+</html>
