@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>타자선생님</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css" />
+
+
+
+    <style type="text/css">
+        body {
+            font-size:14px;
+        }
+
+        .tit2 {
+            font-size:17px;font-weight:600;
+        }
+
+        .mobile_hide { /*모바일 일 경우 숨길 요소들*/
+        }
+
+        .container {
+            padding:0px 5px 0px 5px;
+            width:100%;
+            max-width:800px;
+        }
+
+        BLOCKQUOTE {
+            border-left-color:#ffd600;
+        }
+
+        /*컨텐츠페이지 헤더 css */
+        .ctzp_head {
+        }
+        .ctzp_head .tit1 {
+            font-size:20px; font-weight:600;
+        }
+        .ctzp_head .tbl tr {
+            border:0;
+        }
+        .ctzp_head .tbl td {
+            border:0;padding:0;margin:0;
+        }
+        .ctzp_head .tbl .ctzp_ico {
+            padding-left:10px;padding-right:20px;
+            font-size:50px;
+        }
+        .ctzp_desc {
+            color:#777;
+        }
+        .ctzp_menu {
+            padding-top:10px;
+        }
+        .ctzp_menu1 {
+            display:inline-block; margin-left:5px;
+            font-size:16px; font-weight:600;
+            padding:4px;
+            border-bottom:2px solid #eee;
+        }
+        .ctzp_menu1.on {
+            border-bottom:3px solid #FFD600;
+        }
+
+        [type="radio"]:not(:checked)+span, [type="radio"]:checked+span {
+            padding-left:23px;
+        }
+
+        .app_ad {
+            padding:2px;
+            border:2px solid #333;border-radius:6px;
+            box-shadow:none;
+        }
+        .app_ad table, .app_ad tr, .app_ad td {
+            padding:0;margin:0;
+            vertical-align:center;
+            box-shadow:none;
+        }
+
+        .container {
+            position:relative;
+        }
+
+        .char_a {
+            margin:20px 0px 0px 0px;
+            text-align:center;
+        }
+        .char1 {
+            display:inline-block;
+            width:54px;height:40px;
+            border:1px outset #888;
+            border-radius:3px;
+            margin:4px;
+            font-size:20px;font-weight:normal;color:#333;
+        }
+
+        .char1.on {
+            height:54px;
+            font-size:30px;font-weight:600;
+            color:#33e;
+        }
+        .char1.ok {
+            background-color:#ccc;
+            font-size:20px;font-weight:normal;color:#777;
+            height:40px;
+        }
+        .err_a {
+            text-align:center;
+        }
+        .err1 {
+            display:inline-block;
+            width:54px;height:20px;
+            margin:4px;margin-top:0px;text-align:center;
+            font-weight:600;color:#e33;font-size:18px;
+            /*border:1px dotted #00f;*/
+        }
+        #setup_ct {
+            position:absolute;
+            left:0px;top:0px;
+            width:100%;height:100%;
+            background-color:rgba(50,50,50,0.5);
+            text-align:center;
+        }
+        #setup_box {
+            display:inline-block;
+            margin-top:40px;margin-left:auto;margin-right:auto;
+            background-color:#f5f5f5;
+            padding:20px;
+        }
+        .keyp {
+            font-family:'Times New Roman';
+            font-size:24px;
+            border:1px solid #999;
+            margin:5px;
+            cursor:pointer;
+        }
+        .keyp:hover {
+            border-color:#33e;
+        }
+        .keyp1 {
+            /*border:1px dotted #999;*/
+            line-height:0.8;
+        }
+        .keyp1.on {
+            color:#33e;
+        }
+
+        .progress_bar {
+            width:99%;
+            margin-top:10px;
+            margin-bottom:20px;
+            border:3px solid #00f;
+        }
+        #progress_bar {
+            height:8px; width:19%;
+            background-color:#FFC400;
+        }
+
+        .punch_a {
+            position:relative;
+            height:200px;
+            /*border:1px dotted #eee;*/
+        }
+        .punch1 {
+            position:absolute;
+            bottom:5px;
+            width:54px;height:54px;
+            /*background-color:#a55;*/
+        }
+        .punch1.on {
+            /*background-color:#e33;*/
+        }
+        .punch1.left {
+            background:url(img/punch1.png) no-repeat;
+        }
+        .punch1.right {
+            background:url(img/punch2.png) no-repeat;
+        }
+        .punch1.left.on {
+            background:url(img/punch3.png) no-repeat;
+        }
+        .punch1.right.on {
+            background:url(img/punch4.png) no-repeat;
+        }
+        .work_a {
+            position:relative;
+            width:700px;
+            margin-left:auto;margin-right:auto;
+            /*border:2px solid #f00;*/
+        }
+    </style>
+</head>
+<body>
+
+
+
+
+
+
+
+            <h1>글쇠익힘</h1>
+            <p>[글쇠익힘]은 키보드의 각 글쇠의 위치를 손가락으로 익히는 과정입니다.<br>
+                절대로 키보드를 보고 타이핑하지 마세요.</p>
+
+
+
+        <div class="container">
+            <div class="progress_bar"><div id="progress_bar"></div></div>
+
+            <div class="work_a">
+                <div class="char_a" id="char_a"><div class="char1"></div></div>
+                <div class="err_a" id="err_a"></div>
+                <div class="punch_a" id="punch_a"></div>
+            </div><!--/work_a-->
+
+            <div id="setup_ct">
+                <div id="setup_box">
+                    <form name="sel_f1" onsubmit="return false;">
+                        <div>연습할 언어와 키보드 자리를 선택하세요</div>
+                        <div>
+                            <label><input type="radio" name="kl" value="1" checked/><span>한글</span></label>
+                            <label><input type="radio" name="kl" value="0"/><span>English</span></label>
+                        </div>
+                        <div id="keyp_1" onclick="CPunch.start(0)"></div>
+                        <div id="keyp_2" onclick="CPunch.start(1)"></div>
+                        <div id="keyp_3" onclick="CPunch.start(2)"></div>
+                    </form>
+                </div><!--/setup_box-->
+            </div><!--/setup_ct-->
+        </div><!--/container-->
+
+        <script>
+            var CPunch= {
+                is_start:false,
+                lang: 1, //0:eng 1:kor
+                lv_char0:[
+                    ['A','S','D','F','G','H','J','K','L',';'], //1단계
+                    ['Z','X','C','V','B','N','M',',','.','/'], //2단계
+                    ['Q','W','E','R','T','Y','U','I','O','P']
+                ],
+                lv_char1:[
+                    ['ㅁ','ㄴ','ㅇ','ㄹ','ㅎ','ㅗ','ㅓ','ㅏ','ㅣ',';'], //1단계
+                    ['ㅋ','ㅌ','ㅊ','ㅍ','ㅠ','ㅜ','ㅡ',',','.','/'], //2단계
+                    ['ㅂ','ㅈ','ㄷ','ㄱ','ㅅ','ㅛ','ㅕ','ㅑ','ㅐ','ㅔ']
+                ],
+                lv_char:[],
+                lv_key:[
+                    [65,83,68,70,71,72,74,75,76,186], //1단계
+                    [90,88,67,86,66,78,77,188,190,191], //2단계
+                    [81,87,69,82,84,89,85,73,79,80]
+                ],
+                lv:0,
+                a_char:[],
+                a_key:[],
+                a_err:[],
+                n_char:-1,
+                n_ok:0,
+                l_ok:50, //ok 최대값
+
+                init: function() {
+                    document.getElementById('keyp_1').innerHTML=this.drawKeyP(0);
+                    document.getElementById('keyp_2').innerHTML=this.drawKeyP(1);
+                    document.getElementById('keyp_3').innerHTML=this.drawKeyP(2);
+
+                    var i,s='';
+                    for(i=0;i<10;i++) {
+                        if(i==5) s+='<div style="display:inline-block;width:60px;height:10px;">&nbsp;</div>';
+                        s+='<div class="err1" id="err_'+i+'"> </div>';
+                    }
+                    document.getElementById('err_a').innerHTML=s;
+
+                    this.dispSetup();
+                    this.drawPunch();
+                    document.onkeydown=function() { CPunch.keyDown(); }
+                    setInterval(function() { CPunch.aniOk(); },20);
+                },
+
+                dispSetup: function() {
+                    document.getElementById('setup_ct').style.display='block';
+                },
+
+                start: function(lv) {
+                    this.lang=document.forms['sel_f1'].elements['kl'][0].checked?1:0;
+                    this.lv_char=(this.lang==0)?this.lv_char0:this.lv_char1;
+
+                    this.lv=lv; this.a_char=this.lv_char[lv], this.a_key=this.lv_key[lv];
+                    document.getElementById('setup_ct').style.display='none';
+                    var i,s='';
+                    for(i=0;i<10;i++) {
+                        if(i==5) s+='<div style="display:inline-block;width:60px;height:10px;">&nbsp;</div>';
+                        s+='<div id="c_'+i+'" class="char1">'+this.a_char[i]+'</div>';
+                        document.getElementById('err_'+i).innerHTML='';
+                    }
+                    this.a_err=[0,0,0,0,0,0,0,0,0,0];
+                    document.getElementById('char_a').innerHTML=s;
+
+                    this.is_start=true; this.n_ok=0;
+                    this.n_char=Math.floor(Math.random()*10);
+                    this.onChar(this.n_char);
+                    this.drawPBar();
+
+                },
+
+                drawKeyP: function(lv) {
+                    var i,s='<div class="keyp">';
+                    s+='<div class="keyp1">'; if(lv==2) s+='&nbsp;■■■■■■■■■■■■'; else s+='&nbsp;□□□□□□□□□□□□'; s+='</div>';
+                    s+='<div class="keyp1">'; if(lv==0) s+='&nbsp;&nbsp;■■■■■■■■■■■'; else s+='&nbsp;&nbsp;□□□□□□□□□□□'; s+='</div>';
+                    s+='<div class="keyp1">'; if(lv==1) s+='&nbsp;&nbsp;&nbsp;■■■■■■■■■■'; else s+='&nbsp;&nbsp;&nbsp;□□□□□□□□□□'; s+='</div>';
+                    s+='</div>';
+                    return s;
+                },
+
+                drawPunch: function() {
+                    var i,s='', pl=4;
+                    for(i=0;i<10;i++) {
+                        s+='<div class="punch1 '+((i<5)?'left':'right')+'" id="punch_'+i+'" style="left:'+pl+'px;'+((i==4 || i==5)?'display:none':'')+'"></div>';
+                        pl+=64; if(i==4) pl+=60;
+                    }
+                    document.getElementById('punch_a').innerHTML=s;
+                },
+
+                onChar: function(n) {
+                    document.getElementById('c_'+n).className='char1 on';
+                    document.getElementById('punch_'+n).className='punch1 '+((n<5)?'left':'right')+' on';
+                    if(n==4 || n==5) {
+                        document.getElementById('punch_'+n).style.display='block';
+                        document.getElementById('punch_'+((n==4)?3:6)).style.display='none';
+                    }
+                },
+
+                okChar: function(n) {
+                    document.getElementById('c_'+n).className='char1';
+                    document.getElementById('punch_'+n).className='punch1 '+((n<5)?'left':'right');
+                    if(n==4 || n==5) {
+                        document.getElementById('punch_'+n).style.display='none';
+                        document.getElementById('punch_'+((n==4)?3:6)).style.display='block';
+                    }
+                },
+                /*
+                 1   2  3  4  5  6  7  8  9  0  -  =
+                 49 50 51 52 53 54 55 56 57 48 189 187
+                qwertyuiop[]\
+                asdfghjkl;'
+                zxcvbnm,./
+                a b c d e f g h i j k l m n o p qrstuvwxyz
+                65 66 67 68 69 70 71 72 73 74
+                */
+
+                keyDown: function() {
+                    if(!this.is_start || this.n_ani>=0) return;
+                    //var c=event.key.toUpperCase();
+                    var kc=event.charCode || event.keyCode;
+                    //alert('c:'+c+' kc:'+kc);
+                    if(kc==this.a_key[this.n_char]) { //ok
+                        if(++this.n_ok>this.l_ok) { //레벨성공
+                            this.is_start=false;
+                            this.dispSetup();
+                            return;
+                        }
+                        this.drawPBar();
+                        this.n_ani=10; //성공 애니메에션..
+                        /*
+                        var n=Math.floor(Math.random()*5);
+                        if(this.n_char<5) n+=5; //좌우 번갈아 나오도록
+                        this.n_char=n;
+                        this.onChar(this.n_char);
+                        */
+                    } else { //err
+                        this.a_err[this.n_char]++;
+                        document.getElementById('err_'+this.n_char).innerHTML=this.a_err[this.n_char];
+                    }
+                },
+
+                n_ani:-1,
+                aniOk: function() {
+                    if(!this.is_start || this.n_ani<0) return;
+                    if(--this.n_ani<0) {
+                        this.okChar(this.n_char);
+                        document.getElementById('punch_'+this.n_char).style.bottom='5px';
+                        var n=Math.floor(Math.random()*5);
+                        if(this.n_char<5) n+=5; //좌우 번갈아 나오도록
+                        this.n_char=n;
+                        this.onChar(this.n_char);
+                    } else if(this.n_ani>=0) { //ani
+                        var n=(200-this.n_ani*20);
+                        document.getElementById('punch_'+this.n_char).style.bottom=n+'px';
+                    }
+                },
+
+                drawPBar: function() {
+                    var p=Math.floor((this.n_ok/this.l_ok)*100); if(p>100) p=100;
+                    document.getElementById('progress_bar').style.width=p+'%';
+                },
+
+                tmp:null
+
+            }
+
+            CPunch.init();
+        </script>
+
+</body>
+</html>
