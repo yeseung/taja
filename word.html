@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>타자선생님</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css"/>
+
+
+    <style>
+        body {
+            font-size: 14px;
+        }
+
+        BLOCKQUOTE {
+            border-left-color: #ffd600;
+        }
+
+        /*컨텐츠페이지 헤더 css */
+        .ctzp_head {
+        }
+
+        .ctzp_head .tit1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .ctzp_head .tbl tr {
+            border: 0;
+        }
+
+        .ctzp_head .tbl td {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        .ctzp_head .tbl .ctzp_ico {
+            padding-left: 10px;
+            padding-right: 20px;
+            font-size: 50px;
+        }
+
+        .ctzp_desc {
+            color: #777;
+        }
+
+        .ctzp_menu {
+            padding-top: 10px;
+        }
+
+        .ctzp_menu1 {
+            display: inline-block;
+            margin-left: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            padding: 4px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .ctzp_menu1.on {
+            border-bottom: 3px solid #FFD600;
+        }
+
+        [type="radio"]:not(:checked) + span, [type="radio"]:checked + span {
+            padding-left: 23px;
+        }
+
+        .app_ad {
+            padding: 2px;
+            border: 2px solid #333;
+            border-radius: 6px;
+            box-shadow: none;
+        }
+
+        .app_ad table, .app_ad tr, .app_ad td {
+            padding: 0;
+            margin: 0;
+            vertical-align: center;
+            box-shadow: none;
+        }
+
+        .ip {
+            font-family: 굴림체;
+            font-size: 24pt
+        }
+
+        .dp {
+            text-align: center;
+            background-color: #000;
+            color: #fff;
+        }
+
+        .dp_box {
+            display: inline-block;
+            width: 50px;
+            background-color: #efefef;
+            color: #111;
+            border: 1px inset #777;
+            text-align: center;
+        }
+
+        .ex_a .grp_a {
+            background-color: #808080;
+            color: #ffff00;
+        }
+
+        .ex_a td {
+            padding: 2px 4px 2px 4px;
+        }
+
+        .input_a {
+            background-color: #EEEEEE;
+        }
+
+        .game_a {
+            background-color: #424242;
+            border: 8px solid #FFC400;
+            border-radius: 5px;
+        }
+
+        .game_a th, .game_a td {
+            padding: 3px;
+        }
+    </style>
+
+</head>
+<body>
+
+<script type="text/javascript">
+    var omember = 1;//0;
+
+    var nCho = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+    var nJung = [1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 2, 2, 2, 1, 1, 2, 1];
+    var nJong = [0, 1, 1, 2, 1, 2, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+
+    sWord = [
+        "어머니 미나리 호미 미니 많이 호랑이 몰라 이러니 이런 호남인 이놈이 망나니 하노라 너머 이리 오너라 날아라 만남 난리 놀러와 하나님 하리라 모나미 나이 노모 할머니 할멈 나날이 나라 마나님 마리아 미리 몰라 모란 마님 말라리아 한마리 나날이 나란히 나홀로 너머 넘어라 놀림 노랑 놀람 말놀이 만만 말림 머리 멍멍이 모롱이 모르니 마무리 아롱아롱 아이 어린이 얼마나 알아라 아리랑 안마 알림 어림 얼마나 어머나 엄마 마마 엉망 옹이 이마 하나 호리호리 환호 호호호 히히히 하하하 아아아 나나나 이히히",
+        "컴퓨터 카타파하 크크크 큰일 찬물 파란 파랑 피리 푸하하 피아노 필통 나무 나팔 누나 눈물 노루 노을 놀이터 높이 눈치 느림 느티나무 마치 마루 마을 마무리 마음 마침 망치 마차 말초 포로 맡음 머루 모름 머리맡 무름 무리 물음 민물 밀림 한아름 아름 아울러 아우 아침 아픔 앞치마 어른 얼음 어름 어른 파파 푸르름 엉터리 오누이 오늘 오랑캐 온통 울타리 유난히 차라리 흰눈 참나무 초롱초롱 초라함 총총 추위 치우침 취침 치마 칭얼칭얼 칼날 캄캄 코앞 큰일 통나무 틈틈이 파란하늘 풀무 피눈물 피리 하품 하루 하마 허물 호통 흐름",
+        "할아버지 아버지 어머니 아빠 엄마 기린 가나다라 마바사아 보리 이렇게 요리 소리 나비 가노라 가닥 가라사대 가락 가랑비 가로막다 가리다 가만히 가시 가장자리 가지 갈다 갈대 갈림길 갈매기 감감하다 감돌다 감싸다 감자 갑갑하다 갑자기 갑절 강가 강아지 개나리 건지다 걷다 걸레 검다 겨냥 견디다 겸사겸사 계집 고깃배 고니 고대하다 고동 고랑 고래 고리 고삐 고사리 고소하다 고양이 고요하다 고이 고인돌 고작 고장 곤하다 기다리다 기대다 기러기 기반 기아 기와 기자 길이 길잡이 김장 까다롭다 깔때기 깜깜하다 깜찍하다 깨끗하다 껍데기 껍질 꼭지 꾀꼬리 낚시 날개 날다 날씨 내기 내려가다 노고지리 노다지 노래 놀다 녹말 다짐 단골 단단하다 달가닥 달맞이 달아나다 당기다 대롱 더럭 덩달아 도가니 도깨비 도끼 도라지 도랑 도마뱀 도시락 돋보기 돌다리 돕다 동산 돼지 땅거미 마지막 마감 마디 마지막 막내 막바지 만들다 만지다 말벗 말썽 매만지다 망아지 모기 메아리 메주 모내기 모래 먹거리 메기 며느리 모조리 모내기 무지개 바가지 바구니 바닥 바지 배짱 버리다 버선 번개 번데기 벌레 보배 보조개 봉오리 빨리 사나이 사다리 감가다 새김질 생각 선하다 소경 소나기 소나무 소리 솔바람 송사리 송아지 쇠고기 시시하다 신나다 실마리 아궁이 아기 아기자기 아깝다 아끼다 아낙네 아내 아주머니 아저씨 아지랑이 얌전하다 어기다 어깨 어둡다 억지 여름 여우 오막살이 올가미 올빼미 응달 작다 자갈 자리 자장가 잠자리 장난감 저고리 저녁밥 저절로 젊다 정어리 보바심 조약돌 종아리 지게 진달래 하지만  한글날 허전하다 헤어지다",
+        "Dallas KAL Kafka add all as ask dad fad faff fall flak flask half hall lad lass sad sal salad sass shall",
+        "ABC Dallas KAL Kafka add all as ask back banana call cash dad fad faff fall flak flask half hall jam lad lass sad sal salad sand sass shall",
+        "Dallas Friday KAL Kafka OK Tuesday add address adult afford after afterward age agree airport all apply april area art art artist as asia ask dad dark data daughter daylight dear deep desk destroy diary die dig dirty dish doll draw dress ear earth easy egg either error eye fad faff fall fare fast fat feed feel few fifty fight figure fill flak flask flight flood fly follow fool foolish foot forest forth forty free fresh full future garage gate gift giraffe grade grass great grow guard guess guide hair half halfway hall happy hard hat hate head health healthy hear hero herself hesitate hide high highway hill history hit hold holiday horse hotel hour huge idea if its itself joke just keep kid lad lady large lass last late lead leak leg letter lie life little load loaf lose loudly low off order ought outdoor outside pair paper part party pass passport pay perhaps pet photo pilot plate politely pool port post poster potato power pray properly proud pull purpose put quarter quiet quite railroad ready really relife reply report rest result ride rise road roar roll rope route rudely ruler sad safe sailor sal salad sale sass saturday seal seat sell series serious set shade shall shape sharp shell shirt shoe short shout show shower sigh sight sister skill sky sleepily slow softly sore south southeast speed spell spirit sport spot stair stare start steady step stop store straight strike stupid supper suppose sure surprise sweep tall taste tell test theater thief thirsty though throat through throw tightly tired today tool tooth top tour tourist toward tower toy treasure trip true truth try turtle type typewrite ultar use useful wait wake war wash waste weak wealth wealthy wear week wet whether while whole wide wife will wish wood word worker wrap write yellow yes yesterday you yourself"
+    ];
+    var dv = 21 * 28;
+    var start = false, dt = 0, avt = 0, topt = 0, exn = 0;
+    var testn = 0, exrn = 3, oItv = "";
+    var tWords, tWords_n = 50;
+    u_lang = 0, u_pos = 0, u_rn = 0;
+
+    function gId(id) {
+        return document.getElementById(id);
+    }
+
+    function sId(id, s) {
+        document.getElementById(id).innerHTML = s;
+    }
+
+    function xHDiv(hg) {
+        var hc, cho, jung, jong;
+        hc = hg.charCodeAt(0) - 0xAC00;//ubase1;
+        if (hc < 0) return 1;
+        cho = Math.floor(hc / dv);
+        hc = hc % dv;
+        jung = Math.floor(hc / 28);
+        jong = hc % 28;
+        var tn = nCho[cho] + nJung[jung] + nJong[jong];
+        return tn;
+    }
+
+    function xCalN(s) {
+        var l = s.length;
+        var i = 0, tn = 0, c;
+        while (i < l) {
+            if (s.charCodeAt(i) < 200) tn++;
+            else tn += xHDiv(s.charAt(i));
+            i++;
+        }
+        return tn;
+    }
+
+    function xSetWord() {
+        var s = "";
+        if (u_lang == 0) { //한글
+            if (u_pos == 3) s = sWord[0] + " " + sWord[1] + " " + sWord[2];
+            else s = sWord[u_pos];
+        } else { //영문
+            if (u_pos == 3) s = sWord[3] + " " + sWord[4] + " " + sWord[5];
+            else s = sWord[u_pos + 3];
+        }
+        var sl = s.split(" ");
+        var cn = sl.length, n = 0, n0 = -1, n1, w;
+        tWords = new Array();
+        while (true) {
+            n1 = Math.floor(Math.random() * cn);
+            if (n1 == n0) n1 = Math.floor(Math.random() * cn);
+            n0 = n1;
+            w = sl[n0];
+            if (w.length > 1) tWords[n++] = w;
+            if (n >= tWords_n) break;
+        }
+        exn = 0;
+    }
+
+    function xNextWord() {
+        var fe = document.forms['f1'].elements;
+        if (exn >= tWords_n) {
+            if (u_pos == 3) {
+                alert("마지막 단계를 모두 마쳤습니다!\n현재 단계가 다시 시작됩니다.");
+            } else {
+                if (omember == 0) {
+                    alert("정회원이 아닌 경우 현재 단계만 연습가능합니다!");
+                } else {
+                    if (confirm("현재 단계가 끝났습니다!\n다음 단계로 진행하시겠습니까?")) {
+                        u_pos++;
+                        fe['r2'][u_pos].checked = true;
+                        xSetPos(u_pos + 1);
+                    }
+                }
+            }
+            xSetWord();
+        }
+        var s = tWords[exn];
+        gId("id_err").innerText = "";
+        sId('t6', exn + "/" + tWords_n);
+        for (var i = 0; i < u_rn; i++) s += " " + tWords[exn];
+        fe['t1'].value = s;
+        fe['t2'].focus();
+        xStartItv();
+    }
+
+    var sgrp1 = "■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■";
+
+    function xCkStr() {
+        var i, j, k, s = "", l;
+        dt = ((new Date).getTime() - dt);
+        if (dt < 1) dt = 1;
+        start = false;
+        var fe = document.forms['f1'].elements;
+        var s1 = fe['t1'].value, s2 = fe['t2'].value;
+        var l1 = s1.length, l2 = s2.length;
+        if (l2 < l1) {
+            alert("윗글의 내용을 끝까지 입력하세요!");
+            fe['t2'].focus();
+            fe['t2'].value = "";
+            xStartItv();
+            return;
+        }
+        var on = 0;
+        for (i = 0; i < l1; i++) {
+            if (s1.charAt(i) == s2.charAt(i)) {
+                on++;
+                k = ".";
+            } else k = "x";
+            if (s1.charCodeAt(i) > 200) s += "." + k;
+            else s += k;
+        }
+        if (on < l1) { //오타가 있을 경우..처리
+            gId("id_err").innerText = s;
+            alert("오타가 있으면 통과가 되지 않습니다.\n다시 입력해 주세요.");
+            gId("id_err").innerText = "";
+            fe['t2'].focus();
+            fe['t2'].value = "";
+            xStartItv();
+            return;
+        }
+        fe['t2'].value = "";
+        var t = Math.floor((xCalN(s2) * 60000) / dt);
+        if (t > topt) {
+            topt = t;
+            j = Math.floor(t * 0.04);
+            s = sgrp1.substr(0, j);
+            for (i = 0; i < 25 - j; i++) {
+                s += " ";//&nbsp;";
+            }
+            gId("id_s2").innerText = s;
+        }
+        sId('t3', t);
+        sId('t4', topt);
+        avt = ((avt * testn) + t) / (testn + 1);
+        sId('t5', Math.floor(avt));
+        gId("id_s1").innerText = sgrp1.substr(0, Math.floor(t * 0.04));
+        gId("id_s3").innerText = sgrp1.substr(0, Math.floor(avt * 0.04));
+        exn++;
+        testn++;
+        xNextWord();
+        fe['t2'].focus();
+    }
+
+    function xKeyDown() {
+        if (start == false) {
+            dt = (new Date).getTime();
+            start = true;
+        }
+        if (event.keyCode == 13) {
+            xCkStr();
+            xStartItv();
+        }
+    }
+
+    function xStartItv() {
+        if (oItv) clearInterval(oItv);
+        if (start) return;
+        oItv = setInterval("xItv()", 500);
+    }
+
+    function xItv() {
+        if (start) {
+            clearInterval(oItv);
+            return;
+        }
+        if (document.forms['f1'].elements['t2'].value.length > 0) {
+            dt = (new Date).getTime();
+            start = true;
+            clearInterval(oItv);
+        }
+    }
+
+    extime = 0;
+
+    function xItv2() {
+        sId('t7', extime);
+        extime++;
+    }
+
+    env_s = true;
+
+    function xEnv() {
+        if (env_s) return;
+        env_v = true;
+        document.getElementById("exarea").style.visibility = "hidden";
+    }
+
+    function xEnv2(n) {
+        xEnv();
+        xSetPos(n);
+    }
+
+    function xSetPos(n) {
+        var d = document;
+        if (omember == 0) {
+            if (n > 1) {
+                alert("정회원만 선택할 수 있습니다!");
+                d.forms['f1'].elements['r2'][0].checked = true;
+                return;
+            }
+        }
+        gId("id_p1").style.backgroundColor = gId("id_p2").style.backgroundColor = gId("id_p3").style.backgroundColor = '#FFFF00';
+        if (n == 1) gId("id_p2").style.backgroundColor = gId("id_p3").style.backgroundColor = '#EEEEEE';
+        else if (n == 2) gId("id_p3").style.backgroundColor = '#EEEEEE';
+        else if (n == 3) gId("id_p2").style.backgroundColor = '#EEEEEE';
+    }
+
+    oItv2 = "";
+
+    function xExStart() {
+        env_s = false;
+        var fe = document.forms['f1'].elements;
+        gId("exarea").style.visibility = "visible";
+        u_lang = (fe['r1'][0].checked) ? 0 : 1;
+        var i;
+        for (i = 0; i < 4; i++) if (fe['r2'][i].checked) {
+            u_pos = i;
+            break;
+        }
+        for (i = 0; i < 3; i++) if (fe['r3'][i].checked) {
+            u_rn = i;
+            break;
+        }
+        xSetWord();
+        xNextWord();
+        fe['t2'].focus();
+        if (!oItv2) oItv2 = setInterval("xItv2()", 60000);
+    }
+
+
+</script>
+
+
+<h2>단어연습</h2>
+<p>[단어연습]은 키보드의 일부 자리에 해당하는 키들로 이루어진 단어들을 통해 자판을 익힐 수 있도록 해 줍니다.</p>
+
+
+<div class="game_a">
+    <form name="f1">
+        <!--설정박스-->
+        <div style="background-color:#e9e9e9;padding:2px;">
+            <div style="padding:4px;"><b>연습환경설정</b>
+                <button class="waves-effect waves-light btn amber accent-4" type="button" onclick="xExStart()">아래 설정으로 연습시작</buton>
+            </div>
+            <table border="0" cellspacing="0" style="border-top:1px dotted #999;">
+                <tr>
+                    <td style="vertical-align:top;">
+                        <p>▒ 한/영</p>
+                        <label><input type="radio" name="r1" value="0" checked onClick="xEnv()"><span>한글자판</span></label><br>
+                        <label><input type="radio" name="r1" value="1" onClick="xEnv()"><span>영문자판</span></label>
+                    </td>
+                    <td style="vertical-align:top;">
+                        <p>▒ 연습단계 (연습할 자리)</p>
+                        <label><input type="radio" name="r2" value="1" checked onClick="xEnv2(1)"><span>①</span></label>
+                        <label><input type="radio" name="r2" value="2" onClick="xEnv2(2)"><span>①+②</span></label>
+                        <label><input type="radio" name="r2" value="3" onClick="xEnv2(3)"><span>①+③</span></label>
+                        <label><input type="radio" name="r2" value="4" onClick="xEnv2(4)"><span>①+②+③</span></label>
+                        <br/>
+                        &nbsp;③ <span id="id_p3" style="background-color:#EEEEEE">□□□□□□□□□□□□□</span><br>
+                        &nbsp;①&nbsp;&nbsp; <span id="id_p1" style="background-color:#FFFF00">□□□□□□□□□□□</span><br>
+                        &nbsp;②&nbsp;&nbsp;&nbsp;&nbsp; <span id="id_p2" style="background-color:#EEEEEE">□□□□□□□□□□</span>
+                    </td>
+                    <td style="vertical-align:top;">
+                        <p>▒ 단어반복횟수</p>
+                        <label><input type="radio" name="r3" value="1" checked onClick="xEnv()"><span>1회</span></label><br>
+                        <label><input type="radio" name="r3" value="2" onClick="xEnv()"><span>2회</span></label><br>
+                        <label><input type="radio" name="r3" value="3" onClick="xEnv()"><span>3회</span></label>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+
+        <!--연습화면-->
+        <div class="ex_a" id="exarea" style="visibility:hidden">
+            <table border="0" cellspacing=0 cellpadding=0 width="100%" style="background-color:#000;">
+                <tr>
+                    <td colspan="2" style="color:#f5f5f5;">&nbsp; &nbsp;속도[타/분]</td>
+                </tr>
+                <tr>
+                    <td class="dp" width=100 nowrap>현재:<b class="dp_box" id="t3">&nbsp;</td>
+                    <td class="grp_a"><span id="id_s1"> </span></td>
+                </tr>
+                <tr>
+                    <td class="dp">최고:<b class="dp_box" id="t4">&nbsp;</b></td>
+                    <td class="grp_a"><span id="id_s2"> </span></td>
+                </tr>
+                <tr>
+                    <td class="dp">평균:<b class="dp_box" id="t5">&nbsp;</b></td>
+                    <td class="grp_a"><span id="id_s3"> </span></td>
+                </tr>
+                <tr>
+                    <td colspan=2 class="dp">
+                        연습단어:<b class="dp_box" id="t6">&nbsp;</b> &nbsp; &nbsp; &nbsp; 연습시간:<b class="dp_box" id="t7">0</b>분
+                    </td>
+                </tr>
+            </table>
+            <!--입력화면-->
+            <div class="input_a">
+                <div class="background-color:#fff;color:#ff0000;"><span id="id_err" class="ip"></span></div>
+                <div><input type="text" name="t1" size="26" class="ip" readonly style="background:#ffecb3;font-size:30px;"></div>
+                <div><input type="text" name="t2" size="26" class="ip" onKeyUp="xKeyDown()" style="background-color:#fff;font-size:30px;"></div>
+                <div style="color:#808080;">단어 입력 후 [Enter]키를 누르면 다음 단어로 이동</div>
+            </div>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>
