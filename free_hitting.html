@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>타자선생님</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css"/>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+
+    <style>
+        body {
+            font-size: 14px;
+        }
+
+        .tit2 {
+            font-size: 17px;
+            font-weight: 600;
+        }
+
+        .mobile_hide { /*모바일 일 경우 숨길 요소들*/
+        }
+
+        .container {
+            padding: 0px 5px 0px 5px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        BLOCKQUOTE {
+            border-left-color: #ffd600;
+        }
+
+        /*컨텐츠페이지 헤더 css */
+        .ctzp_head {
+        }
+
+        .ctzp_head .tit1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .ctzp_head .tbl tr {
+            border: 0;
+        }
+
+        .ctzp_head .tbl td {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        .ctzp_head .tbl .ctzp_ico {
+            padding-left: 10px;
+            padding-right: 20px;
+            font-size: 50px;
+        }
+
+        .ctzp_desc {
+            color: #777;
+        }
+
+        .ctzp_menu {
+            padding-top: 10px;
+        }
+
+        .ctzp_menu1 {
+            display: inline-block;
+            margin-left: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            padding: 4px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .ctzp_menu1.on {
+            border-bottom: 3px solid #FFD600;
+        }
+
+        [type="radio"]:not(:checked) + span, [type="radio"]:checked + span {
+            padding-left: 23px;
+        }
+
+        .app_ad {
+            padding: 2px;
+            border: 2px solid #333;
+            border-radius: 6px;
+            box-shadow: none;
+        }
+
+        .app_ad table, .app_ad tr, .app_ad td {
+            padding: 0;
+            margin: 0;
+            vertical-align: center;
+            box-shadow: none;
+        }
+
+
+        .ir {
+            background-color: #EEEEEE
+        }
+
+        .dp_box {
+            display: inline-block;
+            width: 50px;
+            background-color: #efefef;
+            border: 1px inset #777;
+            text-align: center;
+        }
+
+
+        .ex_a {
+            border: 8px solid #FFCC66;
+            border-radius: 5px;
+        }
+
+        .ex_hd {
+            background-color: #FFCC66;
+            padding: 4px;
+            padding-left: 20px;
+        }
+
+        .ex_hd span {
+            display: inline-block;
+            margin-left: 10px;
+            padding-left: 5px;
+            border-left: 1px dotted #555;
+        }
+
+        .tbl_dp {
+            width: auto;
+        }
+
+        .tbl_dp tr {
+            border: 0;
+        }
+
+        .tbl_dp th, .tbl_dp td {
+            padding: 3px;
+        }
+
+        .tbl_dp th {
+            width: 60px;
+            text-align: right;
+        }
+    </style>
+
+    <script language="javascript">
+        var omember = 1;//0;
+
+        // 아래 직접 가져옴 <script language="javascript" src="ex4_2_js.php">
+        var nCho = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+        var nJung = [1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 2, 2, 2, 1, 1, 2, 1];
+        var nJong = [0, 1, 1, 2, 1, 2, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+
+        var dv = 21 * 28;
+        var start = false, dt = 0;
+
+        function gId(id) {
+            return document.getElementById(id);
+        }
+
+        function sId(id, s) {
+            document.getElementById(id).innerHTML = s;
+        }
+
+        function xCalN(s) {
+            var hc, cho, jung, jong;
+            var l = s.length;
+            var i = 0, tn = 0, hc;
+            while (i < l) {
+                if ((hc = s.charCodeAt(i)) < 200) tn++;
+                else {
+                    hc = hc - 0xAC00;
+                    if (hc < 0) tn++;
+                    else {
+                        cho = Math.floor(hc / dv);
+                        hc = hc % dv;
+                        jung = Math.floor(hc / 28);
+                        jong = hc % 28;
+                        tn += nCho[cho] + nJung[jung] + nJong[jong];
+                    }
+                }
+                i++;
+            }
+            return tn;
+        }
+
+        function xStart() {
+            var fe = document.forms['f1'];
+            if (start) {
+                start = false;
+                fe['ta1'].disabled = true;
+                fe['bt1'].value = "시작";
+                dt = (new Date).getTime() - dt;
+                if (dt < 1) dt = 1;
+                var s = fe['ta1'].value;
+                if (s.length < 5) {
+                    alert("최소 5글자 이상 입력하셔야 속도가 계산됩니다!");
+                    return;
+                }
+                var tn = xCalN(s);
+                sId('t3', s.length);
+                var t = Math.floor(dt / 1000);
+                sId('t2', Math.floor(t / 60) + "분" + (t % 60) + "초");
+                sId('t4', tn);
+                sId('t1', Math.floor((tn * 60000) / dt));
+            } else {
+                start = true;
+                fe['ta1'].value = "";
+                fe['ta1'].disabled = false;
+                fe['bt1'].value = "종료";
+                dt = (new Date).getTime();
+                fe['ta1'].focus();
+            }
+        }
+
+        function xPaste() {
+            window.clipboardData.setData("Text", "");
+        }
+
+    </script>
+
+
+</head>
+<body>
+
+
+<h1>특별연습</h1>
+<p>[특별연습]은 기존 타자연습 프로그램과는 성격이 다른 방식으로 학습하게 됩니다.</p>
+
+
+<p class="tit2">맘대로 치기</p>
+<ul>
+    <li>[마음대로 치기는]는 실제 문서를 옆에 두고 치거나, 생각나는 글등, 마음대로 입력하고 싶은 내용을 입력하면, 입력한 [글자수/타수/입력시간/속도]등이 계산되어 표시해 줍니다.</li>
+    <li>[시작]버튼을 누른후 입력을 시작하고 입력이 모두 끝난 후 [종료(시작버튼과 같은 위치)]을 누르면 기록이 계산되어 표시됩니다.&nbsp;</li>
+</ul>
+
+
+<form name="f1">
+    <div class="ex_a">
+        <div class="ex_hd">
+            <table border="0" class="tbl_dp">
+                <tr>
+                    <th>속도:</th>
+                    <td><b class="dp_box" id="t1">&nbsp;</b>타/분</td>
+                    <th>시간:</th>
+                    <td><b class="dp_box" id="t2" style="width:70px;">&nbsp;</b></td>
+                </tr>
+                <tr>
+                    <th>글자수:</th>
+                    <td><b class="dp_box" id="t3">&nbsp;</b>자</td>
+                    <th>총타수:</th>
+                    <td><b class="dp_box" id="t4">&nbsp;</b>타</td>
+                </tr>
+                <tr>
+                    <td colspan="4" style="text-align:center;border-top:1px dotted #999;">
+                        <input class="waves-effect waves-light btn-small" type="button" name="bt1" onClick="xStart()" value="시작" style="color:#fff;"/>
+                    </td>
+                </tr>
+            </table>
+
+        </div><!--/ex_hd-->
+        <div class="ex_ctz">
+            <textarea name="ta1" style="width:100%;height:250px;font-size:16px;line-height:1.5;" disabled onpaste="xPaste()"></textarea>
+        </div>
+    </div><!--/ex_a-->
+</form>
+
+<!--
+  <form name=f1>
+  <table border="0" align=center>
+    <tr>
+      <td colspan="2" bgcolor="#FFCC66"><input type="button" value="시작" name="bt1" onClick="xStart()">
+        [속도:<input type="text" name="t1" size="4" readOnly class="ir">타/분]
+        [입력시간:<input type="text" name="t2" size="7" readOnly class="ir">] [글자수:<input type="text" name="t3" size="5" readOnly class="ir">자]
+        [타수:<input type="text" name="t4" size="5" readOnly class="ir">타]</td>
+    </tr>
+    <tr>
+      <td colspan="2"><textarea rows="8" name="ta1" style="width:99%;height:400px;" disabled onpaste="xPaste()"></textarea></td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+    </tr>
+  </table>
+  </form>
+-->
+
+
+<script>
+
+    document.addEventListener('DOMContentLoaded', function () {
+        //M.AutoInit();
+    });
+
+</script>
+
+</body>
+</html>
