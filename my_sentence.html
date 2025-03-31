@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>타자선생님</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css"/>
+
+    <style type="text/css">
+        body {
+            font-size: 14px;
+        }
+
+        .tit2 {
+            font-size: 17px;
+            font-weight: 600;
+        }
+
+        .mobile_hide { /*모바일 일 경우 숨길 요소들*/
+        }
+
+        .container {
+            padding: 0px 5px 0px 5px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        BLOCKQUOTE {
+            border-left-color: #ffd600;
+        }
+
+        /*컨텐츠페이지 헤더 css */
+        .ctzp_head {
+        }
+
+        .ctzp_head .tit1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .ctzp_head .tbl tr {
+            border: 0;
+        }
+
+        .ctzp_head .tbl td {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        .ctzp_head .tbl .ctzp_ico {
+            padding-left: 10px;
+            padding-right: 20px;
+            font-size: 50px;
+        }
+
+        .ctzp_desc {
+            color: #777;
+        }
+
+        .ctzp_menu {
+            padding-top: 10px;
+        }
+
+        .ctzp_menu1 {
+            display: inline-block;
+            margin-left: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            padding: 4px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .ctzp_menu1.on {
+            border-bottom: 3px solid #FFD600;
+        }
+
+        [type="radio"]:not(:checked) + span, [type="radio"]:checked + span {
+            padding-left: 23px;
+        }
+
+        .app_ad {
+            padding: 2px;
+            border: 2px solid #333;
+            border-radius: 6px;
+            box-shadow: none;
+        }
+
+        .app_ad table, .app_ad tr, .app_ad td {
+            padding: 0;
+            margin: 0;
+            vertical-align: center;
+            box-shadow: none;
+        }
+
+
+        .dp_box {
+            display: inline-block;
+            width: 50px;
+            color: #333;
+            background-color: #efefef;
+            border: 1px inset #777;
+            text-align: center;
+        }
+
+        .input_box {
+            font-family: 굴림체;
+            width: 100%;
+            font-size: 28px;
+        }
+
+        .tbl_ex th, .tbl_ex td {
+            padding: 3px;
+        }
+    </style>
+
+    <script type="text/javascript">
+        var omember = 1;//0;
+
+        // 아래 직접 가져옴<script language="javascript" src="ex4_1_js.php">
+
+        var nCho = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+        var nJung = [1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 2, 2, 2, 1, 1, 2, 1];
+        var nJong = [0, 1, 1, 2, 1, 2, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+
+        var dv = 21 * 28;
+        var start = false, dt = 0, avt = 0, topt = 0, avp = 0, exn = 0;
+
+        function gId(id) {
+            return document.getElementById(id);
+        }
+
+        function sId(id, s) {
+            document.getElementById(id).innerHTML = s;
+        }
+
+        function xHDiv(hg) {
+            var hc, cho, jung, jong;
+            hc = hg.charCodeAt(0) - 0xAC00;//ubase1;
+            if (hc < 0) return 1;
+            cho = Math.floor(hc / dv);
+            hc = hc % dv;
+            jung = Math.floor(hc / 28);
+            jong = hc % 28;
+            var tn = nCho[cho] + nJung[jung] + nJong[jong];
+            return tn;
+        }
+
+        function xCalN(s) {
+            var l = s.length;
+            var i = 0, tn = 0, c;
+            while (i < l) {
+                if (s.charCodeAt(i) < 200) tn++;
+                else tn += xHDiv(s.charAt(i));
+                i++;
+            }
+            return tn;
+        }
+
+        function xCkStr() {
+            dt = ((new Date).getTime() - dt);
+            if (dt < 1) dt = 1;
+            start = false;
+            var fe = document.forms['f1'].elements;
+            var s1 = fe['t1'].value, s2 = fe['t2'].value;
+            fe['t2'].value = "";
+            var l1 = s1.length, l2 = s2.length;
+            if (l1 < 3) {
+                alert("연습할 단어나 문장을 3자 이상 입력하세요!");
+                fe['t1'].focus();
+                return;
+            }
+            if (l2 < 3) {
+                alert("윗글의 내용을 끝까지 입력하세요!");
+                fe['t2'].focus();
+                fe['t2'].value = "";
+                return;
+            }
+            var l = (l1 > l2) ? l1 : l2;
+            var on = 0;
+            for (var i = 0; i < l; i++) {
+                if (s1.charAt(i) == s2.charAt(i)) on++;
+            }
+            var t = Math.floor((xCalN(s2) * 60000) / dt);
+            var p = Math.floor((on * 100) / l1);
+            if (t > topt) topt = t;
+            avt = ((avt * exn) + t) / (exn + 1);
+            avp = ((avp * exn) + p) / (exn + 1);
+            sId('t3', t);
+            sId('t4', p);
+            sId('t5', Math.floor(avt));
+            sId('t6', Math.floor(avp));
+            sId('t7', topt);
+            exn++;
+        }
+
+        function xKeyDown() {
+            if (start == false) {
+                dt = (new Date).getTime();
+                start = true;
+            }
+            var k = event.keyCode;
+            if (k == 13) {
+                xCkStr();
+                xStartItv();
+            }
+        }
+
+        function xPaste() {
+            window.clipboardData.setData("Text", "");
+        }
+
+        oItv = "";
+
+        function xStartItv() {
+            if (oItv) clearInterval(oItv);
+            if (start) return;
+            oItv = setInterval("xItv()", 1000);
+        }
+
+        function xItv() {
+            if (start) {
+                clearInterval(oItv);
+                return;
+            }
+            if (document.forms['f1'].elements['t2'].value.length > 0) {
+                dt = (new Date).getTime();
+                start = true;
+                clearInterval(oItv);
+            }
+        }
+
+    </script>
+
+
+</head>
+<body>
+
+
+<h1>특별연습</h1>
+<p>[특별연습]은 기존 타자연습 프로그램과는 성격이 다른 방식으로 학습하게 됩니다.</p>
+
+
+<p class="tit2">자기글 치기</p>
+<ul>
+    <li>아래 [연습글] 부분에 연습할 단어들이나 문장을 3자 이상입력합니다.<br>
+        그리고 그 아래쪽 입력란에 [연습글]을 따라 친후 [<b>엔터키</b>]를 누르면 속도/정확도 등이 계산되어 표시됩니다.
+    </li>
+    <li>같은 글(취약하거나 혹은 자신있는 문장)을 반복/집중적으로 연습해서 완전히 자신의 것으로 만드는 것입니다.</li>
+</ul>
+
+<form name="f1" onsubmit="return false;">
+    <div style="background-color:#eee;border:8px solid #ffab00;border-radius:5px;">
+        <table class="tbl_ex" border="0">
+            <tr>
+                <td colspan="2" style="background-color:#000;color:#f5f5f5;padding-left:20px;">
+                    &nbsp;현재속도:<b class="dp_box" id="t3">&nbsp;</b>타/분&nbsp;&nbsp;
+                    현재정확도:<b class="dp_box" id="t4">&nbsp;</b>%<br>
+                    &nbsp;평균속도:<b class="dp_box" id="t5">&nbsp;</b>타/분&nbsp;
+                    &nbsp;평균정확도:<b class="dp_box" id="t6">&nbsp;</b>%<br>
+                    &nbsp;최고속도:<b class="dp_box" id="t7">&nbsp;</b>타/분&nbsp;
+                </td>
+            </tr>
+            <tr>
+                <td width="60" nowrap>연습글:</td>
+                <td><input type="text" name="t1" class="input_box" maxlength=200 style="background-color:#fff8e1;"></td>
+            </tr>
+            <tr>
+                <td>입력창:</td>
+                <td><input type="text" name="t2" class="input_box" onKeyUp="xKeyDown()" maxlength=200 onpaste="xPaste()" style="background-color:#fff;"/></td>
+            </tr>
+        </table>
+    </div>
+</form>
+
+<script language="javascript"> xStartItv(); </script>
+
+
+<script>
+
+    document.addEventListener('DOMContentLoaded', function () {
+
+    });
+
+</script>
+
+</body>
+</html>
