@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>타자선생님</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css"/>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+
+    <style type="text/css">
+        body {
+            font-size: 14px;
+        }
+
+        .tit2 {
+            font-size: 17px;
+            font-weight: 600;
+        }
+
+        .mobile_hide { /*모바일 일 경우 숨길 요소들*/
+        }
+
+        .container {
+            padding: 0px 5px 0px 5px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        BLOCKQUOTE {
+            border-left-color: #ffd600;
+        }
+
+        /*컨텐츠페이지 헤더 css */
+        .ctzp_head {
+        }
+
+        .ctzp_head .tit1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .ctzp_head .tbl tr {
+            border: 0;
+        }
+
+        .ctzp_head .tbl td {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        .ctzp_head .tbl .ctzp_ico {
+            padding-left: 10px;
+            padding-right: 20px;
+            font-size: 50px;
+        }
+
+        .ctzp_desc {
+            color: #777;
+        }
+
+        .ctzp_menu {
+            padding-top: 10px;
+        }
+
+        .ctzp_menu1 {
+            display: inline-block;
+            margin-left: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            padding: 4px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .ctzp_menu1.on {
+            border-bottom: 3px solid #FFD600;
+        }
+
+        [type="radio"]:not(:checked) + span, [type="radio"]:checked + span {
+            padding-left: 23px;
+        }
+
+        .app_ad {
+            padding: 2px;
+            border: 2px solid #333;
+            border-radius: 6px;
+            box-shadow: none;
+        }
+
+        .app_ad table, .app_ad tr, .app_ad td {
+            padding: 0;
+            margin: 0;
+            vertical-align: center;
+            box-shadow: none;
+        }
+
+        .div_game {
+            width: 100%;
+            background-color: #eeeeee;
+            border: 8px solid #FFC400;
+            border-radius: 5px;
+        }
+
+        .div_game .ct {
+            display: inline-block;
+            width: 40px;
+            background-color: #ccc;
+            border: 1px inset #777;
+            text-align: center;
+        }
+
+        .div_game .dp_box {
+            display: inline-block;
+            width: 50px;
+            background-color: #efefef;
+            border: 1px inset #777;
+            text-align: center;
+        }
+
+        .div_game .input-field {
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .ip {
+            font-family: 굴림체;
+        }
+    </style>
+
+
+    <script>
+        var omember = 1; //0;
+    </script>
+    <script type="text/javascript" src="ex1_2_js.js"></script>
+
+</head>
+<body>
+
+
+<h1>글쇠익힘</h1>
+<p>[글쇠익힘]은 키보드의 각 글쇠의 위치를 손가락으로 익히는 과정입니다.<br>절대로 키보드를 보고 타이핑하지 마세요.</p>
+
+<p class="tit2">글쇠익힘 II</p>
+
+<ul>
+    <li>글쇠익힘 반복연습의 새로운 교육 방법. 한글의 경우 좌우 하나씩 두개를 같이 연습합니다.</li>
+    <li><b>기준 반복연습 입력후 평균속도와 정확도가 통과기준</b>을 넘어서면 다음단계로 진행할 수 있습니다.<br>아래 연습글을 입력창에 모두 입력한후 [<b>엔터키</b>]를 치세요.</li>
+</ul>
+<form class="browser-default" name="f1" onsubmit="return false">
+
+
+    <div style="font-size:18px;"> [<a href="keyboarding_skills_ko.html" style="font-weight:600;">한글연습</a>] &nbsp; [<a href="keyboarding_skills_en.html" style="font-weight:normal;">영문연습</a>]</div>
+
+    <div class="div_game">
+
+        <div class="row" style="margin-bottom:0px;padding-bottom:0px;">
+            <div class="input-field col s5">
+                <select name="slv" size=1 onChange="xChLv()">
+                    <script language=javascript>
+                        for (var i = 0; i < maxlv; i++) {
+                            var s = lvs[i][0];
+                            if (s.length > 7) s = s.substr(0, 7) + "..";
+                            document.writeln("<option>" + (i + 1) + " 단계 : " + s + "</option>");
+                        }
+                    </script>
+                </select><label>연습단계</label>
+            </div><!--/input-field-->
+            <div class="input-field col s3">
+                <select name="sexn" size=1 onChange="xChExn()" style="background-color:#EEEEEE;">
+                    <option>2회</option>
+                    <option selected>3회</option>
+                    <option>4회</option>
+                    <option>5회</option>
+                    <option>6회</option>
+                </select><label>반복연습횟수</label>
+            </div><!--/input-field-->
+            <div class="input-field col s4">
+                <select name="spt" size=1 onChange="xChPt()" style="background-color:#EEEEEE;">
+                    <option>50</option>
+                    <option selected>100</option>
+                    <option>150</option>
+                    <option>200</option>
+                    <option>250</option>
+                    <option>300</option>
+                    <option>350</option>
+                    <option>400</option>
+                    <option>450</option>
+                    <option>500</option>
+                </select><label>통과기준속도[타/분] (정확도 <b>80</b>%이상)</label>
+            </div><!--/input-field-->
+            <div class="col s4"></div>
+        </div><!--row-->
+
+        <div style="background-color:#000;">
+  <pre style="color:#FFFFFF;font-size:12px;"> |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| 총62단계
+<span id="id_lv1" style="color:#ffcc66;">↑현재단계[1]</span></pre>
+        </div>
+
+        <div>&nbsp;반복횟수: <span id="id_exn"><b class="ct" id="ct1">1</b><b class="ct" id="ct2">2</b><b class="ct" id="ct3">3</b><b class="ct" id="ct4" style="display:none;">4</b><b class="ct" id="ct5" style="display:none;">5</b><b class="ct" id="ct6" style="display:none;">6</b></span></div>
+        <div class="input-field">
+            <input type="text" id="t1" size="48" maxlength=100 readonly style="background-color:#FFF8E1;width:100%;font-size:28px;margin-bottom:0;padding-bottom:0;" class="ip"><label for="t1">연습글</label>
+        </div>
+        <div class="input-field">
+            <input type="text" id="t2" size="48" onKeyUp="xKeyDown()" maxlength=100 onpaste="xPaste()" style="width:100%;font-size:28px;background-color:#fff;margin-bottom:0;padding-bottom:0;" class="ip"><label for="t2">입력창</label>
+        </div>
+        <div style="background-color:#FFCC66;color:#555;padding:4px;">&nbsp;현재속도:<b class="dp_box" id="t3"> 0</b>타/분&nbsp;&nbsp;
+            현재정확도:<b class="dp_box" id="t4">0</b>%<br>
+            &nbsp;평균속도:<b class="dp_box" id="t5">0</b>타/분&nbsp;
+            &nbsp;평균정확도:<b class="dp_box" id="t6">0</b>%<br>
+            &nbsp;최고속도:<b class="dp_box" id="t7">0</b>타/분&nbsp;
+        </div>
+</form>
+
+<!--/td></tr></table-->
+<script language=javascript>
+    xReset(0);
+    xDrawLv();
+    xStartItv();
+
+    document.addEventListener('DOMContentLoaded', function () {
+        M.AutoInit();
+    });
+
+</script>
+
+</body>
+</html>
