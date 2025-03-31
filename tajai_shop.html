@@ -1,0 +1,637 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Tajai - 한글 타자 연습</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #4A90E2;
+      --secondary-color: #8defda;
+      --background-color: #F0F4F8;
+      --text-color: #333;
+      --light-text-color: #777;
+      --game-color: #6322c4 0%, #3aa3c1 99%, #F0F4F8;
+    }
+
+    body, html {
+      height: 100%;
+      margin: 0;
+      font-family: 'Noto Sans KR', sans-serif;
+      background: linear-gradient(135deg, #edebeb 0%, #ffffff 100%);
+      color: var(--text-color);
+      overflow: hidden;
+    }
+
+    .container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      z-index: 1000;
+    }
+
+    .logo {
+      font-size: 36px;
+      font-weight: 700;
+      background: linear-gradient(45deg, #1557a3 0%, #50E3C2 99%, #F0F4F8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .macintosh {
+      width: 300px;
+      height: 350px;
+      background-color: #ffffff;
+      border-radius: 20px;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      transition: all 1s cubic-bezier(0.25, 0.1, 0.25, 1);
+    }
+
+    .screen {
+      width: 220px;
+      height: 180px;
+      background-color: #000000;
+      position: absolute;
+      top: 20px;
+      left: 40px;
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: all 1s cubic-bezier(0.25, 0.1, 0.25, 1);
+    }
+
+    .welcome {
+      color: var(--background-color);
+      font-size: 24px;
+      opacity: 1;
+      transition: opacity 0.5s ease;
+    }
+
+    .welcome.hide {
+      opacity: 0;
+    }
+
+    .expanded {
+      transform: scale(3);
+    }
+
+    .expanded .screen {
+      width: 90vw;
+      height: 80vh;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-image: linear-gradient(120deg, var(--primary-color), var(--secondary-color));
+      background-size: cover;
+      background-position: center;
+    }
+
+    .typing-ui {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 90%;
+      max-width: 800px;
+      background-color: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      opacity: 0;
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .typing-ui.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .typing-text {
+      font-size: 28px;
+      margin-bottom: 30px;
+      color: var(--text-color);
+      text-align: center;
+      min-height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+
+    .typing-input {
+      width: 100%;
+      font-size: 20px;
+      padding: 15px;
+      border: 2px solid var(--primary-color);
+      border-radius: 10px;
+      outline: none;
+      text-align: center;
+      margin-bottom: 30px;
+      transition: all 0.3s ease;
+    }
+
+    .typing-input:focus {
+      box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.3);
+    }
+
+    .stats {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      margin-top: 30px;
+      font-size: 18px;
+      color: var(--light-text-color);
+    }
+
+    .stats span {
+      margin: 0 15px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      font-size: 18px;
+      border: none;
+      border-radius: 25px;
+      background-color: var(--primary-color);
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin: 0 10px 20px;
+      font-weight: 700;
+    }
+
+    .btn:hover {
+      box-shadow: 0 5px 15px rgba(74, 144, 226, 0.4);
+      transform: translateY(-2px);
+    }
+
+    #aiBtn {
+      background: linear-gradient(-45deg, var(--game-color), var(--secondary-color));
+      background-size: 200% 200%;
+      animation: gradient 5s ease infinite;
+    }
+
+    @keyframes gradient {
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+
+    .problem-number {
+      font-size: 20px;
+      color: var(--primary-color);
+      margin-bottom: 15px;
+      font-weight: 700;
+    }
+
+    .mode-buttons {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    #nextBtn {
+      display: none;
+      background-color: var(--secondary-color);
+    }
+
+    .footer {
+      position: fixed;
+      bottom: 20px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 18px;
+      color: #ffffff;
+    }
+
+    #easterEggBtn {
+      background: none;
+      border: none;
+      color: #ffffff;
+      cursor: pointer;
+      transition: color 0.3s ease;
+      font-size: 24px;
+      padding: 15px 30px;
+    }
+
+    #easterEggBtn:hover {
+      color: var(--primary-color);
+    }
+
+    .result-screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      margin-top: 30px;
+    }
+
+    .result-screen h2 {
+      font-size: 32px;
+      margin-bottom: 20px;
+    }
+
+    .result-screen p {
+      font-size: 24px;
+      margin: 10px 0;
+    }
+
+    @media (max-width: 768px) {
+      .typing-ui {
+        width: 95%;
+        padding: 20px;
+      }
+
+      .typing-text {
+        font-size: 22px;
+      }
+
+      .typing-input {
+        font-size: 16px;
+      }
+
+      .btn {
+        font-size: 14px;
+        padding: 8px 16px;
+        margin: 0 5px 10px;
+      }
+
+      .logo {
+        font-size: 28px;
+      }
+
+      .stats {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .stats span {
+        margin-bottom: 10px;
+      }
+
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="header">
+  <div class="logo">Tajai</div>
+</div>
+<div class="container">
+  <div class="macintosh">
+    <div class="screen">
+      <div class="welcome">Loading...</div>
+    </div>
+  </div>
+</div>
+<div class="typing-ui">
+  <div class="mode-buttons">
+    <button class="btn" id="wordBtn">단어 연습</button>
+    <button class="btn" id="sentenceBtn">문장 연습</button>
+    <button class="btn" id="paragraphBtn">긴 글 연습</button>
+    <button class="btn" id="aiBtn">AI 문제 생성</button>
+    <button class="btn" id="gamePlayBtn">게임 플레이</button>
+  </div>
+  <div class="typing-text">
+    <div class="problem-number"></div>
+    <div class="problem-text">연습 모드를 선택하세요.</div>
+  </div>
+  <input type="text" class="typing-input" placeholder="여기에 입력하세요..." style="display: none;"
+         autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+  <div class="stats">
+    <span class="speed">속도: 0타/분</span>
+    <span class="accuracy">정확도: 100%</span>
+    <span class="score">점수: 0</span>
+  </div>
+  <button class="btn" id="nextBtn">다음</button>
+  <div class="result-screen">
+    <h2>세트 결과</h2>
+    <p class="result-speed">평균 속도: 0타/분</p>
+    <p class="result-accuracy">평균 정확도: 100%</p>
+    <p class="result-score">총 점수: 0</p>
+  </div>
+</div>
+<div class="footer">
+  <button id="easterEggBtn">Vallonia</button>
+</div>
+
+<script>
+  const wordList = {
+    'ㄱ': ["간판", "간호사", "간식", "간이", "간호", "개구리", "개구쟁이", "개굴개굴", "개그맨", "개그쇼", "개미", "거간", "거기", "거듭", "거리", "거북", "거부", "거실", "거스름돈", "거울", "거인", "건강", "건너목", "건너편", "건물", "건설", "건실", "건조", "검사", "검색", "검은색", "검토", "겁쟁이", "게시판", "게임", "결과", "결론", "결정", "경기", "경마", "경로", "경비", "경영", "경우", "경쟁", "경제", "경험", "고개", "고구마", "고궁", "고기", "고등학교", "고무신", "고사", "고생", "고속", "고양이", "고요", "고추", "고춧가루", "골격", "골목", "골프", "곰팡이", "공간", "공개", "공격", "공기", "공부", "공사", "공식", "공업", "공유", "공장", "공주", "공짜", "과거", "과목", "과일", "과자", "과장", "과정", "관객", "관계", "관련", "관리", "관절", "관찰", "관통", "광경", "광고", "광장", "괴로움"],
+    'ㄴ': ['나무', '노래', '네모', '눈사람', '나비'],
+    'ㄷ': ['다람쥐', '도토리', '딸기', '돌고래', '닭'],
+    'ㄹ': ['라디오', '로봇', '리본', '레몬', '라면'],
+    'ㅁ': ['모자', '마우스', '미역', '무지개', '말'],
+    'ㅂ': ['바나나', '버스', '비행기', '보트', '별'],
+    'ㅅ': ['사과', '선물', '시계', '소나무', '서랍'],
+    'ㅇ': ['안경', '얼음', '오리', '우산', '이불'],
+    'ㅈ': ['자동차', '젓가락', '지우개', '종이', '주스'],
+    'ㅊ': ['책상', '치약', '초콜릿', '침대', '창문'],
+    'ㅋ': ['컴퓨터', '카메라', '코끼리', '케이크', '키위'],
+    'ㅌ': ['태양', '토마토', '티셔츠', '탁자', '튤립'],
+    'ㅍ': ['파인애플', '포도', '피아노', '풍선', '팽이'],
+    'ㅎ': ['휴대폰', '햄버거', '호랑이', '헬리콥터', '하늘'],
+    'ㅏ': ['가지', '사실', '바다', '자전거', '하늘'],
+    'ㅑ': ['냐옹', '샤워', '랴쿠', '햐쿠', '캬라멜'],
+    'ㅓ': ['거미', '서점', '머리', '거울', '허리'],
+    'ㅕ': ['겨울', '며칠', '려행', '벼락', '셔츠'],
+    'ㅗ': ['고양이', '소나기', '오렌지', '포도', '노래'],
+    'ㅛ': ['요리', '효과', '교실', '묘기', '표지판'],
+    'ㅜ': ['구름', '무지개', '주전자', '푸딩', '후추'],
+    'ㅠ': ['류산', '쥬스', '휴지', '뮤지컬', '큐브'],
+    'ㅡ': ['그림', '브러시', '크레파스', '프린터', '트럭'],
+    'ㅣ': ['지우개', '비행기', '키보드', '미로', '리본']
+  };
+
+  const sentences = [
+    "오늘은 날씨가 참 좋습니다.",
+    "프로그래밍은 재미있는 취미입니다.",
+    "건강을 위해 매일 운동을 합시다.",
+    "친구와 함께 영화를 보러 갔어요.",
+    "맛있는 음식을 먹으면 기분이 좋아집니다.",
+  ];
+
+  const paragraphs = [
+    "인공지능 기술의 발전으로 우리의 일상생활이 크게 변화하고 있습니다. 음성 인식, 자율 주행 자동차, 개인화된 추천 시스템 등 다양한 분야에서 인공지능이 활용되고 있습니다. 이러한 기술의 발전은 우리의 삶을 더욱 편리하게 만들어주지만, 동시에 새로운 윤리적 문제와 직업의 변화 등 다양한 과제도 제시하고 있습니다. 우리는 이러한 변화에 적응하면서도 인간의 고유한 가치를 지켜나가는 방법을 고민해야 할 것입니다.",
+    "지속 가능한 발전은 현재 세대의 필요를 충족시키면서도 미래 세대의 능력을 저해하지 않는 발전을 의미합니다. 이를 위해서는 환경 보호, 경제 성장, 사회 정의의 균형을 이루는 것이 중요합니다. 재생 에너지의 사용, 자원의 효율적인 활용, 생태계 보존 등의 노력이 필요합니다. 또한, 교육과 건강care 등 사회 인프라의 개선을 통해 모든 사람이 발전의 혜택을 누릴 수 있도록 해야 합니다. 이는 개인, 기업, 정부 모두의 협력이 필요한 과제입니다."
+  ];
+
+  let aiProblems = [];
+  let mistakeStats = {};
+  let currentProblemSet = [];
+  let currentProblemIndex = 0;
+  let currentMode = '';
+  let learningProblems = [];
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const macintosh = document.querySelector('.macintosh');
+    const welcome = document.querySelector('.welcome');
+    const typingUi = document.querySelector('.typing-ui');
+    const typingText = document.querySelector('.problem-text');
+    const problemNumber = document.querySelector('.problem-number');
+    const typingInput = document.querySelector('.typing-input');
+    const speedSpan = document.querySelector('.speed');
+    const accuracySpan = document.querySelector('.accuracy');
+    const scoreSpan = document.querySelector('.score');
+    const wordBtn = document.getElementById('wordBtn');
+    const sentenceBtn = document.getElementById('sentenceBtn');
+    const paragraphBtn = document.getElementById('paragraphBtn');
+    const aiBtn = document.getElementById('aiBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const easterEggBtn = document.getElementById('easterEggBtn');
+    const gamePlayBtn = document.getElementById('gamePlayBtn');
+    const resultScreen = document.querySelector('.result-screen');
+    const resultSpeed = document.querySelector('.result-speed');
+    const resultAccuracy = document.querySelector('.result-accuracy');
+    const resultScore = document.querySelector('.result-score');
+    const logo = document.querySelector('.logo');
+
+    let currentText = '';
+    let startTime, endTime;
+    let totalKeystrokes = 0;
+    let correctKeystrokes = 0;
+    let totalTime = 0;
+    let totalScore = 0;
+    let textCount = 0;
+
+    setTimeout(() => {
+      welcome.classList.add('hide');
+      macintosh.classList.add('expanded');
+
+      setTimeout(() => {
+        typingUi.classList.add('show');
+        logo.style.color = 'var(--primary-color)';
+        logo.style.animation = 'gradientMove 5s ease infinite';
+      }, 1000);
+    }, 1000);
+
+    wordBtn.addEventListener('click', () => startMode('word'));
+    sentenceBtn.addEventListener('click', () => startMode('sentence'));
+    paragraphBtn.addEventListener('click', () => startMode('paragraph'));
+    aiBtn.addEventListener('click', () => startMode('ai'));
+    nextBtn.addEventListener('click', () => generateNextSet());
+    gamePlayBtn.addEventListener('click', () => window.location.href = 'https://tajaigame.netlify.app/');
+
+    easterEggBtn.addEventListener('click', () => {
+      alert('Welcome to Vallonia');
+    });
+
+    function startMode(mode) {
+      currentMode = mode;
+      resetStats();
+      typingInput.style.display = 'block';
+      typingInput.focus();
+      nextBtn.style.display = 'none';
+      resultScreen.style.display = 'none';
+
+      switch(mode) {
+        case 'word':
+          currentProblemSet = shuffleArray(Object.values(wordList).flat()).slice(0, 40);
+          break;
+        case 'sentence':
+          currentProblemSet = shuffleArray([...sentences]).slice(0, 20);
+          break;
+        case 'paragraph':
+          currentProblemSet = shuffleArray([...paragraphs]).slice(0, 1);
+          break;
+        case 'ai':
+          startAiMode();
+          return;
+      }
+
+      currentProblemIndex = 0;
+      setNewText();
+    }
+
+    async function startAiMode() {
+      typingInput.style.display = 'none';
+      typingText.textContent = "데이터 수집 문제 준비중...(10문제)";
+
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      await generateLearningProblems();
+      currentProblemSet = learningProblems;
+      currentProblemIndex = 0;
+      setNewText();
+      typingInput.style.display = 'block';
+      typingInput.focus();
+    }
+
+    function setNewText() {
+      if (currentProblemIndex >= currentProblemSet.length) {
+        showResults();
+        return;
+      }
+      currentText = currentProblemSet[currentProblemIndex];
+      typingText.textContent = currentText;
+      problemNumber.textContent = `${currentProblemIndex + 1}번 문제`;
+      typingInput.value = '';
+      startTime = performance.now();
+      textCount++;
+      currentProblemIndex++;
+    }
+
+    function resetStats() {
+      totalKeystrokes = 0;
+      correctKeystrokes = 0;
+      totalTime = 0;
+      totalScore = 0;
+      textCount = 0;
+      updateStats(0, 100, 0);
+    }
+
+    typingInput.addEventListener('input', () => {
+      const typedText = typingInput.value;
+      const typedLength = typedText.length;
+
+      endTime = performance.now();
+      const elapsedTime = (endTime - startTime) / 60000; // Convert to minutes
+
+      totalKeystrokes += typedLength;
+      correctKeystrokes += calculateCorrectKeystrokes(currentText, typedText);
+      totalTime += elapsedTime;
+
+      const speed = Math.round(totalKeystrokes / totalTime);
+      const accuracy = Math.round((correctKeystrokes / totalKeystrokes) * 100) || 100;
+      const score = Math.round(speed * (accuracy / 100));
+      totalScore += score;
+
+      updateStats(speed, accuracy, Math.round(totalScore / textCount));
+
+      updateMistakeStats(currentText, typedText);
+
+      if (typedText === currentText) {
+        setNewText();
+      }
+
+      startTime = performance.now(); // Reset start time for the next input
+    });
+
+    function calculateCorrectKeystrokes(original, typed) {
+      let correct = 0;
+      for (let i = 0; i < typed.length; i++) {
+        if (typed[i] === original[i]) {
+          correct++;
+        }
+      }
+      return correct;
+    }
+
+    function updateStats(speed, accuracy, score) {
+      speedSpan.textContent = `속도: ${speed}타/분`;
+      accuracySpan.textContent = `정확도: ${accuracy}%`;
+      scoreSpan.textContent = `점수: ${score}`;
+    }
+
+    function updateMistakeStats(original, typed) {
+      for (let i = 0; i < Math.min(original.length, typed.length); i++) {
+        if (original[i] !== typed[i]) {
+          mistakeStats[original[i]] = (mistakeStats[original[i]] || 0) + 1;
+        }
+      }
+    }
+
+    async function generateLearningProblems() {
+      learningProblems = [];
+      const allWords = Object.values(wordList).flat();
+      for (let i = 0; i < 10; i++) {
+        learningProblems.push(allWords[Math.floor(Math.random() * allWords.length)]);
+      }
+    }
+
+    function generateAiProblems() {
+      aiProblems = [];
+      const mistakeChars = Object.keys(mistakeStats).sort((a, b) => mistakeStats[b] - mistakeStats[a]);
+      const allWords = Object.values(wordList).flat();
+
+      for (let i = 0; i < 40; i++) {
+        if (mistakeChars.length > 0 && Math.random() < 0.7) {
+          const char = mistakeChars[Math.floor(Math.random() * Math.min(mistakeChars.length, 5))];
+          const wordsWithChar = allWords.filter(word => word.includes(char));
+          aiProblems.push(wordsWithChar[Math.floor(Math.random() * wordsWithChar.length)]);
+        } else {
+          aiProblems.push(allWords[Math.floor(Math.random() * allWords.length)]);
+        }
+      }
+    }
+
+    function generateNextSet() {
+      if (currentMode === 'ai') {
+        typingInput.style.display = 'none';
+        typingText.textContent = "AI 문제 생성중...(40문제)";
+        setTimeout(() => {
+          generateAiProblems();
+          currentProblemSet = aiProblems;
+          currentProblemIndex = 0;
+          resetStats();
+          setNewText();
+          typingInput.style.display = 'block';
+          typingInput.focus();
+          nextBtn.style.display = 'none';
+          resultScreen.style.display = 'none';
+        }, 2000);
+      } else {
+        startMode(currentMode);
+      }
+    }
+
+    function showResults() {
+      typingInput.style.display = 'none';
+      nextBtn.style.display = 'block';
+      resultScreen.style.display = 'flex';
+
+      const avgSpeed = Math.round(totalKeystrokes / totalTime);
+      const avgAccuracy = Math.round((correctKeystrokes / totalKeystrokes) * 100) || 100;
+      const totalScoreValue = Math.round(totalScore / textCount);
+
+      resultSpeed.textContent = `평균 속도: ${avgSpeed}타/분`;
+      resultAccuracy.textContent = `평균 정확도: ${avgAccuracy}%`;
+      resultScore.textContent = `총 점수: ${totalScoreValue}`;
+    }
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+  });
+</script>
+</body>
+</html>
