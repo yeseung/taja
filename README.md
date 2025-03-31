@@ -1,5 +1,5 @@
-https://www.tajamaster.com
-
+- https://www.tajamaster.com
+- https://tajai.shop
 
 
 
@@ -14,3 +14,4 @@ https://www.tajamaster.com
 ![스크린샷 2025-03-31 오후 4 49 22](https://github.com/user-attachments/assets/9fb25dec-fee6-43f2-9bae-d45bcb45278c)
 ![스크린샷 2025-03-31 오후 5 02 01](https://github.com/user-attachments/assets/73694e2f-931e-4818-82be-f1bd01c7430d)
 ![스크린샷 2025-03-31 오후 5 13 51](https://github.com/user-attachments/assets/f840b5f6-1b34-4e9f-8260-1101d4bd9033)
+![스크린샷 2025-04-01 오전 12 06 11](https://github.com/user-attachments/assets/a8c9da44-ecd0-4569-a714-d16518883065)
