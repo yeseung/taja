@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>타자선생님</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css"/>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+
+    <style type="text/css">
+        body {
+            font-size: 14px;
+        }
+
+        .tit2 {
+            font-size: 17px;
+            font-weight: 600;
+        }
+
+        .mobile_hide { /*모바일 일 경우 숨길 요소들*/
+        }
+
+        .container {
+            padding: 0px 5px 0px 5px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        BLOCKQUOTE {
+            border-left-color: #ffd600;
+        }
+
+        /*컨텐츠페이지 헤더 css */
+        .ctzp_head {
+        }
+
+        .ctzp_head .tit1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .ctzp_head .tbl tr {
+            border: 0;
+        }
+
+        .ctzp_head .tbl td {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        .ctzp_head .tbl .ctzp_ico {
+            padding-left: 10px;
+            padding-right: 20px;
+            font-size: 50px;
+        }
+
+        .ctzp_desc {
+            color: #777;
+        }
+
+        .ctzp_menu {
+            padding-top: 10px;
+        }
+
+        .ctzp_menu1 {
+            display: inline-block;
+            margin-left: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            padding: 4px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .ctzp_menu1.on {
+            border-bottom: 3px solid #FFD600;
+        }
+
+        [type="radio"]:not(:checked) + span, [type="radio"]:checked + span {
+            padding-left: 23px;
+        }
+
+        .app_ad {
+            padding: 2px;
+            border: 2px solid #333;
+            border-radius: 6px;
+            box-shadow: none;
+        }
+
+        .app_ad table, .app_ad tr, .app_ad td {
+            padding: 0;
+            margin: 0;
+            vertical-align: center;
+            box-shadow: none;
+        }
+
+        /*
+                .btn {
+                  padding:5px;text-align:center;
+                  border:2px solid #777;
+                  border-radius:5px;
+                  font-size:16px;
+                  margin-top:5px;margin-bottom:4px;
+                  background-color:#FFD600;
+                }
+                */
+
+        .btn_a {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .tbl_pz {
+            width: auto;
+        }
+
+        .tbl_pz td {
+            padding: 3px 6px 3px 6px;
+            background-color: #eee;
+            border: 2px outset #999;
+        }
+
+        .section .col {
+            border-top: 1px dotted #999;
+            border-right: 1px dotted #999;
+        }
+
+        .section .row .col {
+            background-color: #ffecb3;
+            padding-top: 10px;
+        }
+
+        #doo_game_a {
+            position: relative;
+            background: url('img/doo_bg1.png') no-repeat;
+            width: 680px;
+            height: 378px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .doo0 {
+            position: absolute;
+            width: 140px;
+            height: 90px;
+        }
+
+        .doo1 {
+            background: url('img/doo2.png') no-repeat;
+        }
+
+        .doo2 {
+            background: url('dood/d2.png') no-repeat;
+        }
+
+        .dp1 {
+            left: 160px;
+            top: 73px;
+        }
+
+        .dp2 {
+            left: 385px;
+            top: 86px;
+        }
+
+        .dp3 {
+            left: 28px;
+            top: 209px;
+        }
+
+        .dp4 {
+            left: 265px;
+            top: 219px;
+        }
+
+        .dp5 {
+            left: 503px;
+            top: 209px;
+        }
+
+        /*
+        .dp6 { left:140px;top:416px;}
+        .dp7 { left:352px;top:416px;}
+        */
+
+        .doo0 > .txt {
+            margin: 84px 5px 0px 5px;
+            padding: 5px;
+            background-color: #fff;
+            font-size: 24px;
+        }
+
+        .hide {
+            display: none;
+        }
+
+        .set_a {
+            background-color: #0D47A1;
+            color: #ddd;
+            padding: 4px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .state_a {
+            background-color: #0D47A1;
+            color: #ddd;
+            padding: 4px 4px 8px 4px;
+            text-align: center;
+            font-size: 22px;
+        }
+
+        .state_a span {
+            display: inline-block;
+            padding: 5px;
+
+            font-size: 32px;
+        }
+
+        .state_a .div1 {
+            display: inline-block;
+            margin-left: 8px;
+            margin-right: 8px;
+        }
+
+        #miss_a {
+            color: #e33;
+        }
+
+        #ok_a {
+            color: #3e3;
+        }
+
+        #point_a {
+            color: #ffd600;
+            font-weight: 600;
+        }
+
+        #txt_input {
+            width: 160px;
+            height: 40px;
+            font-size: 30px;
+            border: 3px solid #777;
+        }
+
+        #alert_a {
+            position: absolute;
+            margin: 15% 5% 30% 5%;
+            font-size: 28px;
+            padding: 40px 24px 40px 24px;
+            background-color: rgba(255, 255, 255, 0.5);
+            text-align: center;
+        }
+
+        .game_div {
+            display: inline-block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .game_header {
+            background-color: #2962FF;
+            color: #ccc;
+            padding-top: 10px;
+        }
+
+        .game_footer {
+            padding: 8px;
+            background-color: #0D47A1;
+            color: #fff;
+        }
+
+        .btn {
+            border: 1px solid #777;
+            cursor: pointer;
+            padding: 3px 8px 3px 8px;
+            text-align: center;
+            background-color: #FFD600;
+            font-size: 14px;
+        }
+    </style>
+
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+
+</head>
+<body>
+
+<h1>타자게임</h1>
+
+<p>게임을 즐기는 동안 자연스럽게 타이핑 실력을 늘릴 수 있습니다.</p>
+
+
+<div id="game_a" class="game_a" style="margin-left:auto;margin-right:auto;text-align:center;width:100%;zoom:100%;">
+
+    <div class="game_div">
+
+        <div class="game_header">
+            <div style="font-size:30px;margin:10px;color:#f5f5f5;">두더지 타자게임</div>
+            <div style="margin-bottom:10px;color:#ccc;">
+                두더지와 함께 나오는 글자를 입력후 엔터키를 치면 포인트가 올라갑니다
+            </div>
+
+            <div class="set_a">
+                <form name="set_f1" onsubmit="return false">
+                    연습언어: <label><input type="radio" name="lang" value="0" checked/><span>한글</span></label> <label><input type="radio" name="lang" value="1"/><span>영문</span></label> &nbsp; | &nbsp;
+                    연습글자: <label><input type="radio" name="kty" value="0" checked/><span>글쇠(키)</span></label> <label><input type="radio" name="kty" value="1"/><span>단어</span></label>
+                </form>
+            </div><!--set_a-->
+            <div class="state_a">
+                <div class="div1">남은시간:<span id="time_a">0</span>초</div>
+                <div class="div1">실패:<span id="miss_a">0</span></div>
+                <div class="div1">성공:<span id="ok_a">0</span></div>
+                <div class="div1">점수:<span id="point_a" style="font-size:50px;">0</span></div>
+
+            </div>
+        </div><!--/game_header-->
+
+        <div id="doo_game_a">
+            <div class="doo0 doo1 dp1">
+                <div class="txt"></div>
+            </div>
+            <div class="doo0 doo1 dp2">
+                <div class="txt"></div>
+            </div>
+            <div class="doo0 doo1 dp3">
+                <div class="txt"></div>
+            </div>
+            <div class="doo0 doo1 dp4">
+                <div class="txt"></div>
+            </div>
+            <div class="doo0 doo1 dp5">
+                <div class="txt"></div>
+            </div>
+            <!--
+            <div class="doo0 doo2 dp6"><div class="txt"></div></div>
+            <div class="doo0 doo1 dp7"><div class="txt"></div></div>
+            -->
+            <div id="alert_a">
+                <b>입력창에서 엔터키를 치면 게임이 시작됩니다</b>
+            </div>
+        </div>
+
+        <div class="game_footer">
+            <form name="txt_f1" onsubmit="return false" style="margin:0;">
+                <input id="txt_input" type="text" onkeydown="CDooGame.onKey()" style="background-color:#fff;"/>
+            </form>
+        </div>
+
+    </div><!--game_div-->
+</div><!--game_a-->
+
+<script>
+    var CDooGame = {
+        //d_t:['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S'],
+        d_t     : [],//'하나','둘','셋','넷','다섯','여섯','일곱','여덟','아홉','열','열하나','열둘','열셋','열넷','열다섯'],
+        d_t_len : 0,
+        d_show  : [[0, ''], [0, ''], [0, ''], [0, ''], [0, ''], [0, '']],
+        itv_tm  : null,
+        itv_run : null,
+        n_cnt   : 0,
+        n_limit : 4,
+        n_miss  : 0,
+        n_ok    : 0,
+        n_point : 0,
+        n_tm    : 0,
+        is_start: false,
+        lang    : 0,
+        kty     : 0,
+        d_k_kr  : ['ㄱ', 'ㄴ', 'ㄷ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅅ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ', 'ㅏ', 'ㅑ', 'ㅓ', 'ㅕ', 'ㅗ', 'ㅛ', 'ㅜ', 'ㅠ', 'ㅡ', 'ㅣ'],
+        d_k_en  : ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'],
+        d_w_kr  : ['가나', '다라', '마바'],
+        d_w_en  : ['ab', 'cd', 'ef'],
+
+        init     : function (d_w_kr, d_w_en) {
+            this.d_w_kr = d_w_kr;
+            this.d_w_en = d_w_en;
+            //this.d_t_len=this.d_t.length;
+            $('.doo0').hide();//addClass('hide');
+        },
+        start    : function () {
+            var fe = document.forms['set_f1'].elements;
+            this.lang = (fe['lang'][0].checked) ? 0 : 1;
+            this.kty = (fe['kty'][0].checked) ? 0 : 1;
+            if (this.lang == 0) {
+                this.d_t = (this.kty == 0) ? this.d_k_kr : this.d_w_kr;
+            } else {
+                this.d_t = (this.kty == 0) ? this.d_k_en : this.d_w_en;
+            }
+            this.n_limit = (this.kty == 0) ? 4 : 2;
+            this.n_cnt = 0;
+            this.d_t_len = this.d_t.length;
+            this.n_tm = 60;
+            this.is_start = true;
+            this.n_point = 0;
+            this.n_ok = 0;
+            this.n_miss = 0;
+            this.d_show = [[0, ''], [0, ''], [0, ''], [0, ''], [0, ''], [0, '']];
+            $('#alert_a').hide();
+            this.itv_tm = setInterval(function () {
+                CDooGame.checkTm()
+            }, 1000);
+            this.itv_run = setInterval(function () {
+                CDooGame.run()
+            }, 1000);
+        },
+        checkTm  : function () {
+            document.getElementById('time_a').innerText = --this.n_tm;
+            if (this.n_tm <= 0) this.stop();
+        },
+        run      : function () {
+            if (this.n_cnt > this.n_limit) return;
+            var i, n = Math.floor(Math.random() * 5) + 1;
+            if (this.d_show[n][0] != 0) {
+                n = -1;
+                for (i = 1; i < 6; i++) {
+                    if (this.d_show[i][0] == 0) {
+                        n = i;
+                        break;
+                    }
+                }
+                if (n < 0) return; //빈공간 없음.
+            }
+            var tn = Math.floor(Math.random() * this.d_t_len), t = this.d_t[tn];
+            if (t == '') return;
+            this.showD(n, true, t);
+            this.n_cnt++;
+            //console.log('n:'+n+' t:'+t);
+        },
+        stop     : function () {
+            clearInterval(this.itv_tm);
+            clearInterval(this.itv_run);
+            $('.doo0').hide();//addClass('hide');
+            this.is_start = false;
+            //alert('GAME OVER \n 수고하셧습니다');
+            $('#alert_a').html('GAME OVER!<br/>수고하셨습니다.<br/><br/>입력창에 엔터키를 치면 게임을 다시 시작하실 수 있습니다.').show();
+        },
+        showD    : function (n, b, txt) {
+            //alert('n:'+n+' b:'+b+' t:'+txt);//
+            if (!b) {
+                this.d_show[n] = [0, ''];
+                $('.dp' + n).hide(600);//addClass('hide');
+            } else {
+                $('.dp' + n).show(600);//show('slide', { direction: 'up' });//show(600);//removeClass('hide');
+                $('.dp' + n + ' > .txt').text(txt);
+                this.d_show[n] = [1, txt.toLowerCase()];
+            }
+            console.log('n:' + n + ' b:' + b + ' t:' + txt);
+        },
+        inputOk  : function () {
+            this.n_ok++;
+            this.n_cnt--;
+            document.getElementById('ok_a').innerText = this.n_ok;
+            this.dispPoint();
+        },
+        inputMiss: function () {
+            this.n_miss++;
+            document.getElementById('miss_a').innerText = this.n_miss;
+            this.dispPoint();
+        },
+        dispPoint: function () {
+            document.getElementById('point_a').innerText = (this.n_ok - this.n_miss) * 10;
+        },
+        onKey    : function () {
+            if (event.keyCode != 13) return;
+            var i, f = document.getElementById('txt_input'), t = f.value.toLowerCase(), d;
+            f.value = '';
+            if (!this.is_start) {
+                if (t != '') return;
+                this.start();
+                return;
+            }
+            if (t == '') return;
+            for (i = 1; i < 6; i++) {
+                d = this.d_show[i];
+                if (d[0] == 1 && d[1] == t) {
+                    this.showD(i, false, '');
+                    this.inputOk();
+                    return;
+                }
+            }
+            this.inputMiss();
+        }
+    }
+
+    var d_wd_kr = "어머니 미나리 호미 미니 많이 호랑이 몰라 이러니 이런 호남인 이놈이 망나니 하노라 너머 이리 오너라 날아라 만남 난리 놀러와 하나님 하리라 모나미 나이 노모 할머니 할멈 나날이 나라 마나님 마리아 미리 몰라 모란 마님 말라리아 한마리 나날이 나란히 나홀로 너머 넘어라 놀림 노랑 놀람 말놀이 만만 말림 머리 멍멍이 모롱이 모르니 마무리 아롱아롱 아이 어린이 얼마나 알아라 아리랑 안마 알림 어림 얼마나 어머나 엄마 마마 엉망 옹이 이마 하나 호리호리 환호 호호호 히히히 하하하 아아아 나나나 이히히 컴퓨터 카타파하 크크크 큰일 찬물 파란 파랑 피리 푸하하 피아노 필통 나무 나팔 누나 눈물 노루 노을 놀이터 높이 눈치 느림 느티나무 마치 마루 마을 마무리 마음 마침 망치 마차 말초 포로 맡음 머루 모름 머리맡 무름 무리 물음 민물 밀림 한아름 아름 아울러 아우 아침 아픔 앞치마 어른 얼음 어름 어른 파파 푸르름 엉터리 오누이 오늘 오랑캐 온통 울타리 유난히 차라리 흰눈 참나무 초롱초롱 초라함 총총 추위 치우침 취침 치마 칭얼칭얼 칼날 캄캄 코앞 큰일 통나무 틈틈이 파란하늘 풀무 피눈물 피리 하품 하루 하마 허물 호통 흐름 할아버지 아버지 어머니 아빠 엄마 기린 가나다라 마바사아 보리 이렇게 요리 소리 나비 가노라 가닥 가라사대 가락 가랑비 가로막다 가리다 가만히 가시 가장자리 가지 갈다 갈대 갈림길 갈매기 감감하다 감돌다 감싸다 감자 갑갑하다 갑자기 갑절 강가 강아지 개나리 건지다 걷다 걸레 검다 겨냥 견디다 겸사겸사 계집 고깃배 고니 고대하다 고동 고랑 고래 고리 고삐 고사리 고소하다 고양이 고요하다 고이 고인돌 고작 고장 곤하다 기다리다 기대다 기러기 기반 기아 기와 기자 길이 길잡이 김장 까다롭다 깔때기 깜깜하다 깜찍하다 깨끗하다 껍데기 껍질 꼭지 꾀꼬리 낚시 날개 날다 날씨 내기 내려가다 노고지리 노다지 노래 놀다 녹말 다짐 단골 단단하다 달가닥 달맞이 달아나다 당기다 대롱 더럭 덩달아 도가니 도깨비 도끼 도라지 도랑 도마뱀 도시락 돋보기 돌다리 돕다 동산 돼지 땅거미 마지막 마감 마디 마지막 막내 막바지 만들다 만지다 말벗 말썽 매만지다 망아지 모기 메아리 메주 모내기 모래 먹거리 메기 며느리 모조리 모내기 무지개 바가지 바구니 바닥 바지 배짱 버리다 버선 번개 번데기 벌레 보배 보조개 봉오리 빨리 사나이 사다리 감가다 새김질 생각 선하다 소경 소나기 소나무 소리 솔바람 송사리 송아지 쇠고기 시시하다 신나다 실마리 아궁이 아기 아기자기 아깝다 아끼다 아낙네 아내 아주머니 아저씨 아지랑이 얌전하다 어기다 어깨 어둡다 억지 여름 여우 오막살이 올가미 올빼미 응달 작다 자갈 자리 자장가 잠자리 장난감 저고리 저녁밥 저절로 젊다 정어리 보바심 조약돌 종아리 지게 진달래 하지만  한글날 허전하다 헤어지다";
+    var d_wd_en = "Dallas KAL Kafka add all as ask dad fad faff fall flak flask half hall lad lass sad sal salad sass shall ABC Dallas KAL Kafka add all as ask back banana call cash dad fad faff fall flak flask half hall jam lad lass sad sal salad sand sass shall Dallas Friday KAL Kafka OK Tuesday add address adult afford after afterward age agree airport all apply april area art art artist as asia ask dad dark data daughter daylight dear deep desk destroy diary die dig dirty dish doll draw dress ear earth easy egg either error eye fad faff fall fare fast fat feed feel few fifty fight figure fill flak flask flight flood fly follow fool foolish foot forest forth forty free fresh full future garage gate gift giraffe grade grass great grow guard guess guide hair half halfway hall happy hard hat hate head health healthy hear hero herself hesitate hide high highway hill history hit hold holiday horse hotel hour huge idea if its itself joke just keep kid lad lady large lass last late lead leak leg letter lie life little load loaf lose loudly low off order ought outdoor outside pair paper part party pass passport pay perhaps pet photo pilot plate politely pool port post poster potato power pray properly proud pull purpose put quarter quiet quite railroad ready really relife reply report rest result ride rise road roar roll rope route rudely ruler sad safe sailor sal salad sale sass saturday seal seat sell series serious set shade shall shape sharp shell shirt shoe short shout show shower sigh sight sister skill sky sleepily slow softly sore south southeast speed spell spirit sport spot stair stare start steady step stop store straight strike stupid supper suppose sure surprise sweep tall taste tell test theater thief thirsty though throat through throw tightly tired today tool tooth top tour tourist toward tower toy treasure trip true truth try turtle type typewrite ultar use useful wait wake war wash waste weak wealth wealthy wear week wet whether while whole wide wife will wish wood word worker wrap write yellow yes yesterday you yourself";
+
+    CDooGame.init(d_wd_kr.split(' '), d_wd_en.split(' '));
+
+    //if(window.innerWidth<=640) document.getElementById('game_a').style.zoom='45%';
+</script>
+
+<!--
+시간60초.
+3초에 하나씩 자동생성
+비어있을 경우 바로 하나씩 생성
+두더지: 피켓든 두더지 / 망치에 맞은 두더지 / 점수와 더불어 사라지는 두더지 / 실패시 자동으로 사라지는 두더지(이건 없을 수 있음)
+
+업그레이드
+=======
+인트로 제거
+디렉터 게임 포팅..테트리스 제외 - 숫자판/기구살리기
+플래시게임은 그대로.
+자바스크립트게임 업데이트
+새게임추가-두더지게임(글쇠연습 버전과 단어연습게임 별도로 추가..10위까지 순위기록(최근 일주일간..초반에는 숨겼다가 표시)..)
+-->
+
+
+<script>
+
+    document.addEventListener('DOMContentLoaded', function () {
+        M.AutoInit();
+        //var elems = document.querySelectorAll('.sidenav');
+        //var instances = M.Sidenav.init(elems);//, options);
+    });
+
+</script>
+
+</body>
+</html>
