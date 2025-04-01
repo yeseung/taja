@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>산성비 게임</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: 'Arial', sans-serif;
+            background: #f0f8ff;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        #gameInfo {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        #gameContainer {
+            position: relative;
+            width: 90%;
+            max-width: 800px;
+            height: 500px;
+            background: linear-gradient(to bottom, #87CEEB, #E0F7FA);
+            overflow: hidden;
+            margin: 0 auto 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        #player {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23FF5722"><path d="M12 3c-4.97 0-9 3.185-9 7.115 0 2.557 1.522 4.82 3.889 6.115l-.78 2.77h11.782l-.78-2.77C19.478 14.935 21 12.672 21 10.115 21 6.185 16.97 3 12 3zm0 2c3.87 0 7 2.355 7 5.115 0 1.642-.965 3.1-2.45 4.01l-.55.35.2.58.6 2.13H7.2l.6-2.13.2-.58-.55-.35C5.965 13.215 5 11.757 5 10.115 5 7.355 8.13 5 12 5z"/></svg>') no-repeat center;
+            background-size: contain;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+        }
+        .raindrop {
+            position: absolute;
+            width: 50px;
+            height: 30px;
+            background: linear-gradient(to bottom, #4CAF50, #2E7D32);
+            text-align: center;
+            line-height: 30px;
+            color: white;
+            font-weight: bold;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s;
+            z-index: 5;
+        }
+        #wordInput {
+            width: 300px;
+            padding: 12px 15px;
+            font-size: 16px;
+            border: 2px solid #3498db;
+            border-radius: 25px;
+            outline: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+        #wordInput:focus {
+            border-color: #2980b9;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        #startBtn {
+            margin-top: 15px;
+            padding: 10px 25px;
+            font-size: 16px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        #startBtn:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-50px); opacity: 0; }
+        }
+        .bonus {
+            position: absolute;
+            color: gold;
+            font-weight: bold;
+            font-size: 20px;
+            animation: floatUp 1s forwards;
+            text-shadow: 0 0 3px black;
+        }
+        .heart {
+            color: #e74c3c;
+            margin: 0 2px;
+        }
+    </style>
+</head>
+<body>
+<h1>산성비 피하기 게임</h1>
+<div id="gameInfo">
+    <div id="score">점수: <span>0</span></div>
+    <div id="lives">생명: <span class="heart">❤❤❤</span></div>
+</div>
+<div id="gameContainer">
+    <div id="player"></div>
+</div>
+<input type="text" id="wordInput" placeholder="단어 입력 후 엔터">
+<button id="startBtn">게임 시작</button>
+
+<script>
+    // 게임 요소
+    const gameContainer = document.getElementById("gameContainer");
+    const scoreDisplay = document.getElementById("score").querySelector("span");
+    const livesDisplay = document.getElementById("lives").querySelector("span");
+    const wordInput = document.getElementById("wordInput");
+    const startBtn = document.getElementById("startBtn");
+    const player = document.getElementById("player");
+
+    // 게임 변수
+    let score = 0;
+    let lives = 3;
+    let gameOver = false;
+    let gameSpeed = 1000;
+    let dropSpeed = 3;
+    let gameInterval;
+    let difficultyInterval;
+
+    // 단어 목록
+    const words = ["가위", "가을", "강아지", "개구리", "거울", "겨울", "고양이", "구름",
+        "그림자", "기차", "꽃", "나무", "눈", "달", "바다", "별", "사과", "산",
+        "새", "연필", "우산", "자동차", "종이", "책", "토끼", "하늘"];
+
+    // 게임 초기화
+    function initGame() {
+        // 게임 상태 초기화
+        gameOver = false;
+        score = 0;
+        lives = 3;
+        gameSpeed = 1000;
+        dropSpeed = 3;
+
+        // 표시 업데이트
+        scoreDisplay.textContent = score;
+        livesDisplay.innerHTML = '<span class="heart">❤❤❤</span>';
+
+        // 기존 비 제거
+        document.querySelectorAll(".raindrop").forEach(drop => drop.remove());
+
+        // 입력창 활성화
+        wordInput.disabled = false;
+        wordInput.focus();
+
+        // 게임 시작
+        gameInterval = setInterval(createRaindrop, gameSpeed);
+        difficultyInterval = setInterval(increaseDifficulty, 10000);
+    }
+
+    // 비 생성
+    function createRaindrop() {
+        if (gameOver) return;
+
+        let drop = document.createElement("div");
+        drop.classList.add("raindrop");
+        drop.style.left = Math.random() * (gameContainer.clientWidth - 50) + "px";
+        drop.style.top = "0px";
+        drop.textContent = words[Math.floor(Math.random() * words.length)];
+        gameContainer.appendChild(drop);
+
+        moveRaindrop(drop);
+    }
+
+    // 비 이동
+    function moveRaindrop(drop) {
+        let interval = setInterval(() => {
+            if (gameOver) {
+                clearInterval(interval);
+                return;
+            }
+
+            drop.style.top = drop.offsetTop + dropSpeed + "px";
+
+            // 바닥에 닿았을 때
+            if (drop.offsetTop + drop.clientHeight >= gameContainer.clientHeight) {
+                drop.remove();
+                clearInterval(interval);
+                decreaseLife();
+            }
+        }, 30);
+    }
+
+    // 생명 감소
+    function decreaseLife() {
+        lives--;
+        updateLives();
+
+        if (lives <= 0) {
+            endGame();
+        }
+    }
+
+    // 생명 업데이트
+    function updateLives() {
+        livesDisplay.innerHTML = '<span class="heart">' + '❤'.repeat(lives) + '</span>';
+    }
+
+    // 점수 추가
+    function addScore(points) {
+        score += points;
+        scoreDisplay.textContent = score;
+
+        // 보너스 효과
+        const bonus = document.createElement("div");
+        bonus.classList.add("bonus");
+        bonus.textContent = `+${points}`;
+        bonus.style.left = player.style.left;
+        bonus.style.top = (gameContainer.clientHeight - 80) + "px";
+        gameContainer.appendChild(bonus);
+
+        setTimeout(() => bonus.remove(), 1000);
+    }
+
+    // 난이도 증가
+    function increaseDifficulty() {
+        if (gameSpeed > 300) gameSpeed -= 50;
+        if (dropSpeed < 10) dropSpeed += 0.5;
+
+        clearInterval(gameInterval);
+        gameInterval = setInterval(createRaindrop, gameSpeed);
+    }
+
+    // 게임 종료
+    function endGame() {
+        gameOver = true;
+        clearInterval(gameInterval);
+        clearInterval(difficultyInterval);
+        wordInput.disabled = true;
+        alert(`게임 오버! 최종 점수: ${score}`);
+    }
+
+    // 단어 입력 처리
+    wordInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+            let inputWord = wordInput.value.trim();
+            let drops = document.querySelectorAll(".raindrop");
+            let found = false;
+
+            drops.forEach(drop => {
+                if (drop.textContent === inputWord) {
+                    found = true;
+                    drop.remove();
+                    addScore(5);
+                }
+            });
+
+            if (found) {
+                wordInput.value = "";
+            } else {
+                wordInput.value = "";
+                wordInput.placeholder = "일치하는 단어 없음!";
+                setTimeout(() => wordInput.placeholder = "단어 입력 후 엔터", 1000);
+            }
+        }
+    });
+
+    // 게임 시작 버튼
+    startBtn.addEventListener("click", initGame);
+
+    // 초기화
+    wordInput.disabled = true;
+</script>
+</body>
+</html>
