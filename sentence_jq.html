@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>타자선생님 - 문장연습</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <style>
+        body { font-family: '맑은 고딕', sans-serif; padding: 20px; background: #f4f4f4; }
+        h1 { color: #333; }
+        .ex_box { background: #fff; border: 1px solid #ccc; padding: 20px; border-radius: 10px; }
+        .ip { font-size: 22px; width: 100%; padding: 8px; box-sizing: border-box; }
+        .dp_a { margin-bottom: 20px; }
+        .dp_box { font-weight: bold; }
+        .grp1 { display: block; height: 10px; background: #4caf50; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 6px; text-align: left; }
+        th { white-space: nowrap; width: 150px }
+    </style>
+</head>
+<body>
+
+<div class="ex_box">
+    <div class="dp_a">
+        <table>
+            <tr>
+                <th>현재속도:</th>
+                <th><span id="id_s1">0</span></th>
+                <td><span id="id_g1" class="grp1" style="width:0%"></span></td>
+            </tr>
+            <tr>
+                <th>최고속도:</th>
+                <th><span id="id_s2">0</span></th>
+                <td><span id="id_g2" class="grp1" style="width:0%"></span></td>
+            </tr>
+            <tr>
+                <th>평균속도:</th>
+                <th><span id="id_s3">0</span></th>
+                <td><span id="id_g3" class="grp1" style="width:0%"></span></td>
+            </tr>
+            <tr>
+                <th>현재정확도:</th>
+                <th><span id="id_s4">0</span></th>
+                <td><span id="id_g4" class="grp1" style="width:0%"></span></td>
+            </tr>
+            <tr>
+                <th>평균정확도:</th>
+                <th><span id="id_s5">0</span></th>
+                <td><span id="id_g5" class="grp1" style="width:0%"></span></td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="">
+        <div>
+            <span style="float:right;">
+                진행줄수: <b id="t3">0/0</b> &nbsp; 연습시간: <b id="t4">0</b>분
+            </span>
+        </div>
+        <div id="id_err" class="ip" style="background:#fff; color:red;"></div>
+        <div><input type="text" id="t1" class="ip" readonly style="background:#fff69c;"></div>
+        <div><input type="text" id="t2" class="ip" style="background:#fff;"></div>
+        <div style="color:#666;"><span id="id_next" class="ip"></span></div>
+    </div>
+</div>
+
+<script>
+    const tStrs = [
+        "우린 서로 너무도 다른 세상에 살아왔죠", "한번 스쳐 지났을 뿐", "그 후로 난 멀리서 이렇게 기다려왔죠",
+        "언젠가는 내 헛된 꿈이 혹 이뤄질까", "날 기억이나 할까요", "내 이름조차 생각이나 날까요",
+        "누군가 매일 그대를 위해 늘 기도해온 걸 알까요", "그대가 난 부럽죠", "나 같은 사람 너무나 흔하겠죠",
+        "혹시나 그대 알고 있나요", "얼마나 행복한 사람인지", "아껴왔던 내 맘이 흔하게 묻혀질까봐",
+        "단 한번도 편지조차 못했는데", "날 기억이나 할까요", "내 이름조차 생각이나 날까요",
+        "그대는 이미 누군가에게 큰 의미라는 걸 알까요", "그대를 사랑해요", "나도 모르게 이렇게 돼 버렸죠",
+        "혹시나 그대 알고 있나요", "그 날 이후로 지금까지", "매일 그대의 곁에서",
+        "맴돌았다는 걸 그대를 지켜왔었다는 걸", "날 사랑하면 안돼요?", "단 하루라도 그럴 수는 없나요?",
+        "허튼 생각이란 거 알지만", "한번은 말하고 싶었죠", "그대를 사랑해요"
+    ];
+    const dv = 21 * 28;
+    let exn = 0, start = false, dt = 0, avt = 0, topt = 0, avp = 0, oItv = null, extime = 0;
+
+    const nCho = new Array(19).fill(1);
+    const nJung = [1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 2, 2, 2, 1, 1, 2, 1];
+    const nJong = new Array(28).fill(1); nJong[0] = 0;
+
+    function getCharScore(ch) {
+        const code = ch.charCodeAt(0) - 0xAC00;
+        if (code < 0) return 1;
+        const cho = Math.floor(code / dv);
+        const jung = Math.floor((code % dv) / 28);
+        const jong = code % 28;
+        return nCho[cho] + nJung[jung] + nJong[jong];
+    }
+
+    function calcTypingUnit(str) {
+        return [...str].reduce((acc, ch) => acc + (ch.charCodeAt(0) < 200 ? 1 : getCharScore(ch)), 0);
+    }
+
+    function resetTest() {
+        exn = 0; start = false; dt = 0; avt = 0; topt = 0; avp = 0; extime = 0;
+        $('#t4').text(0);
+        if (!window.timer2) window.timer2 = setInterval(() => $('#t4').text(++extime), 60000);
+    }
+
+    function updateProgressBar(id, val) {
+        $(`#${id}`).css('width', `${val}%`);
+    }
+
+    function nextString() {
+        if (exn >= tStrs.length) {
+            if (confirm("선택한 글을 모두 끝냈습니다!\n현재글로 다시 연습하시겠습니까?")) {
+                resetTest();
+                nextString();
+            } else {
+                history.back();
+            }
+            return;
+        }
+        $('#id_err').text('');
+        $('#t3').text(`${exn + 1}/${tStrs.length}`);
+        $('#t1').val(tStrs[exn]);
+        $('#id_next').text(tStrs[exn + 1] || '');
+        $('#t2').focus();
+    }
+
+    function getProgressPercent(n) {
+        let i = Math.floor((100 * n) / 600);
+        if (i >= 100) i = 100;
+        return i;
+    }
+
+    function checkInput() {
+        const input = $('#t2').val();
+        const target = $('#t1').val();
+        const l1 = target.length, l2 = input.length;
+
+        if (l2 < l1) {
+            //alert("윗글의 내용을 끝까지 입력하세요!");
+            $('#t2').val('').focus();
+            return;
+        }
+
+        let correct = 0;
+        let errorMark = '';
+        for (let i = 0; i < l1; i++) {
+            if (input[i] === target[i]) {
+                correct++;
+                errorMark += (target.charCodeAt(i) > 200 ? '.': '') + '.';
+            } else {
+                errorMark += (target.charCodeAt(i) > 200 ? '.' : '') + 'x';
+            }
+        }
+
+        if (correct < l1) {
+            $('#id_err').text(errorMark);
+            // if (correct < l1 * 0.75) {
+            //     alert("정확도가 75% 이하면 통과가 되지 않습니다.\n다시 입력해 주세요.");
+            //     $('#t2').val('').focus();
+            //     return;
+            // } else {
+            //     alert("오타가 있습니다!");
+            // }
+        }
+
+        const elapsed = new Date().getTime() - dt;
+        const unit = calcTypingUnit(input);
+        const speed = Math.floor((unit * 60000) / elapsed);
+
+        if (speed > topt) {
+            topt = speed;
+            $('#id_s2').text(speed);
+
+            updateProgressBar('id_g2', getProgressPercent(speed));
+        }
+
+        $('#id_s1').text(speed);
+        updateProgressBar('id_g1', getProgressPercent(speed));
+        avt = ((avt * exn) + speed) / (exn + 1);
+        $('#id_s3').text(Math.floor(avt));
+        updateProgressBar('id_g3', getProgressPercent(avt));
+
+        const acc = correct * 100 / l1;
+        $('#id_s4').text(Math.floor(acc));
+        updateProgressBar('id_g4', acc);
+        avp = (avp * exn + acc) / (exn + 1);
+        $('#id_s5').text(Math.floor(avp));
+        updateProgressBar('id_g5', avp);
+
+        exn++;
+        $('#t2').val('');
+        nextString();
+    }
+
+    $(document).ready(() => {
+        resetTest();
+        nextString();
+
+        $('#t2').on('keydown', function(e) {
+            if (!start) {
+                dt = new Date().getTime();
+                start = true;
+            }
+            if (e.keyCode === 13) {
+                checkInput();
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
