@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>타자선생님</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+</head>
+<body>
+
+
+<style type="text/css">
+
+    .tit2 {
+        font-size:17px;font-weight:600;
+    }
+
+
+
+    BLOCKQUOTE {
+        border-left-color:#ffd600;
+    }
+
+
+    .ctzp_head .tit1 {
+        font-size:20px; font-weight:600;
+    }
+    .ctzp_head .tbl tr {
+        border:0;
+    }
+    .ctzp_head .tbl td {
+        border:0;padding:0;margin:0;
+    }
+    .ctzp_head .tbl .ctzp_ico {
+        padding-left:10px;padding-right:20px;
+        font-size:50px;
+    }
+
+
+    [type="radio"]:not(:checked)+span, [type="radio"]:checked+span {
+        padding-left:23px;
+    }
+
+
+    .app_ad table, .app_ad tr, .app_ad td {
+        padding:0;margin:0;
+        vertical-align:center;
+        box-shadow:none;
+    }
+
+    .game_div {
+        display:inline-block;
+    }
+    .game_bg {
+        width:130px;height:162px;
+        background: url('img/nump_bg2.png') no-repeat;
+        padding-top:34px;
+    }
+    #game_a {
+        /*display:inline-block;*/
+        /*margin-top:34px;*/
+        width:97px;height:97px;
+    }
+    .num1 {
+        display:inline-block;
+        text-align:center;
+        width:32px;height:32px;
+        background:url('img/num1_bg.png') no-repeat;
+    }
+    .num0 {
+        display:inline-block;
+        text-align:center;
+        width:32px;height:32px;
+        background:#aaa none;
+    }
+    .disp_num_a {
+        display:inline-block;
+        width:50px;
+        padding:4px;
+        background-color:#000; color:#fff;
+        font-size:16px;font-weight:600;
+        text-align:center;
+    }
+</style>
+
+
+        <p class="tit2">숫자판 맞추기</p>
+
+
+        <div class="game_container">
+            <div style="display:inline-block;">
+                완성할 형태<br/>
+                <img src="img/nump_ex.png"/>
+            </div>
+            <div class="game_div">
+                <div style="padding:5px;border:1px solid #ccc;margin-bottom:5px;">
+                    <div style="font-size:26px;padding:2px;text-align:center;">
+                        <i class="fa-solid fa-circle-minus" style="cursor:pointer;" onclick="gameZoom(-10)"></i>
+                        <span id="zoom_a" style="font-size:16px;border:1px inset #999;padding:1px 4px;margin:4px;">100%</span>
+                        <i class="fa-solid fa-circle-plus" style="cursor:pointer;" onclick="gameZoom(10)"></i></div>
+                    <div>진행시간: <span class="disp_num_a" id="n_tm_a">0</span>초</div>
+                    <div style="margin-top:2px;">이동횟수: <span class="disp_num_a" id="n_mv_a">0</span>회</div>
+                    <div style="margin-top:2px;"><div style="border:1px solid #777;cursor:pointer;text-align:center;padding:5px;background-color:#FFD600;" onclick="CNumPz.start()">게임시작</div></div>
+                </div>
+            </div><!--/game_div-->
+            <div style="width:100%;">
+                <div class="game_bg" id="game_bg" style="zoom:300%;">
+                    <div id="game_a">
+                    </div><!--/game_a-->
+                </div><!--/game_bg-->
+            </div>
+        </div><!--/game_cointainer-->
+
+        <script>
+            // 아래 직접 가져옴<script type="text/javascript" src="game_numpz_js.php">
+            var CNumPz={
+                /*
+                  012
+                  345
+                  678
+
+                  현재위치에서 -1,+1,-3,+3 이 비었는지 체크..
+                */
+                d0:[7,8,9,4,5,6,1,2,3],
+                dp:[7,8,9,4,5,6,1,2,3],
+                is_start:false,
+                n_tm:0,
+                n_mv:0,
+                n_itv:null,
+
+                init: function() {
+                    this.dp=this.d0.slice(0);
+                    this.redrawNum();
+                },
+
+                start: function() {
+                    this.init();
+                    this.shuffle();
+                    this.is_start=true;
+                    this.n_tm=0; this.n_mv=0;
+                    document.getElementById('n_tm_a').innerText=0;
+                    document.getElementById('n_mv_a').innerText=0;
+                    if(this.n_itv!=null) clearInterval(this.n_itv); this.n_itv=setInterval(function() { CNumPz.ckTm(); },1000);
+                },
+
+                shuffle: function() {
+                    var i,r;
+                    for(i=0;i<400;i++) {
+                        r=Math.floor(Math.random()*8);
+                        this.moveNum(r,false);
+                    }
+                    this.n_mv=0;
+                },
+
+                ckTm: function() {
+                    if(!this.is_start) return;
+                    document.getElementById('n_tm_a').innerText=++this.n_tm;
+                },
+
+                ckGame: function() {
+                    var i, ok=1;
+                    if(this.is_start) {
+                        for(i=0;i<9;i++) {
+                            if(this.d0[i]!=this.dp[i]) { ok=0; break; }
+                        }
+                        if(ok) { this.success(); }
+                    }
+                },
+
+                success: function() {
+                    alert('성공');
+                    this.is_start=0;
+                    if(this.n_itv!=null) clearInterval(this.n_itv);
+                },
+
+                moveNum: function(np,bReal) { //bReal: 실제인지 셔플인지..
+                    var p, okp=-1;
+                    if((np%3)>0) { //왼쪽체크
+                        p=np-1;
+                        if(this.dp[p]==9) okp=p;
+                    }
+                    if(okp<0 && (np%3)<2) { //오른쪽체크
+                        p=np+1;
+                        if(this.dp[p]==9) okp=p;
+                    }
+                    if(okp<0 && np>2) { //위쪽체크
+                        p=np-3;
+                        if(this.dp[p]==9) okp=p;
+                    }
+                    if(okp<0 && np<6) { //아래쪽 체크
+                        p=np+3;
+                        if(this.dp[p]==9) okp=p;
+                    }
+                    if(okp<0) { //움직일 수 없음.
+
+                    } else { //이동
+                        //이동 처리..
+                        this.dp[p]=this.dp[np]; this.dp[np]=9;
+                        this.redrawNum();
+                        document.getElementById('n_mv_a').innerText=++this.n_mv;
+                        if(bReal) this.ckGame();
+                    }
+                },
+
+                ckNum: function(n) { //입력된 숫자 주변이 비어있는지 확인
+                    var i;
+                    for(i=0;i<9;i++) {
+                        if(this.dp[i]==n) { this.moveNum(i,true); break; }
+                    }
+                },
+
+                redrawNum: function() {
+                    var i,s='';
+                    for(i=0;i<9;i++) {
+                        if(this.dp[i]==9) s+='<div class="num1 num0">&nbsp;</div>';
+                        else s+='<div class="num1">'+this.dp[i]+'</div>';
+                    }
+                    document.getElementById('game_a').innerHTML=s;
+                },
+                drawNum: function() {
+                    var i,s='';
+                    for(i=0;i<9;i++) {
+                        if(i==2) s+='<div class="num1 num0" id="num_'+i+'">&nbsp;</div>';
+                        else s+='<div class="num1" id="num_'+i+'">'+this.d0[i]+'</div>';
+                    }
+                    document.getElementById('game_a').innerHTML=s;
+                }
+
+            }
+
+            CNumPz.init();
+            window.onkeydown=function() {
+                var k=+event.key;
+                //console.log('k:'+k);
+                if(k>0 && k<10) {
+                    CNumPz.ckNum(k);
+                } else { //beep
+                }
+            }
+
+        </script>
+
+        <script>
+            var nZoom=100;
+            function gameZoom(pm) {
+                nZoom+=pm;
+                if(nZoom<80) nZoom=80; if(nZoom>300) nZoom=300;
+                document.getElementById('game_bg').style.zoom=nZoom+'%';
+                document.getElementById('zoom_a').innerText=nZoom+'%';
+            }
+        </script></div><!--/section-->
+</div><!--/container-->
+
+
+
+<script>
+
+    document.addEventListener('DOMContentLoaded', function() {
+        M.AutoInit();
+        var elems = document.querySelectorAll('.sidenav');
+        var instances = M.Sidenav.init(elems);//, options);
+    });
+
+</script>
+
+</body>
+</html>
