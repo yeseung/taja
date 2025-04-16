@@ -1,0 +1,2308 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>죽음의 판뒤집기</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: 'Malgun Gothic', sans-serif;
+        }
+        #game-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 40px;
+            margin: 20px auto;
+            max-width: 1200px;
+            padding: 20px;
+        }
+        #game-container-left, #game-container-right {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            width: 45%;
+        }
+        .card {
+            width: 105px;
+            height: 105px;
+            color: white;
+            font-size: 20px;
+            transition: transform 0.3s;
+            perspective: 1000px;
+            position: relative;
+            transform-style: preserve-3d;
+            margin: 0;
+        }
+        #game-container-left .card {
+            background-color: #f44336;
+        }
+        #game-container-right .card {
+            background-color: #2196F3;
+        }
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+        #game-container-left .card.flipped {
+            background-color: #2196F3;
+        }
+        #game-container-right .card.flipped {
+            background-color: #f44336;
+        }
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card-back {
+            transform: rotateY(180deg);
+        }
+        #input-section {
+            margin: 20px;
+        }
+        #word-input {
+            padding: 10px;
+            font-size: 18px;
+            width: 200px;
+            margin-bottom: 20px;
+            border: 2px solid #4CAF50;
+            border-radius: 5px;
+            outline: none;
+        }
+        #word-input:focus {
+            border-color: #2196F3;
+        }
+        #timer, #score {
+            font-size: 24px;
+            margin: 20px;
+            transition: all 0.3s ease;
+        }
+        .game-complete #timer, .game-complete #score {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 36px;
+            background-color: rgba(33, 150, 243, 0.9);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 100;
+        }
+        .game-complete #score {
+            top: calc(50% + 60px);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease-in-out;
+            min-width: 400px;
+        }
+        .modal-content h2 {
+            margin-bottom: 30px;
+            color: #2196F3;
+            font-size: 32px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        .modal-content p {
+            font-size: 24px;
+            margin: 15px 0;
+            color: #333;
+        }
+        .modal-content .score-details {
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .modal-content .score-details p {
+            margin: 10px 0;
+            font-size: 20px;
+        }
+        .restart-button {
+            margin-top: 30px;
+            padding: 15px 40px;
+            font-size: 18px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .restart-button:hover {
+            background-color: #1976D2;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .score-info {
+            display: flex;
+            gap: 10px;
+        }
+        .time {
+            color: #666;
+            font-size: 0.9em;
+        }
+        #best-time {
+            display: none;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideIn {
+            from { transform: translate(-50%, -60%); opacity: 0; }
+            to { transform: translate(-50%, -50%); opacity: 1; }
+        }
+        #game-instructions {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: #2196F3;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            max-width: 300px;
+            text-align: left;
+            line-height: 1.5;
+        }
+        .game-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            margin: 20px;
+            height: calc(700px);
+            overflow: hidden;
+            padding: 20px;
+            position: relative;
+        }
+
+        .game-container::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, transparent, #fff, transparent);
+            transform: translateX(-50%);
+        }
+
+        #game-container-left, #game-container-right {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            grid-auto-rows: minmax(80px, 1fr);
+            gap: 15px;
+            padding: 15px;
+            overflow-y: auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            max-height: 100%;
+            position: relative;
+        }
+
+        #game-container-left {
+            margin-right: 10px;
+        }
+
+        #game-container-right {
+            margin-left: 10px;
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            perspective: 1000px;
+            cursor: pointer;
+            min-height: 80px;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            min-height: 80px;
+        }
+
+        .score-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .score {
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 1.2em;
+            text-align: center;
+            min-width: 200px;
+        }
+
+        #player-score {
+            background: #e3f2fd;
+            color: #1976d2;
+            order: 3;
+        }
+
+        #computer-score {
+            background: #ffebee;
+            color: #d32f2f;
+            order: 1;
+        }
+
+        #timer {
+            background: #f1f8e9;
+            color: #558b2f;
+            order: 2;
+        }
+
+        #result-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+            position: relative;
+            animation: modalFadeIn 0.3s ease-out;
+        }
+
+        .vs-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+
+        .player-score-box, .computer-score-box {
+            flex: 1;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 0 10px;
+        }
+
+        .player-score-box {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .computer-score-box {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+
+        .vs-text {
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+            margin: 0 20px;
+        }
+
+        .score-label {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .score-value {
+            font-size: 36px;
+            font-weight: bold;
+        }
+
+        .result-text {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            background: #f1f8e9;
+            color: #558b2f;
+        }
+
+        .time-text {
+            font-size: 18px;
+            color: #666;
+            margin-top: 15px;
+        }
+
+        .close-button {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            transition: color 0.2s;
+            background: none;
+            border: none;
+            padding: 5px;
+        }
+
+        .close-button:hover {
+            color: #333;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        #result-text {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        #final-score {
+            font-size: 20px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            color: #444;
+        }
+
+        #final-score p {
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 8px;
+            background-color: #f5f5f5;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-time {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        #final-time p {
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 8px;
+            background-color: #f1f8e9;
+            color: #558b2f;
+        }
+
+        #final-time p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-time p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-time p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            background-color: #f1f8e9;
+            font-weight: bold;
+        }
+
+        #final-score p:first-child {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+
+        #final-score p:nth-child(2) {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        #final-score p:last-child {
+            color: #558b2f;
+            cursor: pointer;
+            color: #666;
+            transition: color 0.2s;
+        }
+
+        .close-button:hover {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+<h1>한글 단어 타자게임</h1>
+<div class="game-instructions">
+    <h2>3분 판뒤집기 타자게임입니다</h2>
+    <p>모든 카드를 뒤집거나 제한시간내에 득점을 많이 한쪽이 승리하는 게임입니다</p>
+</div>
+<div id="best-time">최고기록: --초</div>
+<div class="score-container">
+    <div id="computer-score" class="score">컴퓨터 점수: 0</div>
+    <div id="timer" class="score">시간: 0초</div>
+    <div id="player-score" class="score">플레이어 점수: 0</div>
+</div>
+<div class="game-layout">
+    <div class="game-container">
+        <div id="game-container-left"></div>
+        <div id="game-container-right"></div>
+    </div>
+    <div id="input-section">
+        <input type="text" id="word-input" placeholder="단어를 입력하세요" autocomplete="off">
+    </div>
+</div>
+
+<div id="result-modal" class="modal">
+    <div class="modal-content">
+        <h2>🎉 게임 완료! 🎉</h2>
+        <div class="score-details">
+            <p>최종 시간: <span id="final-time"></span></p>
+            <p>최종 점수: <span id="final-score"></span>점</p>
+        </div>
+        <button class="restart-button" onclick="location.reload()">다시 시작</button>
+    </div>
+</div>
+
+<script>
+    const words = ['함지박', '밤새', '채소', '세탁소', '더욱이', '재우다', '찾다', '우연히', '정하다', '작용', '솔바람', '오페라', '한잔', '조화되다', '재주', '멱감다', '당연하다', '잔털', '문학', '앞서다', '녹음하다', '조사', '깁다', '쓱싹하다', '점심시간', '의논하다', '왕자', '싱긋', '촘촘하다', '지새우다', '마구', '떠들다', '하여금', '전문', '섞다', '부모님', '이래서', '깨다', '길어지다', '공연되다', '화가', '창조적', '세워지다', '상징하다', '토하다', '음료', '도착', '지금껏', '자기', '관리하다', '문득', '보충하다', '취직', '저고리', '아줌마', '으쓱', '예식장', '중국집', '들것', '째리다', '걸다', '스튜디오', '뿌리치다', '동서남북', '누르다', '상품', '벌판', '가능', '제출하다', '좁다', '천자문', '운동', '내보내다', '병들다', '주무시다', '뒤늦다', '서쪽', '전시장', '논의하다', '주머니두더지', '두더지소금', '출입', '싸구려', '둥글다', '훌륭하다', '축제', '바퀴', '음주', '짭짤하다', '친절하다', '입사', '산소', '더불어', '이상적', '도서관', '윗몸', '놀이공원', '사납다', '배부르다', '급하다', '실시하다', '따분하다', '풍습', '말괄량이', '주방', '근거하다', '재수', '단추', '부대끼다', '다방', '북돋우다', '가스', '내버리다', '참나무', '짠지', '무역', '갈증', '출연', '만세', '마다가스카르', '호미', '걸어오다', '되뇌다', '전문가', '문화', '돌멩이', '전시되다', '촛불', '헤프다', '허름하다', '탐내다', '다르다', '장모', '둘러싸이다', '낚다', '흉내내다', '다짐하다', '차례상', '졸음', '미끄러지다', '직장', '동그라미', '대충', '관계없이', '종업원', '까물까물', '소속', '다양하다', '감기', '그냥', '자료', '꼬리', '괴로움', '오므리다', '오피스텔', '물렁물렁하다', '좇다', '가만히', '논하다', '취미', '느껴지다', '밀접하다', '호리호리', '참뜻', '상상력', '둥둥', '괴다', '편히', '쏙쏙', '설명되다', '한하다', '영화배우', '동산', '궁금하다', '삼촌', '공룡', '스타일', '체험', '투명하다', '뛰어넘다', '힘겹다', '화요일', '사소하다', '선언하다', '세간', '냄새', '자랑하다', '헉헉헉', '규칙적', '민간', '육군', '레스토랑', '낭자', '화장', '순서', '탈고', '흰색', '부러워하다', '신속하다', '숟가락', '미끄럽다', '어쨌든', '중단하다', '동대문', '같이하다', '잃다', '주저앉다', '악쓰다', '박꽃', '눈감다', '소개하다', '보통속도로', '두엄', '한강', '고통', '크레용', '부드럽다', '눈보라', '킬킬', '여기저기', '갯마을', '간섭', '확신', '쏘다니다', '들끓다', '주장하다', '열흘', '음식물', '고추', '컨디션', '주사', '하느님', '착하다', '뒷짐', '금요일', '국산', '어찌나', '흐릿하다', '티브이', '당하다', '수험생', '개인의취향', '콩쥐', '산업', '조심스럽다', '포도주', '아가씨', '되풀이되다', '세상에', '손가락', '건너편', '거울', '공통되다', '풍덩', '유물', '폭동', '밤톨', '서클', '딸리다', '고양이소리', '정해지다', '장학금', '마차', '파하다', '얼마간', '차츰차츰', '맺히다', '허리춤', '허용되다', '야하다', '은행', '어울리다', '팔짱', '아직까지', '틀어막다', '각국', '글귀', '작아지다', '파산', '꾸중', '추천하다', '출입문', '날개', '잘못하다', '공놀이', '선거', '뒷받침', '성장하다', '녹지다', '재채기', '돋구다', '지푸라기', '헹가래', '떠받치다', '태우다', '합하다', '담다', '감사하다', '관광객', '시시하다', '푸르다', '진창', '달콤', '체육관', '여기다', '욕실', '겹겹이', '자리잡다', '삼가다', '복잡하다', '나들다', '사투리', '더불다', '가정교사', '계속', '깍두기', '추가되다', '달맞이', '외교', '나침반', '외과', '빠르다', '한해살이풀', '짚다', '매점', '도토리', '허물', '하드웨어', '정신과', '태고', '가방', '걷어차다', '졸졸', '박히다', '아이가', '포근하다', '겉돌다', '조리다', '태연하다', '이야기', '들여놓다', '생산되다', '오붓하다', '빨다', '달아나다', '싱싱하다', '젖다', '카드', '책하다', '성립되다', '버선', '문자', '허물다', '광개토대왕', '바삐', '건몸달다', '팽팽하다', '담임', '조르다', '조금씩', '하나님', '음악', '고을', '우표', '파괴', '관련하다', '불러일으키다', '잊혀지다', '쌓이다', '', '이야기책', '순하다', '그네', '사표', '입맛', '방송하다', '그럴듯하다', '경영하다', '배우자', '고등학생', '이혼하다', '장자', '피아노', '거침없다', '토요일', '입력하다', '영문', '초원', '뜻대로', '세탁기', '용왕', '울긋불긋', '농민', '모스크바선언', '여행하다', '무더기', '도시락', '허리', '굳이', '패기', '쌌다', '튼튼히', '줄기차다', '미안하다', '겨울', '현관문', '쪽박', '이웃집', '어색하다', '몸통박치기', '금지되다', '미크로네시아', '요리', '들려주다', '굳히다', '기다', '함께하다', '대답', '흐름', '백두산', '대중교통', '참고하다', '아나운서', '신혼부부', '독일어', '않다', '머리칼', '전망', '평화', '유학생', '삽살개', '편의', '올가미', '숲속', '들이다', '믿어지다', '유머', '국민주권설', '제시되다', '담요', '색칠하기', '통계', '나르다', '섭씨', '집중적', '으슥하다', '호수', '평양', '드러나다', '쥐며느리', '주민', '기도하다', '잇다', '설탕', '끌어안다', '일주일', '속삭이다', '가나다라마바', '대학교', '안개', '폭넓다', '안마', '하얀색', '서너', '오소리', '깨닫다', '냉담', '싼값', '감사', '하루바삐', '모과', '짖다', '터지다', '존재', '바라지', '부리', '눈부시다', '논문', '만지다', '오세아니아', '도련님', '새알', '덕수궁', '판사', '덮치다', '열심히', '옹이', '권하다', '어림없다', '환호', '초기', '라틴', '맞장구', '당차다', '한라산', '휴식', '제한되다', '서류', '분주하다', '초청', '타국', '내정', '붉히다', '부호', '없다', '고속도로', '멈추다', '달라지다', '앞날', '집단적', '구름', '내구력', '발생', '귀엽다', '바사삭바사삭', '잠수함', '비추다', '출구', '우렁차다', '군인', '레슬링', '편도선', '셈틀', '남기다', '건넌방', '아니하다', '재우치다', '공원', '한자', '시디롬', '호기심', '어려워지다', '당신', '파격', '초밥', '전통', '눈빛', '타도하다', '전공', '앉다', '새벽', '뻐기다', '아직', '헐레벌떡', '파송하다', '막대기', '옷깃', '파동', '설날', '병풍', '빙긋하다', '만족하다', '채우다', '얼리다', '육체적', '꾸준히', '공급', '기여', '폭탄', '가풀막', '거멓다', '찌푸리다', '섭섭하다', '대단하다', '장사꾼', '인식하다', '뜨끈뜨끈', '좽이', '주문하다', '허둥지둥', '귀하다', '사정', '풍경화', '참가하다', '필적', '눕다', '달력', '약간', '괜찮다', '달팽이', '중단', '오리다', '보완하다', '먹히다', '가로', '삐죽하다', '샌드위치', '깊숙이', '둥지', '놓치다', '올려다보다', '편집', '홈페이지', '숙이다', '발목', '쇠고기', '건너다', '답하다', '양념', '품사', '식히다', '명령어', '철학적', '와들와들', '지하도', '기와', '나타내다', '웬일', '밑거름', '깜짝', '퍼뜨리다', '움츠리다', '하였다', '효도', '봉오리', '특대', '매부리코', '오슬오슬', '대체', '활발해지다', '정기적', '왜냐하면', '달포', '음식', '다리', '고개', '오래되다', '깊이', '장남', '초상화', '살다', '떨어지다', '잿물', '죄다', '출연하다', '국회의원', '올라오다', '친척', '외삼촌', '재학', '까닥이다', '발걸음', '오십', '곧장', '진실하다', '뽕나무', '용서하다', '사회학', '돌려주다', '끌어당기다', '던지다', '간호', '괴로워하다', '알다', '천천히', '품격', '거들다', '은행나무', '문밖', '쫑긋쫑긋', '방그레', '한몫', '대롱대롱', '색종이', '안정', '옹기옹기', '남달리', '순솦', '머쓱하다', '차림', '깨물다', '마리', '위반하다', '존재하다', '하순', '재료', '가이드', '솟다', '달리', '살리다', '옥상', '어째서', '켕기다', '번득이다', '오른발', '쫓다', '짤막하다', '팔면체', '미나리', '실리다', '발딱', '화살', '그다음', '피리', '어떠하다', '필연적', '번데기', '외치다', '전반', '활발하다', '얼마나', '제의하다', '마르다', '지적', '대접하다', '구입하다', '기회', '꽁꽁', '큰따옴표', '아쉬움', '둥실', '프로', '구분되다', '노인', '넓다', '자판', '호주머니', '포유류', '이해관계', '장군', '외로움', '퉤퉤', '주차장', '까불다', '언짢다', '전기피아노', '한순간', '쓰임', '아파트', '여름내', '짜증', '막바지', '불리다', '꾸러미', '동네', '지피다', '아저씨', '달님', '섬기다', '공통적', '역사적', '아주빠르게', '차리다', '이렇다', '서른', '소재', '활짝', '저희', '최선', '미인', '자두', '국회', '예컨대', '짙다', '굵다', '월드컵', '창포', '손놓다', '차감', '미안해요', '공주', '닥나무', '정확히', '위험', '감옥', '물음', '숨결', '대뜸', '제비', '품명', '너그럽다', '해소하다', '주변', '확실하다', '출석하다', '디디다', '반상회', '초라하다', '차관', '같다', '정치권', '떠들썩하다', '태동', '겨우내', '지점', '체육시간', '종달새', '조정', '국사', '청개구리', '착복하다', '초록색', '위치하다', '누구', '찌르다', '과일나무', '상반기', '학기', '기뻐하다', '바다', '큰어머니', '우울하다', '가뭄', '효과적', '접하다', '문화재', '이동하다', '아이', '서서히', '실패하다', '말썽', '이랑', '두발자전거', '그림일기', '눈가', '지저귀다', '덧신', '억지', '곁길', '히죽', '열다', '낱낱이', '삼십', '이렇듯', '겨냥', '홍수', '조기', '베개', '기초적', '농구', '생물', '비키다', '단지', '몸살', '확인되다', '뉴욕', '물어보다', '절구', '장수풍뎅이', '쓸데없이', '고모부', '손질하다', '파란색', '직원', '달려오다', '약하다', '초겨울', '갈퀴', '회화', '데이트', '읽기', '발음', '주식', '제거하다', '종종', '먹고살다', '힘들다', '유학', '잠깐', '기록되다', '수입하다', '운동장', '최대', '떨리다', '끝없다', '발달되다', '섞었다', '더구나', '막걸리', '웃음', '효자', '장미', '오이', '가짜', '체육', '닿다', '오른쪽', '탄식', '서두르다', '구두', '맘대로', '돌아가다', '커지다', '아무', '왼쪽', '생각하다', '빛나다', '비롯하다', '꽹과리', '전달되다', '오늘', '비늘', '그물', '미혼', '거문고자리', '텃밭', '전개하다', '유럽', '개울', '바라보다', '내리닫다', '줄이다', '여우꼬리풀', '설득하다', '네잎갈퀴덩굴', '패랭이', '첫째', '너울너울', '기억되다', '흘러내리다', '행복하세요', '다부지다', '이다음', '국수', '도자기', '살얼음', '못난이', '그야말로', '머리카락', '이맛살', '레이다', '떨기', '실현하다', '충고', '여학생', '까매지다', '낭패', '밤새다', '강수량', '자리', '빌리다', '윷가락', '두드러지다', '신나다', '재작년', '디딜방아', '지내다', '피나무', '삭소트롬바', '알아채다', '누비다', '깜깜한', '약국', '시궁창', '흔적', '의존하다', '한두', '그렇다', '책임', '수많다', '마련되다', '어린이', '밝다', '연구소', '대중', '언청이', '문장', '필사', '낚싯대', '줄어들다', '구성되다', '토지', '도저히', '날아가다', '문서', '자꾸만', '아이스크림', '날짐승', '엄지손가락', '개방하다', '돌아오다', '역할', '전문적', '지원', '값싸다', '여자아이', '한해살이', '싸우다', '한국', '장아찌', '희망하다', '내뿜다', '소름', '가엾은', '스케줄', '트림', '벌다', '회복하다', '시청자', '지리산', '홀랑', '무려', '매정하다', '원하다', '판매부', '전쟁', '독특하다', '허투루', '확실히', '토라지다', '급식', '중간', '전기', '녹화', '서투르다', '가구', '치약', '고객', '샤워', '불완전하다', '전환하다', '철저하다', '너털웃음', '러시아', '자다', '드리우다', '다행', '매스컴', '깜빡', '볏가리', '상황', '세로', '피복', '누나', '할미꽃', '휴일', '흔들리다', '하루갈이', '고민', '똑똑하다', '나날이', '나오다', '수수께끼', '야옹야옹', '예상되다', '노리다', '어렵다', '제도적', '노랫말', '줄달음질', '한옆', '선명하다', '공사', '가랑잎', '큰소리', '약점', '으뜸꼴', '안타깝다', '뛰어놀다', '간신히', '씹다', '대표적', '두레박', '미끄럼틀', '예술적', '커다랗다', '거리끼다', '부정하다', '사나이', '건성', '머루', '쓰다', '킬로미터', '한글날', '나다', '쇠사슬', '숙제', '효도하다', '캠퍼스', '불확실하다', '너르다', '당시', '세월', '르네상스', '나이지리아', '예순', '도입', '햇볕', '보장되다', '시대적', '속상하다', '정신적', '먹이', '고사리', '나라', '싯누렇다', '냉수마찰', '박다', '올해', '정치적', '나뭇잎', '미역', '되살다', '오늘날', '쉽사리', '출입국', '이름', '이상주의문학', '녹이다', '시작되다', '곱다', '국기', '신발주머니', '나다니다', '끌롱차뜨리', '죽음', '아이슬란드', '오염', '해수욕장', '등지다', '갈색너구리', '그래서', '어리둥절', '깔때기', '미국', '품행', '걷잡다', '더러워지다', '이불', '깨끗하다', '빼앗다', '애기검은파리', '내키다', '바위', '늦다', '필생', '쩡쩡', '망하다', '차갑다', '투숙하다', '씻다', '빽빽', '퍼센트', '쪼아먹다', '재다', '위협', '내려오다', '뚱뚱하다', '담배', '발견', '포함', '복슬복슬', '탄압', '치닫다', '개방되다', '맨드라미', '어젯밤', '내려놓다', '날뛰다', '동작', '날리다', '인삼차', '없어지다', '오목하다', '출발하다', '케케묵다', '취하다', '미처', '메아리', '주한', '재봉사', '완전', '마음대로', '디자이너', '우크라이나', '예상', '흘깃흘깃', '마련하다', '다정하다', '종합', '쥐다', '뽐내다', '배추김치', '달다', '국제적', '고추잠자리', '운전하다', '잠그다', '여물', '단원', '일컫다', '관계자', '이데올로기', '편하다', '아무튼', '마을일', '오래', '보존하다', '권투', '명확하다', '마요네즈', '고추장', '그만두다', '높아지다', '완전하다', '지속적', '냉수욕', '수레', '완성되다', '잦다', '며칠', '대구', '제외하다', '미디어', '슬며시', '개선되다', '비바람', '작은따옴표', '받침', '회관', '확대하다', '증세', '오로지', '멋지다', '들쥐', '미닫이', '주어지다', '조마조마', '씩씩하다', '치마', '잊다', '뒤엎다', '냇가', '궂다', '캥거루', '넘어지다', '세계', '일일이', '유행', '투영', '똑같다', '체하다', '솔직히', '가입하다', '모쪼록', '관련되다', '너구리', '앞뜰', '거미', '사촌', '송사리', '게으르다', '연필', '내한하다', '요구되다', '받다', '예약하다', '집다', '포장', '이용되다', '꽂다', '용감하다', '아래뜸', '애달다', '보릿고개', '세계관', '대문', '부자', '생활', '바탕글', '보랏빛', '가하다', '토착주의운동', '필답', '마을', '서구', '굿거리장단', '건설하다', '역사학', '등록증', '헐다', '코미디', '깊다', '브랜드', '부담하다', '도미', '태몽', '학용품', '목요일', '달아오르다', '긴장하다', '하루속히', '가수', '빚다', '잣나무', '그리워하다', '주인공', '친하다', '말하기', '암시', '정리하다', '마술사', '프린터', '서늘하다', '날다', '장점', '지극히', '총장', '피로하다', '육체', '마음먹다', '위반', '와이셔츠', '과일', '깨어지다', '움직임', '흙투성이', '여동생', '가정', '발칵', '흔들다', '책임자', '필요', '하반기', '이러다', '통례', '한반도', '추진하다', '선하다', '실질적', '용돈', '두렵다', '톱질', '덩어리', '듯하다', '그래야', '감정적', '저렇다', '원장', '끊다', '반드시', '바쁘다', '근무하다', '튀기다', '순간', '눈곱', '검불', '육상', '푹신하다', '지붕', '여행사', '공항버스', '기준', '여물다', '횟수', '화려하다', '소낙비', '한마리', '하나지', '소르르', '반찬', '마땅하다', '흔들흔들', '횃불', '줄줄', '적용', '쫄딱', '시금치', '전용비행기', '장수', '토목', '자개', '타작', '도시', '대량', '소비자', '재활용품', '흘리다', '애틋하다', '절대적', '장갑', '보너스', '위험하다', '적절하다', '간혹', '두해살이뿌리', '마음가짐', '따귀', '엊그제', '하여튼', '붓다', '그림', '즉시', '학번', '소유', '기침', '마주', '절약하다', '구별하다', '악어', '선원', '언덕', '텃새', '비빔밥', '개발되다', '합격하다', '하늘', '맛있다', '용궁', '아니꼽다', '확정', '축구', '잡다', '모습', '들어가다', '염려하다', '그윽하다', '머무르다', '희망', '흠씬', '이론적', '토론하다', '달려가다', '올빼미', '사진기', '시다', '박쥐', '콩닥콩닥', '능가하다', '지각', '일상생활', '차곡차곡', '주무르다', '노려보다', '규칙', '큼직하다', '지원하다', '프랑스', '밤늦다', '야채', '그런대로', '토사물', '떼다', '돋아나다', '생산력', '풍광명미하다', '걱정스럽다', '도화지', '두둑', '서로', '밝히다', '서양인', '문화적', '귀찮다', '옛날', '잡지', '빼놓다', '오렌지맛쿠키', '노선', '참외', '무디다', '바람직하다', '나이테', '얼굴', '미스', '밀리다', '들이켜다', '소개되다', '하물며', '태어나다', '찬조', '찌다', '무용가', '계좌', '사계절', '호랑이형님', '해결하다', '기호', '뛰어오다', '택시', '해님', '군사', '놀부', '지게꾼', '클래식', '넓어지다', '포함되다', '성숙하다', '초보자', '파랑새', '이끌다', '회원', '감상', '다각부채형', '주문', '예비', '역사가', '들여다보다', '가상', '예보', '한가운데', '인정되다', '믿음', '일러두기', '바베이도스', '탄산마그네슘', '잘래잘래', '약품', '제시하다', '적어도', '흐르다', '물방아', '오리온자리', '자신감', '요즈음', '당황하다', '전문점', '오징어', '하마터면', '거의', '태생', '노릇', '고무래', '피해', '우승', '지금', '삶다', '사회생활', '지반', '거꾸로', '목걸이', '풀무', '썩다', '화장품', '잔뜩', '제치다', '위로', '초콜릿', '표방하다', '휘덮다', '대신하다', '여름', '문지르다', '자동차', '미꾸라지', '비둘기', '들추다', '보도되다', '늑골', '성립하다', '세미나', '뽑히다', '그림자', '품절하다', '참여하다', '포부', '겪은일', '따르다', '웃음거리', '지진', '팔베개', '무슨', '귀국', '자락', '청바지', '착용하다', '엄격하다', '체중', '차량', '자신', '적히다', '반납', '되돌아보기', '깨소금', '없애다', '외부', '기획', '찰나', '헛소리', '줄어지다', '사각사각', '거적', '축하하다', '못하다', '콤파스', '불조심', '꿈속', '진달래', '취업', '소설', '참기름', '돕다', '선진국', '상표', '입술', '사과', '인형', '개인적', '오순도순', '결심하다', '초반', '그만큼', '녹색', '물리학', '날개옷', '벌렁벌렁', '딸기', '흥부놀부', '예의', '저쪽', '익다', '하프시코드', '날래다', '이어지다', '기사', '국내', '코앞', '살아오다', '채식가', '강조하다', '시리즈', '썰다', '분포하다', '경향', '긍정적', '연예인', '당연히', '유리하다', '끼우다', '늙다', '느낌표', '길거리', '튼튼하다', '드물다', '가르치다', '단독', '사탕', '연락처', '죄송하다', '주름살', '요금', '거두다', '함박웃음', '기술하다', '먹다', '햄버거', '유지되다', '거부하다', '알려지다', '아무런', '주렁주렁', '전용', '기쁘다', '아랍에미리트', '비디오', '고향', '꺼림하다', '공개', '파리', '그러다', '지적되다', '문어', '동의하다', '제대로', '포기', '차이점', '괜찮아', '반짝반짝', '틀리다', '신기', '싱숭생숭', '싸다', '깔끔하다', '지그시', '직장인', '들이마시다', '확립하다', '걸터앉다', '조절하다', '무지개', '고인돌', '규정', '지급', '수도꼭지', '신제품', '딴생각', '대형', '만화', '핑계', '초등학교', '내기', '여행자보험', '메시지', '뗏목', '포도당', '미덥다', '새로이', '끝내다', '빨갛다', '살결', '착실하다', '완전히', '전개되다', '역량', '찬바람', '신호등', '화제', '고집', '깡충깡충', '개발하다', '예전', '제주도', '가다', '건전하다', '세계적', '우리말', '띠다', '주차', '농사', '침착하다', '외제', '정어리', '포도', '까마귀', '치료', '참담하다', '못내', '자그마치', '중국어', '위치', '공개하다', '보이다', '건널목', '발표하다', '갑절', '투표', '상관없다', '맏아들', '편의점', '저녁노을', '치즈', '원인', '경험', '들리다', '대롱', '학과', '저녁때', '피어나다', '종종걸음', '건네다', '강남', '가로등', '공기놀이', '두루', '날아오다', '수출하다', '눈길', '느슨하다', '잘살다', '학술', '별다르다', '바로', '잘못되다', '공연장', '지하철', '팽창', '도덕', '쓰러지다', '다람쥐', '퇴근하다', '곳곳', '훤하다', '던져두다', '얇은', '충분하다', '개밥바라기', '외할머니', '꼭지', '고르다', '속하다', '얕잡다', '단순하다', '바싹', '작가', '민주주의', '맞추다', '포장지', '멍청이', '불과하다', '둥우리', '안내', '쌩쌩', '화나요', '내용물', '어거리풍년', '두다', '한잔하다', '소비', '가랑비', '시내버스', '닫다', '담당하다', '질그릇', '짝짜꿍', '테두리', '상쾌하다', '이웃', '강하다', '모서리', '뽀얗다', '추위', '동무', '왠지', '노랫소리', '뜻글자', '밧줄', '디스크', '노란색', '여름철', '가장', '두메', '졸업하다', '아프리카', '감소', '미리', '정말로', '어떻다', '반죽', '워낙', '거칠다', '중순', '힘없이', '냉잇국', '바깥', '저마다', '쪼개다', '적용되다', '부회장', '갖가지', '추측', '낮춤말', '첫인상', '햇과일', '웬만큼', '모으다', '대기업', '바이올린', '관하다', '연주회장', '방바닥', '개머리', '어쩌다가', '합리적', '트이다', '수줍다', '갈아타다', '꺾다', '끌리다', '지름', '등록금', '비구름', '모퉁이', '켜다', '연습', '일회용품', '큰아버지', '공무원', '조지다', '면하다', '실망', '교통사고', '건조하다', '조용히', '불길', '제일', '신선하다', '냉장고', '깜박', '구실', '차단', '말풍선', '계곡', '컴컴하다', '세대', '참석자', '가입', '헤치다', '구경', '유사하다', '탈출하다', '모자라다', '잔디', '안경', '그리하여', '예정', '거죽', '피시', '황소', '꼼꼼하다', '알려주다', '마디', '싸리', '앞뒤', '시끄럽다', '운동회', '장래', '커녕', '대응하다', '쭈글쭈글', '씻기다', '어머니', '박물관', '까맣다', '자네', '가르쳐주다', '치받다', '공공', '물러나다', '도마뱀', '아니야', '바람', '수수하다', '판연하다', '어쩐지', '꾸다', '대들다', '신세대', '꺼내다', '주차하다', '총각', '울부짖다', '오직', '길쭉길쭉', '특이하다', '가시나무', '고장', '모임', '달래다', '쓰이다', '똑같이', '바글바글', '섞임겹닿소리', '천장', '안전', '판권', '잘생기다', '새해', '소수', '조그마하다', '안과', '기둥', '온라인', '국내선', '써레', '깨뜨리다', '소나기', '더없이', '옴츠리다', '작곡', '페이지', '오전', '좋아하다', '펌프', '거짓말', '자랑', '미만', '악수', '야구장', '표현되다', '다녀가다', '평범하다', '주황색', '로터리', '운반', '우리나라만세', '저리다', '빻다', '요구하다', '어린밤나방', '젊다', '갈매기', '팔팔', '긷다', '지니다', '환영하다', '아쉽다', '아름', '요리하다', '대규모', '뜯기다', '여운다', '울음소리', '상대적', '넥타이', '도포', '조사하다', '잊어버리다', '무던하다', '찰흙', '초청장', '꿈결', '몽글몽글', '흉내', '정직하다', '거머리', '쪽배', '타박상', '선선하다', '햇살', '청소', '묶다', '송이송이', '한국인', '깔리다', '초대', '가득하다', '남대문시장', '골프', '톱밥', '오가다', '오늘따라', '사업가', '전구', '가랑눈', '점심때', '공연하다', '인물', '동화책', '해어지다', '노래', '요리사', '레이저', '낱자', '외국', '제과점', '말씀하다', '바래다', '만나다', '학생증', '매운바람', '농산물', '조건', '돌보다', '지대', '표시하다', '임금', '두꺼비씨름', '바치다', '새기다', '성격', '철학', '줄거리', '쩌렁쩌렁', '그간', '옳다', '대기', '해당되다', '꼬투리', '체력', '갈묻이', '참을성', '그토록', '외아들', '표기', '산책', '휴가', '소문나다', '즐기다', '피하다', '저같이', '아버님', '한바탕', '집오리', '가시다', '제법', '빨리', '목마르다', '답답하다', '사회자', '탈출', '자신있다', '말본', '점잔', '바나나', '밀리미터', '악물다', '패배', '피로연', '참고서', '적응하다', '품질', '갖은등글월문', '일어나다', '묽다', '통신부', '실례하다', '사춘기', '판명', '빵빵', '연상하다', '한들한들', '불평등하다', '밀다', '신기하다', '상담', '밉다', '구분하다', '생쥐', '나누다', '발전하다', '누리', '아래', '채점', '여리다', '언제든지', '차이', '보배', '설설기다', '순간적', '관심사', '장사', '청소하다', '남대문', '다수', '최후', '천재', '전주', '재미', '기차', '즐거움', '달려들다', '떡보', '쫑긋', '모이다', '꺼리다', '자녀', '상태', '컴퓨터', '사흘', '종로', '바지랑대', '한바퀴', '심판', '논리적', '장기적', '후두두', '상대편', '상상하다', '불이익', '낫다', '목소리', '골치', '줄다리기', '그을다', '자랑스럽다', '사르다', '오물오물하다', '공격', '매이다', '실험', '단어', '라운드', '울타리', '새침데기', '통곡', '줄곧', '특허품', '국립', '텔레비전', '잠자다', '우주', '부끄러움', '심심', '놓아두다', '함부로', '대중말', '예습', '풀다', '붙잡다', '바가지', '특공', '양보하다', '포대', '마음', '직선', '맵시', '갈무리', '켤레', '조명', '쓰다듬다', '수고하다', '부분적', '옹달샘', '지레', '그루', '감감무소식', '낮잠', '도마', '모양', '장난꾸러기', '상냥하다', '그럭저럭', '선물하다', '아련한추억', '심해지다', '이렇게', '후회', '발생하다', '뒤뚱뒤뚱', '기적', '외우다', '짓밟히다', '약속시간', '이용하다', '빠지다', '각기', '달달달달', '잡아먹다', '신중하다', '흥미롭다', '기록하다', '로마', '찬성하다', '전나무', '큰아들', '풀리다', '게우다', '환경오염', '떡잎', '참말', '권위', '식다', '바특하다', '특파하다', '아예', '옥수수', '팔다', '선장', '흘러나오다', '자늑자늑하다', '흐리다', '수집하다', '해적', '피로', '으르다', '돌리다', '만하다', '전설', '음성', '괴물', '한강수타령', '완성하다', '물밀듯이', '설치되다', '어저께', '진실로', '엿보다', '짐작하다', '능동태', '거스르다', '폭주다', '딱딱하다', '탐욕', '예측하다', '빗방울', '이슬', '요구', '놔두다', '몸뚱이', '강력히', '얼음', '대학', '간격', '늘리다', '마사지', '설치하다', '루비', '차압', '저것', '설문', '종이쪽', '열없다', '어서오세요', '패군', '평균', '사업자', '재미있다', '준말', '가능하다', '되돌아가다', '앵두', '한술', '엎드리다', '틀림없다', '마무리', '불붙다', '또렷하다', '오빠', '수세미', '피다', '금지하다', '출발점', '혼나다', '저자', '지나다', '가져다주다', '머금다', '잿더미', '처녀', '낭떠러지', '가냘프다', '어림셈', '흥부', '중독', '한눈', '가누다', '안기다', '행하다', '백성', '적당하다', '전시회', '좋아', '생기다', '보름달', '청춘', '뜨다', '가격', '세종대왕', '예술가', '위층', '훌쩍훌쩍', '쓸데없다', '싶어하다', '직접적', '독수리', '철저히', '재즈', '올림픽', '셋째', '철도', '국물', '나뒹굴다', '덜컥', '장면', '소홀히', '반복되다', '부럽다', '생각나다', '저렇게', '중세', '곰보', '공기', '올바르다', '바르르', '물길', '구성하다', '시리다', '앞치마', '기대하다', '메스껍다', '심정', '큰집', '스케이트', '발벗다', '짝눈', '막히다', '표백', '아들', '폭력', '좔좔', '허깨비', '이따금', '뿔뿔이', '늘어서다', '거대하다', '유행하다', '교과', '값지다', '끓이다', '치키다', '입사하다', '마라톤', '필자', '신문사', '몽땅', '자라다', '좀더', '읽히다', '밥그릇', '걸음마', '찾아가다', '대낮', '서점', '뉘우치다', '노을', '담그다', '감싸다', '긴장', '지급하다', '안녕하다', '계단', '부작용', '한겨울', '조바심', '매스껍다', '한때', '예선', '기숙사', '계약', '일하다', '발휘하다', '춤추다', '비웃다', '책임지다', '요새', '하얀고양이', '많다', '식료품', '호박', '끼다', '실패', '주부', '따라서', '질겁하다', '빼내다', '누룩', '집안', '전체', '예약', '기업인', '생활환경', '알아내다', '상금', '크기', '둘레', '마누라', '대학생', '되새김', '카운터', '내밀다', '강물', '그러면', '가볍다', '눈치', '감소하다', '내다보다', '비뚜로', '쪼들리다', '참되다', '친해지다', '질번질번하다', '조미료', '느낌', '심장', '팔랑', '긁다', '글썽하다', '책가방', '넌지시', '오락', '임신하다', '걱정하다', '무료', '작업', '낳다', '함지', '요청', '책임감', '저번', '흉보다', '바이러스', '공휴일', '문제되다', '대님', '딱따구리', '쥐구멍', '오르락내리락', '얻어맞다', '여무지다', '개구리', '고드름', '불고기', '채송화', '이뤄지다', '사다리', '올리다', '민속놀이', '오랜만', '최초', '데려가다', '더덕더덕', '출근', '듬성듬성', '흐림', '끝말잇기', '나쁘다', '주제', '최고', '가치', '안방', '기술자', '가치관', '구멍', '작다', '짠물', '삯바느질', '찌그리다', '날품', '기독교', '심심하다', '탄산', '배짱', '생산', '푸다', '어느덧', '나중', '회전목마', '비롯되다', '박스', '생겨나다', '덜컹덜컹', '확장', '모질다', '방해하다', '골목길', '지경', '넘어뜨리다', '재능', '교통안전', '네거리', '운수좋은날', '아뢰다', '한국어', '비로소', '회색', '잇따르다', '농사짓다', '의견', '굳다', '기념일', '정류장', '정신없이', '여겨지다', '노다지', '쌓다', '민속', '쌍둥이자리', '가로채다', '깃들이다', '포목', '아빠', '이같이', '들키다', '나빠지다', '단체', '플라스틱', '재판', '덜다', '뜨겁다', '대바구니', '예방', '수술', '일어서다', '클라시오네', '국적증명서', '출발', '깨끗이', '외모', '크리스마스', '늑대', '새김질', '음반', '상업', '되찾다', '풍속', '쌔근쌔근', '이따위', '글쇠', '홍차', '전라도', '항아리', '용도', '풍선', '다르르하다', '함박꽃', '꽃씨', '드리다', '노여움', '기울이다', '해외여행', '퍼붓다', '나흗날', '화장지', '필름', '고통스럽다', '라디오악티늄', '편안하다', '우산', '못갖춘마디', '라이벌', '축소', '회장', '트다', '메다', '벚꽃', '초저녁', '택일하다', '반기', '선수', '망원경', '위주', '오랫동안', '파문', '스포츠', '공식', '아르헨티나', '오들오들', '건사하다', '부동산', '양국', '모조리', '발견되다', '툭툭', '야간', '끄다', '목욕', '뒤집다', '척척', '플뤼겔호른', '하하호호', '알아듣다', '골고루', '비틀다', '한숨', '통근시간', '큰기침', '심리적', '억지로', '중앙', '기념품', '선배', '시늉', '우승하다', '외할아버지', '소용없다', '귀중하다', '감동', '풍토', '전부', '갑작스럽다', '지도하다', '짝맞다', '계속되다', '각오', '저울질', '짧다', '나풀나풀', '단짝', '조깅', '근로자', '움트다', '깜찍하다', '볶음밥', '얽히다', '파푸아뉴기니', '얌전하다', '썰매타기', '문학적', '베네수엘라', '도라지', '상관없이', '어둡다', '뛰어나가다', '주사위놀이', '말다', '팽창성', '그저께', '곱셈', '다치다', '들어서다', '다스리다', '답변', '튀다', '시소', '버리다', '평가되다', '마룻바닥', '안팎', '추석', '소시지', '장식', '자나깨나', '꼭대기', '가사', '옛날이야기', '부서지다', '우아하다', '적다', '연극', '한식', '포수', '당분간', '한문', '성공하다', '늦어지다', '뒷사람', '고깃배', '공연', '샘터', '다가서다', '직전', '소망', '채용시험', '치르다', '꿈꾸다', '수화기', '홀몸', '가톨릭', '무르다', '받아들이다', '장수하늘소', '너무나', '늦추다', '자연환경', '단점', '증거', '안정되다', '판결', '위쪽', '탐험여행', '속상해요', '널찍하다', '축하', '체계적', '가지', '핑핑', '물레방아', '돌이키다', '저녁', '가락', '도착하다', '테스트', '이영차', '가을보리', '입히다', '미어지다', '꺼지다', '촌스럽다', '못되다', '적합하다', '도망가다', '물렁물렁', '한데', '작은아들', '겸사겸사', '아인시타이늄', '콧등', '포학', '초순', '째다', '느릿느릿', '화나다', '가을', '도리깨', '아리따운', '바둑이', '다듬다', '국제경찰군', '유지하다', '쬐다', '물질적', '과학', '실시되다', '고랑', '치솟다', '나누어지다', '갯벌', '짹짹', '얇다', '구별되다', '가지다', '청하다', '뜬구름', '구청', '산속', '무엇', '그대로', '고춧가루', '덮개', '꽃샘', '꽁무니', '한낮', '애정', '국가', '작용하다', '미치다', '넋두리', '참회', '짓다', '도구', '모집하다', '보호되다', '축축하다', '거닐다', '카메라', '역성', '떠벌리다', '능금', '도망', '들이받다', '가능해지다', '청년', '제재하다', '발름발름', '시도하다', '앨범', '버릇', '바닥', '표현하다', '기온', '아아', '그러나', '거듭', '멋있다', '간장', '시아버지', '창고', '최소', '군것질', '빤빤하다', '무척', '아롱아롱', '감투', '물벼락', '거푸집', '균형', '쾌락', '당당하다', '가난', '숨기다', '대견하다', '사생활', '페인트', '맞들다', '물감', '살아나다', '턱없다', '검다', '내주다', '객관적', '불가피하다', '능력', '탄핵', '산뜻하다', '메기', '맛보다', '약속하다', '빠르기', '작은딸', '종다리', '뚫다', '도리어', '전국', '익살', '일기', '흥미', '다짐', '한낱', '오락가락', '홀씨', '일으키다', '까다롭다', '풍화물잔적층', '매섭다', '맞다', '부피', '뜬눈', '운동복', '떠나가다', '매한가지', '안녕하세요', '이해되다', '설명', '경제력', '벗나가다', '얽매이다', '얻어먹다', '훑다', '마중', '놓다', '찍히다', '개미', '먹이다', '살인', '가슴속', '생활수준', '고급', '김장', '글쎄요', '단순히', '수수', '골목', '손바닥', '삐다', '묻다', '한거십팔곡', '시집가다', '타파하다', '입학하다', '용기', '유명하다', '시작하다', '틈바구니', '만화가', '곪다', '소지품', '개개인', '짜임', '소식', '선생님', '성질', '진출하다', '밝혀내다', '들판', '이런저런', '조립식컴퓨터', '거북하다', '허파꽈리', '원숭이', '여전히', '그날', '어려움', '쳐다보다', '엄청나다', '실핏줄', '나부끼다', '종합하다', '동생', '와인', '갈지자걸음', '그리다', '방송사', '살살', '보금자리', '무당벌레', '발끝', '떠올리다', '뾰족', '시어머니', '알아보다', '다음단계로', '갓나다', '짐승', '효과', '패물', '몰려오다', '경찰서', '묻히다', '기원', '발바닥', '어린이날', '솔직하다', '선호하다', '고전', '익히다', '가위바위보', '가르다', '취소하다', '고함', '토끼와거북', '연습하다', '엉뚱하다', '축구공', '계시다', '서로서로', '바꾸다', '왕비', '뿌리다', '유리', '다지다', '편지', '널뛰기', '시외버스', '드라마', '자연스럽다', '정치학', '타고나다', '블록', '방송국', '생기', '발달하다', '빨리빨리빨리', '할퀴다', '항공기', '차라리', '위법', '원고', '지난번', '저러하다', '심부름', '낚시', '자루', '폭등', '닿소리', '농부', '싫증', '호통', '파쇄', '지혜롭다', '진행자', '머슴', '프로그램', '신고하다', '하도', '밀가루', '번거롭다', '하마', '보수적', '깍듯하다', '온도', '시키다', '참정권', '작은아버지', '쓴맛', '한가위', '앞서', '최신', '찢다', '보도하다', '꽃구름', '활용', '극작가', '독립박물관', '마시다', '라디오', '대처하다', '팽이치기', '출판', '무관심', '지식인', '신입생', '계산하다', '경제학', '고리', '민물', '노랑', '싫다', '퍼내다', '앞세우다', '토론', '주요', '지능', '힘주다', '입시', '의미하다', '추가하다', '복숭아벌레', '능통하다', '학비', '종교', '내려가다', '서울역', '쭈그리다', '악기', '짜증스럽다', '오르내리다', '고되다', '후배', '연하다', '후비다', '보라색', '기억', '건방지다', '소쿠리', '달리다', '발소리', '기린', '탁월하다', '궁궐', '차별', '꾸지람', '마감하다', '만들다', '공통점', '문제점', '갈기다', '실수하다', '휘날리다', '꿀벌', '전개', '한동안', '내각원', '여전하다', '운동하다', '틀어박다', '멀쩡하다', '시청률', '사용자', '한더위', '삼계탕', '사무소', '칼국수', '힘쓰다', '학력', '블라우스', '벙글벙글', '자전거', '올라서다', '겨드랑이', '처가', '듯싶다', '가게놀이', '투사', '드세다', '산들바람', '흐려지다', '잇닿다', '마냥', '계명구폐상문', '일시적', '늦가을', '심사', '취향', '네모', '우습다', '지팡이', '가슴', '만만함', '흘러가다', '곧바로', '그늘', '타이르다', '짤랑짤랑', '토기', '동그랗다', '소박하다', '곰방대', '발견하다', '닮은꼴', '덧셈', '소년', '중대하다', '편벽하다', '등록하다', '이해하다', '위하다', '한여름', '아주머니', '견디다', '대답하다', '깔보다', '낚시꾼', '제발', '깡패', '한길', '벗기다', '절대로', '고작', '환갑', '저러다', '새로', '강도', '경기장', '소요되다', '외국어', '고모', '선택', '우엉', '어쩌면', '새끼', '기름지다', '명절', '삿대', '장가', '겨누다', '귀뚜라미', '뚜렷하다', '가능성', '그거', '만만하다', '척하다', '동나다', '아기자기', '들르다', '고삐', '생일', '목덜미', '단편', '흰자', '붐비다', '통틀어', '소주', '존경하다', '고기', '선전', '대합실', '붙들다', '늦잠', '토지대장', '뉴스', '대개', '통일하다', '유너크플루트', '경주', '굉장하다', '결과적', '재빨리', '뒤범벅', '가만', '복습하다', '과망간산칼륨', '결정되다', '걸레', '깔깔', '최대한', '소방관', '소녀', '성경', '치우치다', '귀국하다', '졸업', '테니스', '주춤', '고무줄', '차도', '오래오래', '전반적', '아마도', '웨이터', '벌리다', '건너오다', '씌우다', '피난', '갈수록', '즐겁다', '기혼', '두들기다', '국제', '조절', '즉석', '사모님', '도막말', '논쟁', '찰싹', '안쪽', '오월', '엉겁결', '따로따로', '질척하다', '계란', '싫어지다', '성가시다', '데려오다', '용어', '소방서', '어설프다', '후려내다', '밭둑', '까만색', '두텁다', '제멋대로', '반짝거리다', '물론', '팩시밀리', '확인', '학자', '정상적', '전통문화', '운명', '순수하다', '심하다', '메우다', '여태껏', '아흔', '왼발', '내닫다', '살아가다', '유발하다', '인사말', '멋대로', '잔잔', '갇히다', '버럭', '생각되다', '피눈물', '우체국', '파릇파릇', '체험하다', '피우다', '변화되다', '예정되다', '딸아이', '통신원', '까먹다', '대패', '지르다', '공장', '돛단배', '부족하다', '전화하다', '국민적', '여미다', '안내하다', '평상시', '듣기', '아내', '판매되다', '제안하다', '경쟁력', '삼다', '인사하다', '빼앗기다', '맞서다', '손잡다', '들려오다', '고운말', '삐죽이', '충격적', '아픔', '큰일', '가꾸다', '높다랗다', '여러가지', '어찌하다', '오누이', '틔우다', '성별', '고등학교', '행해지다', '그동안', '자라나다', '굽이굽이', '치아', '방물장수', '썩둑썩둑', '짜개다', '심리', '겨울철', '허술하다', '불구하다', '진흙집', '질문하다', '유리창', '짐꾼', '쓰레기', '간단하다', '거북이', '알코올', '수행하다', '붙이다', '눈동자', '꼬이다', '귤나무', '다마스쿠스', '춥다', '날짜', '대부분', '대학교수', '중요', '한철', '발레', '실감', '예쁘다', '그득하다', '이순신장군', '짜릿짜릿', '울먹이다', '퉁기다', '초보', '울음', '심각해지다', '눈앞', '무궁화', '토벌대', '서리맞다', '잠시', '진작', '내두르다', '젖니', '고동', '자꾸', '위원', '품목', '머나먼', '캐다', '내리치다', '다행히', '오그라트리다', '마치', '내후년', '야옹', '보조개', '소매', '오리', '학급', '상처', '족제비', '각종', '내일', '산화지르코늄', '펼쳐지다', '며느리', '떨치다', '이마', '골프장', '최저', '증명하다', '에티오피아', '치다', '새소리', '최상', '고속버스', '팔리다', '햅쌀', '됨됨이', '그까짓', '그녀', '여쭈다', '지방', '심다', '티끌', '애초', '타임스', '잡치다', '돌아다니다', '코끼리', '연결하다', '젓다', '대꾸', '메마르다', '전체적', '다루다', '아질산나트륨', '패다', '장소', '성명', '씨앗', '닥치다', '허울', '도움', '급격히', '연두색', '가깝다', '의외로', '멋쟁이', '건설되다', '저승', '파랗다', '다림질', '외침', '콧물', '또다시', '방아쇠', '한평생', '오줌싸개', '안간힘', '전공하다', '묶는다', '재미없다', '말판', '주인', '출현하다', '건강하다', '덥다', '장비', '헤어지다', '부듯하다', '색다르다', '길쭉하다', '비행기', '폭우', '통과하다', '초등학생', '곤란하다', '반성하다', '가르침', '달가닥', '실현되다', '서리다', '반장', '번개', '성장', '대여섯', '바늘', '주르르', '이삭', '탱탱', '하나', '앙갚음', '조아리다', '권리', '불끈', '대륙', '다른', '하품', '기초하다', '질질', '크다', '송아지', '찾아내다', '사실상', '설명하다', '고루고루', '사라지다', '상인', '미워하다', '후반', '감각', '나서다', '꾀꼬리', '고맙다', '그려지다', '실마리', '여덟', '다하다', '관계되다', '자원', '평소', '민들레', '이곳저곳', '살아남다', '깨지다', '슬기', '아까', '아시아', '어깨동무', '소화하다', '나아지다', '옳은일', '아프가니스탄', '시스템', '산화마그네슘', '핸드백', '엉덩이', '바람잡이', '기술', '좋다', '닫히다', '가루', '경치', '앞쪽', '대중문화', '포물선', '대나무', '경고하다', '일상적', '나뭇가지', '넝마주이', '알루미늄', '행동', '새색시', '달리하다', '국내외', '한가하다', '애기씨꽃나무', '조물조물', '제외되다', '육십', '특별하다', '드디어', '구석지다', '설레설레', '해바라기', '자장가', '마음속', '불가능하다', '산길', '취소', '마늘', '지게', '동물', '사회적', '해석하다', '녹두', '회의', '가로막다', '나가떨어지다', '그나마', '뛰어오르다', '중계방송', '아무렇다', '궁극적', '포옹', '강가', '치밀다', '웅덩이', '초조하다', '터벅터벅', '어린아이', '피디', '배고프다', '일부러', '지배하다', '지시', '피신', '몰려들다', '물레', '가을걷이', '바라다', '좌석', '소소리바람', '구슬프다', '생선', '실제로', '안되다', '뿌리', '풀숲', '결석하다', '사무실', '그믐날', '망설이다', '쓰레받기', '매기다', '공동', '지저분하다', '관람객', '잘되다', '젊은이', '배웅', '대부분의', '그릇', '캐릭터', '보람', '소경', '적성', '아우성', '경찰', '극복하다', '자갈', '비하다', '소원', '지루하다', '오히려', '초롱초롱', '돼지', '유산', '발전', '막다', '희다', '하필', '독립하다', '작품', '잡수다', '둘러보다', '돗자리', '쑥스럽다', '모음', '기막히다', '진자', '사랑하다', '불어오다', '더부살이', '녹다', '더미', '장난감', '착안', '수시로', '계획', '상당하다', '오븐', '후회하다', '상추', '가라앉다', '지름길', '새카맣다', '콧노래', '타산', '세수', '핥다', '장기간', '정리되다', '아니요', '숨바꼭질', '안마당', '아하', '뒤지다', '시간', '대학원', '물고기자리', '소아과', '길가', '전시하다', '조금느리게', '맹꽁이', '저울', '아울러', '휴지', '인간성', '위대하다', '다녀오다', '자정', '아이디어', '이럭저럭', '여직원', '형님', '고프다', '좌우', '인천공항', '발달', '남자아이', '펴다', '풍랑', '매질', '도쉬풀루어', '닦다', '유능하다', '조각', '꾸리다', '시금치무침', '함석', '안녕', '간단히', '웅크리다', '물체', '찌꺼기', '목욕탕', '산부인과', '저다지', '개펄', '취재', '강렬하다', '빠져나오다', '칠판', '들볶다', '앞장서다', '반갑다', '귀기울이다', '대강', '풀어지다', '아인슈타이늄', '국어', '조그맣다', '태반', '안녕히', '사과하다', '담빡', '벌벌', '적용하다', '모름지기', '말쑥하다', '솜털', '다음', '기대되다', '동동촉촉하다', '존중하다', '꾀다', '어리광', '제한', '가나다라마', '참다', '비판하다', '까닭', '판매', '유월', '정확하다', '그리고', '자음', '대상자', '사전', '찾아다니다', '머리말', '전날', '미루다', '좋아지다', '활용하다', '땅콩', '홑이불', '두고두고', '등쌀', '멀미', '맵다', '흩날리다', '가운데', '주의', '추가', '뛰어들다', '탐심', '탄력', '무겁다', '아깝다', '믿다', '스위치', '볼기', '얹다', '미사일', '절벅절벅', '보고서', '하찮다', '어머님', '반면', '경복궁', '아무쪼록', '저물다', '지어내다', '못생기다', '이야기하다', '꼬다', '포장마차', '마주치다', '괜히', '나르기', '두더지', '갔다', '샛별', '학습', '간접', '굻다', '찌개', '싣다', '지불하다', '억울하다', '새겨듣다', '토론회', '밑천', '상류', '도둑', '향하다', '가시', '거리', '노력하다', '구부리다', '투서', '오다', '점심', '집중되다', '상당수', '사회주의', '어느새', '눈가림', '행동하다', '부지런하다', '깡통', '미팅', '오르다', '각각', '기분', '우리나라', '과학적', '이기다', '지치다', '감동적', '잃어버리다', '긴장되다', '요약하다', '꼬마', '뒤뜰', '작성', '짐수레', '단맛', '두꺼운', '방법', '점잖다', '남다', '탄광', '퇴직금', '지다', '별수염하늘소', '가늘다', '눈물', '기운', '재생', '지워지다', '부끄럽다', '귀띔', '발전되다', '훨씬', '눈물짓다', '다툼', '서툴다', '물리치다', '막내', '기여하다', '키다리', '팽개치다', '조직', '전국적', '쟁그랑', '짓밟다', '표면', '콤마', '따갑다', '놓이다', '절로', '문구', '냉면', '활기', '여고생', '모여들다', '집어넣다', '날아다니다', '총리', '대략', '스스로', '간호사', '조약돌', '요일', '인도네시아', '출국', '몰다', '학부모', '유적지', '상점', '되돌리다', '어우르다', '글피', '쫓겨나다', '한걱정', '질기다', '맞은편', '끝나다', '남학생', '한참', '무덥다', '기다리다', '퐁당', '말머리', '가득히', '싶어지다', '휘두르다', '분리되다', '내쫓다', '간식', '고려하다', '시들다', '올가을', '한정하다', '파드득', '잘라먹다', '잠결', '팬티', '필요성', '굶다', '식생활', '주위', '신청서', '그러하다', '결혼하다', '시냇가', '장난', '감추다', '기아', '노트', '발랄라이카', '시부모', '엇갈리다', '꽁지', '탐험대', '외국인', '읽어주다', '솔질', '두둥실', '쓰레기통', '미끈하다', '다갈색', '끝내', '위아래', '파견', '기러기', '농업', '능동적', '한산도대첩', '거름더미', '그립다', '예술', '흥분', '저축', '쭈그렁밤송이', '적이', '발가숭이', '아래쪽', '껄껄', '때문', '자연', '효율적', '마찬가지', '노동자', '살림', '얼룩소', '디자인', '노래하다', '대접', '손꼽다', '굽히다', '무시하다', '반말', '염소', '소스', '친구', '공군', '한둘', '나무', '표시', '마감', '그치다', '그제야', '자부심', '어둑어둑', '기슭', '탤런트', '해마다', '바구니', '서슴다', '이날', '악몽', '탄탄대로', '때때로', '푸근하다', '받치다', '단순', '착각하다', '단계', '까딱없다', '인사', '높이다', '군대', '종류', '되도록', '지켜보다', '갖추다', '순식간', '증권', '방울', '슬프다', '발음하다', '높다', '무릇', '짊어지다', '그래픽', '몰골', '가련하다', '맑다', '까치', '주름', '화면', '증가', '물질', '자연적', '입력', '보관하다', '휴대전화', '철학자', '야물다', '빗맞다', '더욱더', '휘감기다', '분명해지다', '우기다', '벅차다', '예상하다', '모래성', '지껄이다', '인하다', '헐벗다', '지구', '찬미', '끝없이', '초청하다', '일회용', '무관심하다', '서다', '폭음', '밋밋하다', '고래', '저곳', '요청하다', '바야흐로', '그사이', '품위', '모롱이', '굼벵이', '바닷물', '적어지다', '편도', '무책임하다', '무릎', '주머니', '맡다', '강요하다', '틈나다', '판단하다', '갈비탕', '무더위', '팝송', '깃발', '진흙', '자유롭다', '귀가', '영원히', '저절로', '티셔츠', '감돌다', '뛰어나다', '다섯째', '못지않다', '정반대', '미소', '설빔', '전화기', '이바지', '일본어', '비사치기', '어기다', '풍부하다', '지적하다', '콩나물', '고라니', '넘겨주다', '썰매', '부딪히다', '걷다', '온돌', '자격', '대다수', '촬영', '방지하다', '가끔', '귀가하다', '쨍쨍', '무너지다', '이것저것', '존댓말', '편리하다', '한꺼번에', '칠하다', '파손', '통닭', '강변', '아니다', '끌다', '뽀글뽀글', '귀양살다', '상대', '어름', '줄넘기', '계절', '도끼', '국화과실파리', '음료수', '교환하다', '노루', '넓히다', '올려놓다', '스웨터', '이미지', '배춧국', '아홉', '오도독', '고치다', '처음', '압력', '누에섶', '독창적', '갈대', '스치다', '휘말다', '양배추', '설립하다', '판매점', '지시하다', '폭풍', '엉금엉금', '논리', '독서', '하루하루', '살그머니', '계층', '챙기다', '굳세다', '타협', '헤매다', '되돌아오다', '기원전', '지위', '핏줄기', '여위다', '시달리다', '어버이', '이나마', '촉촉하다', '나란하다', '주전자', '아무개', '이리저리', '칭찬', '김치', '거세다', '무서움', '신청하다', '밑둥치', '해내다', '내놓다', '하천', '이끼', '유의하다', '이력서', '올여름', '담당자', '지도자', '다달이', '부잣집', '참으로', '쿠데타', '잠들다', '레몬', '방글방글', '할아버지', '펼치다', '그러니까', '졸이다', '지느러미', '흐뭇하다', '한무릎공부', '나그네', '그렇지', '깨우치다', '출근하다', '엄마', '의도', '웃다', '십이월', '냉풍', '산화알루미늄', '공식적', '통신', '성나다', '썼다', '시작', '이루다', '따다닥', '정치인', '짜다', '우거지다', '오죽', '타래', '노력', '걸치다', '제비꽃', '비슷비슷', '포크', '하기야', '맡기다', '창세기', '무르녹다', '뉘엿뉘엿', '꼼질꼼질', '전문직', '도로', '말리다', '찬란하다', '고달프다', '외롭다', '노략질', '우수하다', '중부', '지난해', '동아줄', '이윽고', '한결', '출판사', '다가오다', '배우다', '비교적', '수입품', '제공하다', '기우뚱기우뚱', '소음', '손뼉', '아주', '으레', '약속', '더럭', '찬장', '모처럼', '닭고기', '무사하다', '다람쥐원숭이', '모내기', '판단력', '어쩌다', '자취', '구체적', '그러므로', '손아래', '뛰어난', '학생', '자체', '세금', '풀그림', '지폐', '새우다', '여닫다', '트라이앵글', '서랍', '돌아보다', '준비물', '앙상하다', '재빠르다', '휘파람', '곧다', '장관', '마나님', '덧붙이다', '벌거숭이', '녀석', '포인트', '필수', '코뚜레', '대도시', '함빡', '가요', '탄생', '놀랍다', '풍자', '개그콘서트', '세상', '주먹', '종이', '공격하다', '쉼표', '언덕빼기', '상상', '다닥다닥', '물결', '소설가', '우정', '비기다', '안전하다', '소리', '물건', '구하다', '따라오다', '아기', '즈음', '내쉬다', '학교생활', '구두쇠', '고소하다', '쓰리다', '새끼치다', '그리움', '맞이하다', '얄밉다', '눌러주세요', '손잡이', '지나가다', '구경하다', '무찌르다', '불필요하다', '되돌아보다', '노랫가락', '이룩하다', '날씨', '낙낙하다', '말없이', '중학교', '운전', '고산강아지', '먹구름', '짜임새', '주로', '서명', '그때그때', '웅그리다', '창살', '고대로', '아스팔트', '파랑물잠자리', '메뚜기', '지지', '넘어가다', '한구석', '뭉게뭉게', '하염없다', '너머', '상자', '거룻배', '사귀다', '고양이', '흐느끼다', '저거', '삭이다', '접히다', '하지만', '수업', '의심하다', '어처구니', '숙덕이다', '재활용', '모색하다', '치근대다', '되묻다', '탕진', '말주변', '비치다', '죄인', '굉장히', '발뺌', '앞잡이', '정거장', '천둥', '모자', '이튿날', '바람개비', '놀이터', '품성', '쓸다', '조개무지', '나들이', '분명히', '교육비', '보살피다', '허허벌판', '움직이다', '쩔쩔매다', '끊어지다', '비우다', '정리', '아찔하다', '설렁탕', '쓸개', '확대되다', '틈타다', '로봇', '감히', '나아가다', '소고', '대회', '맨주먹', '군데군데', '풍뎅이', '암컷', '들뜨다', '희생하다', '비행장', '공업', '가래', '건드리다', '한가을', '기뻐요', '간편하다', '가령', '태양', '오랜', '고대하다', '동물원', '표정', '처벌', '녹음', '업신여김', '볼모', '거저', '뜻하다', '핏덩어리', '반성', '겹치다', '연기하다', '놀라다', '액세서리', '겪다', '중국', '총총하다', '반대하다', '서명하다', '대한독립만세', '영향력', '조상', '세다', '예매하다', '석사', '다물다', '외면하다', '빠져나가다', '캄캄하다', '밟다', '구르다', '일반적', '동대문시장', '반반하다', '풀밭', '기침감기', '사위', '가려지다', '지나치다', '웃어른', '뛰어다니다', '원서', '행복', '개선하다', '시나리오', '의지하다', '혼잣말', '참새', '젖소', '대머리독수리', '다듬거리다', '수입되다', '우유', '매우', '힘껏', '벼랑길', '재산', '햇곡식', '상징적', '개밥도토리', '내려지다', '조금씩조금씩', '달라진', '깨우다', '활동하다', '예방하다', '일반인', '안다', '고속', '엉망', '짐작', '줄기', '썰렁하다', '하얗다', '인간', '부스러기', '슬금슬금', '불편하다', '오뚝', '철새', '부글부글', '첫솜씨', '투기열', '무리하다', '카자흐스탄', '발개지다', '욕심', '뒤따르다', '나이', '도랑', '과학자', '북새통', '연결되다', '조정하다', '나비', '수요일', '물다', '산말', '말다툼', '이러하다', '잠옷', '농사일', '울다', '가닥', '다양해지다', '길이', '수리하다', '쪼다', '우편', '민주화', '고구려', '장애인', '비비여', '콘서트', '만족스럽다', '자가용', '등장하다', '비비다', '반영하다', '물음표', '저지르다', '의도적', '거치다', '껍질', '판로', '따로', '넘어오다', '통상', '이슥하다', '바탕', '처지', '늦게', '한국적', '건지다', '분석하다', '매듭', '팩스', '훈련', '채식주의', '감다', '부탁하다', '아름답다', '이용자', '식용유', '웃음소리', '보호하다', '머리', '도깨비', '들어주다', '멍멍', '툭하면', '지난주', '뻐근하다', '옹긋쫑긋', '대전', '눈병', '시골', '옷차림', '피해자', '사자', '해돋이', '한정되다', '전세', '함초롬하다', '실천하다', '경찰관', '가나다라', '도망치다', '기초', '반대', '생활용품', '색연필', '힘차게', '머리맡', '회견', '헐떡이다', '벌레', '이르다', '변하다', '두려움', '해죽', '마음씨', '참석하다', '타다', '표현', '추억', '악티노우라늄', '기성', '독하다', '중소기업', '왼손', '넉넉하다', '위험성', '엄두', '고급스럽다', '고생하다', '어이구', '청소년', '학원', '매다', '연구자', '나름', '편견', '센터', '캐나다', '새우', '더위', '다능하다', '구석구석', '노름', '강의하다', '길잡이', '초점', '결정하다', '전하다', '아우', '넘어서다', '부려먹다', '망아지', '제자리', '끊임없이', '월급', '토마토', '반응', '예절', '힘세다', '파충류', '한눈팔다', '안주', '대로', '노래책', '멀어지다', '비슷하다', '판이하다', '대응', '글씨', '소질', '개다', '밭일', '주택', '회복', '수고', '단단하다', '김치찌개', '충분히', '졸업생', '영화관', '털다', '변변히', '얘기하다', '조용하다', '동아리', '타자기', '젖히다', '해롭다', '중반', '붙잡히다', '치우다', '몰리다', '드러눕다', '이사하다', '되풀이하다', '인상적', '추천', '두려워하다', '시골뜨기', '찾아오다', '지식', '깨끗해지다', '장례', '따지다', '뒹굴다', '시름', '기본적', '적당히', '누이', '내용', '파도', '금메달', '치료법', '덮다', '호랑이', '맛들다', '한글과컴퓨터', '태평성대', '데리다', '색칠하다', '갚다', '슈퍼마켓', '복사붙여넣기', '언제나', '복사기', '축이다', '야구', '애인', '가엾다', '가득', '듬뿍하다', '피곤', '대하다', '곧잘', '특정하다', '잡아당기다', '제목', '취나물', '국제선', '이발소', '완성', '지난달', '자격증', '쏟아지다', '오래도록', '가죽', '유적', '삼월', '속마음', '소용', '태평양', '주스', '충청도', '골짜기', '마당쇠', '주룩', '싶다', '외다', '소득', '낭독', '평생', '연출하다', '피부', '먼발치', '한밤중', '파내다', '토대', '공간', '수달', '속다', '차장', '기타', '발돋움', '희생', '신혼여행', '해먹다', '조카', '선풍기', '떠나다', '싹싹하다', '살짝', '추다', '배기다', '약혼녀', '에누리', '엉성하다', '판로확장', '수박', '고구마', '발바리', '떡갈나무', '무럭무럭', '크레파스', '생산하다', '이따가', '회사', '위성', '생활하다', '손쉽다', '소금', '부닥치다', '생각', '상당', '확인하다', '녹차', '바로잡다', '뒤통수', '어리석다', '인간적', '뛰어가다', '문제', '잡수시다', '바둑', '글쓰기', '전철', '성공적', '운전사', '체조', '복사하다', '핏대', '넘치다', '교육자', '높이', '세트', '임자', '걸맞다', '통나무', '풍년', '뜻밖에', '멧돼지', '승용차', '발길', '표구', '말굽', '와글와글', '팥죽', '역사상', '농장', '도가니', '태권도', '허용하다', '마음껏', '지키다', '약해지다', '아무리', '말미암다', '경상도', '갈림길', '토끼', '앞지르다', '벌어지다', '갈색', '스트레스', '신다', '상하다', '엘리베이터', '잔잔하다', '환경', '흔히', '잘나다', '까다', '뒷모습', '걱정되다', '듣다', '탈색', '본격적', '연구원', '닦는다', '대기하다', '십일월', '덩굴', '몽둥이', '물고기화석', '싱겁다', '종일', '뒤섞이다', '진행되다', '발톱', '통상우편', '대화하다', '오막살이', '예고하다', '오지그릇', '다소', '닮다', '대한민국', '신세', '모르다', '양말', '활발히', '사장', '트집', '기울다', '졸리다', '열매', '낡은', '그렇지만', '안심하다', '화장실', '기후', '어린애', '여울', '대단히', '소위', '집게', '복숭아', '수영장', '집중하다', '빡빡', '염화마그네슘', '고교', '확보', '노랗다', '건너가다', '부러워요', '성당', '내통하다', '입장', '두루마기', '소중하다', '퇴학', '섞이다', '포식하다', '선물', '한복', '쏟다', '이상하다', '충격', '저런', '최종', '단위', '짓누르다', '출산', '길다', '더듬더듬', '망나니', '손버릇', '쥐어뜯다', '예산', '흩어지다', '외투', '훔치다', '감독', '두루미', '늘어나다', '줄무늬', '하늘나라', '삼국', '고이', '택하다', '통근하다', '뾰족하다', '칭얼칭얼', '우선', '운전자', '무어', '뛰놀다', '떠보다', '껍데기', '나무딸기', '감상하다', '강화하다', '무게', '본체만체', '증상', '서적', '뛰어나오다', '어두워지다', '진지하다', '진저리', '울산', '외교관', '우려', '장모님', '비빔', '여느', '빼쭉하다', '응답하다', '만남', '뛰어내리다', '앓다', '보내오다', '빙글빙글', '창피하다', '물들이다', '재밌다', '겨우살이', '오랑캐', '평가', '찡하다', '늘어놓다', '무덤', '한마디', '수평선너머', '대입', '약수', '제기차기', '휘어지다', '들어오다', '이루어지다', '스르르', '받히다', '김칫국', '참신하다', '표준', '있다', '패권', '국왕', '통계표', '채취하다', '줄다', '세우다', '피곤하다', '건더기', '전선', '죄악', '백두산천지봉', '맷돌', '힘들어하다', '건빵한봉지', '굽다', '자식', '태만', '몸서리', '강원도', '예습하다', '달구지', '애쓰다', '지도', '피차간', '자세', '떠오르다', '퍼지다', '보장하다', '꼼짝', '테이블', '도심', '짓궂다', '참관인', '강당', '아버지', '아지랑이', '읊다', '포기하다', '쫓기다', '비닐봉지', '스님', '참여', '추진', '반기다', '보태다', '반짝이다', '벼락', '말버릇', '고생', '뾰족뾰족', '지절대다', '못자리', '증권사', '짧아지다', '필수적', '거르다', '당근', '날카롭다', '평가하다', '가두다', '걸리다', '농촌', '파출소', '전혀', '비듬', '왈칵', '패각', '인정하다', '도움말', '대사', '등산로', '탁류', '묘사하다', '뜯어먹다', '쪽마루', '생일잔치', '진행하다', '임신부', '오렌지', '원피스', '동시집', '나뉘다', '중요시하다', '표범', '데구르르르', '색깔', '한글맞춤법', '말고삐', '눈뜨다', '차액', '흘겨보다', '그곳', '상투', '연락하다', '국가적', '내려다보다', '조심하다', '통신기관', '톱니바퀴', '생신', '건듯', '켜지다', '후보', '하나하나', '가져가다', '한번', '빗줄기', '어른', '응달', '필승', '행복하다', '자르다', '맛없다', '구속하다', '괴롭히다', '방문하다', '분리수거함', '투수', '인간관계', '물동이', '첫날', '충돌', '싸움', '따뜻하다', '늘어지다', '생산자', '파선', '능률', '장인', '수돗물', '도톰하다', '주룩주룩', '말씀드리다', '민며느리', '구슬', '돌부처', '작성하다', '행주', '수없이', '깎았다', '살랑살랑', '끓다', '낯설다', '노새', '타루치라팔리', '덤비다', '따옴표', '겯다', '오르막', '주리다', '우두둑거리다', '어제', '살펴보다', '메주', '게시판', '주일', '밑바닥', '결혼식', '닷새', '대비하다', '요즘', '되새기다', '부정적', '까치눈', '소규모', '멸구', '미움', '품다', '새롭다', '한악스럽다', '미술', '의논', '따라가다', '까라지다', '놀리다', '잠바', '내면', '가마', '거짓말쟁이', '각자', '찌뿌드드하다', '잠꾸러기', '빗금', '아무래도', '램프', '지속되다', '망치', '석유', '통보', '끊기다', '움켜잡다', '라이터', '펄럭이다', '곰팡이', '방정맞다', '밝혀지다', '연장', '대출', '적극', '조리', '온통', '웃기다', '외출', '월세', '공연히', '기자', '먹었다', '파괴하다', '우짖다', '홀소리', '뒷부분', '민주공화국', '기억나다', '대다', '단풍', '안동', '상대방', '미래', '통신사', '모래찜', '하룻밤', '자연현상', '얼레', '가라사대', '자유', '솜사탕', '거누다', '싫어하다', '목표', '아궁이', '매만지다', '허락하다', '수풀', '앞길', '킬로그램', '간접적', '아큰', '주고받다', '변신', '보아주다', '평화롭다', '저리', '몰려가다', '적응', '수학', '소비하다', '일자리', '치료하다', '눈송이', '곤충', '진하다', '환하다', '쏘다', '원래', '밝아지다', '국민', '빌다', '분홍색', '돌다', '머릿속', '급증하다', '고집하다', '스르스륵', '당장', '감자', '좁히다', '튀어나오다', '필기장', '절이다', '귀엣말', '바작바작', '쓸쓸하다', '쉬다', '무조건', '어여쁜', '그리로', '낟알', '그래도', '부딪치다', '마쉬멜로우', '찌르레기', '주다', '절다', '뱃노래', '끔찍한', '길들다', '장사치', '체온', '온몸', '라이베리아', '중식', '피망', '영화제', '사이좋다', '낚시질', '낮아지다', '그지없다', '잘못', '분리하다', '저편', '우즈베키스탄', '느끼다', '현대적', '추녀', '오래간만', '씨름', '계획하다', '자장면', '파편', '횡단보도', '사용하다', '다니다', '글쓴이', '중심', '화학', '나란히', '성실하다', '접다', '겁나다', '엉터리', '후춧가루', '자극', '허전하다', '차분하다', '꾸미다', '백홍관일하다', '서럽다', '서민', '준비하다', '헤아리다', '되살리다', '줄자', '신문지', '거룩하다', '천국', '살피다', '칸막이', '군데', '최악', '돌맞이', '중학생', '계산기', '핥아먹다', '고갯짓', '가노라', '유형', '서비스', '통신판매', '순진하다', '떠다니다', '동양인', '지역', '서부', '부르다', '음악가', '오르텔리우스', '반하다', '학위', '노래방', '파다', '보기', '떠나오다', '아리다', '갈아입다', '돋보기', '분량', '올챙이', '살찌다', '주요하다', '비싸다', '음력', '자극하다', '저만큼', '주거', '저나마', '하하', '외출하다', '월요일', '미니', '회전', '임금님', '발표되다', '민족', '선택하다', '뇌까리다', '청소기', '소극적', '알뜰하다', '울리다', '타일', '운영하다', '판매하다', '장기', '국적', '승리하다', '더더욱', '똑바로', '벌이다', '덜되다', '규모', '한일의정서', '바지', '유난히', '관찰하다', '치맛자락', '곁방살이', '잔디밭', '판매인', '당기다', '할머니', '두리둥실', '내복', '작년', '폭포', '탈주', '모닥불', '현대인', '옹기종기', '돌림', '김밥', '몰래', '알리다', '어여쁘다', '치과', '나홀로', '풍경', '코피', '기성세대', '눈멀다', '재정', '주낙', '사이', '끄덕이다', '한계', '웬만하다', '자라', '밤하늘', '애매하다', '포도원', '비판적', '잤다', '특별히', '거문고', '쾅쾅', '읽다', '초여름', '벨렘바오투얀', '억누르다', '된소리', '금하다', '갓난애', '접근하다', '근본적', '문법', '변화하다', '엄숙하다', '틈틈이', '말랑말랑', '마굿간', '가락지', '정보화', '여우', '눈썹', '빠뜨리다', '하늘하늘', '굴비', '가시덤불', '이롭다', '무용', '현실적', '익숙해지다', '주먹구구', '콤플렉스', '개키다', '바랍니다', '깎다', '띄우다', '지글지글', '털썩', '입원하다', '유교', '필요하다', '잘하다', '떳떳하다', '준비', '개나리', '캠페인', '매실', '짝꿍', '빨래', '운전기사', '판단', '페로알루미늄', '겨루다', '대표', '음식점', '나타나다', '심각하다', '일찍이', '거절하다', '그림책', '물오르다', '미용실', '미술관', '용서', '그림판', '사이사이', '쏠리다', '몸무게', '탈의', '곱사등이', '대비', '잠자리', '오래전', '탄원', '깨어나다', '빨간색', '사슴', '국제화', '전시', '종소리', '형성되다', '두르다', '뒷골목', '한차례', '끼치다', '빈말', '아낙네', '온종일', '달콤하다', '꼽히다', '첫마디', '대신', '줍다', '차례', '위로하다', '활동', '태조', '폭로', '모시다', '앞문', '입원', '흑백', '기반', '포르르', '기장', '나가다', '찡그리다', '액수', '질리다', '아이고', '다이어트', '성함', '얼른', '자치기', '곧이어', '하숙집', '학년', '양력', '패션', '다감하다', '놀다', '거기', '주둥아리', '값비싼대가', '씽긋', '몸소', '탱크', '유치원', '가만있다', '중요성', '종이컵', '아프다', '달리기', '어지럽다', '풋볼', '후룩후룩', '고니', '창공', '국립도서관', '자세히', '쌀쌀하다', '생방송', '데우다', '의하다', '귀머거리', '통과', '해결되다', '물기', '필통', '최근', '조금', '장차', '자매', '제작하다', '열리다', '새나라', '대가', '절구통', '연기자', '눈맵시', '데굴데굴', '다가가다', '곤하다', '느리다', '후기', '전달하다', '발표', '태아', '하긴', '알아주다', '으응', '소중히', '도란도란', '운동화', '바뀌다', '두드리다', '받들다', '쥐어박다', '아니', '소리치다', '갈비', '띄엄띄엄', '에워가다', '불행하다', '다만', '의자', '잠기다', '출신', '겉치레', '많아지다', '가난하다', '알차다', '게다가', '선정하다', '작사', '귀밑머리', '완벽하다', '뭉개다', '작은말', '파면', '끼어들다', '감정', '알맞다', '따스하다', '서울', '넘기다', '칙칙폭폭', '저울추', '상관', '시원하다', '귓속', '사회', '다다다다', '종아리', '대체로', '하루', '연구하다', '지난날', '운행', '그렇게', '녹말', '박달나무', '오염되다', '집안일', '쭉정이', '센티미터', '차후', '삿갓', '올라가다', '아드님', '가로수', '간판', '실현', '진단하다', '벼슬', '수도권', '퇴원하다', '전기스틸기타', '후루룩', '환율', '교과서', '아래층', '부러지다', '어머나', '부지런히', '찡긋', '두꺼비', '한잠', '학교운동장', '공부하다', '양상추', '껴안다', '기대다', '능동', '그런데', '생김새', '이대로', '잔소리', '캐스터네츠', '저기', '귀신', '멍하다', '뼈아프다', '내리다', '소프트웨어', '야단', '따위', '떡볶이', '겉장', '대표하다', '앉히다', '허드레', '물고기', '값어치', '날림', '가족', '계속하다', '카네이션', '낟가리', '단춧구멍', '분위기', '묶이다', '속이다', '예외', '자국', '돼지고기', '납작하다', '안전띠', '다투다', '설사', '터미널', '상식', '말놀이', '돌다리', '팔각', '강력하다', '책상', '실망하다', '마치다', '계면쩍다', '걸어가다', '대사관', '힘차다', '늘이다', '위기', '번역하다', '반지', '생소한', '초대하다', '느티나무', '소매치기', '토사', '회복되다', '박사', '파묻다', '증가하다', '힘살', '괴롭다', '늘다', '계산', '수동적', '달라다', '귀고리', '장님', '출장', '촌사람', '유명', '전망하다', '나라글자', '물속', '앉은뱅이', '급속히', '기념하다', '일치하다', '오해', '기나길다', '돌아서다', '티루치라팔리', '바보', '모니터', '쌍둥이', '탐구', '다다르다', '칭칭', '구수하다', '백화점', '에너지', '마침내', '윗사람', '싸안다', '전기바이올린', '구겨지다', '지우다', '가입자', '슬그머니', '앞바다', '냉큼', '절간', '냉수', '맞춰서', '나머지', '바깥쪽', '맞붙다', '아침', '망치다', '일요일', '안내문', '백두산봄맞이', '화재', '우두커니', '모래', '자동', '만화책', '무렵', '거위', '생명', '적극적', '발가락', '금잔디', '일기장', '맴돌다', '서양', '제대하다', '김포공항', '밀기울', '설치', '익숙하다', '싱글벙글', '동치미', '담기다', '세제', '설레다', '금강산', '주관적', '멀다', '중심지', '오피클레이드', '가다듬다', '휩싸다', '흥분하다', '테이프', '잡히다', '칭찬하다', '학점', '실없다', '덩달아', '지갑', '옮기다', '이사장', '축구장', '전통적', '갈등', '강아지', '처리', '멱살', '씽씽', '대중적', '가리키다', '풍화잔류광상', '중단되다', '박수', '젓가락', '사용되다', '찐빵', '힘입다', '덮이다', '철없다', '일깨우다', '함박눈', '말벗', '잔등이', '입학', '죽이다', '갈다', '저녁밥', '반발', '여보세요', '모두', '맨머리', '마르고닳도록', '폐지', '도대체', '올라타다', '제한하다', '한국말', '에어컨', '종교적', '제삿날', '조것만큼', '된장찌개', '굳어지다', '가물', '나무꾼', '걱정', '온갖', '박자', '우리', '가위', '미터', '솜씨', '스키장', '보자기', '다시', '가뜬하다', '영양소', '달빛', '슬픔', '타방면', '인터뷰', '중요하다', '모기', '꾸준하다', '단골', '앙큼하다', '경제적', '펄쩍', '두리번거리다', '잿빛', '작은어머니', '노랑나비', '희곡', '부치다', '착오', '주말', '자세하다', '동냥아치', '실천', '백발환혹하다', '인터넷', '두껍다', '향상되다', '바닷가', '술자리', '관광지', '챔피언', '한올한올', '숱하다', '계집', '아뇨', '땅덩이', '아슬아슬', '부스럼', '일정하다', '놀이', '끊임없다', '환영', '수르바하르', '세기', '윙윙', '구유', '나우엘와피호', '우두머리', '전기밥솥', '물러가다', '지하', '철모르다', '확산되다', '휴지통', '마구간', '깔다', '뜯다', '만들어지다', '설거지', '또래', '민주', '반대편', '신체적', '재갈', '위원장', '물가', '찢어지다', '언젠가', '사진', '올망이졸망이', '식사하다', '까치걸음하다', '흔하다', '푸드득', '안채', '토굴', '모둠', '화분', '분명하다', '마름질', '공부', '바느질', '하다', '몸짓', '구속되다', '팔지', '판별', '쭈뼛하다', '아리랑', '어떡하다', '마지막', '검은색', '치이다', '들다', '설악산', '기본', '매달다', '불어넣다', '수저', '비타민', '양보', '자판기', '투기명', '성적', '엮다', '그제서야', '한글', '주년', '연방', '광주리', '없어', '다양성', '나무라다', '자존심', '합치다', '기회주의자', '따라다니다', '새다', '즐거워하다', '늠름하다', '쪽빛', '아무것', '자주', '통하다', '포함하다', '중얼거리다', '그것', '주소', '생활비', '공중전화', '아늑하다', '아끼다', '곡식', '열중하다', '말똥구리', '핀잔', '사무직', '지출', '조개', '최소한', '주장', '토론자', '도달하다', '그저', '오후', '고요하다', '돌잡이', '밤새우다', '흘기다', '버드나무', '슬퍼하다', '긴급', '소개', '납득하다', '내각', '찍다', '사냥', '시멘트', '무리', '마이크', '동일하다', '뺑뺑', '가져오다', '안부', '기억하다', '동영상', '피자', '직업', '철나다', '특수성', '경험하다', '좀처럼', '버티다', '긴장감', '먼지', '졸다', '야외', '성공', '조금빠르게', '피폐', '품삯', '남동생', '자율', '더욱', '중년', '보세요', '지혜', '좀먹다', '떨어뜨리다', '해오라기', '땅바닥', '그만하다', '은은하다', '점수', '헹구다', '수다', '달러', '반복하다', '형식적', '고민하다', '갑자기', '키우다', '얹히다', '잘리다', '사랑스럽다', '동해물백두산', '무섭다', '오른손', '그르다', '세탁', '소나무', '아냐', '농담', '텍스트', '엷다', '묵다', '전자', '물장난', '겉대중', '소문', '콧구멍', '아르바이트', '땅거미', '식품점', '고궁', '배드민턴', '매달리다', '지겹다', '뻔하다', '나물', '평일', '술래잡기', '아랫사람', '구기다', '깨달음', '응원', '목도리', '불쌍하다', '추가된', '소유하다', '더하다', '약혼자', '뒷바라지', '다섯', '상당히', '칼날', '보고하다', '쌀가게', '주사위', '상대성', '충돌하다', '파고들다', '어리다', '가리다', '다름없다', '인정받다', '조선', '꽃밭', '아유', '바르다', '주의하다', '가게', '의식하다', '스승', '이어서', '선생', '보편적', '밤낮', '경기도', '꽃잎', '손수건', '타오르다', '선진', '올망졸망', '쪼그리다', '고려', '끝끝내', '대목', '해당하다', '탄생하다', '껴들다', '찧다', '역학놀이', '훔쳐먹다', '어깨', '변비', '연기되다', '건강', '살갗', '대학로', '시새우다', '대화', '세련되다', '기르다', '필연', '버려지다', '보내다', '소유자', '내젓다', '답장', '파악하다', '낱말', '덕분', '허덕이다', '헤어나다', '코스모스', '여러분', '감수성', '아마', '불리하다', '사들이다', '옥토끼', '말하다', '영화', '더럽다', '맞먹다', '꼬끼오', '이제야', '편애', '싱글싱글', '뱃사람', '대책', '형성하다', '창조하다', '장마', '고무신', '눈사람', '옆구리', '환자', '발끈', '틀림없이', '달걀', '전화번호', '낮추다', '전달', '좋아요', '구조', '출퇴근', '학교', '대통령', '발등', '엄살', '건네주다', '관광버스', '까부르다', '둘러싸다', '최고급', '포스터', '마침표', '베다', '장르', '말솜씨', '터뜨리다', '장례식', '무의미하다', '이글이글', '문방구', '펴내다', '불안하다', '외갓집', '새바람', '편성', '발자국', '뒤적뒤적', '삼키다', '모금'].filter((word, index, self) =>
+        word.length >= 2 &&
+        word.length <= 6 &&
+        self.indexOf(word) === index
+    );
+
+    // 효과음 객체 생성
+    const sounds = {
+        correct: new Audio('https://assets.mixkit.co/active_storage/sfx/1434/1434-preview.mp3'),
+        incorrect: new Audio('https://assets.mixkit.co/active_storage/sfx/2570/2570-preview.mp3'),
+        start: new Audio('https://assets.mixkit.co/active_storage/sfx/1434/1434-preview.mp3')
+    };
+
+    let gameCards = [];
+    let playerScore = 0;
+    let computerScore = 0;
+    let timeLeft = 0;
+    let gameInterval;
+    let computerInterval;
+    let gameStarted = false;
+    const GAME_DURATION = 180; // 3분(180초) 설정
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function createCards() {
+        const containerLeft = document.getElementById('game-container-left');
+        const containerRight = document.getElementById('game-container-right');
+
+        // 컨테이너 초기화 추가
+        containerLeft.innerHTML = '';
+        containerRight.innerHTML = '';
+
+        // 나머지 코드는 그대로...
+
+        // Get unique words and shuffle them
+        const uniqueWords = [...new Set(words)].filter(word =>
+            word.length >= 2 && word.length <= 6
+        );
+        const shuffledWords = shuffleArray([...uniqueWords]);
+
+        // Split words into two sets for left and right sides
+        const leftWords = shuffledWords.slice(0, 39);
+        const rightWords = shuffledWords.slice(39, 78);
+
+        // Create 39 cards for left side (red)
+        leftWords.forEach(word => {
+            const leftCard = document.createElement('div');
+            leftCard.className = 'card red';  // 'card'를 'card red'로 변경
+
+            const leftFront = document.createElement('div');
+            leftFront.className = 'card-front';
+            leftFront.textContent = word;
+
+            const leftBack = document.createElement('div');
+            leftBack.className = 'card-back';
+            leftBack.textContent = word;
+
+            leftCard.appendChild(leftFront);
+            leftCard.appendChild(leftBack);
+            containerLeft.appendChild(leftCard);
+        });
+
+        // Create 39 cards for right side (blue)
+        rightWords.forEach(word => {
+            const rightCard = document.createElement('div');
+            rightCard.className = 'card blue';  // 'card'를 'card blue'로 변경
+
+            const rightFront = document.createElement('div');
+            rightFront.className = 'card-front';
+            rightFront.textContent = word;
+
+            const rightBack = document.createElement('div');
+            rightBack.className = 'card-back';
+            rightBack.textContent = word;
+
+            rightCard.appendChild(rightFront);
+            rightCard.appendChild(rightBack);
+            containerRight.appendChild(rightCard);
+        });
+    }
+
+    function startTimer() {
+        if (gameInterval) {
+            clearInterval(gameInterval);
+        }
+        elapsedTime = 0;
+        gameInterval = setInterval(() => {
+            elapsedTime++;
+            const minutes = Math.floor(elapsedTime / 60);
+            const seconds = elapsedTime % 60;
+            document.getElementById('timer').textContent = `시간: ${minutes}분 ${seconds}초`;
+
+            // 180초가 되면 게임 종료
+            if (elapsedTime >= 180) {
+                clearInterval(gameInterval);  // 타이머 중지
+                clearInterval(computerInterval);  // 컴퓨터 플레이 중지
+                document.getElementById('word-input').disabled = true;  // 입력 필드 비활성화
+            }
+        }, 1000);
+    }
+
+
+    function calculateGrade(time, score) {
+
+        // K 등급 0초~35초
+        if (time <= 35) return 'K';
+        // SSS 등급 36초~37초
+        if (time <= 37) return 'SSS';
+        // SS+ 등급 38초~39초
+        if (time <= 39) return 'SS+';
+        // SS 등급 40초~42초
+        if (time <= 42) return 'SS';
+        // SS- 등급 43초~43초
+        if (time <= 43) return 'SS-';
+        // S+ 등급 44초~46초
+        if (time <= 46) return 'S+';
+        // S 등급 47초~49초
+        if (time <= 49) return 'S';
+        // S- 등급 50초~53초
+        if (time <= 53) return 'S-';
+        // A+ 등급 54초~57초
+        if (time <= 57) return 'A+';
+        // A 등급 58초~61초
+        if (time <= 61) return 'A';
+        // A- 등급 62초~65초
+        if (time <= 65) return 'A-';
+        // B+ 등급 66초~71초
+        if (time <= 71) return 'B+';
+        // B 등급 72초~77초
+        if (time <= 77) return 'B';
+        // B- 등급 78초~83초
+        if (time <= 83) return 'B-';
+        // C+ 등급 84초~92초
+        if (time <= 92) return 'C+';
+        // C 등급 93초~101초
+        if (time <= 101) return 'C';
+        // C- 등급 102초~112초
+        if (time <= 112) return 'C-';
+        // D+ 등급 113초~131초
+        if (time <= 131) return 'D+';
+        // D 등급 132초~150초
+        if (time <= 150) return 'D';
+        // D- 등급 151초~174초
+        if (time <= 174) return 'D-';
+        // E+ 등급 175초~224초
+        if (time <= 224) return 'E+';
+        // E 224초 초과시
+        return 'E';
+    }
+
+    function checkAllCardsSameColor() {
+        // Check if all cards are red
+        const allRedCards = document.querySelectorAll('#game-container-left .card');
+        const flippedRedCards = document.querySelectorAll('#game-container-left .card.flipped');
+        const allRedFlipped = allRedCards.length === flippedRedCards.length;
+
+        // Check if all cards are blue
+        const allBlueCards = document.querySelectorAll('#game-container-right .card');
+        const flippedBlueCards = document.querySelectorAll('#game-container-right .card.flipped');
+        const allBlueFlipped = allBlueCards.length === flippedBlueCards.length;
+
+        // End game if either all red or all blue cards are flipped
+        if (allRedFlipped || allBlueFlipped) {
+            endGame(allRedFlipped ? 'red' : 'blue');
+            return true;
+        }
+        return false;
+    }
+
+    function endGame() {
+        clearInterval(gameInterval);
+        clearInterval(computerInterval);
+        gameStarted = false;
+
+        // 결과 모달 표시
+        const resultModal = document.getElementById('result-modal');
+        const resultText = document.getElementById('result-text');
+        const finalScore = document.getElementById('final-score');
+        const finalTime = document.getElementById('final-time');
+
+        // 게임 결과 텍스트 설정
+        if (playerScore > computerScore) {
+            resultText.textContent = '축하합니다! 당신이 이겼습니다!';
+        } else if (playerScore < computerScore) {
+            resultText.textContent = '아쉽네요. 컴퓨터가 이겼습니다.';
+        } else {
+            resultText.textContent = '무승부입니다!';
+        }
+
+        // 최종 점수와 시간 표시
+        finalScore.textContent = `플레이어: ${playerScore}점 | 컴퓨터: ${computerScore}점`;
+        const minutes = Math.floor(elapsedTime / 60);
+        const seconds = elapsedTime % 60;
+        finalTime.textContent = `경기 시간: ${minutes}분 ${seconds}초`;
+
+        resultModal.style.display = 'flex';
+
+        // 입력 필드 비활성화
+        document.getElementById('word-input').disabled = true;
+    }  // 여기서 끝내고, 아래 중복된 닫는 괄호는 제거
+    function getRandomWord() {
+        const randomIndex = Math.floor(Math.random() * words.length);
+        return words[randomIndex];
+    }
+
+    function updateCardWord(card) {
+        const newWord = getRandomWord();
+        const front = card.querySelector('.card-front');
+        const back = card.querySelector('.card-back');
+        front.textContent = newWord;
+        back.textContent = newWord;
+    }
+    function playSound(type) {
+        if (sounds[type]) {
+            sounds[type].currentTime = 0; // 효과음 재시작
+            sounds[type].play().catch(error => console.log('효과음 재생 실패:', error));
+        }
+    }
+
+    function updateCardWords() {
+        const uniqueWords = [...new Set(words)].filter(word =>
+            word.length >= 2 && word.length <= 6
+        );
+        const shuffledWords = shuffleArray([...uniqueWords]);
+
+        // Split words into two sets for left and right sides
+        const leftWords = shuffledWords.slice(0, 39);
+        const rightWords = shuffledWords.slice(39, 78);
+
+        // Update left side cards
+        const leftCards = document.querySelectorAll('#game-container-left .card');
+        leftCards.forEach((card, index) => {
+            const word = leftWords[index];
+            const front = card.querySelector('.card-front');
+            const back = card.querySelector('.card-back');
+            front.textContent = word;
+            back.textContent = word;
+        });
+
+        // Update right side cards
+        const rightCards = document.querySelectorAll('#game-container-right .card');
+        rightCards.forEach((card, index) => {
+            const word = rightWords[index];
+            const front = card.querySelector('.card-front');
+            const back = card.querySelector('.card-back');
+            front.textContent = word;
+            back.textContent = word;
+        });
+    }
+
+    function checkAllCardsFlipped() {
+        // Check if all red cards are flipped
+        const allRedCards = document.querySelectorAll('#game-container-left .card');
+        const flippedRedCards = document.querySelectorAll('#game-container-left .card.flipped');
+        const allRedFlipped = allRedCards.length === flippedRedCards.length;
+
+        // Check if all blue cards are flipped
+        const allBlueCards = document.querySelectorAll('#game-container-right .card');
+        const flippedBlueCards = document.querySelectorAll('#game-container-right .card.flipped');
+        const allBlueFlipped = allBlueCards.length === flippedBlueCards.length;
+
+        // End game if either all red or all blue cards are flipped
+        if (allRedFlipped || allBlueFlipped) {
+            endGame();
+            return true;
+        }
+        return false;
+    }
+
+    function checkWord(input) {
+        if (!gameStarted) {
+            startTimer();
+            startComputerPlay();
+            gameStarted = true;
+        }
+
+        // Check both unflipped blue cards (right side) and flipped blue cards (left side)
+        const rightCards = document.querySelectorAll('#game-container-right .card');
+        const leftCards = document.querySelectorAll('#game-container-left .card');
+        let found = false;
+
+        // First check unflipped blue cards on the right
+        for (let card of rightCards) {
+            const word = card.querySelector('.card-back').textContent;
+            if (word === input && !card.classList.contains('flipped')) {
+                card.classList.add('flipped');
+                updateCardWord(card);
+                playerScore += 100;
+                document.getElementById('player-score').textContent = `플레이어 점수: ${playerScore}`;
+                found = true;
+                playSound('correct');
+
+                if (checkAllCardsSameColor()) {
+                    return;
+                }
+                break;  // 찾으면 즉시 종료
+            }
+        }
+
+        // Then check flipped blue cards on the left
+        if (!found) {
+            for (let card of leftCards) {
+                const word = card.querySelector('.card-back').textContent;
+                if (word === input && card.classList.contains('flipped')) {
+                    card.classList.remove('flipped');
+                    updateCardWord(card);
+                    playerScore += 100;
+                    document.getElementById('player-score').textContent = `플레이어 점수: ${playerScore}`;
+                    found = true;
+                    playSound('correct');
+
+                    if (checkAllCardsSameColor()) {
+                        return;
+                    }
+                    break;  // 찾으면 즉시 종료
+                }
+            }
+        }
+
+        if (!found) {
+            playSound('incorrect');
+            const wordInput = document.getElementById('word-input');
+            wordInput.style.borderColor = '#f44336';
+            setTimeout(() => {
+                wordInput.style.borderColor = '#4CAF50';
+            }, 200);
+        }
+    }
+
+    window.onload = () => {
+        createCards();
+        document.getElementById('timer').textContent = '시간: 0초';
+        document.getElementById('player-score').textContent = '플레이어 점수: 0';
+        document.getElementById('computer-score').textContent = '컴퓨터 점수: 0';
+
+        const wordInput = document.getElementById('word-input');
+        wordInput.focus(); // 자동 포커스
+
+        let currentInput = '';
+
+        // 입력 처리
+        wordInput.addEventListener('input', (e) => {
+            currentInput = e.target.value;
+        });
+
+        // 스페이스바로 단어 넘기기
+        wordInput.addEventListener('keydown', (e) => {
+            if (e.key === ' ') {
+                e.preventDefault(); // 스페이스바의 기본 동작 방지
+                if (currentInput.length > 0) {
+                    checkWord(currentInput);
+                    currentInput = '';
+                    wordInput.value = '';
+                }
+            }
+        });
+
+        // Enter 키로도 처리
+        wordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                if (currentInput.length > 0) {
+                    checkWord(currentInput);
+                    currentInput = '';
+                    wordInput.value = '';
+                }
+            }
+        });
+    };
+
+    // 게임 시작 버튼 이벤트 리스너
+    startButton.addEventListener('click', () => {
+        // 게임 시작 시 입력 필드 활성화
+        wordInput.disabled = false;
+        wordInput.focus();
+
+        // 게임 컨테이너 초기화
+        gameContainerLeft.innerHTML = '';
+        gameContainerRight.innerHTML = '';
+
+        // 39개의 단어 생성 (총 117장의 카드를 만들기 위해)
+        const words = generateRandomWords(39);
+
+        // 왼쪽 컨테이너에 빨간색 카드 생성 (39장 - 컴퓨터용)
+        words.forEach(word => {
+            const card = createCard(word, 'red');
+            gameContainerLeft.appendChild(card);
+        });
+
+        // 왼쪽 컨테이너에 추가 빨간색 카드 생성 (39장 - 추가)
+        const additionalWords = generateRandomWords(39);
+        additionalWords.forEach(word => {
+            const card = createCard(word, 'red');
+            gameContainerLeft.appendChild(card);
+        });
+
+        // 오른쪽 컨테이너에 파란색 카드 생성 (39장 - 플레이어용)
+        words.forEach(word => {
+            const card = createCard(word, 'blue');
+            gameContainerRight.appendChild(card);
+        });
+
+        // 카드 클릭 이벤트 추가
+        document.querySelectorAll('#game-container-right .card').forEach(card => {
+            card.addEventListener('click', function() {
+                if (!this.classList.contains('flipped')) {
+                    const cardFront = this.querySelector('.card-front');
+                    const cardText = cardFront.textContent.trim();
+                    currentInput = cardText;
+                    wordInput.value = cardText;
+                    wordInput.focus();
+                }
+            });
+        });
+
+        // 게임 시작 효과음 재생
+        playStartSound();
+
+        // 게임 시작 버튼 비활성화
+        startButton.disabled = true;
+
+        // 컴퓨터 플레이 시작
+        startComputerPlay();
+    });
+
+    // 컴퓨터 플레이 함수
+    function startComputerPlay() {
+        if (computerInterval) {
+            clearInterval(computerInterval);
+        }
+
+        computerInterval = setInterval(() => {
+            const flippedRedCards = document.querySelectorAll('#game-container-right .card.flipped');
+            if (flippedRedCards.length > 0) {
+                const randomIndex = Math.floor(Math.random() * flippedRedCards.length);
+                const card = flippedRedCards[randomIndex];
+                card.classList.remove('flipped');
+                updateCardWord(card);
+                computerScore += 100;
+                document.getElementById('computer-score').textContent = `컴퓨터 점수: ${computerScore}`;
+                playSound('correct');
+
+                if (checkAllCardsSameColor()) {
+                    return;
+                }
+            }
+            else {
+                const unflippedRedCards = document.querySelectorAll('#game-container-left .card:not(.flipped)');
+                if (unflippedRedCards.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * unflippedRedCards.length);
+                    const card = unflippedRedCards[randomIndex];
+                    card.classList.add('flipped');
+                    updateCardWord(card);
+                    computerScore += 100;
+                    document.getElementById('computer-score').textContent = `컴퓨터 점수: ${computerScore}`;
+                    playSound('correct');
+
+                    if (checkAllCardsSameColor()) {
+                        return;
+                    }
+                }
+            }
+        }, 667);  // 0.667초(667밀리초)마다 1개의 카드를 뒤집음
+    }
+</script>
+</body>
+</html>
