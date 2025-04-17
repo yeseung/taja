@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>타자 연습 - 글쇠익힘</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        p {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-top: 20px;
+            position: relative;
+        }
+
+        .progress-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            background-color: #333;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+        }
+
+        .progress-label {
+            margin-right: 10px;
+        }
+
+        #progress_bar {
+            height: 16px;
+            background-color: #ff8f00;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .char-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 20px 0;
+            gap: 10px;
+        }
+
+        .char {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            background-color: white;
+            transition: all 0.3s ease;
+        }
+
+        .char.on {
+            border-color: #3366ee;
+            color: #3366ee;
+            transform: scale(1.1);
+        }
+
+        .char.ok {
+            background-color: #e0e0e0;
+            color: #777;
+            font-size: 16px;
+            border-color: #bbb;
+        }
+
+        .keyboard {
+            background-color: #eee;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 20px 0 0 0;
+        }
+
+        .key-row {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 8px;
+        }
+
+        .key {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 2px;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: default;
+            user-select: none;
+            transition: all 0.2s ease;
+        }
+
+        .key.down {
+            background-color: #666;
+            color: white;
+            border-color: #333;
+            transform: translateY(2px);
+        }
+
+
+        .setup-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            border-radius: 8px;
+        }
+
+        .setup-box {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .setup-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .option-group {
+            display: flex;
+            gap: 12px; /* 버튼 사이 여백 */
+            margin-bottom: 16px; /* 그룹끼리 간격 */
+        }
+
+        .option-group label {
+            display: flex;
+            align-items: center;
+            gap: 4px; /* 체크박스(또는 라디오)와 텍스트 사이 간격 */
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+
+        .option-group input {
+            margin-right: 8px;
+        }
+
+        .key-visual {
+            margin: 15px 0;
+            text-align: center;
+            font-family: monospace;
+            font-size: 25px;
+            line-height: 0.9;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #ffd600;
+            color: #333;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #ffc107;
+        }
+
+        @media (max-width: 600px) {
+            .char {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+
+            .key {
+                width: 30px;
+                height: 30px;
+                font-size: 12px;
+            }
+
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="con_a">
+    <div class="progress-container">
+        <span class="progress-label">진행율:</span>
+        <span id="progress_bar" style="width: 0%"></span>
+    </div>
+
+    <div class="char-container" id="char_a">
+        <div id="c_0" class="char on">A</div>
+        <div id="c_1" class="char ok">S</div>
+        <div id="c_2" class="char">D</div>
+        <div id="c_3" class="char">F</div>
+        <div id="c_4" class="char">H</div>
+        <div id="c_5" class="char">G</div>
+        <div id="c_6" class="char">L</div>
+        <div id="c_7" class="char">K</div>
+    </div>
+
+    <div class="keyboard" id="kbd_a">
+        <div class="key-row"><div class="key" id="k_1">1</div><div class="key" id="k_2">2</div><div class="key" id="k_3">3</div><div class="key" id="k_4">4</div><div class="key" id="k_5">5</div><div class="key" id="k_6">6</div><div class="key" id="k_7">7</div><div class="key" id="k_8">8</div><div class="key" id="k_9">9</div><div class="key" id="k_0">0</div><div class="key">-</div><div class="key">=</div><div class="key">\</div></div><div class="key-row"><div class="key" id="k_Q">ㅂ</div><div class="key" id="k_W">ㅈ</div><div class="key" id="k_E">ㄷ</div><div class="key" id="k_R">ㄱ</div><div class="key" id="k_T">ㅅ</div><div class="key" id="k_Y">ㅛ</div><div class="key" id="k_U">ㅕ</div><div class="key" id="k_I">ㅑ</div><div class="key" id="k_O">ㅐ</div><div class="key" id="k_P">ㅔ</div><div class="key">[</div><div class="key">]</div></div><div class="key-row"><div class="key" id="k_A">ㅁ</div><div class="key" id="k_S">ㄴ</div><div class="key" id="k_D">ㅇ</div><div class="key" id="k_F">ㄹ</div><div class="key" id="k_G">ㅎ</div><div class="key" id="k_H">ㅗ</div><div class="key" id="k_J">ㅓ</div><div class="key" id="k_K">ㅏ</div><div class="key" id="k_L">ㅣ</div><div class="key">;</div><div class="key">'</div></div><div class="key-row"><div class="key" id="k_Z">ㅋ</div><div class="key" id="k_X">ㅌ</div><div class="key" id="k_C">ㅊ</div><div class="key" id="k_V">ㅍ</div><div class="key" id="k_B">ㅠ</div><div class="key" id="k_N">ㅜ</div><div class="key" id="k_M">ㅡ</div><div class="key">,</div><div class="key">.</div><div class="key">/</div></div>
+    </div>
+
+
+    <div class="setup-overlay" id="setup_ct">
+        <div class="setup-box">
+            <form name="setup_f1" onsubmit="return false;">
+                <p class="setup-title">연습할 언어와 자리를 선택하세요</p>
+
+                <div class="option-group">
+                    <label><input type="radio" name="kl" value="0" checked onclick="typingApp.selKeyL(0)"/> 한글</label>
+                    <label><input type="radio" name="kl" value="1" onclick="typingApp.selKeyL(1)"/> English</label>
+                </div>
+
+                <div class="option-group">
+                    <label><input type="radio" name="kp" checked onclick="typingApp.selKeyP(0)"/> Middle</label>
+                    <label><input type="radio" name="kp" onclick="typingApp.selKeyP(1)"/> Bottom</label>
+                    <label><input type="radio" name="kp" onclick="typingApp.selKeyP(2)"/> Top</label>
+                    <label><input type="radio" name="kp" onclick="typingApp.selKeyP(3)"/> All</label>
+                    <label><input type="radio" name="kp" onclick="typingApp.selKeyP(4)"/> Number</label>
+                </div>
+
+                <div class="key-visual" id="keyp_a">키보드자리</div>
+
+                <button type="button" class="btn" onclick="typingApp.start()">Start</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const typingApp = {
+        // 키보드 정보
+        keyInfo: [
+            { // 한글
+                keys: [
+                    ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', "\\"],
+                    ['ㅂ', 'ㅈ', 'ㄷ', 'ㄱ', 'ㅅ', 'ㅛ', 'ㅕ', 'ㅑ', 'ㅐ', 'ㅔ', '[', ']'],
+                    ['ㅁ', 'ㄴ', 'ㅇ', 'ㄹ', 'ㅎ', 'ㅗ', 'ㅓ', 'ㅏ', 'ㅣ', ';', "'"],
+                    ['ㅋ', 'ㅌ', 'ㅊ', 'ㅍ', 'ㅠ', 'ㅜ', 'ㅡ', ',', '.', '/']
+                ],
+                levels: [
+                    'ㅁㄴㅇㄹㅎㅗㅓㅏㅣ', // 1단계
+                    'ㅋㅌㅊㅍㅠㅜㅡ',      // 2단계
+                    'ㅂㅈㄷㄱㅅㅛㅕㅑㅐㅔ', // 3단계
+                    'ㅁㄴㅇㄹㅎㅗㅓㅏㅣㅋㅌㅊㅍㅠㅜㅡㅂㅈㄷㄱㅅㅛㅕㅑㅐㅔ', // 4단계
+                    '1234567890'            // 5단계
+                ]
+            },
+            { // 영어
+                keys: [
+                    ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', "\\"],
+                    ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '[', ']'],
+                    ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ';', "'"],
+                    ['Z', 'X', 'C', 'V', 'B', 'N', 'M', ',', '.', '/']
+                ],
+                levels: [
+                    'ASDFGHJKL',            // 1단계
+                    'ZXCVBNM',              // 2단계
+                    'QWERTYUIOP',           // 3단계
+                    'ASDFGHJKLZXCVBNMQWERTYUIOP', // 4단계
+                    '1234567890'            // 5단계
+                ]
+            }
+        ],
+
+        // 공통 레벨 정보 (키 비교용)
+        commonLevels: [
+            'ASDFGHJKL',            // 1단계
+            'ZXCVBNM',              // 2단계
+            'QWERTYUIOP',           // 3단계
+            'ASDFGHJKLZXCVBNMQWERTYUIOP', // 4단계
+            '1234567890'            // 5단계
+        ],
+
+        // 왼손으로 누르는 키들
+        leftHandKeys: 'QWERTASDFGZXCVB123456',
+
+        // 앱 상태
+        currentKeys: [],
+        currentChars: [],
+        currentKeyCodes: [],
+        currentCharIndex: -1,
+        isRunning: false,
+        language: 0, // 0: 한글, 1: 영어
+        level: 0,
+        levelCount: 0,
+        levelLimit: 11,
+
+        // 초기화
+        init() {
+            document.getElementById('keyp_a').innerHTML = this.drawKeyboardPosition(0);
+            this.showSetup();
+        },
+
+        // 키보드 생성
+        createKeyboard() {
+            const keyboardEl = document.getElementById('kbd_a');
+            const keys = this.keyInfo[this.language].keys;
+            const englishKeys = this.keyInfo[1].keys; // 영어 키 코드 참조용
+
+            let html = '';
+
+            // 키보드 행별로 생성
+            keys.forEach((row, rowIndex) => {
+                html += `<div class="key-row">`;
+
+                row.forEach((key, keyIndex) => {
+                    // 영어 키 코드를 ID로 사용 (한글/영어 공통)
+                    const keyCode = englishKeys[rowIndex][keyIndex];
+                    const keyId = keyIndex < (rowIndex === 0 ? 10 :
+                        rowIndex === 1 ? 10 :
+                            rowIndex === 2 ? 9 : 7) ? `id="k_${keyCode}"` : '';
+
+                    html += `<div class="key" ${keyId}>${key}</div>`;
+                });
+
+                html += `</div>`;
+            });
+
+            keyboardEl.innerHTML = html;
+        },
+
+        // 키 다운 이벤트 처리
+        handleKeyDown(event) {
+            if (!this.isRunning) return;
+            if (this.currentCharIndex > 7) {
+                this.start();
+                return;
+            }
+
+            const pressedKey = event.key.toUpperCase();
+            const expectedKey = this.currentKeyCodes[this.currentCharIndex];
+
+            if (pressedKey === expectedKey) {
+                // 정확한 키 입력
+                document.getElementById(`c_${this.currentCharIndex}`).classList.add('ok');
+                document.getElementById(`k_${pressedKey}`).classList.remove('down');
+
+                this.currentCharIndex++;
+                this.levelCount++;
+
+                if (this.currentCharIndex > 7) {
+                    if (this.levelCount >= this.levelLimit) {
+                        this.isRunning = false;
+                        this.showSetup();
+                        return;
+                    }
+                    this.start();
+                } else {
+                    document.getElementById(`c_${this.currentCharIndex}`).classList.add('on');
+                    this.highlightCurrentKey();
+                }
+
+                this.updateProgress();
+            }
+        },
+
+        // 시작 함수
+        start() {
+            this.createKeyboard();
+            document.getElementById('setup_ct').style.display = 'none';
+
+            // 선택된 레벨 확인
+            const levelInputs = document.forms['setup_f1'].elements['kp'];
+            let selectedLevel = 0;
+            for (let i = 0; i < levelInputs.length; i++) {
+                if (levelInputs[i].checked) {
+                    selectedLevel = i;
+                    break;
+                }
+            }
+            this.level = selectedLevel;
+
+            // 랜덤 문자 선택
+            const levelChars = this.keyInfo[this.language].levels[this.level];
+            const levelLength = levelChars.length;
+
+            this.currentChars = [];
+            this.currentKeyCodes = [];
+
+            for (let i = 0; i < 8; i++) {
+                const randomIndex = Math.floor(Math.random() * levelLength);
+                this.currentChars[i] = levelChars[randomIndex];
+                this.currentKeyCodes[i] = this.commonLevels[this.level][randomIndex];
+            }
+
+            // 문자 표시 업데이트
+            let charsHtml = '';
+            for (let i = 0; i < 8; i++) {
+                charsHtml += `<div id="c_${i}" class="char">${this.currentChars[i]}</div>`;
+            }
+            document.getElementById('char_a').innerHTML = charsHtml;
+
+            this.currentCharIndex = 0;
+            this.isRunning = true;
+
+            document.getElementById('c_0').classList.add('on');
+            this.highlightCurrentKey();
+            this.updateProgress();
+
+            // 키보드 이벤트 리스너 설정
+            document.onkeydown = (e) => this.handleKeyDown(e);
+        },
+
+        // 현재 키 하이라이트
+        highlightCurrentKey() {
+            const currentKey = this.currentKeyCodes[this.currentCharIndex];
+            document.getElementById(`k_${currentKey}`).classList.add('down');
+        },
+
+        // 진행률 업데이트
+        updateProgress() {
+            const progress = Math.min(Math.floor((this.levelCount / this.levelLimit) * 100), 100);
+            document.getElementById('progress_bar').style.width = `${progress}%`;
+        },
+
+        // 설정 화면 표시
+        showSetup() {
+            this.levelCount = 0;
+            document.getElementById('setup_ct').style.display = 'flex';
+            this.updateProgress();
+        },
+
+        // 키보드 위치 시각화
+        drawKeyboardPosition(level) {
+            let html = '<div class="key-visual">';
+
+            // 각 행별로 표시 (위에서 아래로)
+            html += '<div>';
+            html += level === 4 ? '■■■■■■■■■■■■' : '□□□□□□□□□□□□';
+            html += '</div>';
+
+            html += '<div>';
+            html += (level === 2 || level === 3) ? '&nbsp;■■■■■■■■■■■■' : '&nbsp;□□□□□□□□□□□□';
+            html += '</div>';
+
+            html += '<div>';
+            html += (level === 0 || level === 3) ? '&nbsp;&nbsp;■■■■■■■■■■■' : '&nbsp;&nbsp;□□□□□□□□□□□';
+            html += '</div>';
+
+            html += '<div>';
+            html += (level === 1 || level === 3) ? '&nbsp;&nbsp;&nbsp;■■■■■■■■■■' : '&nbsp;&nbsp;&nbsp;□□□□□□□□□□';
+            html += '</div>';
+
+            html += '</div>';
+            return html;
+        },
+
+        // 키보드 위치 선택
+        selKeyP(level) {
+            document.getElementById('keyp_a').innerHTML = this.drawKeyboardPosition(level);
+        },
+
+        // 언어 선택
+        selKeyL(language) {
+            this.language = language;
+        }
+    };
+
+    // 앱 초기화
+    window.onload = function() {
+        typingApp.init();
+
+        // 모바일 화면 크기 조정
+        const container = document.getElementById('con_a');
+        if (window.innerWidth <= 610) {
+            container.style.transform = 'scale(0.85)';
+            container.style.transformOrigin = 'top center';
+        }
+    };
+</script>
+</body>
+</html>
