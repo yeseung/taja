@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>키보드 테스트</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css" type="text/css" class="thema-mode">
+    <script src="js/jquery-1.11.3.min.js"></script>
+</head>
+<body>
+<style>
+    .at-container {
+        max-width: 1200px;
+    }
+
+    .no-responsive .wrapper, .no-responsive .at-container-wide {
+        min-width: 1200px;
+    }
+
+    .no-responsive .boxed.wrapper, .no-responsive .at-container {
+        width: 1200px;
+    }
+
+    .at-menu .nav-height {
+        height: 50px;
+        line-height: 50px !important;
+    }
+
+    .pc-menu, .pc-menu .nav-full-back, .pc-menu .nav-full-height {
+        height: 50px;
+    }
+
+    .pc-menu .nav-top.nav-float .menu-a {
+        padding: 0px 50px;
+    }
+
+    .pc-menu .nav-top.nav-float .sub-1div::before {
+        left: 50px;
+    }
+
+    .pc-menu .subm-w {
+        width: 300px;
+    }
+
+    @media all and (min-width: 1200px) {
+        .responsive .boxed.wrapper {
+            max-width: 1200px;
+        }
+    }
+
+
+    .page-content {
+        line-height: 22px;
+        word-break: keep-all;
+        word-wrap: break-word;
+    }
+
+    .page-content p {
+        margin: 0 0 15px;
+        padding: 0;
+    }
+
+    .page-content .slogan {
+        font-size: 25px;
+        letter-spacing: -1px;
+        margin-bottom: 15px;
+        line-height: 34px;
+    }
+
+    .page-content .slogan i {
+        font-size: 17px;
+        vertical-align: top;
+        margin-top: 6px;
+    }
+
+    .at-title {
+        vertical-align: middle;
+        background-image: url("/img/community_title.jpg");
+        height: 250px !important;
+        background-position: 50% 45%;
+    }
+
+    @media (max-width: 767px) {
+        .responsive .page-desc {
+            display: block !important;
+        }
+    }
+
+    .at-title .page-title {
+        font-size: 28px !important;
+        position: absolute;
+        left: 50% !important;
+        top: 50% !important;
+        z-index: 1 !important;
+        -ms-transform: translateX(-50%) translateY(-50%) !important;
+        -webkit-transform: translate(-50%, -50%) !important;
+        transform: translate(-50%, -50%) !important;
+        padding: 50px;
+        letter-spacing: 2px;
+    }
+
+    .at-title .page-title strong {
+        font-weight: normal;
+    }
+
+    .at-title .page-desc {
+        color: #000;
+        position: absolute;
+        left: 50%;
+        top: 55%;
+        z-index: 2;
+        -ms-transform: translateX(-50%) translateY(-50%);
+        -webkit-transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%);
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .at-title .line-one-999 {
+        left: 50%;
+        top: 65%;
+        z-index: 3;
+        -ms-transform: translateX(-50%) translateY(-50%);
+        -webkit-transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%);
+        text-align: center;
+        width: 40px;
+    }
+
+    .com_title {
+        padding-bottom: 20px;
+    }
+
+    #key_bg {
+        border: 2px solid #DDDDDD;
+        margin: 0 auto;
+        width: 945px;
+        height: 285px;
+        padding: 10px;
+    }
+
+    #key_row {
+        position: relative;
+        width: 925px;
+        height: 265px;
+    }
+
+    #key_short {
+        width: 945px;
+        margin: 25px auto;
+        border: 2px solid #DDDDDD;
+    }
+
+    #key_short tr th {
+        text-align: center;
+        border: 2px solid #DDDDDD;
+        width: 50%;
+        padding: 5px;
+    }
+
+    #key_short tr td {
+        padding: 5px;
+        text-align: center;
+        border: 2px solid #DDDDDD;
+    }
+
+    #key_view {
+        width: 945px;
+        margin: 25px auto;
+        border: 2px solid #DDDDDD;
+        height: 250px;
+        padding: 10px;
+        overflow: scroll;
+    }
+
+    #key_reset {
+        width: 945px;
+        margin: 25px auto;
+    }
+
+    #key_reset div {
+        border: 2px solid #DDDDDD;
+        padding: 5px;
+        text-align: center;
+        cursor: pointer;
+    }
+
+    #key_reset div:hover {
+        background-color: #DDDDDD;
+    }
+
+    #key_logo {
+        width: 162px;
+        height: 39px;
+        top: 0px;
+        left: 761px;
+        position: absolute;
+        background-color: #DDDDDD;
+        border-radius: 3px;
+        text-align: center;
+        line-height: 39px;
+    }
+
+    .keyboard_hotspot {
+        position: absolute;
+        z-index: 6;
+        background-color: #DDDDDD;
+        display: block;
+        border-radius: 3px;
+        text-align: center;
+        line-height: 39px;
+    }
+
+    .keyboard_hotspot.active {
+        background-color: #ffd9be;
+    }
+
+    .keyboard_hotspot.active.activeColor {
+        background-color: #b9acac;
+    }
+
+    .lh80 {
+        line-height: 80px;
+    }
+
+    .at-body {
+        display: none;
+    }
+
+    .mt70 {
+        margin-top: 70px;
+    }
+</style>
+
+
+<h1>키보드 테스트</h1>
+
+<div class="page-wrap">
+    <div class="page-content">
+        <div id="key_main">
+            <div id="key_bg">
+                <div id="key_row"></div>
+            </div>
+            <div id="key_reset">
+                <div onclick="reset();">초기화</div>
+            </div>
+            <table id="key_short">
+                <tr>
+                    <th>Short Key Press</th>
+                    <th>Estimated Scan Rage</th>
+                </tr>
+                <tr>
+                    <td id="short">Press Any Key</td>
+                    <td id="rate">Press Any Key</td>
+                </tr>
+            </table>
+            <div id="key_scan"></div>
+            <div id="key_view"></div>
+        </div>
+    </div>
+    <div class="h30"></div>
+</div>
+
+
+<script type="text/javascript">
+    var keyCodesArray = [];
+
+    keyCodesArray[27] = {width: 39, height: 39, left: 0, top: 0, name: "ESC", view: "Escape", attr: ""};
+    keyCodesArray[112] = {width: 39, height: 39, left: 83, top: 0, name: "F1", view: "F1", attr: ""};
+    keyCodesArray[113] = {width: 39, height: 39, left: 124, top: 0, name: "F2", view: "F2", attr: ""};
+    keyCodesArray[114] = {width: 39, height: 39, left: 165, top: 0, name: "F3", view: "F3", attr: ""};
+    keyCodesArray[115] = {width: 39, height: 39, left: 206, top: 0, name: "F4", view: "F4", attr: ""};
+    keyCodesArray[116] = {width: 39, height: 39, left: 267, top: 0, name: "F5", view: "F5", attr: ""};
+    keyCodesArray[117] = {width: 39, height: 39, left: 308, top: 0, name: "F6", view: "F6", attr: ""};
+    keyCodesArray[118] = {width: 39, height: 39, left: 349, top: 0, name: "F7", view: "F7", attr: ""};
+    keyCodesArray[119] = {width: 39, height: 39, left: 390, top: 0, name: "F8", view: "F8", attr: ""};
+    keyCodesArray[120] = {width: 39, height: 39, left: 451, top: 0, name: "F9", view: "F9", attr: ""};
+    keyCodesArray[121] = {width: 39, height: 39, left: 492, top: 0, name: "F10", view: "F10", attr: ""};
+    keyCodesArray[122] = {width: 39, height: 39, left: 533, top: 0, name: "F11", view: "F11", attr: ""};
+    keyCodesArray[123] = {width: 39, height: 39, left: 574, top: 0, name: "F12", view: "F12", attr: ""};
+    keyCodesArray[44] = {width: 39, height: 39, left: 627, top: 0, name: "PrtSc", view: "Print Screen", attr: ""};
+    keyCodesArray[145] = {width: 39, height: 39, left: 668, top: 0, name: "ScrLk", view: "Scroll Lock", attr: ""};
+    keyCodesArray[19] = {width: 39, height: 39, left: 709, top: 0, name: "Pause", view: "Puase/Break", attr: ""};
+    keyCodesArray[192] = {width: 39, height: 39, left: 0, top: 60, name: "~", view: "Grave Accent", attr: ""};
+    keyCodesArray[49] = {width: 39, height: 39, left: 41, top: 60, name: "1", view: "1", attr: ""};
+    keyCodesArray[50] = {width: 39, height: 39, left: 82, top: 60, name: "2", view: "2", attr: ""};
+    keyCodesArray[51] = {width: 39, height: 39, left: 123, top: 60, name: "3", view: "3", attr: ""};
+    keyCodesArray[52] = {width: 39, height: 39, left: 164, top: 60, name: "4", view: "4", attr: ""};
+    keyCodesArray[53] = {width: 39, height: 39, left: 205, top: 60, name: "5", view: "5", attr: ""};
+    keyCodesArray[54] = {width: 39, height: 39, left: 246, top: 60, name: "6", view: "6", attr: ""};
+    keyCodesArray[55] = {width: 39, height: 39, left: 287, top: 60, name: "7", view: "7", attr: ""};
+    keyCodesArray[56] = {width: 39, height: 39, left: 328, top: 60, name: "8", view: "8", attr: ""};
+    keyCodesArray[57] = {width: 39, height: 39, left: 369, top: 60, name: "9", view: "9", attr: ""};
+    keyCodesArray[48] = {width: 39, height: 39, left: 410, top: 60, name: "0", view: "0", attr: ""};
+    keyCodesArray[189] = {width: 39, height: 39, left: 451, top: 60, name: "-", view: "Dash", attr: ""};
+    keyCodesArray[187] = {width: 39, height: 39, left: 492, top: 60, name: "=", view: "Equal Sign", attr: ""};
+    keyCodesArray[8] = {width: 80, height: 39, left: 533, top: 60, name: "←", view: "Backspace", attr: ""};
+    keyCodesArray[45] = {width: 39, height: 39, left: 627, top: 60, name: "Insert", view: "Insert", attr: ""};
+    keyCodesArray[36] = {width: 39, height: 39, left: 668, top: 60, name: "Home", view: "Home", attr: ""};
+    keyCodesArray[33] = {width: 39, height: 39, left: 709, top: 60, name: "PgUp", view: "PageUp", attr: ""};
+    keyCodesArray[144] = {width: 39, height: 39, left: 761, top: 60, name: "NuLk", view: "NumLock", attr: ""};
+    keyCodesArray[111] = {width: 39, height: 39, left: 802, top: 60, name: "/", view: "Divide", attr: ""};
+    keyCodesArray[106] = {width: 39, height: 39, left: 843, top: 60, name: "*", view: "Multiply", attr: ""};
+    keyCodesArray[109] = {width: 39, height: 39, left: 884, top: 60, name: "-", view: "Subtract", attr: ""};
+    keyCodesArray[9] = {width: 60, height: 39, left: 0, top: 101, name: "Tab", view: "Tab", attr: ""};
+    keyCodesArray[81] = {width: 39, height: 39, left: 62, top: 101, name: "Q", view: "Q", attr: ""};
+    keyCodesArray[87] = {width: 39, height: 39, left: 103, top: 101, name: "W", view: "W", attr: ""};
+    keyCodesArray[69] = {width: 39, height: 39, left: 144, top: 101, name: "E", view: "E", attr: ""};
+    keyCodesArray[82] = {width: 39, height: 39, left: 185, top: 101, name: "R", view: "R", attr: ""};
+    keyCodesArray[84] = {width: 39, height: 39, left: 226, top: 101, name: "T", view: "T", attr: ""};
+    keyCodesArray[89] = {width: 39, height: 39, left: 267, top: 101, name: "Y", view: "Y", attr: ""};
+    keyCodesArray[85] = {width: 39, height: 39, left: 308, top: 101, name: "U", view: "U", attr: ""};
+    keyCodesArray[73] = {width: 39, height: 39, left: 349, top: 101, name: "I", view: "I", attr: ""};
+    keyCodesArray[79] = {width: 39, height: 39, left: 390, top: 101, name: "O", view: "O", attr: ""};
+    keyCodesArray[80] = {width: 39, height: 39, left: 431, top: 101, name: "P", view: "P", attr: ""};
+    keyCodesArray[219] = {width: 39, height: 39, left: 472, top: 101, name: "[", view: "Open Bracket", attr: ""};
+    keyCodesArray[221] = {width: 39, height: 39, left: 513, top: 101, name: "]", view: "Colse Bracket", attr: ""};
+    keyCodesArray[220] = {width: 59, height: 39, left: 554, top: 101, name: "\\", view: "Back Slash", attr: ""};
+    keyCodesArray[46] = {width: 39, height: 39, left: 627, top: 101, name: "Del", view: "Delete", attr: ""};
+    keyCodesArray[35] = {width: 39, height: 39, left: 668, top: 101, name: "End", view: "End", attr: ""};
+    keyCodesArray[34] = {width: 39, height: 39, left: 709, top: 101, name: "PgDn", view: "PageDown", attr: ""};
+    keyCodesArray[103] = {width: 39, height: 39, left: 761, top: 101, name: "7", view: "NumPad 7", attr: ""};
+    keyCodesArray[104] = {width: 39, height: 39, left: 802, top: 101, name: "8", view: "NumPad 8", attr: ""};
+    keyCodesArray[105] = {width: 39, height: 39, left: 843, top: 101, name: "9", view: "NumPad 9", attr: ""};
+    keyCodesArray[107] = {width: 39, height: 80, left: 884, top: 101, name: "+", view: "Add", attr: "lh80"};
+    keyCodesArray[20] = {width: 70, height: 39, left: 0, top: 142, name: "CapsLk", view: "CapsLock", attr: ""};
+    keyCodesArray[65] = {width: 39, height: 39, left: 72, top: 142, name: "A", view: "A", attr: ""};
+    keyCodesArray[83] = {width: 39, height: 39, left: 113, top: 142, name: "S", view: "S", attr: ""};
+    keyCodesArray[68] = {width: 39, height: 39, left: 154, top: 142, name: "D", view: "D", attr: ""};
+    keyCodesArray[70] = {width: 39, height: 39, left: 195, top: 142, name: "F", view: "F", attr: ""};
+    keyCodesArray[71] = {width: 39, height: 39, left: 236, top: 142, name: "G", view: "G", attr: ""};
+    keyCodesArray[72] = {width: 39, height: 39, left: 277, top: 142, name: "H", view: "H", attr: ""};
+    keyCodesArray[74] = {width: 39, height: 39, left: 318, top: 142, name: "J", view: "J", attr: ""};
+    keyCodesArray[75] = {width: 39, height: 39, left: 359, top: 142, name: "K", view: "K", attr: ""};
+    keyCodesArray[76] = {width: 39, height: 39, left: 400, top: 142, name: "L", view: "L", attr: ""};
+    keyCodesArray[186] = {width: 39, height: 39, left: 441, top: 142, name: ";", view: "Semi Colon", attr: ""};
+    keyCodesArray[222] = {width: 39, height: 39, left: 482, top: 142, name: "\'", view: "Single Quote", attr: ""};
+    keyCodesArray[13] = [
+        {width: 90, height: 39, left: 523, top: 142, name: "Enter", view: "Enter", attr: ""},
+        {width: 39, height: 80, left: 884, top: 183, name: "Enter", view: "Enter", attr: "lh80"}
+    ];
+    keyCodesArray[100] = {width: 39, height: 39, left: 761, top: 142, name: "4", view: "NumPad 4", attr: ""};
+    keyCodesArray[101] = {width: 39, height: 39, left: 802, top: 142, name: "5", view: "NumPad 5", attr: ""};
+    keyCodesArray[102] = {width: 39, height: 39, left: 843, top: 142, name: "6", view: "NumPad 6", attr: ""};
+    keyCodesArray[16] = [
+        {width: 91, height: 39, left: 0, top: 183, name: "Shift", view: "Shift", attr: ""},
+        {width: 110, height: 39, left: 503, top: 183, name: "Shift", view: "Shift", attr: ""}
+    ];
+    keyCodesArray[90] = {width: 39, height: 39, left: 93, top: 183, name: "Z", view: "Z", attr: ""};
+    keyCodesArray[88] = {width: 39, height: 39, left: 134, top: 183, name: "X", view: "X", attr: ""};
+    keyCodesArray[67] = {width: 39, height: 39, left: 175, top: 183, name: "C", view: "C", attr: ""};
+    keyCodesArray[86] = {width: 39, height: 39, left: 216, top: 183, name: "V", view: "V", attr: ""};
+    keyCodesArray[66] = {width: 39, height: 39, left: 257, top: 183, name: "B", view: "B", attr: ""};
+    keyCodesArray[78] = {width: 39, height: 39, left: 298, top: 183, name: "N", view: "N", attr: ""};
+    keyCodesArray[77] = {width: 39, height: 39, left: 339, top: 183, name: "M", view: "M", attr: ""};
+    keyCodesArray[188] = {width: 39, height: 39, left: 380, top: 183, name: ",", view: "Comma", attr: ""};
+    keyCodesArray[190] = {width: 39, height: 39, left: 421, top: 183, name: ".", view: "Period", attr: ""};
+    keyCodesArray[191] = {width: 39, height: 39, left: 462, top: 183, name: "/", view: "Forward Slash", attr: ""};
+    keyCodesArray[38] = {width: 39, height: 39, left: 668, top: 183, name: "↑", view: "Up Arrow", attr: ""};
+    keyCodesArray[97] = {width: 39, height: 39, left: 761, top: 183, name: "1", view: "NumPad 1", attr: ""};
+    keyCodesArray[98] = {width: 39, height: 39, left: 802, top: 183, name: "2", view: "NumPad 2", attr: ""};
+    keyCodesArray[99] = {width: 39, height: 39, left: 843, top: 183, name: "3", view: "NumPad 3", attr: ""};
+    keyCodesArray[17] = {width: 49, height: 39, left: 0, top: 224, name: "Ctrl", view: "Ctrl", attr: ""};
+    keyCodesArray[91] = {width: 49, height: 39, left: 51, top: 224, name: "Win", view: "Left Windows Key", attr: ""};
+    keyCodesArray[18] = {width: 49, height: 39, left: 102, top: 224, name: "Alt", view: "Alt", attr: ""};
+    keyCodesArray[32] = {width: 256, height: 39, left: 153, top: 224, name: "SpaceBar", view: "SpaceBar", attr: ""};
+    keyCodesArray[21] = {width: 49, height: 39, left: 411, top: 224, name: "Alt", view: "Alt", attr: ""};
+    keyCodesArray[92] = {width: 49, height: 39, left: 462, top: 224, name: "Win", view: "Right Windows Key", attr: ""};
+    keyCodesArray[0] = {width: 49, height: 39, left: 513, top: 224, name: "Fn", view: "Fn", attr: ""};
+    keyCodesArray[25] = {width: 49, height: 39, left: 564, top: 224, name: "Ctrl", view: "Ctrl", attr: ""};
+    keyCodesArray[37] = {width: 39, height: 39, left: 627, top: 224, name: "←", view: "Left Arrow", attr: ""};
+    keyCodesArray[40] = {width: 39, height: 39, left: 668, top: 224, name: "↓", view: "Down Arrow", attr: ""};
+    keyCodesArray[39] = {width: 39, height: 39, left: 709, top: 224, name: "→", view: "Right Arrow", attr: ""};
+    keyCodesArray[96] = {width: 80, height: 39, left: 761, top: 224, name: "0", view: "NumPad 0", attr: ""};
+    keyCodesArray[110] = {width: 39, height: 39, left: 843, top: 224, name: ".", view: "Decimal Point", attr: ""};
+
+    var logo = $("<div>");
+    logo.attr("id", "key_logo");
+    logo.html("Varmlio");
+    $("#key_row").append(logo);
+
+    window.performance = window.performance || {};
+
+    performance.now = (function () {
+        return performance.now || performance.mozNow || performance.msNow || performance.oNow || performance.webkitNow || Date.now * 1.0;
+    })();
+
+    (function () {
+        var body = document.querySelector('body');
+
+        var bestKeyTime = 10000;
+        var keyDownTime = [];
+        var isKeyDown = [];
+
+        for (var i = 0, len = 256; i < len; i++) {
+            isKeyDown[i] = false;
+            keyDownTime[i] = 0;
+        }
+
+        body.onkeydown = function (e) {
+            if (typeof keyCodesArray[e.keyCode] != "undefined") {
+                if (typeof keyCodesArray[e.keyCode].length != "undefined") {
+                    for (var j = 0; j < keyCodesArray[e.keyCode].length; j++) {
+                        var id = "key_" + e.keyCode + "_" + j;
+
+                        $("#" + id).attr("class", "keyboard_hotspot active " + keyCodesArray[e.keyCode][j].attr);
+
+                        if ($("#" + id).attr("class").indexOf("active") != -1) {
+                            $("#" + id).attr("class", "keyboard_hotspot active activeColor " + keyCodesArray[e.keyCode][j].attr);
+                        }
+                    }
+                } else {
+                    var id = "key_" + e.keyCode;
+
+                    $("#" + id).attr("class", "keyboard_hotspot active " + keyCodesArray[e.keyCode].attr);
+
+                    if ($("#" + id).attr("class").indexOf("active") != -1) {
+                        $("#" + id).attr("class", "keyboard_hotspot active activeColor " + keyCodesArray[e.keyCode].attr);
+                    }
+                }
+            }
+
+            if (!e.metaKey) {
+                e.preventDefault();
+            }
+
+            if (!isKeyDown[e.keyCode]) {
+                isKeyDown[e.keyCode] = true;
+                keyDownTime[e.keyCode] = performance.now();
+            }
+        };
+
+        body.onkeyup = function (e) {
+            if (!e.metaKey) {
+                e.preventDefault();
+            }
+
+            isKeyDown[e.keyCode] = false;
+            var upTime = performance.now();
+            var heldTime = Math.ceil(upTime - keyDownTime[e.keyCode]);
+            bestKeyTime = heldTime;
+            bestKeyTime = Math.min(bestKeyTime, heldTime);
+            var scanRate = Math.min(1000 / (bestKeyTime), 1000);
+
+            if (typeof keyCodesArray[e.keyCode] != "undefined") {
+                if (typeof keyCodesArray[e.keyCode].length != "undefined") {
+                    for (var j = 0; j < keyCodesArray[e.keyCode].length; j++) {
+                        var str = keyCodesArray[e.keyCode][j].view + " : " + heldTime + "ms";
+                        var id = "key_" + e.keyCode + "_" + j;
+
+                        if ($("#" + id).attr("class").indexOf("activeColor") != -1) {
+                            $("#" + id).attr("class", "keyboard_hotspot active " + keyCodesArray[e.keyCode][j].attr);
+                        }
+                    }
+                } else {
+                    var str = keyCodesArray[e.keyCode].view + " : " + heldTime + "ms";
+                    var id = "key_" + e.keyCode;
+
+                    if ($("#" + id).attr("class").indexOf("activeColor") != -1) {
+                        $("#" + id).attr("class", "keyboard_hotspot active " + keyCodesArray[e.keyCode].attr);
+                    }
+                }
+
+                $("#short").html(bestKeyTime + "ms");
+                $("#rate").html(scanRate + "Hz");
+
+                var vKey = $("<div>");
+                var color = "#ffd9be";
+                vKey.css("padding", "5px");
+                vKey.css("margin", "2px 0px");
+                vKey.css("background-color", color);
+                vKey.css("border-radius", "4px");
+                vKey.html(str);
+
+                $("#key_view").prepend(vKey);
+            }
+        };
+    })();
+
+    for (var i = 0; i < keyCodesArray.length; i++) {
+        var data = {};
+
+        if (typeof keyCodesArray[i] != "undefined") {
+            if (typeof keyCodesArray[i].length != "undefined") {
+                for (var j = 0; j < keyCodesArray[i].length; j++) {
+                    data.width = keyCodesArray[i][j].width;
+                    data.height = keyCodesArray[i][j].height;
+                    data.attr = keyCodesArray[i][j].attr;
+                    data.left = keyCodesArray[i][j].left;
+                    data.top = keyCodesArray[i][j].top;
+                    data.name = keyCodesArray[i][j].name;
+                    data.id = "key_" + i + "_" + j;
+
+                    keyView(data);
+                }
+            } else {
+                data.width = keyCodesArray[i].width;
+                data.height = keyCodesArray[i].height;
+                data.attr = keyCodesArray[i].attr;
+                data.left = keyCodesArray[i].left;
+                data.top = keyCodesArray[i].top;
+                data.name = keyCodesArray[i].name;
+                data.id = "key_" + i;
+
+                keyView(data);
+            }
+        }
+    }
+
+    function keyView(data) {
+        var key_row = $("#key_row");
+        var keyboard = $("<div>");
+        keyboard.attr("id", data.id);
+        keyboard.attr("class", "keyboard_hotspot " + data.attr);
+        keyboard.css("width", data.width);
+        keyboard.css("height", data.height);
+        keyboard.css("left", data.left);
+        keyboard.css("top", data.top);
+        keyboard.html(data.name);
+        key_row.append(keyboard);
+    }
+
+    // 초기화
+    function reset() {
+        $(".keyboard_hotspot").each(function () {
+            var str = $(this).attr("class").replace("active", "");
+            str = str.replace("activeColor", "");
+
+            $(this).attr("class", str);
+        });
+
+        $("#short").html("Press Any Key");
+        $("#rate").html("Press Any Key");
+        $("#key_view").html("");
+    }
+</script>
+
+</body>
+</html>
