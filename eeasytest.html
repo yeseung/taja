@@ -1,0 +1,347 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="타이핑 속도를 테스트하는 사이트입니다.">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="타자속도 테스트">
+    <meta property="og:description" content="타이핑 속도를 테스트하는 사이트입니다.">
+    <meta property="og:image" content="speedicon.png">
+    <meta property="og:url" content="https://eeasytest.netlify.app">
+    <title>타자속도 테스트</title>
+
+
+
+    <style>
+        .halfbody{
+            text-align: center;
+        }
+
+        div.title{
+            height: 30%;
+            width: 300px;
+            margin: auto;
+            margin-top: 5%;
+            font-style: italic;
+
+        }
+
+        .title1{
+            text-align: left;
+            height: 15%;
+            width: 250px;
+            margin: auto;
+            font-size: 50.5px;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        .title2{
+            text-align: right;
+            width: 250px;
+            height: 15%;
+            margin: auto;
+            font-size: 50.5px;
+            color: red;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        #typespeed{
+            margin-top: 3.8%;
+            margin-bottom: 5%;
+            font-size: 150%;
+        }
+
+        #wrongper{
+            margin: 5% 10%;
+            font-size: 150%;
+        }
+
+        /* #divsettime{
+            margin-top: 3.8%;
+            margin-bottom: 3.8%;
+        } */
+
+        #settime{
+            font-size: 150%;
+        }
+        #textboard{
+            margin-top: 5%;
+            padding : 2% 10%;
+            font-size: 140%;
+        }
+
+        button{
+            line-height: 1.5rem;
+            border-radius: 5rem;
+            background-color: transparent;
+            background-image: none;
+            font-size: 150%;
+            padding: .5rem .5rem;
+            color: cornflowerblue;
+            border-color: cornflowerblue;
+            border-width: 3px;
+            box-shadow: none;
+            background: transparent;
+            border-style: solid;
+        }
+        input{
+            width: 300px;
+            font-size: 150%;
+            border-radius: .7rem;
+            color: cornflowerblue;
+            border-color: cornflowerblue;
+            box-shadow: none;
+            border-style: solid;
+            margin-bottom: 5%;
+        }
+
+        #speedicon{
+            float: center;
+        }
+
+        #changebutton{
+            margin-bottom: 10%;
+        }
+
+        .sharebtn{
+            text-align: center;
+        }
+
+        #restart{
+            margin-right: 2%;
+            margin-bottom: 8%;
+            margin-top: 8%;
+        }
+
+        #divsettime{
+            display: inline;
+        }
+        .addthis_inline_share_toolbox_xs5q{
+            margin-bottom: 5%;
+        }
+
+        button#share{
+            margin: 5% 5%;
+            line-height: 1.5rem;
+            border-radius: 1rem;
+            background-color: yellow;
+            font-size: 150%;
+            padding: .5rem .5rem;
+            color: rgb(82, 82, 26);
+            border-color: rgb(82, 82, 26);
+            font-family: 'Noto Sans KR', sans-serif;
+            border-width: 3px;
+            box-shadow: none;
+            border-style: solid;
+        }
+
+        #kakaoicon{
+            float: right;
+        }
+
+    </style>
+</head>
+
+<body>
+
+
+
+<div class="title">
+    <h1 class="title1">타자속도</h1>
+    <br>
+    <h1 class="title2"><img id="speedicon" src="img/speedicon.png" width="80" height="50">테스트</h1>
+</div>
+
+<div class="halfbody">
+    <div id="textboard"></div>
+
+
+    <script>
+        randomtext = ['길을 아는 것과 그 길을 걷는 것은 다르다.', '주먹을 쥐고 있으면 악수를 나눌 수 없다.', '잠깐 멈추고 나를 사랑하는 시간을 가지세요.', '나는 천천히 걸어가는 사람이다. 그러나 뒤로는 가지 않는다.', '우리가 저지를 수 있는 가장 큰 실수는 실수할까 두려워 실행하지 못하는 것', '과거에 만족하기보다 꿈을 더 크게 가져라', '선택보다 중요한 건 생각을 바꾸는 것일지도 모른다', '너는 지금도 충분히 잘하고 있으니까 아무 걱정 하지 마', '난 지금 이 순간에 행복해야 한다.', '지나고 나면 다 괜찮아진대', '사람은 생생하게 꿈꾸는 그대로 된다', '삼십 초, 숨을 참고 깊은 곳을 들여봐도 괜찮을 시간', '계절은 돌아온다. 그때가 되면 태연하게 다시 꽃피울 것', '인생은 자전거를 타는 것과 같다. 균형을 잡으려면 움직여야 한다.', '현명한 사람은 기회를 찾지 않고, 기회를 창조한다.', '오른 스킨좀 내주세요ㅠㅠ', '코로나 제발 좀 끝났으면...', '유명한 투리구슬처럼 보이지만', '인투디 언 노오오오오오오오오오운', '아 ㅋㅋㅋㅋㅋ아 ㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋ아', '니 지건이 제일아파', '댓글에 한 줄 글귀 추천좀요.']
+        typespeed = 0;
+        end = 0;
+        // var twocount = ['ㄵ','ㄶ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅄ'];
+        var twocount1 = [5, 6, 9, 10, 11, 12, 13, 14, 15, 18]
+        var twocount2 = [9, 10, 11, 15, 14, 16, 19]
+        start = 0;
+        changetext = '';
+        worngpercent = 0;
+        typespeed = 0;
+        rantext = randomtext[Math.floor(Math.random() * randomtext.length)];
+        var Ctext = '';
+        var time = 0;
+        rtime = 0;
+        var text = '너는 지금도 충분히 잘하고 있으니까 아무 걱정 하지 마'
+        typenum = [];
+        for (var i = 0; i < text.length; i++) {
+            Ctext += '<span id=\'' + i + '\'>' + text[i] + '</span>';
+        }
+        document.getElementById('textboard').innerHTML = Ctext
+        for (i = 0; i < text.length; i++) {
+            document.getElementById(i).style.color = 'balck';
+        }
+        changecount = 1;
+        function randomitem(list) {
+            if (changecount === 50) {
+                rantext = '아니 이걸 50번이나 눌렀다고요?'
+            }
+            else if (changecount === 100) {
+                rantext = '이걸 100번이나 누른 당신은 마이크로폰책...'
+            }
+            else if (changecount === 150) {
+                rantext = '선생님 이제 그만 누르십쇼 이스터에그는 이게 마지막입니다.'
+            }
+            else if (changecount === 200) {
+                rantext = '와 이걸 안속고 더 누르네ㅋㅋㅋㅋ'
+            }
+            else if (changecount === 300) {
+                rantext = '이거 캡쳐해서 올린사람 페북페이지로 메세지 보내면 여기에 이름 넣어줌 선착순 5명 (페이지: 테스트 모음ZIP)'
+            }
+            else if (changecount === 350) {
+                rantext = '끝!'
+            }
+            else {
+                while (changetext === rantext) {
+                    rantext = list[Math.floor(Math.random() * list.length)]
+                }
+            }
+            changecount = changecount + 1
+            return rantext
+        }
+
+        function typing() {
+            typenum = [];
+            for (var i = 0; i < x.length; i++) {
+                if (x.length !== 0) {
+                    var code = x.charCodeAt(i);
+                    var index1 = ((code - 44032) / 28) / 21;
+                    var index2 = ((code - 44032) / 28) % 21;
+                    var index3 = (code - 44032) % 28;
+
+                    if (index1 >= 0) {
+                        var i1 = String.fromCharCode(index1 + 4352);
+                        typenum.push(i1)
+                    }
+                    if (index2 >= 0) {
+                        var i2 = String.fromCharCode(index2 + 4449);
+                        if (twocount2.indexOf(Math.floor(index2)) !== -1) {
+                            typenum.push(i2)
+                            typenum.push(i2)
+                        } else {
+                            typenum.push(i2)
+                        }
+                    }
+                    if (index3 > 0) {
+                        var i3 = String.fromCharCode(index3 + 4519);
+                        if (twocount1.indexOf(index3) !== -1) {
+                            typenum.push(i3)
+                            typenum.push(i3)
+                        } else {
+                            typenum.push(i3)
+                        }
+                    }
+                    if (index1 < 0) {
+                        typenum.push(x[i])
+                    }
+                }
+            }
+            typespeed = typenum.length * (600 / time)
+            document.getElementById('typespeed').innerHTML = typespeed.toFixed(1) + '타'
+        }
+
+        function typetimer() {
+            if (start === 0) {
+                start++
+                timer = setInterval(function () {
+                    time = time + 1;
+                    rtime = time / 10;
+                    document.getElementById('divsettime').innerHTML = '<span id=\'settime\'>' + rtime.toFixed(1) + '초</span>'
+                }, 100)
+            }
+            if (x.length >= text.length) {
+                clearInterval(timer)
+                end = 1;
+            }
+        }
+
+        function checking() {
+            answerword = 0;
+            x = document.getElementById('key').value;
+            for (i = 0; i < x.length-1; i++) {
+                if (x[i] === text[i]) {
+                    document.getElementById(i).style.color = 'blue';
+                    answerword = answerword + 1
+                }
+                if (x[i] !== text[i]) {
+                    document.getElementById(i).style.color = 'red';
+                }
+                worngpercent = (answerword / (x.length-1)) * 100
+                document.getElementById('wrongper').innerHTML = '정확도 : ' + worngpercent.toFixed(1) + '%'
+            }
+            for (i = x.length; i < text.length; i++) {
+                document.getElementById(i).style.color = 'black';
+            }
+        }
+        function changet() {
+            Ctext = ''
+            document.getElementById('textboard').removeChild(document.querySelector('span'))
+            for (var i = 0; i < changetext.length; i++) {
+                Ctext += '<span id=\'' + i + '\'>' + changetext[i] + '</span>';
+            }
+            document.getElementById('textboard').innerHTML = Ctext
+            text = changetext
+        }
+        function endchecking(){
+            answerword = 0;
+            x = document.getElementById('key').value;
+            for (i = 0; i < x.length; i++) {
+                if (x[i] === text[i]) {
+                    document.getElementById(i).style.color = 'blue';
+                    answerword = answerword + 1
+                }
+                if (x[i] !== text[i]) {
+                    document.getElementById(i).style.color = 'red';
+                }
+            }
+            for (i = x.length; i < text.length; i++) {
+                document.getElementById(i).style.color = 'black';
+            }
+        }
+    </script>
+
+
+    <br>
+    <input type="text" id="key" onkeyup="if(end ===0){checking(); typing();} else{endchecking()} typetimer();" on>
+    <br>
+    <span>
+            <span id="typespeed">0.0타</span>
+        </span>
+    <spna id="wrongper">정확도 : 0%</spna>
+    <div id="divsettime">
+        <span id="settime">0.0초</span>
+    </div>
+    <a id="kakao-link-btn" href="javascript:sendLink()">
+
+    </a>
+
+    <br>
+    <br>
+    <button id="restart"
+            onclick="end = 0;start = 0;time = 0;document.getElementById('divsettime').innerHTML = '<span id=\'settime\'>0.0초</span>';document.getElementById('typespeed').innerHTML = '0.0타'; document.getElementById('wrongper').innerHTML = '정확도 : 0%'; clearInterval(timer);document.getElementById('key').value = ''">다시하기</button>
+    <button type="button" id="randomchange"
+            onclick="end = 0; changetext = randomitem(randomtext); changet();start = 0;time = 0;document.getElementById('divsettime').innerHTML = '<span id=\'settime\'>0.0초</span>';document.getElementById('typespeed').innerHTML = '0.0타';clearInterval(timer);document.getElementById('key').value = ''">랜덤
+        글자
+        바꾸기</button>
+    <br>
+
+</div>
+
+
+
+</body>
+
+
+</html>
