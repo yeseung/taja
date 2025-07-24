@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+
+
+
+    <meta charset="UTF-8">
+    <title>성경 타자통독</title>
+    <style>
+
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            font-family: 'Arial', sans-serif;
+        }
+
+        #top-section.dark-mode {
+            background-color: #121212;
+            color: #f0f0f0;
+        }
+
+        #top-section {
+            padding: 30px;
+            background: white;
+            z-index: 1;
+        }
+
+        #scrollable-section {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+        }
+
+        #summary {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+
+
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 30px;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .dark-mode {
+            background-color: #121212;
+            color: #f0f0f0;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 10px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        .verse-box {
+            margin-bottom: 25px;
+        }
+
+        .verse-label {
+            font-weight: bold;
+            font-size: 17px;
+
+            margin-bottom: 5px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            font-size: 16px;
+            margin-top: 5px; /* 이 줄을 추가하면 위쪽 여백 생성 */
+            margin-bottom: 5px;
+        }
+
+        .answer-text {
+            color: white;
+            font-weight: bold;
+
+            display: block; /* 초기부터 보이게 설정 */
+        }
+
+        .answer-visible-global {
+            color: green;
+            font-weight: bold;
+            display: block;        /* 반드시 보이도록 설정 */
+        }
+
+        .answer-visible {
+            color: green;
+            display: block;
+        }
+
+        .feedback {
+            font-size: 15px;
+            font-weight: bold;
+            margin-top: 4px;
+        }
+
+        #editor-section {
+            display: none;
+            margin-bottom: 20px;
+        }
+
+        #summary {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        #toggle-dark {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="top-section">
+    <h1 id="ad_h1">📖 성경 암송말씀 50구절 타자 연습</h1>
+
+    <button id="toggle-dark">🌙 다크모드</button>
+    <button onclick="toggleEditor()">📂 말씀목록 편집 열기/닫기</button>
+    <button onclick="toggleAnswers()" id="toggle-answer-btn">👁️ 말씀 숨기기</button>
+    <button onclick="restartPage()">🔄 다시시작</button> <!-- "다시시작" 버튼 추가 -->
+    <div id="editor-section" style="display:none">
+        <h3>📝 구절 편집 (형식: 위치|내용)</h3>
+        <textarea id="verse-input">
+1. 빌립보서 4장 13절|내게 능력주시는 자 안에서 내가 모든 것을 할 수 있느니라
+2. 요한복음 3장 16절|하나님이 세상을 이처럼 사랑하사 독생자를 주셨으니
+3. 시편 23편 1절|여호와는 나의 목자시니 내게 부족함이 없으리로다
+4. 잠언 3장 5절|너는 마음을 다하여 여호와를 신뢰하고 네 명철을 의지하지 말라
+5. 마태복음 5장 14절|너희는 세상의 빛이라 산 위에 있는 동네가 숨겨지지 못할 것이요
+  </textarea>
+        <br>
+        <button onclick="loadVerses()">📥 구절 적용</button>
+        <button onclick="saveToLocal()">💾 저장</button>
+
+        <button onclick="resetToDefault()">🔄 초기화</button>
+        <button onclick="exportBackup()">💾 백업 내보내기</button>
+        <input type="file" id="backup-file" accept=".json" style="display:none" onchange="importBackup(event)">
+        <button onclick="document.getElementById('backup-file').click()">📂 백업파일 불러오기</button>
+    </div>
+
+    <hr>
+    <div id="summary">정답: 0 / 오답: 0 | WPM: 0</div>
+</div>
+
+<div id="scrollable-section">
+    <form id="typing-form">
+        <div id="verses-container"></div>
+    </form>
+</div>
+
+<script>
+    let correctCount = 0;
+    let incorrectCount = 0;
+    let totalTypedChars = 0;
+    let startTime = null;
+    let answersVisible = true; // 기본값 true로 설정
+
+    function toggleEditor() {
+        const editor = document.getElementById("editor-section");
+        editor.style.display = editor.style.display === "none" ? "block" : "none";
+    }
+
+    function updateSummary() {
+        const now = new Date();
+        const minutes = Math.max((now - startTime) / 60000, 1 / 60);
+        const wpm = Math.round((totalTypedChars / 5) / minutes);
+        document.getElementById("summary").textContent =
+            `정답: ${correctCount} / 오답: ${incorrectCount} | WPM: ${wpm}`;
+    }
+
+    function loadVerses() {
+        const container = document.getElementById("verses-container");
+        container.innerHTML = "";
+        correctCount = 0;
+        incorrectCount = 0;
+        totalTypedChars = 0;
+        startTime = new Date();
+
+        const raw = document.getElementById("verse-input").value.trim();
+        const lines = raw.split("\n").filter(line => line.includes("|"));
+
+        lines.forEach((line, index) => {
+            const [ref, text] = line.split("|");
+            const box = document.createElement("div");
+            box.className = "verse-box";
+            box.innerHTML = `
+<div class="verse-label">${ref.trim()}</div>
+<div id="answer-${index}" class="answer-text">${text.trim()}</div>
+<input type="text" id="input-${index}" data-index="${index}" placeholder="구절을 입력하세요" autocomplete="off">
+<div id="feedback-${index}" class="feedback"></div>
+      `;
+            container.appendChild(box);
+
+            // 정답 표시: 클래스 추가하여 녹색으로 표시 + 보이기
+            const answerDiv = box.querySelector(`#answer-${index}`);
+            if (answersVisible) {
+                answerDiv.classList.add("answer-visible-global");
+            }
+
+            const input = box.querySelector(`#input-${index}`);
+            const correctAnswer = text.trim().replace(/\s/g, "");
+
+            input.addEventListener("keydown", function(e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    const userInput = input.value.replace(/\s/g, "");
+                    const answerDiv = document.getElementById(`answer-${index}`);
+                    const feedbackDiv = document.getElementById(`feedback-${index}`);
+
+                    totalTypedChars += userInput.length;
+
+                    if (userInput === correctAnswer) {
+                        feedbackDiv.textContent = "정답입니다!";
+                        feedbackDiv.style.color = "blue";
+                        correctCount++;
+                    } else {
+                        feedbackDiv.textContent = "틀렸습니다.";
+                        feedbackDiv.style.color = "red";
+                        incorrectCount++;
+                    }
+
+                    answerDiv.classList.add("answer-visible");
+                    input.disabled = true;
+                    updateSummary();
+
+                    const nextInput = document.getElementById(`input-${index + 1}`);
+                    if (nextInput) nextInput.focus();
+                }
+            });
+        });
+
+        updateSummary();
+    }
+
+    function toggleAnswers() {
+        answersVisible = !answersVisible;
+        const answerElements = document.querySelectorAll(".answer-text");
+        const toggleBtn = document.getElementById("toggle-answer-btn");
+
+        answerElements.forEach(el => {
+            el.style.display = answersVisible ? "block" : "none";
+            el.classList.toggle("answer-visible-global", answersVisible);
+        });
+
+        toggleBtn.textContent = answersVisible ? "🙈 말씀 숨기기" : "👁️ 말씀 보이기";
+    }
+
+    const defaultVerses =
+              `1. 창세기 1장 1절|태초에 하나님이 천지를 창조하시니라
+2. 창세기 3장 15절|내가 너로 여자와 원수가 되게 하고 네 후손도 여자의 후손과 원수가 되게 하리니 여자의 후손은 네 머리를 상하게 할 것이요 너는 그의 발꿈치를 상하게 할 것이니라 하시고
+3. 민수기 6장 24~26절|여호와는 네게 복을 주시고 너를 지키시기를 원하며 여호와는 그의 얼굴을 네게 비추사 은혜 베푸시기를 원하며 여호와는 그 얼굴을 네게로 향하여 드사 평강 주시기를 원하노라 할지니라 하라
+4. 여호수아 1장 9절|내가 네게 명령한 것이 아니냐 강하고 담대하라 두려워하지 말며 놀라지 말라 네가 어디로 가든지 네 하나님 여호와가 너와 함께 하느니라 하시니라
+5. 잠언 16장 9절|사람이 마음으로 자기의 길을 계획할지라도 그의 걸음을 인도하시는 이는 여호와시니라
+6. 이사야 1장 18절|여호와께서 말씀하시되 오라 우리가 서로 변론하자 너희의 죄가 주홍 같을지라도 눈과 같이 희어질 것이요 진홍 같이 붉을지라도 양털 같이 희게 되리라
+7. 이사야 65장 17절|보라 내가 새 하늘과 새 땅을 창조하나니 이전 것은 기억되거나 마음에 생각나지 아니할 것이라
+8. 예레미야 33장 3절|너는 내게 부르짖으라 내가 네게 응답하겠고 네가 알지 못하는 크고 은밀한 일을 네게 보이리라
+9. 호세아 6장 6절|나는 인애를 원하고 제사를 원하지 아니하며 번제보다 하나님을 아는 것을 원하노라
+10. 요엘 2장 28절|그 후에 내가 내 영을 만민에게 부어 주리니 너희 자녀들이 장래 일을 말할 것이며 너희 늙은이는 꿈을 꾸며 너희 젊은이는 이상을 볼 것이며
+11. 마태복음 5장 14절|너희는 세상의 빛이라 산 위에 있는 동네가 숨겨지지 못할 것이요
+12. 마태복음 6장 33절|너희는 먼저 그의 나라와 그의 의를 구하라 그리하면 이 모든 것을 너희에게 더하시리라
+13. 마태복음 7장 7절|구하라 그러면 너희에게 주실 것이요 찾으라 그러면 찾을 것이요 문을 두드리라 그러면 너희에게 열릴 것이니
+14. 마태복음 11장 28절|수고하고 무거운 짐을 진 자들아 다 내게 오라 내가 너희를 쉬게 하리라
+15. 마가복음 9장 23절|예수께서 이르시되 할 수 있거든이 무슨 말이냐 믿는 자에게는 능치 못할 일이 없느니라
+16. 마가복음 12장 30절|네 마음을 다하고 네 목숨을 다하고 네 뜻을 다하고 네 힘을 다하여 주 너의 하나님을 사랑하라 하신 것이 첫째로 중요한 것이요
+17. 누가복음 6장 38절|주라 그리하면 너희가 받을 것이요 사람이 너희에게 안겨 주되 후히 되어 눌러 흔들어 넘치게 하여 주리라
+18. 요한복음 1장 1절|태초에 말씀이 계시니라 말씀이 하나님과 함께 계셨으니 이 말씀은 곧 하나님이시라
+19. 요한복음 3장 16절|하나님이 세상을 이처럼 사랑하사 독생자를 주셨으니 이는 그를 믿는 자마다 멸망하지 않고 영생을 얻게 하려 하심이라
+20. 로마서 8장 28절|우리가 알거니와 하나님을 사랑하는 자 곧 그의 뜻대로 부르심을 입은 자들에게는 모든 일이 합력하여 선을 이룬다
+21. 고린도전서 10장 13절|사람이 감당할 시험밖에는 너희가 당한 것이 없나니 하나님은 믿고 의지하는 자들에게 시험당할 때에 피할 길을 내사 능히 감당하게 하시느니라
+22. 고린도후서 12장 9절|나의 은혜가 네게 족하도다 이는 내 능력이 약한 데서 온전해짐이라 하시니 그러므로 내가 더욱 기쁘게 나의 약한 것을 자랑하리니 이는 그리스도의 능력이 내게 머물게 하려 함이라
+23. 갈라디아서 5장 22~23절|오직 성령의 열매는 사랑과 희락과 화평과 인내와 자비와 양선과 충성과 온유와 절제니 이런 것들을 금지할 법이 없느니라
+24. 에베소서 2장 8~9절|너희가 그 은혜에 의하여 믿음으로 구원을 얻은 것이니 이것은 너희에게서 난 것이 아니요 하나님의 선물이라 행위에서 난 것이 아니니 이는 누구든지 자랑하지 못하게 하려 함이라
+25. 에베소서 6장 10절|마지막으로 너희가 주 안에서와 그의 능력의 힘으로 강건하여지고
+26. 빌립보서 4장 13절|내게 능력 주시는 자 안에서 내가 모든 것을 할 수 있느니라
+27. 골로새서 3장 23절|무엇을 하든지 마음을 다하여 주께 하듯 하고 사람에게 하듯 하지 말라
+28. 히브리서 11장 1절|믿음은 바라는 것들의 실상이요 보지 못하는 것들의 증거니
+29. 야고보서 1장 5절|만일 너희 중에 누구든지 지혜가 부족하거든 모든 사람에게 후히 주시고 꾸짖지 아니하시는 하나님께 구하라 그리하면 주시리라
+30. 베드로전서 5장 7절|너희 염려를 다 주께 맡기라 이는 그가 너희를 돌보시느니라
+31. 요한일서 4장 7절|사랑하는 자들아 우리가 서로 사랑하자 사랑은 하나님께 속한 것이니 사랑하는 자마다 하나님을 알고 하나님께로부터 난 자니라
+32. 요한일서 4장 19절|우리가 사랑하는 이유는 그가 먼저 우리를 사랑하셨기 때문이라
+33. 유다서 1장 24절|능히 너희를 실족하지 않게 하시고 그 앞에 거룩하고 흠 없게 서게 하실 이에게
+34. 마태복음 28장 19~20절|그러므로 너희는 가서 모든 민족을 제자 삼아 아버지와 아들과 성령의 이름으로 세례를 베풀고 내가 너희에게 분부한 모든 것을 가르쳐 지키게 하라 볼지어다 내가 세상 끝날까지 항상 너희와 함께 있으리라 하시니라
+35. 마가복음 16장 15절|너희는 온 천하에 다니며 만민에게 복음을 전파하라
+36. 누가복음 19장 10절|인자가 온 것은 잃어버린 자를 찾아 구원하려 함이니라
+37. 요한복음 14장 6절|예수께서 이르시되 내가 곧 길이요 진리요 생명이니 나로 말미암지 않고는 아버지께 올 자가 없느니라
+38. 사도행전 1장 8절|오직 성령이 너희에게 임하시면 너희가 능력을 받고 예루살렘과 온 유대와 사마리아와 땅 끝까지 이르러 내 증인이 되리라
+39. 사도행전 2장 38절|베드로가 이르되 너희가 회개하고 각각 예수 그리스도의 이름으로 세례를 받으라 그리하면 너희가 죄 사함을 받고 성령을 선물로 받으리니
+40. 로마서 12장 2절|너희는 이 세대를 본받지 말고 오직 마음을 새롭게 함으로 변화를 받아 하나님의 뜻이 무엇인지 곧 선하고 기쁘고 온전한 뜻이 무엇인지 분별하도록 하라
+41. 로마서 8장 28절|우리가 알거니와 하나님을 사랑하는 자, 곧 그의 뜻대로 부르심을 입은 자들에게는 모든 일이 합력하여 선을 이루느니라
+42. 고린도전서 10장 13절|사람이 감당할 시험밖에는 너희가 당한 것이 없나니 오직 하나님은 믿고 감당할 시험밖에는 너희에게 시험을 허락하지 아니하시고 시험 당할 즈음에 또한 피할 길을 마련하여 주시느니라
+43. 고린도후서 5장 17절|그러므로 누구든지 그리스도 안에 있으면 새로운 피조물이라 이전 것은 지나갔으니 보라 새 것이 되었도다
+44. 갈라디아서 5장 22~23절|그러나 성령의 열매는 사랑과 기쁨과 화평과 오래 참음과 자비와 양선과 충성과 온유와 절제니 이러한 것을 금지할 법이 없느니라
+45. 에베소서 2장 8~9절|너희가 그 은혜를 인하여 믿음으로 말미암아 구원을 얻었나니 이것은 너희에게서 난 것이 아니요 하나님의 선물이라 행위에서 난 것이 아니니 이는 누구든지 자랑하지 못하게 함이라
+46. 빌립보서 4장 13절|내가 모든 것을 그리스도를 통해 할 수 있느니라 그리스도께서 내게 능력 주시느니라
+47. 골로새서 3장 23절|무슨 일을 하든지 마음을 다하여 주께 하듯 하고 사람에게 하듯 하지 말라
+48. 데살로니가전서 5장 16~18절|항상 기뻐하라 쉬지 말고 기도하라 범사에 감사하라 이는 그리스도 예수 안에서 너희를 향한 하나님의 뜻이니라
+49. 디모데전서 4장 12절|아무도 네 어리석음을 멸시하지 못하게 하고 오직 말과 행실과 사랑과 믿음과 순결에 있어 믿는 자에게 본이 되라
+50. 히브리서 11장 1절|믿음은 바라는 것들의 실상이요 보지 못하는 것들의 증거니`
+    ;
+
+    function saveToLocal() {
+        const verses = document.getElementById("verse-input").value;
+        localStorage.setItem("bibleTypingVerses", verses);
+        alert("✅ 구절이 저장되었습니다.");
+    }
+
+    function loadFromLocal() {
+        const saved = localStorage.getItem("bibleTypingVerses");
+        if (saved) {
+            document.getElementById("verse-input").value = saved;
+
+        } else {
+            document.getElementById("verse-input").value = defaultVerses;
+
+        }
+        loadVerses();
+    }
+
+    function resetToDefault() {
+        if (confirm("⚠️ 모든 내용을 초기화하시겠습니까?")) {
+            document.getElementById("verse-input").value = defaultVerses;
+            saveToLocal();
+            loadVerses();
+        }
+    }
+
+    function exportBackup() {
+        const verses = localStorage.getItem("bibleTypingVerses") || defaultVerses;
+        const blob = new Blob([JSON.stringify({ verses })], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "bible_verses_backup.json";
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function importBackup(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            try {
+                const json = JSON.parse(e.target.result);
+                if (json.verses) {
+                    document.getElementById("verse-input").value = json.verses;
+                    saveToLocal();
+                    loadVerses();
+                    alert("📂 백업 파일을 불러왔습니다.");
+                } else {
+                    alert("❌ 올바른 백업 파일이 아닙니다.");
+                }
+            } catch (err) {
+                alert("❌ JSON 파싱 오류: 백업 파일이 손상되었을 수 있습니다.");
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    document.getElementById("toggle-dark").addEventListener("click", function() {
+        document.body.classList.toggle("dark-mode");
+        document.getElementById("top-section").classList.toggle("dark-mode");
+    });
+
+    // 페이지 새로고침
+
+    function restartPage() {
+        // 현재 다크모드 상태 확인
+        const isDarkMode = document.body.classList.contains('dark-mode');
+
+        // 다크모드 상태를 localStorage에 저장
+        localStorage.setItem('isDarkMode', isDarkMode);
+
+        // 페이지를 새로 고침하여 초기 상태로 되돌리기
+        location.reload();
+    }
+
+    // 페이지가 로드될 때 다크모드 상태 복원
+    window.onload = function() {
+        // localStorage에서 저장된 다크모드 상태 확인
+        const isDarkMode = localStorage.getItem('isDarkMode') === 'true';
+
+        // 페이지 로드 후 바로 다크모드 적용을 위한 클릭 이벤트 트리거
+        if (isDarkMode) {
+            // #toggle-dark 요소를 찾은 후, 강제로 클릭 이벤트를 발생시킴
+            document.getElementById("toggle-dark").click();
+        }
+    };
+
+
+
+
+
+    window.addEventListener("DOMContentLoaded", loadFromLocal);
+    document.getElementById("input-0").focus();
+</script>
+
+</body>
+
+
+
+</html>
