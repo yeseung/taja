@@ -5,6 +5,7 @@
 - https://funkeys.co.kr/bbs/page.php?hid=keytest
 - https://eeasytest.netlify.app
 - https://tistory1.daumcdn.net/tistory/6944548/skin/images/bible2.htm
+- https://www.youtube.com/watch?v=n6VHbENBNkY
 
   
 
@@ -29,3 +30,4 @@
 ![스크린샷 2025-07-08 오전 10 13 56](https://github.com/user-attachments/assets/7bbaaa5a-9778-4ae2-8ce3-05b41052c43f)
 ![스크린샷 2025-07-22 오후 5 02 58](https://github.com/user-attachments/assets/c41ce0dd-eb4d-4083-963a-6733bfff511f)
 ![스크린샷 2025-07-24 오전 9 58 55](https://github.com/user-attachments/assets/91df8123-da5b-4522-a52b-8b0eaa9f7eb5)
+![스크린샷 2025-07-27 오후 10 36 30](https://github.com/user-attachments/assets/b160c6bf-a58e-4962-a51e-c84419a52a52)
