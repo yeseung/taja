@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>타자 연습</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+            background-color: #f9f9f9;
+        }
+        #container {
+            max-width: 600px;
+            margin: auto;
+        }
+        #wordDisplay {
+            font-size: 28px;
+            margin: 20px 0;
+            word-wrap: break-word;
+        }
+        #inputBox {
+            font-size: 24px;
+            padding: 10px;
+            width: 100%;
+            max-width: 400px;
+        }
+        #typedWords {
+            margin-top: 20px;
+            color: gray;
+            font-size: 20px;
+            word-wrap: break-word;
+        }
+        #timer {
+            margin-top: 10px;
+            font-size: 18px;
+        }
+        #restartBtn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        #resultMessage {
+            margin-top: 20px;
+            font-size: 22px;
+            color: green;
+        }
+
+        @media screen and (max-width: 480px) {
+            #wordDisplay, #typedWords {
+                font-size: 20px;
+            }
+            #inputBox {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="container">
+    <h1>타자 연습</h1>
+    <div id="timer">남은 시간: 30초</div>
+    <div id="wordDisplay"></div>
+    <input type="text" id="inputBox" autofocus autocomplete="off" />
+    <div id="typedWords"></div>
+    <button id="restartBtn">다시 시작하기</button>
+    <div id="resultMessage"></div>
+</div>
+
+<script>
+    const words = [
+        "가", "고", "구", "기", "개", "겨", "계", "나", "너", "노", "누", "느",
+        "다", "더", "도", "두", "디", "라", "러", "로", "루", "르",
+        "마", "머", "모", "무", "미",
+        "바", "버", "보", "부", "비", "사", "서", "소", "수", "시",
+        "아", "어", "오", "우", "으", "이",
+        "자", "저", "조", "주", "지", "차", "처", "초", "추", "치",
+        "카", "코", "쿠", "타", "토", "투", "파", "포", "푸", "하", "호", "후"
+    ];
+
+    const wordDisplay = document.getElementById('wordDisplay');
+    const inputBox = document.getElementById('inputBox');
+    const typedWords = document.getElementById('typedWords');
+    const timerDisplay = document.getElementById('timer');
+    const restartBtn = document.getElementById('restartBtn');
+    const resultMessage = document.getElementById('resultMessage');
+
+    let time = 30;
+    let totalWords = [];
+    let currentIndex = 0;
+    let timerInterval;
+    let startTime;
+
+    function shuffle(array) {
+        return array.sort(() => Math.random() - 0.5);
+    }
+
+    function setWords() {
+        totalWords = shuffle([...words]).slice(0, 10); // 원하는 만큼 단어 수 조절
+        currentIndex = 0;
+        wordDisplay.innerHTML = totalWords.map((w, i) =>
+            `<span id="word-${i}">${w}</span>`).join(' ');
+        typedWords.innerHTML = '';
+        resultMessage.textContent = '';
+    }
+
+    function startTimer() {
+        clearInterval(timerInterval);
+        time = 30;
+        timerDisplay.textContent = `남은 시간: ${time}초`;
+        startTime = Date.now();
+        timerInterval = setInterval(() => {
+            time--;
+            timerDisplay.textContent = `남은 시간: ${time}초`;
+            if (time <= 0) {
+                clearInterval(timerInterval);
+                inputBox.disabled = true;
+                resultMessage.textContent = '시간 초과!';
+            }
+        }, 1000);
+    }
+
+    inputBox.addEventListener('keydown', (e) => {
+        if (e.code === 'Enter') {
+            e.preventDefault(); // 공백 입력 방지
+            const input = inputBox.value.trim();
+            if (input === totalWords[currentIndex]) {
+                const span = document.getElementById(`word-${currentIndex}`);
+                span.style.color = 'gray';
+                typedWords.innerHTML += `<span>${input}</span> `;
+                currentIndex++;
+                if (currentIndex >= totalWords.length) {
+                    clearInterval(timerInterval);
+                    inputBox.disabled = true;
+                    const timeTaken = ((Date.now() - startTime) / 1000).toFixed(2);
+                    resultMessage.textContent = `완료! 걸린 시간: ${timeTaken}초`;
+                }
+            }
+            inputBox.value = '';
+        }
+    });
+
+    restartBtn.addEventListener('click', () => {
+        inputBox.disabled = false;
+        inputBox.value = '';
+        inputBox.focus();
+        setWords();
+        startTimer();
+    });
+
+    // 첫 실행
+    restartBtn.click();
+</script>
+</body>
+</html>
