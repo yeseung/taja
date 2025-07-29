@@ -1,0 +1,1549 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZeeKeysa's Typing Club - Learn Typing for Mzansi Kids</title>
+    <script src="https://lib.youware.com/youware-lib-consumer.1752562065.js" id="yourware-lib"></script><script src="https://cdn.tailwindcss.com/3.4.16"></script>
+    <!-- DOMPurify for XSS prevention -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.8/dist/purify.min.js"></script>
+    <style>
+        .screen {
+            display: none;
+        }
+        .screen.active {
+            display: block;
+        }
+        .mascot {
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .typing-animation {
+            animation: pulse 2s infinite;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .keyboard-key {
+            transition: all 0.2s ease;
+        }
+        .keyboard-key:hover {
+            transform: scale(1.05);
+            background-color: #3b82f6;
+            color: white;
+        }
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+        .modal-fade-in {
+            animation: modalFadeIn 0.3s ease-out;
+        }
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        .confetti {
+            animation: confettiFall 2s ease-out;
+        }
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(-20px) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(20px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        .pulse-button {
+            animation: buttonPulse 2s infinite ease-in-out;
+        }
+        @keyframes buttonPulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            }
+            70% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
+        }
+        .funhouse-header {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.9);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        .funhouse-header:hover {
+            background: rgba(255, 255, 255, 0.95);
+        }
+        .funhouse-header a:hover {
+            text-decoration: none;
+        }
+        .funhouse-logo {
+            transition: all 0.3s ease;
+        }
+        .funhouse-text {
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100">
+
+
+<!-- Welcome Screen -->
+<div id="welcome-screen" class="screen active">
+    <div class="gradient-bg min-h-screen flex items-center justify-center p-4 pt-16">
+        <div class="max-w-4xl mx-auto text-center text-white">
+            <div class="mascot mb-8">
+                <img src="https://public.youware.com/users-website-assets/prod/fca3fef8-355d-4818-a61d-46ccdfe57f1b/8ee1333ffcfa4b1eb2b0d84cb5ababe5.png"
+                     alt="ZeeKeysa Mascot" class="w-32 h-32 mx-auto mb-6 rounded-full shadow-lg">
+            </div>
+            <h1 class="text-6xl font-bold mb-4 text-shadow-lg">ZeeKeysa's Typing Club</h1>
+            <p class="text-2xl mb-8 opacity-90">Learn to type like a pro, Mzansi style! 🇿🇦</p>
+            <p class="text-lg mb-12 max-w-2xl mx-auto opacity-80">
+                From gogo's phone to your school tablet, ZeeKeysa helps you learn to type with cool, local practice exercises that grow your skills one keystroke at a time.
+            </p>
+            <button onclick="showScreen('device-selection')"
+                    class="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-4 px-8 rounded-full text-xl shadow-lg transform hover:scale-105 transition-all duration-200">
+                Start Learning! 🚀
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Device Selection Screen -->
+<div id="device-selection" class="screen">
+    <div class="min-h-screen bg-white p-6 pt-16">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-12">
+                <img src="https://public.youware.com/users-website-assets/prod/fca3fef8-355d-4818-a61d-46ccdfe57f1b/8ee1333ffcfa4b1eb2b0d84cb5ababe5.png"
+                     alt="ZeeKeysa" class="w-20 h-20 mx-auto mb-4 mascot">
+                <h2 class="text-4xl font-bold text-gray-800 mb-4">Choose Your Device</h2>
+                <p class="text-lg text-gray-600">What device will you be using to learn typing?</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8 mb-12">
+                <!-- Computer Option -->
+                <div class="bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl p-8 text-center hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105"
+                     onclick="selectDevice('computer')">
+                    <div class="text-6xl mb-4">🖥️</div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Computer/Laptop</h3>
+                    <p class="text-gray-600 mb-6">Learn proper ten-finger typing on a full keyboard. Perfect for school and work!</p>
+                    <div class="bg-blue-500 text-white px-6 py-3 rounded-full font-semibold">Choose Computer</div>
+                </div>
+
+                <!-- Tablet Option -->
+                <div class="bg-gradient-to-br from-green-100 to-green-200 rounded-2xl p-8 text-center hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105"
+                     onclick="selectDevice('tablet')">
+                    <div class="text-6xl mb-4">📱</div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Tablet</h3>
+                    <p class="text-gray-600 mb-6">Master thumb typing and touch typing on tablets. Great for on-the-go learning!</p>
+                    <div class="bg-green-500 text-white px-6 py-3 rounded-full font-semibold">Choose Tablet</div>
+                </div>
+
+                <!-- Phone Option -->
+                <div class="bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl p-8 text-center hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105"
+                     onclick="selectDevice('phone')">
+                    <div class="text-6xl mb-4">📲</div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Phone</h3>
+                    <p class="text-gray-600 mb-6">Speed up your WhatsApp and SMS typing with thumb techniques!</p>
+                    <div class="bg-purple-500 text-white px-6 py-3 rounded-full font-semibold">Choose Phone</div>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <button onclick="showScreen('welcome-screen')"
+                        class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-3 px-6 rounded-lg transition-all duration-200">
+                    ← Back
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Posture Instruction Screen -->
+<div id="posture-screen" class="screen">
+    <div class="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-100 p-6 pt-16">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-12">
+                <img src="https://public.youware.com/users-website-assets/prod/fca3fef8-355d-4818-a61d-46ccdfe57f1b/8ee1333ffcfa4b1eb2b0d84cb5ababe5.png"
+                     alt="ZeeKeysa" class="w-20 h-20 mx-auto mb-4 mascot">
+                <h2 class="text-4xl font-bold text-gray-800 mb-4">Proper Posture</h2>
+                <p class="text-lg text-gray-600">Let's set you up for success with good posture!</p>
+            </div>
+
+            <div id="posture-content" class="bg-white rounded-2xl p-8 shadow-xl mb-8">
+                <!-- Content will be dynamically inserted based on device -->
+            </div>
+
+            <div class="text-center space-x-4">
+                <button onclick="showScreen('device-selection')"
+                        class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-3 px-6 rounded-lg transition-all duration-200">
+                    ← Back
+                </button>
+                <button onclick="showScreen('lesson-overview')"
+                        class="bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-8 rounded-lg transition-all duration-200">
+                    Start Lessons! 🎯
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lesson Overview Screen -->
+<div id="lesson-overview" class="screen">
+    <div class="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-100 p-6 pt-16">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-12">
+                <img src="https://public.youware.com/users-website-assets/prod/fca3fef8-355d-4818-a61d-46ccdfe57f1b/8ee1333ffcfa4b1eb2b0d84cb5ababe5.png"
+                     alt="ZeeKeysa" class="w-20 h-20 mx-auto mb-4 mascot">
+                <h2 class="text-4xl font-bold text-gray-800 mb-4">Your Learning Path</h2>
+                <p class="text-lg text-gray-600">Master typing step by step with fun South African content!</p>
+            </div>
+
+            <div id="lesson-path" class="grid gap-6 mb-8">
+                <!-- Lesson cards will be dynamically inserted -->
+            </div>
+
+            <div class="text-center space-x-4">
+                <button onclick="showScreen('posture-screen')"
+                        class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-3 px-6 rounded-lg transition-all duration-200">
+                    ← Back
+                </button>
+                <button onclick="showScreen('leaderboard')"
+                        class="bg-purple-500 hover:bg-purple-600 text-white font-semibold py-3 px-8 rounded-lg transition-all duration-200">
+                    View Leaderboard 🏆
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Typing Practice Screen -->
+<div id="practice-screen" class="screen">
+    <div class="min-h-screen bg-gradient-to-br from-green-50 to-blue-100 p-6 pt-16">
+        <div class="max-w-4xl mx-auto">
+            <!-- Practice Header -->
+            <div class="bg-white rounded-2xl p-6 mb-6 shadow-lg">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-4">
+                        <img src="https://public.youware.com/users-website-assets/prod/fca3fef8-355d-4818-a61d-46ccdfe57f1b/8ee1333ffcfa4b1eb2b0d84cb5ababe5.png"
+                             alt="ZeeKeysa" class="w-12 h-12 mascot">
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-800" id="practice-title">Home Row Practice</h3>
+                            <p class="text-gray-600" id="practice-subtitle">Master the foundation keys</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-sm text-gray-500">Speed (WPM)</div>
+                        <div class="text-2xl font-bold text-blue-600" id="wpm-display">0</div>
+                    </div>
+                </div>
+
+                <!-- Start Practice Button - Moved to top -->
+                <div class="flex justify-center my-4">
+                    <button onclick="startPractice()" id="start-btn"
+                            class="pulse-button bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-8 rounded-lg shadow-md transition-all duration-200">
+                        Start Practice 🎯
+                    </button>
+                    <button onclick="resetPractice()" id="reset-btn" style="display: none;"
+                            class="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-200">
+                        Reset ↻
+                    </button>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="w-full bg-gray-200 rounded-full h-3 mb-4">
+                    <div class="progress-bar bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full"
+                         id="progress-bar" style="width: 0%"></div>
+                </div>
+
+                <!-- Stats -->
+                <div class="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                        <div class="text-lg font-semibold text-green-600" id="accuracy-display">100%</div>
+                        <div class="text-sm text-gray-500">Accuracy</div>
+                    </div>
+                    <div>
+                        <div class="text-lg font-semibold text-blue-600" id="typed-display">0</div>
+                        <div class="text-sm text-gray-500">Characters</div>
+                    </div>
+                    <div>
+                        <div class="text-lg font-semibold text-purple-600" id="time-display">0:00</div>
+                        <div class="text-sm text-gray-500">Time</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Practice Text -->
+            <div class="bg-white rounded-2xl p-8 mb-6 shadow-lg">
+                <div class="text-2xl leading-relaxed mb-6" id="practice-text">
+                    <!-- Practice text will be inserted here -->
+                </div>
+
+                <textarea id="typing-input"
+                          class="w-full h-32 p-4 border-2 border-gray-300 rounded-lg text-lg focus:border-blue-500 focus:outline-none resize-none"
+                          placeholder="Start typing the text above..."
+                          autocomplete="off"
+                          autocorrect="off"
+                          autocapitalize="off"
+                          spellcheck="false"
+                          disabled></textarea>
+            </div>
+
+            <!-- Keyboard Display -->
+            <div id="keyboard-display" class="bg-white rounded-2xl p-6 shadow-lg mb-6">
+                <!-- Virtual keyboard will be inserted here -->
+            </div>
+
+            <!-- Control Buttons -->
+            <div class="text-center space-x-4">
+                <button onclick="showScreen('lesson-overview')"
+                        class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-3 px-6 rounded-lg transition-all duration-200">
+                    ← Back to Lessons
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Leaderboard Screen -->
+<div id="leaderboard" class="screen">
+    <div class="min-h-screen bg-gradient-to-br from-yellow-50 to-red-100 p-6 pt-16">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-12">
+                <img src="https://public.youware.com/users-website-assets/prod/fca3fef8-355d-4818-a61d-46ccdfe57f1b/8ee1333ffcfa4b1eb2b0d84cb5ababe5.png"
+                     alt="ZeeKeysa" class="w-20 h-20 mx-auto mb-4 mascot">
+                <h2 class="text-4xl font-bold text-gray-800 mb-4">🏆 Top Typists</h2>
+                <p class="text-lg text-gray-600">The fastest fingers in Mzansi!</p>
+            </div>
+
+            <div class="bg-white rounded-2xl p-8 shadow-xl mb-8">
+                <div class="space-y-4">
+                    <!-- Top 5 Leaderboard -->
+                    <div class="flex items-center p-4 bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-lg text-white">
+                        <div class="text-2xl font-bold w-12">🥇</div>
+                        <div class="flex-1">
+                            <div class="font-bold text-lg">Thabo M.</div>
+                            <div class="text-sm opacity-90">Johannesburg</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-2xl font-bold">87 WPM</div>
+                            <div class="text-sm opacity-90">98% accuracy</div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center p-4 bg-gradient-to-r from-gray-300 to-gray-400 rounded-lg text-gray-800">
+                        <div class="text-2xl font-bold w-12">🥈</div>
+                        <div class="flex-1">
+                            <div class="font-bold text-lg">Nomsa K.</div>
+                            <div class="text-sm opacity-90">Cape Town</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-2xl font-bold">82 WPM</div>
+                            <div class="text-sm opacity-90">97% accuracy</div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center p-4 bg-gradient-to-r from-orange-400 to-orange-500 rounded-lg text-white">
+                        <div class="text-2xl font-bold w-12">🥉</div>
+                        <div class="flex-1">
+                            <div class="font-bold text-lg">Sipho D.</div>
+                            <div class="text-sm opacity-90">Durban</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-2xl font-bold">79 WPM</div>
+                            <div class="text-sm opacity-90">96% accuracy</div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center p-4 bg-gray-100 rounded-lg">
+                        <div class="text-xl font-bold w-12 text-gray-600">4.</div>
+                        <div class="flex-1">
+                            <div class="font-bold text-gray-800">Lerato P.</div>
+                            <div class="text-sm text-gray-600">Pretoria</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xl font-bold text-gray-800">75 WPM</div>
+                            <div class="text-sm text-gray-600">95% accuracy</div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center p-4 bg-gray-100 rounded-lg">
+                        <div class="text-xl font-bold w-12 text-gray-600">5.</div>
+                        <div class="flex-1">
+                            <div class="font-bold text-gray-800">Mandla S.</div>
+                            <div class="text-sm text-gray-600">Port Elizabeth</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xl font-bold text-gray-800">72 WPM</div>
+                            <div class="text-sm text-gray-600">94% accuracy</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 p-4 bg-blue-50 rounded-lg text-center">
+                    <p class="text-blue-800 font-semibold">🎯 Keep practicing to join the leaderboard!</p>
+                    <p class="text-blue-600 text-sm mt-2">Complete all lessons to qualify for rankings</p>
+                </div>
+            </div>
+
+            <div class="text-center space-x-4">
+                <button onclick="showScreen('lesson-overview')"
+                        class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-3 px-6 rounded-lg transition-all duration-200">
+                    ← Back to Lessons
+                </button>
+                <button onclick="showScreen('privacy-settings')"
+                        class="bg-purple-500 hover:bg-purple-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200">
+                    Settings ⚙️
+                </button>
+                <button onclick="showScreen('welcome-screen')"
+                        class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-8 rounded-lg transition-all duration-200">
+                    Start Over 🔄
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Privacy Settings Screen -->
+<div id="privacy-settings" class="screen">
+    <div class="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 p-6 pt-16">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-8">
+                <img src="https://public.youware.com/users-website-assets/prod/fca3fef8-355d-4818-a61d-46ccdfe57f1b/8ee1333ffcfa4b1eb2b0d84cb5ababe5.png"
+                     alt="ZeeKeysa" class="w-16 h-16 mx-auto mb-4 mascot">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">Privacy & Settings</h2>
+                <p class="text-gray-600">Manage your data and privacy preferences</p>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-lg p-8 mb-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">🔒 Data Privacy</h3>
+
+                <!-- Privacy Notice -->
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+                    <div class="flex items-start">
+                        <div class="text-blue-400 text-xl mr-3">ℹ️</div>
+                        <div>
+                            <p class="text-blue-800 font-medium">Privacy Notice</p>
+                            <p class="text-blue-700 text-sm mt-1" id="privacy-notice-text">
+                                Your typing progress is saved locally on your device only. No data is sent to external servers.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Leaderboard Privacy Toggle -->
+                <div class="mb-6">
+                    <div class="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                            <h4 class="font-semibold text-gray-800">Leaderboard Visibility</h4>
+                            <p class="text-sm text-gray-600">Choose whether to show your name on public leaderboards</p>
+                        </div>
+                        <label class="flex items-center cursor-pointer">
+                            <input type="checkbox" id="leaderboard-toggle" class="sr-only" onchange="toggleLeaderboardVisibility()">
+                            <div class="relative">
+                                <div class="block bg-gray-600 w-14 h-8 rounded-full"></div>
+                                <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition transform"></div>
+                            </div>
+                            <span class="ml-3 text-sm font-medium text-gray-700" id="leaderboard-status">Show on Leaderboard</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Clear Data Section -->
+                <div class="mb-6">
+                    <h4 class="font-semibold text-gray-800 mb-3">🗑️ Data Management</h4>
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <p class="text-red-800 text-sm mb-3">
+                            This will permanently delete all your progress, scores, and preferences. This action cannot be undone.
+                        </p>
+                        <button onclick="confirmClearData()"
+                                class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200">
+                            Clear All My Data
+                        </button>
+                    </div>
+                </div>
+
+                <!-- User Profile Section -->
+                <div class="mb-6">
+                    <h4 class="font-semibold text-gray-800 mb-3">👤 Profile Information</h4>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Name (max 50 characters)</label>
+                            <input type="text" id="user-name" maxlength="50"
+                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                                   placeholder="Enter your name" onblur="validateAndSaveName()">
+                            <p class="text-xs text-gray-500 mt-1">Letters, spaces, and hyphens only</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">School (max 100 characters)</label>
+                            <input type="text" id="user-school" maxlength="100"
+                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                                   placeholder="Enter your school" onblur="validateAndSaveSchool()">
+                            <p class="text-xs text-gray-500 mt-1">Letters, numbers, spaces, commas, and hyphens only</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center space-x-4">
+                <button onclick="showScreen('leaderboard')"
+                        class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-3 px-6 rounded-lg transition-all duration-200">
+                    ← Back
+                </button>
+                <button onclick="showScreen('welcome-screen')"
+                        class="bg-purple-500 hover:bg-purple-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200">
+                    Home 🏠
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Modal -->
+<div id="celebration-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay hidden">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-auto modal-fade-in relative overflow-hidden">
+        <!-- Confetti animation elements -->
+        <div class="absolute top-2 left-8 text-yellow-400 text-2xl confetti">🎉</div>
+        <div class="absolute top-4 right-6 text-blue-400 text-xl confetti" style="animation-delay: 0.2s;">⭐</div>
+        <div class="absolute top-6 left-1/3 text-green-400 text-lg confetti" style="animation-delay: 0.4s;">✨</div>
+        <div class="absolute top-2 right-1/4 text-purple-400 text-xl confetti" style="animation-delay: 0.6s;">🌟</div>
+
+        <!-- Modal content -->
+        <div class="p-8 text-center">
+            <!-- ZeeKeysa mascot -->
+            <div class="mb-6">
+                <img src="https://public.youware.com/users-website-assets/prod/fca3fef8-355d-4818-a61d-46ccdfe57f1b/8ee1333ffcfa4b1eb2b0d84cb5ababe5.png"
+                     alt="ZeeKeysa celebrating" class="w-20 h-20 mx-auto mascot">
+            </div>
+
+            <!-- Title with emoji -->
+            <h3 class="text-2xl font-bold text-gray-800 mb-4">
+                🎉 ZeeKeysa is cheering for you!
+            </h3>
+
+            <!-- Message -->
+            <p class="text-lg text-gray-600 mb-8 leading-relaxed">
+                You've completed this lesson. Great job improving your typing skills!
+            </p>
+
+            <!-- Action button -->
+            <button onclick="closeModal()"
+                    class="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white font-bold py-4 px-8 rounded-full text-lg shadow-lg transform hover:scale-105 transition-all duration-200 w-full">
+                Next Lesson 🚀
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Global variables
+    let currentDevice = '';
+    let practiceData = {
+        startTime: null,
+        correctChars: 0,
+        totalChars: 0,
+        currentLesson: 'home-row',
+        timerInterval: null
+    };
+
+    // Normal application flow - no testing overrides
+
+    // South African themed practice texts
+    const practiceTexts = {
+        'home-row': [
+            'The tuckshop sells vetkoek and cool drinks to hungry learners.',
+            'Nomsa takes the taxi to school every morning with her schoolbag.',
+            'The minibus driver plays good music on the way to town.',
+            'Thabo helps his gogo carry groceries from the spaza shop.'
+        ],
+        'top-row': [
+            'Piet and Tumi write their names on the register with care.',
+            'The teacher explains how to type quickly and quietly.',
+            'Rewrite the report about your trip to the Kruger Park.',
+            'Quinton quit questioning his typing quest quite quickly.'
+        ],
+        'bottom-row': [
+            'Zama and Mbeki visit the Voortrekker Monument in Pretoria.',
+            'Bonnie buys biltong and boerewors for the braai this weekend.',
+            'Nomvula navigates the new network on her Nokia phone.',
+            'Msizi makes melktert and mampoer for the family gathering.'
+        ],
+        'numbers': [
+            'Call me on 082 123 4567 or send a WhatsApp message.',
+            'The taxi fare costs R15.50 from town to the township.',
+            'My ID number is 8901234567890 and I live at 42 Main Street.',
+            'The rugby score was 23-19 and the cricket was 234 for 8.'
+        ],
+        'symbols': [
+            'Send an email to thabo@school.co.za about the homework.',
+            'Use symbols like #, @, & and % in your typing practice.',
+            'The password is "Mzansi2024!" - remember the exclamation mark.',
+            'Calculate 50% of R200 = R100 for the school fee payment.'
+        ],
+        'full-sentences': [
+            'Every morning I wake up in my beautiful South African home and feel grateful for the Rainbow Nation we live in.',
+            'Ubuntu means I am because we are - this philosophy teaches us to care for each other in our diverse community.',
+            'From the beaches of Durban to the mountains of Cape Town, our country has the most amazing landscapes in Africa.',
+            'Learning to type fast will help me send WhatsApp messages, do school projects, and maybe even get a good job one day.'
+        ]
+    };
+
+    // Device-specific curriculum
+    const deviceCurriculum = {
+        computer: [
+            { id: 'home-row', title: 'Home Row', subtitle: 'Master ASDF and JKL; keys', icon: '🎯', difficulty: 'Easy' },
+            { id: 'top-row', title: 'Top Row', subtitle: 'Learn QWERTY and UIOP keys', icon: '⬆️', difficulty: 'Medium' },
+            { id: 'bottom-row', title: 'Bottom Row', subtitle: 'Practice ZXCV and BNM keys', icon: '⬇️', difficulty: 'Medium' },
+            { id: 'numbers', title: 'Number Row', subtitle: 'Type numbers 1234567890', icon: '🔢', difficulty: 'Hard' },
+            { id: 'symbols', title: 'Symbols', subtitle: 'Special characters and punctuation', icon: '🔣', difficulty: 'Hard' },
+            { id: 'full-sentences', title: 'Full Text', subtitle: 'Complete sentences and paragraphs', icon: '📝', difficulty: 'Expert' }
+        ],
+        tablet: [
+            { id: 'home-row', title: 'Touch Basics', subtitle: 'Learn touch typing fundamentals', icon: '👆', difficulty: 'Easy' },
+            { id: 'top-row', title: 'Upper Keys', subtitle: 'Reach for top row keys', icon: '⬆️', difficulty: 'Medium' },
+            { id: 'bottom-row', title: 'Lower Keys', subtitle: 'Practice bottom row typing', icon: '⬇️', difficulty: 'Medium' },
+            { id: 'numbers', title: 'Numbers', subtitle: 'Number typing on tablets', icon: '🔢', difficulty: 'Hard' },
+            { id: 'full-sentences', title: 'Full Text', subtitle: 'Complete paragraphs', icon: '📝', difficulty: 'Expert' }
+        ],
+        phone: [
+            { id: 'home-row', title: 'Thumb Basics', subtitle: 'Learn thumb typing technique', icon: '👍', difficulty: 'Easy' },
+            { id: 'top-row', title: 'Quick Text', subtitle: 'Fast messaging skills', icon: '💬', difficulty: 'Medium' },
+            { id: 'numbers', title: 'Phone Numbers', subtitle: 'Dial and type numbers quickly', icon: '📱', difficulty: 'Medium' },
+            { id: 'full-sentences', title: 'WhatsApp Pro', subtitle: 'Master mobile messaging', icon: '📲', difficulty: 'Hard' }
+        ]
+    };
+
+    // Screen management
+    function showScreen(screenId) {
+        console.log('Navigating to screen:', screenId);
+
+        // Hide all screens
+        document.querySelectorAll('.screen').forEach(screen => {
+            screen.classList.remove('active');
+        });
+
+        // Show target screen
+        const targetScreen = document.getElementById(screenId);
+        if (targetScreen) {
+            targetScreen.classList.add('active');
+
+            // Initialize screen-specific content
+            if (screenId === 'lesson-overview') {
+                generateLessonPath();
+            }
+        } else {
+            console.error('Screen not found:', screenId);
+        }
+    }
+
+    // Device selection
+    function selectDevice(device) {
+        console.log('Selected device:', device);
+        currentDevice = device;
+
+        // Generate posture content based on device
+        generatePostureContent(device);
+
+        // Navigate to posture screen
+        showScreen('posture-screen');
+    }
+
+    // Generate posture content
+    function generatePostureContent(device) {
+        const postureContent = document.getElementById('posture-content');
+
+        const deviceContent = {
+            computer: {
+                title: '🖥️ Computer Typing Posture',
+                image: 'https://public.youware.com/users-website-assets/prod/fca3fef8-355d-4818-a61d-46ccdfe57f1b/2ff1b0394f704853bea8639e35bf1436.jpg',
+                tips: [
+                    '👨‍💻 Sit up straight with your back against the chair',
+                    '📏 Keep your feet flat on the floor',
+                    '👀 Screen should be at eye level - about arm\'s length away',
+                    '✋ Wrists should be straight, not bent up or down',
+                    '🦴 Elbows at about 90-degree angles',
+                    '💡 Take breaks every 20 minutes to rest your eyes and hands'
+                ]
+            },
+            tablet: {
+                title: '📱 Tablet Typing Posture',
+                image: 'https://public.youware.com/users-website-assets/prod/fca3fef8-355d-4818-a61d-46ccdfe57f1b/9e10cc6375c84b82a3ee5d3d602d8134.jpg',
+                tips: [
+                    '🪑 Sit comfortably with good back support',
+                    '📐 Hold tablet at a slight angle - not flat on the table',
+                    '👆 Use both hands with thumbs and index fingers',
+                    '👀 Keep the screen about 20-26 inches from your face',
+                    '💪 Support your arms to avoid fatigue',
+                    '🔄 Switch between portrait and landscape mode as needed'
+                ]
+            },
+            phone: {
+                title: '📲 Phone Typing Posture',
+                image: 'https://public.youware.com/users-website-assets/prod/fca3fef8-355d-4818-a61d-46ccdfe57f1b/214313a0e2f84158b8a000a506b51ba5.jpg',
+                tips: [
+                    '🤳 Hold phone with both hands for better control',
+                    '👍 Use your thumbs for typing - they\'re fastest!',
+                    '📱 Keep phone at chest level to avoid neck strain',
+                    '🔄 Switch hands occasionally to avoid cramping',
+                    '⏰ Take frequent breaks - phones are tiring for long typing',
+                    '💬 Practice with WhatsApp and SMS for real-world skills'
+                ]
+            }
+        };
+
+        const content = deviceContent[device];
+        postureContent.innerHTML = `
+                <div class="grid md:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <h3 class="text-3xl font-bold text-gray-800 mb-6">${content.title}</h3>
+                        <div class="space-y-4">
+                            ${content.tips.map(tip => `
+                                <div class="flex items-start space-x-3">
+                                    <div class="text-lg">${tip.split(' ')[0]}</div>
+                                    <p class="text-gray-700">${tip.substring(tip.indexOf(' ') + 1)}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <img src="${content.image}" alt="African child demonstrating proper phone typing posture while learning on mobile device" class="rounded-lg shadow-lg w-full max-w-md mx-auto">
+                        <p class="text-sm text-gray-500 mt-4">Practice good posture to type comfortably and avoid strain!</p>
+                    </div>
+                </div>
+            `;
+    }
+
+    // Generate lesson path
+    function generateLessonPath() {
+        const lessonPath = document.getElementById('lesson-path');
+        const curriculum = deviceCurriculum[currentDevice] || deviceCurriculum.computer;
+
+        const difficultyColors = {
+            'Easy': 'from-green-100 to-green-200 border-green-300',
+            'Medium': 'from-yellow-100 to-yellow-200 border-yellow-300',
+            'Hard': 'from-orange-100 to-orange-200 border-orange-300',
+            'Expert': 'from-red-100 to-red-200 border-red-300'
+        };
+
+        lessonPath.innerHTML = curriculum.map((lesson, index) => `
+                <div class="bg-gradient-to-r ${difficultyColors[lesson.difficulty]} border-2 rounded-2xl p-6 hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-105"
+                     onclick="startLesson('${lesson.id}')">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="text-4xl">${lesson.icon}</div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-gray-800">${lesson.title}</h3>
+                                <p class="text-gray-600">${lesson.subtitle}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="px-3 py-1 bg-white rounded-full text-sm font-semibold text-gray-600">
+                                ${lesson.difficulty}
+                            </div>
+                            <div class="text-sm text-gray-500 mt-2">Lesson ${index + 1}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+    }
+
+    // Start lesson
+    function startLesson(lessonId) {
+        console.log('Starting lesson:', lessonId);
+        practiceData.currentLesson = lessonId;
+
+        // Update practice screen content
+        updatePracticeScreen(lessonId);
+
+        // Navigate to practice screen
+        showScreen('practice-screen');
+
+        // Enable pulse animation on the start button to draw attention
+        const startBtn = document.getElementById('start-btn');
+        if (startBtn) {
+            startBtn.classList.add('pulse-button');
+        }
+    }
+
+    // Update practice screen
+    function updatePracticeScreen(lessonId) {
+        const titles = {
+            'home-row': 'Home Row Practice',
+            'top-row': 'Top Row Practice',
+            'bottom-row': 'Bottom Row Practice',
+            'numbers': 'Number Practice',
+            'symbols': 'Symbol Practice',
+            'full-sentences': 'Full Text Practice'
+        };
+
+        const subtitles = {
+            'home-row': 'Master the foundation keys with South African content',
+            'top-row': 'Learn the upper row while typing about Mzansi',
+            'bottom-row': 'Practice lower keys with local terminology',
+            'numbers': 'Number typing with SA phone numbers and prices',
+            'symbols': 'Special characters and email addresses',
+            'full-sentences': 'Complete paragraphs about South African life'
+        };
+
+        document.getElementById('practice-title').textContent = titles[lessonId] || 'Typing Practice';
+        document.getElementById('practice-subtitle').textContent = subtitles[lessonId] || 'Practice your typing skills';
+
+        // Load practice text
+        loadPracticeText(lessonId);
+
+        // Generate virtual keyboard
+        generateVirtualKeyboard();
+
+        // Reset stats
+        resetStats();
+    }
+
+    // Load practice text
+    function loadPracticeText(lessonId) {
+        const texts = practiceTexts[lessonId] || practiceTexts['home-row'];
+        const randomText = texts[Math.floor(Math.random() * texts.length)];
+
+        const practiceTextElement = document.getElementById('practice-text');
+        practiceTextElement.innerHTML = randomText.split('').map(char =>
+            `<span class="char">${char}</span>`
+        ).join('');
+    }
+
+    // Generate virtual keyboard
+    function generateVirtualKeyboard() {
+        const keyboardDisplay = document.getElementById('keyboard-display');
+
+        if (currentDevice === 'phone') {
+            keyboardDisplay.innerHTML = `
+                    <div class="text-center">
+                        <h4 class="text-lg font-semibold mb-4">📱 Mobile Keyboard</h4>
+                        <div class="bg-gray-100 p-4 rounded-lg inline-block">
+                            <div class="grid grid-cols-10 gap-1 mb-2">
+                                ${['Q','W','E','R','T','Y','U','I','O','P'].map(key =>
+                `<div class="keyboard-key bg-white p-2 rounded text-center text-sm font-semibold">${key}</div>`
+            ).join('')}
+                            </div>
+                            <div class="grid grid-cols-9 gap-1 mb-2 ml-2">
+                                ${['A','S','D','F','G','H','J','K','L'].map(key =>
+                `<div class="keyboard-key bg-white p-2 rounded text-center text-sm font-semibold">${key}</div>`
+            ).join('')}
+                            </div>
+                            <div class="grid grid-cols-7 gap-1 ml-4">
+                                ${['Z','X','C','V','B','N','M'].map(key =>
+                `<div class="keyboard-key bg-white p-2 rounded text-center text-sm font-semibold">${key}</div>`
+            ).join('')}
+                            </div>
+                            <div class="mt-2">
+                                <div class="keyboard-key bg-white p-3 rounded text-center w-32 mx-auto">Space</div>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 mt-4">👍 Use your thumbs for fastest mobile typing!</p>
+                    </div>
+                `;
+        } else {
+            keyboardDisplay.innerHTML = `
+                    <div class="text-center">
+                        <h4 class="text-lg font-semibold mb-4">⌨️ ${currentDevice === 'tablet' ? 'Tablet' : 'Computer'} Keyboard</h4>
+                        <div class="bg-gray-100 p-4 rounded-lg inline-block">
+                            <div class="grid grid-cols-10 gap-1 mb-2">
+                                ${['Q','W','E','R','T','Y','U','I','O','P'].map(key =>
+                `<div class="keyboard-key bg-white p-3 rounded text-center font-semibold">${key}</div>`
+            ).join('')}
+                            </div>
+                            <div class="grid grid-cols-9 gap-1 mb-2 ml-4">
+                                ${['A','S','D','F','G','H','J','K','L'].map(key =>
+                `<div class="keyboard-key bg-white p-3 rounded text-center font-semibold">${key}</div>`
+            ).join('')}
+                            </div>
+                            <div class="grid grid-cols-7 gap-1 ml-8">
+                                ${['Z','X','C','V','B','N','M'].map(key =>
+                `<div class="keyboard-key bg-white p-3 rounded text-center font-semibold">${key}</div>`
+            ).join('')}
+                            </div>
+                            <div class="mt-2">
+                                <div class="keyboard-key bg-white p-3 rounded text-center w-64 mx-auto">Space</div>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 mt-4">
+                            ${currentDevice === 'tablet' ? '👆 Use multiple fingers for better tablet typing!' : '✋ Keep your wrists straight and use all ten fingers!'}
+                        </p>
+                    </div>
+                `;
+        }
+    }
+
+    // Start practice
+    function startPractice() {
+        console.log('Starting practice session');
+
+        // Enable typing input
+        const input = document.getElementById('typing-input');
+        input.disabled = false;
+        input.value = '';
+
+        // Initialize practice data
+        practiceData.startTime = Date.now();
+        practiceData.correctChars = 0;
+        practiceData.totalChars = 0;
+
+        // Update button states
+        const startBtn = document.getElementById('start-btn');
+        startBtn.style.display = 'none';
+        startBtn.classList.remove('pulse-button'); // Remove animation
+        document.getElementById('reset-btn').style.display = 'inline-block';
+
+        // Remove any existing event listeners to prevent stacking
+        input.removeEventListener('input', handleTyping);
+        input.removeEventListener('keydown', handleKeyDown);
+        input.removeEventListener('keyup', handleKeyUp);
+        input.removeEventListener('paste', handlePaste);
+
+        // Add event listeners for comprehensive input handling
+        input.addEventListener('input', handleTyping);
+        input.addEventListener('keydown', handleKeyDown);
+        input.addEventListener('keyup', handleKeyUp);
+        input.addEventListener('paste', handlePaste);
+
+        // Focus input with mobile-friendly approach
+        setTimeout(() => {
+            input.focus();
+
+            // For mobile devices, try to trigger virtual keyboard
+            if (isMobileDevice()) {
+                input.click();
+                // Ensure cursor is visible
+                input.setSelectionRange(0, 0);
+            }
+        }, 100);
+
+        // Start timer
+        startTimer();
+    }
+
+    // Handle typing
+    function handleTyping(event) {
+        const input = event.target;
+        let typed = input.value;
+        const originalText = document.getElementById('practice-text').textContent;
+
+        // Validate and sanitize input
+        typed = validateTypingInput(typed);
+        if (typed !== input.value) {
+            input.value = typed;
+        }
+
+        // Update character highlighting
+        updateCharacterHighlighting(typed, originalText);
+
+        // Update statistics
+        updateStats(typed, originalText);
+
+        // Check if completed
+        if (typed.length >= originalText.length) {
+            completeLesson();
+        }
+    }
+
+    // Handle key down events for special keys
+    function handleKeyDown(event) {
+        const input = event.target;
+        const typed = input.value;
+        const originalText = document.getElementById('practice-text').textContent;
+
+        // Prevent certain keys that might disrupt practice
+        if (event.key === 'Tab' || event.key === 'Escape') {
+            event.preventDefault();
+            return;
+        }
+
+        // Allow backspace and delete
+        if (event.key === 'Backspace' || event.key === 'Delete') {
+            return;
+        }
+
+        // For mobile: handle virtual keyboard special cases
+        if (isMobileDevice()) {
+            // Allow most inputs on mobile
+            return;
+        }
+    }
+
+    // Handle key up events
+    function handleKeyUp(event) {
+        // Additional handling if needed for specific keys
+        // Currently used for potential future enhancements
+    }
+
+    // Handle paste events
+    function handlePaste(event) {
+        event.preventDefault();
+        // Disable paste to maintain typing practice integrity
+        console.log('Paste disabled during typing practice');
+    }
+
+    // Detect mobile device
+    function isMobileDevice() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+            (window.innerWidth <= 768) ||
+            ('ontouchstart' in window);
+    }
+
+    // Update character highlighting
+    function updateCharacterHighlighting(typed, original) {
+        const chars = document.querySelectorAll('.char');
+
+        chars.forEach((char, index) => {
+            char.className = 'char';
+
+            if (index < typed.length) {
+                if (typed[index] === original[index]) {
+                    char.classList.add('text-green-600', 'bg-green-100');
+                } else {
+                    char.classList.add('text-red-600', 'bg-red-100');
+                }
+            } else if (index === typed.length) {
+                char.classList.add('bg-blue-200');
+            }
+        });
+    }
+
+    // Update statistics
+    function updateStats(typed, original) {
+        // Ensure we have valid data
+        if (!practiceData.startTime || !typed || !original) {
+            return;
+        }
+
+        // Calculate correct characters
+        const correctChars = typed.split('').reduce((count, char, index) => {
+            return count + (char === original[index] ? 1 : 0);
+        }, 0);
+
+        // Calculate accuracy (handle edge cases)
+        let accuracy = 100;
+        if (typed.length > 0) {
+            accuracy = Math.round((correctChars / typed.length) * 100);
+            accuracy = Math.max(0, Math.min(100, accuracy)); // Clamp between 0-100
+        }
+
+        // Calculate time elapsed in minutes
+        const timeElapsed = Math.max(0.01, (Date.now() - practiceData.startTime) / 1000 / 60);
+
+        // Calculate WPM (Words Per Minute) - using correct characters only
+        let wpm = 0;
+        if (timeElapsed > 0 && correctChars > 0) {
+            wpm = Math.round((correctChars / 5) / timeElapsed);
+            wpm = Math.max(0, wpm); // Ensure non-negative
+        }
+
+        // Calculate progress percentage
+        const progress = Math.min(100, Math.round((typed.length / original.length) * 100));
+
+        // Update practice data
+        practiceData.correctChars = correctChars;
+        practiceData.totalChars = typed.length;
+
+        // Update displays safely
+        const elements = {
+            wpm: document.getElementById('wpm-display'),
+            accuracy: document.getElementById('accuracy-display'),
+            typed: document.getElementById('typed-display'),
+            progress: document.getElementById('progress-bar')
+        };
+
+        // Check if all elements exist before updating
+        if (elements.wpm) elements.wpm.textContent = wpm;
+        if (elements.accuracy) elements.accuracy.textContent = accuracy + '%';
+        if (elements.typed) elements.typed.textContent = typed.length;
+        if (elements.progress) elements.progress.style.width = progress + '%';
+
+        // Update accuracy color
+        if (elements.accuracy) {
+            elements.accuracy.className = accuracy >= 95 ? 'text-lg font-semibold text-green-600' :
+                accuracy >= 90 ? 'text-lg font-semibold text-yellow-600' :
+                    accuracy >= 85 ? 'text-lg font-semibold text-orange-600' :
+                        'text-lg font-semibold text-red-600';
+        }
+    }
+
+    // Start timer
+    function startTimer() {
+        // Clear any existing timer
+        if (practiceData.timerInterval) {
+            clearInterval(practiceData.timerInterval);
+        }
+
+        practiceData.timerInterval = setInterval(() => {
+            if (!practiceData.startTime) {
+                clearInterval(practiceData.timerInterval);
+                practiceData.timerInterval = null;
+                return;
+            }
+
+            const elapsed = Math.floor((Date.now() - practiceData.startTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+
+            const timeDisplay = document.getElementById('time-display');
+            if (timeDisplay) {
+                timeDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }
+        }, 1000);
+    }
+
+    // Stop timer
+    function stopTimer() {
+        if (practiceData.timerInterval) {
+            clearInterval(practiceData.timerInterval);
+            practiceData.timerInterval = null;
+        }
+    }
+
+    // Complete lesson
+    function completeLesson() {
+        console.log('Lesson completed!');
+
+        // Disable input
+        const input = document.getElementById('typing-input');
+        input.disabled = true;
+
+        // Stop timer
+        stopTimer();
+        practiceData.startTime = null;
+
+        // Remove event listeners
+        input.removeEventListener('input', handleTyping);
+        input.removeEventListener('keydown', handleKeyDown);
+        input.removeEventListener('keyup', handleKeyUp);
+        input.removeEventListener('paste', handlePaste);
+
+        // Show completion modal
+        setTimeout(() => {
+            showCelebrationModal();
+        }, 500);
+    }
+
+    // Show celebration modal
+    function showCelebrationModal() {
+        const modal = document.getElementById('celebration-modal');
+        modal.classList.remove('hidden');
+
+        // Trigger confetti animations
+        const confettiElements = modal.querySelectorAll('.confetti');
+        confettiElements.forEach(element => {
+            element.style.animation = 'none';
+            setTimeout(() => {
+                element.style.animation = '';
+            }, 10);
+        });
+    }
+
+    // Close modal and navigate
+    function closeModal() {
+        const modal = document.getElementById('celebration-modal');
+        modal.classList.add('hidden');
+
+        // Navigate to lesson overview
+        showScreen('lesson-overview');
+    }
+
+    // Reset practice
+    function resetPractice() {
+        console.log('Resetting practice session');
+
+        // Reset input
+        const input = document.getElementById('typing-input');
+        input.disabled = true;
+        input.value = '';
+
+        // Remove all event listeners
+        input.removeEventListener('input', handleTyping);
+        input.removeEventListener('keydown', handleKeyDown);
+        input.removeEventListener('keyup', handleKeyUp);
+        input.removeEventListener('paste', handlePaste);
+
+        // Stop timer and reset practice data
+        stopTimer();
+        practiceData.startTime = null;
+        practiceData.correctChars = 0;
+        practiceData.totalChars = 0;
+
+        // Reset button states
+        const startBtn = document.getElementById('start-btn');
+        startBtn.style.display = 'inline-block';
+        startBtn.classList.add('pulse-button'); // Add animation to indicate readiness
+        document.getElementById('reset-btn').style.display = 'none';
+
+        // Reset displays
+        resetStats();
+
+        // Reset character highlighting
+        const chars = document.querySelectorAll('.char');
+        chars.forEach(char => {
+            char.className = 'char';
+        });
+
+        // Load new practice text
+        loadPracticeText(practiceData.currentLesson);
+    }
+
+    // Reset statistics
+    function resetStats() {
+        document.getElementById('wpm-display').textContent = '0';
+        document.getElementById('accuracy-display').textContent = '100%';
+        document.getElementById('typed-display').textContent = '0';
+        document.getElementById('time-display').textContent = '0:00';
+        document.getElementById('progress-bar').style.width = '0%';
+
+        // Reset accuracy color
+        document.getElementById('accuracy-display').className = 'text-lg font-semibold text-green-600';
+    }
+
+    // Security and Validation Functions
+    const SecurityManager = {
+        // Profanity filter - basic word list for educational environment
+        profanityList: ['damn', 'hell', 'stupid', 'idiot', 'hate', 'kill', 'death', 'blood', 'violence'],
+
+        // Validate name input (50 chars, letters, spaces, hyphens only)
+        validateName: function(name) {
+            if (!name || typeof name !== 'string') return '';
+            name = name.trim();
+            if (name.length > 50) name = name.substring(0, 50);
+            // Allow only letters, spaces, hyphens, and basic accented characters
+            name = name.replace(/[^a-zA-Z\s\-À-ÿ]/g, '');
+            return this.filterProfanity(name);
+        },
+
+        // Validate school input (100 chars, letters, numbers, spaces, commas, hyphens)
+        validateSchool: function(school) {
+            if (!school || typeof school !== 'string') return '';
+            school = school.trim();
+            if (school.length > 100) school = school.substring(0, 100);
+            // Allow letters, numbers, spaces, commas, hyphens, dots
+            school = school.replace(/[^a-zA-Z0-9\s\-,\.À-ÿ]/g, '');
+            return this.filterProfanity(school);
+        },
+
+        // Validate custom practice text (2000 chars max)
+        validatePracticeText: function(text) {
+            if (!text || typeof text !== 'string') return '';
+            text = text.trim();
+            if (text.length > 2000) text = text.substring(0, 2000);
+            // Remove any HTML tags and filter profanity
+            text = text.replace(/<[^>]*>/g, '');
+            return this.filterProfanity(text);
+        },
+
+        // Basic profanity filter
+        filterProfanity: function(text) {
+            if (!text) return '';
+            let filteredText = text;
+            this.profanityList.forEach(word => {
+                const regex = new RegExp(`\\b${word}\\b`, 'gi');
+                filteredText = filteredText.replace(regex, '*'.repeat(word.length));
+            });
+            return filteredText;
+        },
+
+        // Sanitize text for display (XSS prevention)
+        sanitizeForDisplay: function(text) {
+            if (!text || typeof text !== 'string') return '';
+            // Use DOMPurify if available, otherwise basic escaping
+            if (typeof DOMPurify !== 'undefined') {
+                return DOMPurify.sanitize(text, { ALLOWED_TAGS: [] });
+            } else {
+                // Fallback HTML escaping
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        },
+
+        // Encode data for localStorage
+        encodeData: function(data) {
+            try {
+                const jsonString = JSON.stringify(data);
+                return btoa(jsonString); // Base64 encode
+            } catch (e) {
+                console.warn('Failed to encode data:', e);
+                return null;
+            }
+        },
+
+        // Decode data from localStorage
+        decodeData: function(encodedData) {
+            try {
+                const jsonString = atob(encodedData); // Base64 decode
+                return JSON.parse(jsonString);
+            } catch (e) {
+                console.warn('Failed to decode data:', e);
+                return null;
+            }
+        }
+    };
+
+    // Enhanced localStorage management
+    const DataManager = {
+        DATA_EXPIRY_DAYS: 30,
+
+        // Save data safely to localStorage
+        saveData: function(key, data) {
+            try {
+                const dataWithTimestamp = {
+                    data: data,
+                    timestamp: Date.now(),
+                    version: '1.0'
+                };
+                const encodedData = SecurityManager.encodeData(dataWithTimestamp);
+                if (encodedData) {
+                    localStorage.setItem(key, encodedData);
+                    return true;
+                }
+            } catch (e) {
+                console.warn('Failed to save data to localStorage:', e);
+            }
+            return false;
+        },
+
+        // Load data safely from localStorage
+        loadData: function(key) {
+            try {
+                const encodedData = localStorage.getItem(key);
+                if (!encodedData) return null;
+
+                const decodedData = SecurityManager.decodeData(encodedData);
+                if (!decodedData) return null;
+
+                // Check if data has expired
+                const age = Date.now() - decodedData.timestamp;
+                const maxAge = this.DATA_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
+
+                if (age > maxAge) {
+                    console.log('Data expired, removing:', key);
+                    localStorage.removeItem(key);
+                    return null;
+                }
+
+                // Validate data structure
+                if (decodedData.data && typeof decodedData.data === 'object') {
+                    return decodedData.data;
+                }
+            } catch (e) {
+                console.warn('Failed to load data from localStorage:', e);
+                // Remove corrupted data
+                localStorage.removeItem(key);
+            }
+            return null;
+        },
+
+        // Clear all app data
+        clearAllData: function() {
+            try {
+                const keys = ['userProfile', 'gameProgress', 'leaderboardData', 'preferences'];
+                keys.forEach(key => {
+                    localStorage.removeItem(key);
+                });
+                console.log('All user data cleared');
+                return true;
+            } catch (e) {
+                console.warn('Failed to clear data:', e);
+                return false;
+            }
+        }
+    };
+
+    // User Privacy Manager
+    const PrivacyManager = {
+        // Check if user has opted out of leaderboard
+        isLeaderboardOptOut: function() {
+            const preferences = DataManager.loadData('preferences');
+            return preferences && preferences.hideFromLeaderboard === true;
+        },
+
+        // Toggle leaderboard visibility
+        toggleLeaderboardVisibility: function() {
+            let preferences = DataManager.loadData('preferences') || {};
+            preferences.hideFromLeaderboard = !preferences.hideFromLeaderboard;
+            DataManager.saveData('preferences', preferences);
+            return preferences.hideFromLeaderboard;
+        },
+
+        // Get privacy notice text
+        getPrivacyNotice: function() {
+            return "Your typing progress is saved locally on your device only. No data is sent to external servers.";
+        }
+    };
+
+    // Error handling
+    // Privacy and Settings Functions
+    function toggleLeaderboardVisibility() {
+        const isHidden = PrivacyManager.toggleLeaderboardVisibility();
+        updateLeaderboardToggleUI(isHidden);
+    }
+
+    function updateLeaderboardToggleUI(isHidden) {
+        const toggle = document.getElementById('leaderboard-toggle');
+        const status = document.getElementById('leaderboard-status');
+        const dot = document.querySelector('#leaderboard-toggle + div .dot');
+        const bg = document.querySelector('#leaderboard-toggle + div');
+
+        if (toggle && status && dot && bg) {
+            toggle.checked = !isHidden;
+            status.textContent = isHidden ? 'Hidden from Leaderboard' : 'Show on Leaderboard';
+
+            if (isHidden) {
+                bg.classList.remove('bg-green-500');
+                bg.classList.add('bg-gray-600');
+                dot.classList.remove('transform-none');
+                dot.classList.add('translate-x-0');
+            } else {
+                bg.classList.remove('bg-gray-600');
+                bg.classList.add('bg-green-500');
+                dot.classList.add('translate-x-6');
+            }
+        }
+    }
+
+    function validateAndSaveName() {
+        const nameInput = document.getElementById('user-name');
+        if (nameInput) {
+            const validatedName = SecurityManager.validateName(nameInput.value);
+            nameInput.value = validatedName;
+
+            // Save to user profile
+            let profile = DataManager.loadData('userProfile') || {};
+            profile.name = validatedName;
+            DataManager.saveData('userProfile', profile);
+        }
+    }
+
+    function validateAndSaveSchool() {
+        const schoolInput = document.getElementById('user-school');
+        if (schoolInput) {
+            const validatedSchool = SecurityManager.validateSchool(schoolInput.value);
+            schoolInput.value = validatedSchool;
+
+            // Save to user profile
+            let profile = DataManager.loadData('userProfile') || {};
+            profile.school = validatedSchool;
+            DataManager.saveData('userProfile', profile);
+        }
+    }
+
+    function confirmClearData() {
+        if (confirm('Are you sure you want to delete all your data? This cannot be undone.')) {
+            if (DataManager.clearAllData()) {
+                alert('All data has been cleared successfully.');
+                // Reset form fields
+                const nameInput = document.getElementById('user-name');
+                const schoolInput = document.getElementById('user-school');
+                if (nameInput) nameInput.value = '';
+                if (schoolInput) schoolInput.value = '';
+
+                // Reset leaderboard toggle
+                updateLeaderboardToggleUI(false);
+            } else {
+                alert('Failed to clear data. Please try again.');
+            }
+        }
+    }
+
+    function loadUserProfile() {
+        const profile = DataManager.loadData('userProfile');
+        if (profile) {
+            const nameInput = document.getElementById('user-name');
+            const schoolInput = document.getElementById('user-school');
+
+            if (nameInput && profile.name) {
+                nameInput.value = SecurityManager.sanitizeForDisplay(profile.name);
+            }
+            if (schoolInput && profile.school) {
+                schoolInput.value = SecurityManager.sanitizeForDisplay(profile.school);
+            }
+        }
+
+        // Load privacy preferences
+        const isHidden = PrivacyManager.isLeaderboardOptOut();
+        updateLeaderboardToggleUI(isHidden);
+    }
+
+    // Enhanced screen management with privacy loading
+    const originalShowScreen = showScreen;
+    showScreen = function(screenId) {
+        originalShowScreen(screenId);
+
+        // Load user profile when showing privacy settings
+        if (screenId === 'privacy-settings') {
+            setTimeout(loadUserProfile, 100);
+        }
+    };
+
+    // Enhanced typing input validation
+    function validateTypingInput(input) {
+        if (!input || typeof input !== 'string') return '';
+
+        // Limit length for performance
+        if (input.length > 5000) input = input.substring(0, 5000);
+
+        // Remove any potentially dangerous characters
+        input = input.replace(/[<>\"']/g, '');
+
+        return input;
+    }
+
+    // Override the existing handleTyping function to add security
+    const originalHandleTyping = handleTyping;
+    handleTyping = function(event) {
+        // Validate input before processing
+        const sanitizedValue = validateTypingInput(event.target.value);
+        if (sanitizedValue !== event.target.value) {
+            event.target.value = sanitizedValue;
+        }
+
+        // Call original function
+        if (originalHandleTyping) {
+            originalHandleTyping(event);
+        }
+    };
+
+    // Initialize security features on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set privacy notice text
+        const privacyNotice = document.getElementById('privacy-notice-text');
+        if (privacyNotice) {
+            privacyNotice.textContent = PrivacyManager.getPrivacyNotice();
+        }
+
+        console.log('Security features initialized');
+    });
+
+    // Error handling
+    window.addEventListener('error', function(event) {
+        console.error('JavaScript error:', event.error);
+    });
+
+    // Initialize app
+    console.log('ZeeKeysa\'s Typing Club initialized successfully! 🚀');
+</script>
+</body>
+</html>
