@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>한글 한 글자 타자 연습</title>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f5f5f5;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        #game {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        #letter-display {
+            font-size: 40px;
+            margin: 30px 0;
+            letter-spacing: 10px;
+        }
+
+        .typed {
+            color: #999;
+        }
+
+        input {
+            font-size: 24px;
+            padding: 10px;
+            width: 100px;
+            text-align: center;
+        }
+
+        #timer, #score {
+            font-size: 18px;
+            margin: 10px;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        #restart {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+            #letter-display {
+                font-size: 30px;
+                letter-spacing: 5px;
+                word-wrap: break-word;
+            }
+
+            input {
+                width: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="game">
+    <h1>한글 한 글자 타자 연습</h1>
+    <div id="timer">남은 시간: 30초</div>
+    <div id="score">점수: 0</div>
+    <div id="letter-display"></div>
+    <input type="text" id="input" maxlength="1" autofocus />
+    <div id="result"></div>
+    <button id="restart">다시 시작</button>
+</div>
+
+<script>
+    const letters = ['가','나','다','라','마','바','사','아','자','차','카','타','파','하',
+        '거','너','더','러','머','버','서','어','저','처','커','터','퍼','허',
+        '고','노','도','로','모','보','소','오','조','초','코','토','포','호'];
+    let currentIndex = 0;
+    let score = 0;
+    let timeLeft = 30;
+    let interval;
+    const input = document.getElementById("input");
+    const display = document.getElementById("letter-display");
+    const timer = document.getElementById("timer");
+    const scoreBox = document.getElementById("score");
+    const result = document.getElementById("result");
+    const restartBtn = document.getElementById("restart");
+
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    function updateDisplay() {
+        const typed = letters.slice(0, currentIndex).join(' ');
+        const current = letters[currentIndex] || '';
+        const rest = letters.slice(currentIndex + 1).join(' ');
+        display.innerHTML = `<span class="typed">${typed}</span> ${current} ${rest}`;
+    }
+
+    function startGame() {
+        shuffle(letters);
+        currentIndex = 0;
+        score = 0;
+        timeLeft = 30;
+        input.disabled = false;
+        input.value = '';
+        input.focus();
+        restartBtn.style.display = "none";
+        result.textContent = '';
+        updateDisplay();
+        timer.textContent = `남은 시간: ${timeLeft}초`;
+        scoreBox.textContent = `점수: ${score}`;
+        clearInterval(interval);
+        interval = setInterval(() => {
+            timeLeft--;
+            timer.textContent = `남은 시간: ${timeLeft}초`;
+            if (timeLeft <= 0) {
+                clearInterval(interval);
+                input.disabled = true;
+                result.textContent = `시간 초과! 최종 점수: ${score}점`;
+                restartBtn.style.display = "inline-block";
+            }
+        }, 1000);
+    }
+
+    input.addEventListener("keydown", function (e) {
+        if (e.key === " ") {
+            e.preventDefault(); // 스페이스 입력 방지
+            const val = input.value.trim();
+            if (val === letters[currentIndex]) {
+                score++;
+                currentIndex++;
+                scoreBox.textContent = `점수: ${score}`;
+                input.value = '';
+                updateDisplay();
+                if (currentIndex >= letters.length) {
+                    clearInterval(interval);
+                    input.disabled = true;
+                    const timeUsed = 30 - timeLeft;
+                    result.textContent = `모든 글자 입력 완료! 걸린 시간: ${timeUsed}초`;
+                    restartBtn.style.display = "inline-block";
+                }
+            } else {
+                input.value = '';
+            }
+        }
+    });
+
+    restartBtn.addEventListener("click", startGame);
+
+    window.onload = startGame;
+</script>
+</body>
+</html>
