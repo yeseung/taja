@@ -6,6 +6,7 @@
 - https://eeasytest.netlify.app
 - https://tistory1.daumcdn.net/tistory/6944548/skin/images/bible2.htm
 - https://www.youtube.com/watch?v=n6VHbENBNkY
+- https://www.youware.com/project/ov8g9dvaqt?enter_from=home
 
   
 
@@ -31,3 +32,4 @@
 ![스크린샷 2025-07-22 오후 5 02 58](https://github.com/user-attachments/assets/c41ce0dd-eb4d-4083-963a-6733bfff511f)
 ![스크린샷 2025-07-24 오전 9 58 55](https://github.com/user-attachments/assets/91df8123-da5b-4522-a52b-8b0eaa9f7eb5)
 ![스크린샷 2025-07-27 오후 10 36 30](https://github.com/user-attachments/assets/b160c6bf-a58e-4962-a51e-c84419a52a52)
+![스크린샷 2025-07-29 오전 11 28 38](https://github.com/user-attachments/assets/1d7bbfbb-9a0c-4579-91d4-67f02836bccc)
