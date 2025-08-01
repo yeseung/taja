@@ -8,7 +8,7 @@
 - https://www.youtube.com/watch?v=n6VHbENBNkY
 - https://www.youware.com/project/ov8g9dvaqt?enter_from=home
 - https://thecharcounter.com/ko/typing-speed-test/
-  
+- https://www.medcalc.co.kr/typing-test/  
 <br><br>
 
 ![스크린샷 2025-03-31 오전 11 39 20](https://github.com/user-attachments/assets/0ee2ae0f-b397-46b7-ae84-c59c48de4dbd)
