@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>타자 속도 단위 변환기</title>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            padding: 40px;
+            text-align: center;
+            background: #f9f9f9;
+        }
+        h1 {
+            font-size: 2em;
+        }
+        .converter {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 30px;
+        }
+        .box {
+            background: #fff;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            width: 300px;
+        }
+        input {
+            font-size: 1.5em;
+            padding: 10px;
+            width: 80%;
+            margin-bottom: 10px;
+        }
+        .label {
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: block;
+        }
+        .info {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>⌨️ 타자 속도 단위 변환기</h1>
+
+<div class="converter">
+    <div class="box">
+        <label class="label">CPM 입력</label>
+        <input id="cpmInput" type="number" placeholder="예: 400">
+        <div>➡️</div>
+        <div><strong id="wpmOutput">0</strong> WPM</div>
+        <div class="info">WPM = CPM ÷ 5</div>
+    </div>
+
+    <div class="box">
+        <label class="label">WPM 입력</label>
+        <input id="wpmInput" type="number" placeholder="예: 80">
+        <div>➡️</div>
+        <div><strong id="cpmOutput">0</strong> CPM</div>
+        <div class="info">CPM = WPM × 5</div>
+    </div>
+</div>
+
+<script>
+    const cpmInput = document.getElementById('cpmInput');
+    const wpmInput = document.getElementById('wpmInput');
+    const wpmOutput = document.getElementById('wpmOutput');
+    const cpmOutput = document.getElementById('cpmOutput');
+
+    cpmInput.addEventListener('input', () => {
+        const cpm = parseFloat(cpmInput.value);
+        if (!isNaN(cpm)) {
+            wpmOutput.textContent = (cpm / 5).toFixed(1);
+        } else {
+            wpmOutput.textContent = '0';
+        }
+    });
+
+    wpmInput.addEventListener('input', () => {
+        const wpm = parseFloat(wpmInput.value);
+        if (!isNaN(wpm)) {
+            cpmOutput.textContent = (wpm * 5).toFixed(0);
+        } else {
+            cpmOutput.textContent = '0';
+        }
+    });
+</script>
+
+</body>
+</html>
