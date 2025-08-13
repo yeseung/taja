@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>KR + EN Typing Trainer - Vanilla JS</title>
+    <style>
+        :root{
+            --bg:#f6f4fb; --card:#ffffff; --text:#2a2455; --muted:#8d88ad; --grad1:#a06bff; --grad2:#ff6b9f; --grad3:#6b9dff; --focus:#7c6cff; --shadow:0 10px 24px rgba(30,10,60,.08); --bad:#e5484d
+        }
+        *{box-sizing:border-box}
+        body{margin:0; background:var(--bg); color:var(--text); font:16px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Noto Sans KR, Apple SD Gothic Neo, "Malgun Gothic", sans-serif; display:flex; justify-content:center; padding:28px}
+        .app{width:min(980px,100%)}
+        h1{font-weight:800; margin:.2rem 0; font-size:42px}
+        .lead{color:var(--muted); margin:4px 0 18px}
+        .title-row{display:flex; align-items:center; gap:12px}
+        .logo{font-weight:900; color:var(--grad1)}
+
+        .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px}
+        .stat-card{background:linear-gradient(135deg,var(--grad1),var(--grad2)); color:#fff; border-radius:18px; padding:22px; box-shadow:var(--shadow)}
+        .stat-card:nth-child(3){background:linear-gradient(135deg,var(--grad2),var(--grad3))}
+        .num{font-size:40px; font-weight:900}
+        .label{font-weight:600}
+        .stat-wide{grid-column:span 3; display:flex; gap:14px; align-items:center; justify-content:space-between; background:linear-gradient(135deg,#ff86b1,#c56bff)}
+
+        .progress{height:8px; background:#e9e6f5; border-radius:999px; overflow:hidden}
+        .progress>span{display:block; height:100%; width:0; background:linear-gradient(90deg,var(--grad1),var(--grad2)); transition:width .2s}
+
+        .row{display:flex; gap:12px; flex-wrap:wrap; align-items:center}
+        .modes{display:flex; gap:12px; margin:12px 0}
+        .chip{border:1.5px solid #e9e6f5; background:#fff; color:var(--text); border-radius:999px; padding:8px 14px; font-weight:800; cursor:pointer}
+        .chip.active{outline:3px solid #efeaff; border-color:var(--focus); color:var(--focus)}
+
+        .panel{background:var(--card); border-radius:18px; box-shadow:var(--shadow); padding:18px}
+        .target{min-height:120px; border:1.5px dashed #e6e2f8; border-radius:14px; padding:16px; font-size:20px; line-height:1.9; white-space:pre-wrap; word-break:break-word; background:#faf9ff}
+        textarea{width:100%; min-height:120px; resize:vertical; border:1.5px solid #e6e2f8; border-radius:14px; padding:14px 16px; font-size:18px; outline:none}
+        textarea:focus{border-color:var(--focus); box-shadow:0 0 0 5px #efeaff}
+
+        .btn{border:none; border-radius:999px; padding:12px 20px; font-weight:900; cursor:pointer; color:#fff; background:linear-gradient(135deg,var(--grad1),var(--grad2)); box-shadow:var(--shadow)}
+        .btn.secondary{background:#e9e6f5; color:#503b93}
+        .btn.success{background:linear-gradient(135deg,#28c76f,#39a96b)}
+        .legend{color:var(--muted); margin-left:auto; font-size:13px}
+
+        .correct{color:#1b8a5a}
+        .wrong{color:var(--bad); background:rgba(229,72,77,.08)}
+        .current{position:relative}
+        .current::after{content:""; position:absolute; left:0; right:0; bottom:-2px; height:2px; background:linear-gradient(90deg,var(--grad1),var(--grad2))}
+        .rest{color:#b6b2c9}
+        @media (max-width:720px){.grid{grid-template-columns:1fr} h1{font-size:34px}}
+    </style>
+</head>
+<body>
+<div class="app">
+    <div class="title-row"><div class="logo">KR+EN</div><h1>타자연습기</h1></div>
+    <p class="lead">한국어·영어 모두 지원합니다. 정확도와 WPM을 실시간 측정해요.</p>
+
+    <div class="grid">
+        <div class="stat-card"><div class="num" id="wpmNum">0</div><div class="label">WPM</div></div>
+        <div class="stat-card"><div class="num" id="accNum">100%</div><div class="label">정확도</div></div>
+        <div class="stat-card"><div class="num" id="timeNum">0</div><div class="label">시간(초)</div></div>
+        <div class="stat-card stat-wide">
+            <div style="font-weight:800">오타수 <span id="errNum" style="font-size:28px">0</span></div>
+            <div class="progress" style="flex:1"><span id="progressBar"></span></div>
+        </div>
+    </div>
+
+    <!-- Language -->
+    <div class="modes" aria-label="언어">
+        <button class="chip active" data-lang="KR">KR</button>
+        <button class="chip" data-lang="EN">EN</button>
+    </div>
+
+    <!-- Mode -->
+    <div class="modes" aria-label="모드">
+        <button class="chip active" data-mode="basic">기초</button>
+        <button class="chip" data-mode="word">단어</button>
+        <button class="chip" data-mode="sentence">문장</button>
+        <button class="chip" data-mode="paragraph">문단</button>
+    </div>
+
+    <div class="panel">
+        <div id="target" class="target"></div>
+        <div style="margin-top:12px">
+            <textarea id="typing" placeholder="위의 텍스트를 정확히 입력하세요…" disabled></textarea>
+        </div>
+        <div class="row" style="margin-top:14px">
+            <button id="startBtn" class="btn">시작</button>
+            <button id="retryBtn" class="btn secondary">다시하기</button>
+            <button id="newBtn" class="btn success">새 문제</button>
+            <span class="legend">완료 시 타이머가 자동으로 멈춤</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ---------- Pools (KR) ----------
+    const wordKR = ["바다","하늘","나무","연결","기쁨","도시","바람","호수","연습","기록","약속","여행","시간","음악","겨울","여름","가을","봄날","추억","이야기","언덕","노을","빛깔","바위","별빛","습관","공간","바람길","연필","노래","모래","파도","창문","일상","도전","성공","집중","호흡","안개","햇살"];
+    const sentKR = [
+        "오늘도 작은 목표를 꾸준히 이루어 갑니다.",
+        "맑은 바람이 창문 사이로 살며시 스며듭니다.",
+        "한 글자씩 또박또박 입력하는 습관을 들여보세요.",
+        "성공은 느리더라도 멈추지 않는 사람의 것입니다.",
+        "하루의 기록이 모여 내일의 변화를 만듭니다.",
+        "차분한 호흡으로 집중하면 실수가 줄어듭니다.",
+        "노을이 물든 하늘 아래 파도가 잔잔히 일렁입니다.",
+        "작은 실수는 수정하면 그만, 포기하지 마세요.",
+        "키보드 소리가 리듬처럼 귓가에 맴돕니다.",
+        "오늘의 연습이 곧 실력이 됩니다."
+    ];
+    const paraKR = [
+        "아침 햇살이 방 안을 가득 채우자 따뜻한 공기가 천천히 퍼져 나갔습니다. 오늘은 어제보다 조금 더 집중해서 타자 연습을 하기로 마음먹었습니다. 한 글자씩 정확하게 입력하고, 틀린 부분은 침착하게 고쳐 나갑니다.",
+        "바람이 잔잔한 날, 호수 위로 일렁이는 물결을 바라보며 손끝의 리듬을 느껴 봅니다. 속도를 내려 하지 말고 정확도에 신경 씁니다. 그러다 보면 자연스럽게 분당 타수도 함께 오르게 됩니다.",
+        "작은 습관이 큰 변화를 만든다고 합니다. 매일 십 분씩이라도 타자 연습을 이어 가면 어느새 긴 문장도 주저 없이 입력할 수 있습니다. 오늘도 차분하게 연습을 시작해 봅시다."
+    ];
+
+    // ---------- Pools (EN) ----------
+    const wordEN = ["sky","lake","ocean","forest","breeze","habit","focus","record","travel","future","simple","margin","window","bridge","silent","wander","wonder","canvas","rhythm","letter","morning","evening","sunlight","shadow","cursor","garden","signal","memory","practice","effort","steady","humble","patient","bright","calm","brave","clear","swift","typing","lesson"];
+    const sentEN = [
+        "Type each letter with calm attention and steady rhythm.",
+        "Small habits today create surprising results tomorrow.",
+        "Accuracy first, and speed will follow naturally.",
+        "Breathe slowly and keep your shoulders relaxed while typing.",
+        "Every session leaves a trace that builds your skills.",
+        "Let the keyboard sound guide you like a quiet metronome.",
+        "Mistakes are hints; correct them and continue.",
+        "Practice a little every day and progress becomes obvious.",
+        "The sunrise paints the desk while your fingers dance.",
+        "Today’s focus is the seed of tomorrow’s confidence."
+    ];
+    const paraEN = [
+        "Morning light spills across the keys as you begin another practice. Do not rush. Let each word land clearly on the screen. When an error appears, pause, breathe, and fix it with care. Over time the smooth rhythm returns, and your speed rises without effort.",
+        "On a quiet afternoon the window is open and a soft breeze drifts in. You follow the sentence on the screen, eyes calm and shoulders loose. The goal is steady accuracy. Minutes later you notice your mind is clearer and your hands are lighter.",
+        "A simple routine can change more than you expect. Spend ten minutes typing every day. At first the progress is subtle; then a week later, long paragraphs feel natural. Keep going—consistency turns practice into skill."
+    ];
+
+    // ---------- Helpers ----------
+    const $ = (s,el=document)=>el.querySelector(s); const $$ = (s,el=document)=>Array.from(el.querySelectorAll(s));
+    const sample = (arr,n)=>{const c=arr.slice(); for(let i=c.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [c[i],c[j]]=[c[j],c[i]];} return c.slice(0,n)};
+    const esc = s=>s.replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+
+    // ---------- State ----------
+    let state = { language:'KR', mode:'basic', target:'', started:false, startTs:0, timer:null, typed:'', keystrokes:0, correct:0, errors:0 };
+
+    // ---------- Elements ----------
+    const targetEl=$('#target'), inputEl=$('#typing'), startBtn=$('#startBtn'), retryBtn=$('#retryBtn'), newBtn=$('#newBtn');
+    const wpmNum=$('#wpmNum'), accNum=$('#accNum'), timeNum=$('#timeNum'), errNum=$('#errNum'), progressBar=$('#progressBar');
+
+    // ---------- Problem Generation ----------
+    function genBasic(lang){
+        if(lang==='EN'){
+            const blocks=["a s d f j k l ;","q w e r t y u i o p","z x c v b n m","type time team tame","practice typing accuracy speed"];
+            return sample(blocks,3).join("  \n");
+        }
+        const blocks=["가 나 다 라 마 바 사","아 자 차 카 타 파 하","바다 하늘 나무 바람 구름","거 누 더 러 머 버 서","라 라라 라마바","사 아자차 카타파하"];
+        return sample(blocks,3).join("  \n");
+    }
+    function genWords(lang){ return (lang==='EN'? sample(wordEN,10):sample(wordKR,10)).join("  "); }
+    function genSentence(lang){ return (lang==='EN'? sample(sentEN,1)[0]:sample(sentKR,1)[0]); }
+    function genParagraph(lang){ return (lang==='EN'? sample(paraEN,1)[0]:sample(paraKR,1)[0]); }
+    function getProblem(mode,lang){
+        switch(mode){case 'word':return genWords(lang); case 'sentence':return genSentence(lang); case 'paragraph':return genParagraph(lang); default:return genBasic(lang);}
+    }
+
+    // ---------- Render ----------
+    function renderTarget(){
+        const t=state.target, v=state.typed; let out='';
+        for(let i=0;i<t.length;i++){
+            const ch=t[i];
+            if(i<v.length){ out+=`<span class="${v[i]===ch?'correct':'wrong'}">${esc(ch)}</span>`; }
+            else if(i===v.length){ out+=`<span class="current">${esc(ch)}</span>`; }
+            else{ out+=`<span class="rest">${esc(ch)}</span>`; }
+        }
+        targetEl.innerHTML=out; progressBar.style.width=(v.length/Math.max(1,t.length)*100).toFixed(1)+'%';
+    }
+    function resetStats(){ state.started=false; state.startTs=0; state.typed=''; state.keystrokes=0; state.correct=0; state.errors=0; inputEl.value=''; errNum.textContent='0'; wpmNum.textContent='0'; accNum.textContent='100%'; timeNum.textContent='0'; progressBar.style.width='0%'; clearInterval(state.timer); state.timer=null; inputEl.setAttribute('disabled',''); startBtn.disabled=false; }
+
+    // ---------- Start/Finish ----------
+    function start(){ if(state.started) return; state.started=true; if(!state.startTs) state.startTs=Date.now(); inputEl.removeAttribute('disabled'); inputEl.focus(); startBtn.disabled=true; state.timer=setInterval(()=>{const sec=Math.floor((Date.now()-state.startTs)/1000); timeNum.textContent=String(sec); updateStats();},200);}
+    function finish(){ clearInterval(state.timer); state.timer=null; state.started=false; startBtn.disabled=true; inputEl.setAttribute('disabled',''); }
+    function updateStats(){ const elapsedMin=Math.max((Date.now()-state.startTs)/60000,1/60); const wpm=Math.round((state.correct/5)/elapsedMin); const acc=state.keystrokes?Math.round((state.correct/state.keystrokes)*100):100; wpmNum.textContent=String(wpm); accNum.textContent=acc+'%'; errNum.textContent=String(state.errors); }
+
+    // ---------- Events ----------
+    inputEl.addEventListener('beforeinput',e=>{ if(e.inputType.startsWith('insert') && state.typed.length>=state.target.length){ e.preventDefault(); }});
+    inputEl.addEventListener('input',()=>{
+        const v=inputEl.value; if(!state.started) start(); const prev=state.typed; state.typed=v; if(v.length>prev.length){ const i=v.length-1; state.keystrokes++; if(v[i]===(state.target[i]||'')) state.correct++; else state.errors++; } else if(v.length===prev.length){ recompute(v); } renderTarget(); updateStats(); if(state.typed===state.target) finish();
+    });
+    function recompute(v){ let c=0,e=0; for(let i=0;i<v.length;i++){ if(v[i]===state.target[i]) c++; else e++; } state.keystrokes=v.length; state.correct=c; state.errors=e; }
+
+    // Buttons
+    startBtn.addEventListener('click', start);
+    retryBtn.addEventListener('click', ()=>{ state.typed=''; inputEl.value=''; renderTarget(); resetStats(); });
+    newBtn.addEventListener('click', ()=>{ setProblem(); });
+
+    // Mode & Language chips
+    $$('.chip').forEach(b=>{
+        if(b.dataset.mode) b.addEventListener('click', ()=>{ setActive('.chip[data-mode]', b); state.mode=b.dataset.mode; setProblem(); });
+        if(b.dataset.lang) b.addEventListener('click', ()=>{ setActive('.chip[data-lang]', b); state.language=b.dataset.lang; setProblem(); });
+    });
+    function setActive(sel, el){ $$(sel).forEach(x=>x.classList.remove('active')); el.classList.add('active'); }
+
+    function setProblem(){ state.target=getProblem(state.mode, state.language); renderTarget(); resetStats(); }
+
+    // Init
+    setProblem();
+</script>
+</body>
+</html>
