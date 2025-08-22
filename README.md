@@ -8,7 +8,8 @@
 - https://www.youtube.com/watch?v=n6VHbENBNkY
 - https://www.youware.com/project/ov8g9dvaqt?enter_from=home
 - https://thecharcounter.com/ko/typing-speed-test/
-- https://www.medcalc.co.kr/typing-test/  
+- https://www.medcalc.co.kr/typing-test/
+- https://happycgi.com/9541
 <br><br>
 
 ![스크린샷 2025-03-31 오전 11 39 20](https://github.com/user-attachments/assets/0ee2ae0f-b397-46b7-ae84-c59c48de4dbd)
@@ -36,8 +37,8 @@
 ![스크린샷 2025-07-29 오전 11 28 38](https://github.com/user-attachments/assets/1d7bbfbb-9a0c-4579-91d4-67f02836bccc)
 ![스크린샷 2025-08-01 오전 11 04 11](https://github.com/user-attachments/assets/f06bd449-ed6b-4f84-9eeb-5c0759a078ae)
 ![스크린샷 2025-08-01 오후 12 44 51](https://github.com/user-attachments/assets/3dbf3d76-dd9b-41ec-a0bd-4c29e402ba1b)
-
-
+![스크린샷 2025-08-13 오후 3 13 19](https://github.com/user-attachments/assets/a8e4f908-2035-493f-92f0-4e62a2a560fb)
+![스크린샷 2025-08-22 오전 9 52 44](https://github.com/user-attachments/assets/fb65e07a-b103-49f0-aaa9-8cd68af4436e)
 
 
 
