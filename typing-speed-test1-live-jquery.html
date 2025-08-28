@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>한글 타자 속도 측정기 (실시간, jQuery)</title>
+    <style>
+        :root{--bg:#f7f7fb;--card:#fff;--text:#222;--muted:#666;--primary:#3b82f6;--primary-dark:#2563eb;--border:#e6e6ef}
+        *{box-sizing:border-box}
+        body{margin:0;padding:24px;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif}
+        .wrap{max-width:900px;margin:0 auto}
+        h1{font-size:24px;margin:0 0 14px}
+        .sub{color:var(--muted);margin-bottom:22px}
+        .cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+        .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;box-shadow:0 4px 12px rgba(0,0,0,.04);min-height:86px}
+        .card h3{font-size:13px;margin:0;color:var(--muted);font-weight:600}
+        .val{font-size:22px;font-weight:800;letter-spacing:.2px}
+        .unit{font-size:12px;color:var(--muted);margin-left:6px;font-weight:600}
+        .editor{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 6px 16px rgba(0,0,0,.05)}
+        .toolbar{padding:10px 12px;display:flex;gap:10px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:#fafafe}
+        .btn{appearance:none;border:0;cursor:pointer;user-select:none;padding:10px 14px;border-radius:10px;font-weight:700;background:var(--primary);color:#fff;transition:.15s transform ease,.2s background ease}
+        .btn:hover{background:var(--primary-dark)} .btn:active{transform:translateY(1px)}
+        .btn.secondary{background:#eef2ff;color:#28328c} .btn.secondary:hover{background:#e0e7ff}
+        textarea{width:100%;height:260px;border:0;padding:16px;resize:vertical;font-size:16px;line-height:1.54;outline:none}
+        .mutetip{font-size:12px;color:var(--muted);padding:10px 14px;border-top:1px solid var(--border);background:#fcfcff}
+        .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
+        @media (max-width:860px){.cards{grid-template-columns:repeat(2,1fr)}}
+        @media (max-width:480px){.cards{grid-template-columns:1fr}}
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <h1>한글 타자 속도 측정기 (실시간, jQuery)</h1>
+    <div class="sub">측정이 시작되면 <b>타/분</b>·시간·글자수·총타수가 <u>실시간</u>으로 갱신됩니다. (최소 5자)</div>
+
+    <div class="cards" role="status" aria-live="polite">
+        <div class="card">
+            <h3>속도</h3>
+            <div><span id="t1" class="val">–</span><span class="unit">타/분</span></div>
+        </div>
+        <div class="card">
+            <h3>시간</h3>
+            <div><span id="t2" class="val">00:00</span></div>
+        </div>
+        <div class="card">
+            <h3>글자수</h3>
+            <div><span id="t3" class="val">0</span><span class="unit">자</span></div>
+        </div>
+        <div class="card">
+            <h3>총타수</h3>
+            <div><span id="t4" class="val">0</span><span class="unit">타</span></div>
+        </div>
+    </div>
+
+    <div class="editor">
+        <div class="toolbar">
+            <div>
+                <button id="btnStart" class="btn">시작</button>
+                <button id="btnClear" class="btn secondary" title="입력 초기화">초기화</button>
+            </div>
+            <div class="mutetip" style="border:0;background:transparent;">
+                단축키: <b>Ctrl/⌘ + Enter</b> = 시작/종료 토글
+            </div>
+        </div>
+        <textarea id="ta" placeholder="여기에 문장을 입력해 주세요. (붙여넣기/드롭 방지)" disabled></textarea>
+        <div class="mutetip">붙여넣기, 드래그-투-드롭, 컨텍스트 메뉴(우클릭) 입력은 방지됩니다.</div>
+    </div>
+</div>
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+<script>
+    // ===== 상태 =====
+    let running = false;
+    let tStart = 0;
+    let rafId = null;
+    let lastUi = 0; // 약 100ms 스로틀
+
+    // ===== 한글 가중치 (초/중/종) =====
+    const nCho  = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]; // 19
+    const nJung = [1,1,1,1,1,1,1,1,1,2,2,2,1,1,2,2,2,1,1,2,1]; // 21
+    const nJong = [0,1,1,2,1,2,2,1,1,2,2,2,2,2,2,2,1,1,2,1,1,1,1,1,1,1,1,1]; // 28
+    const DV = 21 * 28;
+
+    // ===== 유틸 =====
+    const pad2 = n => String(n).padStart(2,'0');
+    const mmss = ms => {
+        const s = Math.floor(ms/1000);
+        return `${pad2(Math.floor(s/60))}:${pad2(s%60)}`;
+    };
+
+    function calcTotalStrokes(str){
+        let tn = 0;
+        for (let i=0;i<str.length;i++){
+            let code = str.charCodeAt(i);
+            if (code < 200){ tn++; continue; }         // 영문/숫자/기타
+            code -= 0xAC00;
+            if (code < 0){ tn++; continue; }           // 한글 범위 이전/이후
+            const cho = Math.floor(code / DV); code %= DV;
+            const jung = Math.floor(code / 28);
+            const jong = code % 28;
+            tn += (nCho[cho]||1) + (nJung[jung]||1) + (nJong[jong]||0);
+        }
+        return tn;
+    }
+
+    function resetUI(){
+        $('#t1').text('–');
+        $('#t2').text('00:00');
+        $('#t3').text('0');
+        $('#t4').text('0');
+    }
+
+    function loop(now){
+        if (!running) return;
+        if (now - lastUi >= 100){ // ~10Hz 업데이트
+            const elapsed = Math.max(1, now - tStart);
+            const text = $('#ta').val();
+            const len  = text.length;
+            const tn   = calcTotalStrokes(text);
+            const tpm  = Math.floor((tn * 60000) / elapsed);
+
+            $('#t2').text(mmss(elapsed));
+            $('#t3').text(len);
+            $('#t4').text(tn);
+            $('#t1').text(len >= 5 ? tpm : '–');
+
+            lastUi = now;
+        }
+        rafId = requestAnimationFrame(loop);
+    }
+
+    function start(){
+        running = true;
+        $('#ta').prop('disabled', false).val('').focus();
+        $('#btnStart').text('종료');
+        resetUI();
+        tStart = performance.now();
+        lastUi = 0;
+        rafId = requestAnimationFrame(loop);
+    }
+
+    function stop(){
+        running = false;
+        cancelAnimationFrame(rafId);
+        $('#ta').prop('disabled', true);
+        $('#btnStart').text('시작');
+
+        const elapsed = Math.max(1, performance.now() - tStart);
+        const text = $('#ta').val();
+        if (text.length < 5){
+            alert('최소 5글자 이상 입력하셔야 속도가 계산됩니다!');
+            return;
+        }
+        const tn = calcTotalStrokes(text);
+        const tpm = Math.floor((tn * 60000) / elapsed);
+
+        $('#t2').text(mmss(elapsed));
+        $('#t3').text(text.length);
+        $('#t4').text(tn);
+        $('#t1').text(tpm);
+    }
+
+    function toggle(){
+        running ? stop() : start();
+    }
+
+    function clearAll(){
+        const was = running;
+        running = false;
+        cancelAnimationFrame(rafId);
+        $('#ta').val('').prop('disabled', true);
+        $('#btnStart').text('시작');
+        resetUI();
+        if (was) $('#ta').blur();
+    }
+
+    // ===== 이벤트 바인딩 (jQuery) =====
+    $('#btnStart').on('click', toggle);
+    $('#btnClear').on('click', clearAll);
+
+    // 단축키: Ctrl/⌘ + Enter
+    $(window).on('keydown', function(e){
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter'){
+            e.preventDefault();
+            toggle();
+        }
+    });
+
+    // 붙여넣기/드롭/우클릭 방지
+    $('#ta').on('paste drop contextmenu', function(e){ e.preventDefault(); });
+
+    // 초기 상태
+    clearAll();
+</script>
+</body>
+</html>

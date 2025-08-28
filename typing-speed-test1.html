@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>한글 타자 속도 측정기</title>
+    <style>
+        :root{
+            --bg:#f7f7fb;
+            --card:#ffffff;
+            --text:#222;
+            --muted:#666;
+            --primary:#3b82f6;
+            --primary-dark:#2563eb;
+            --border:#e6e6ef;
+        }
+        *{box-sizing:border-box}
+        body{
+            margin:0; padding:24px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+            background:var(--bg); color:var(--text);
+        }
+        .wrap{max-width:900px;margin:0 auto}
+        h1{font-size:24px;margin:0 0 14px}
+        .sub{color:var(--muted);margin-bottom:22px}
+
+        .cards{
+            display:grid;
+            grid-template-columns: repeat(4,minmax(0,1fr));
+            gap:12px; margin-bottom:16px;
+        }
+        .card{
+            background:var(--card); border:1px solid var(--border);
+            border-radius:14px; padding:14px 16px;
+            box-shadow:0 4px 12px rgba(0,0,0,.04);
+            display:flex; flex-direction:column; gap:6px; min-height:86px;
+        }
+        .card h3{font-size:13px;margin:0;color:var(--muted);font-weight:600}
+        .val{font-size:22px;font-weight:800;letter-spacing:.2px}
+        .unit{font-size:12px;color:var(--muted);margin-left:6px;font-weight:600}
+
+        .editor{
+            background:var(--card); border:1px solid var(--border);
+            border-radius:14px; overflow:hidden;
+            box-shadow:0 6px 16px rgba(0,0,0,.05);
+        }
+        .toolbar{
+            padding:10px 12px; display:flex; gap:10px; align-items:center; justify-content:space-between;
+            border-bottom:1px solid var(--border); background:#fafafe;
+        }
+        .btn{
+            appearance:none; border:0; cursor:pointer; user-select:none;
+            padding:10px 14px; border-radius:10px; font-weight:700;
+            background:var(--primary); color:#fff;
+            transition:.15s transform ease, .2s background ease;
+        }
+        .btn:hover{background:var(--primary-dark)}
+        .btn:active{transform:translateY(1px)}
+        .btn.secondary{background:#eef2ff;color:#28328c}
+        .btn.secondary:hover{background:#e0e7ff}
+
+        textarea{
+            width:100%; height:260px; border:0; padding:16px; resize:vertical;
+            font-size:16px; line-height:1.54; outline:none;
+        }
+        .mutetip{font-size:12px;color:var(--muted);padding:10px 14px;border-top:1px solid var(--border);background:#fcfcff}
+        .row{display:flex; gap:8px; align-items:center}
+        .sp{flex:1}
+        .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
+        @media (max-width:860px){ .cards{grid-template-columns: repeat(2,1fr);} }
+        @media (max-width:480px){ .cards{grid-template-columns: 1fr;} }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <h1>한글 타자 속도 측정기</h1>
+    <div class="sub">입력 후 <b>종료</b>를 누르면 <span class="mono">타/분</span>, 시간, 글자수, 총타수를 계산합니다. (최소 5자)</div>
+
+    <div class="cards" role="status" aria-live="polite">
+        <div class="card">
+            <h3>속도</h3>
+            <div><span id="t1" class="val">–</span><span class="unit">타/분</span></div>
+        </div>
+        <div class="card">
+            <h3>시간</h3>
+            <div><span id="t2" class="val">00:00</span></div>
+        </div>
+        <div class="card">
+            <h3>글자수</h3>
+            <div><span id="t3" class="val">0</span><span class="unit">자</span></div>
+        </div>
+        <div class="card">
+            <h3>총타수</h3>
+            <div><span id="t4" class="val">0</span><span class="unit">타</span></div>
+        </div>
+    </div>
+
+    <div class="editor">
+        <div class="toolbar">
+            <div class="row">
+                <button id="btnStart" class="btn">시작</button>
+                <button id="btnClear" class="btn secondary" title="입력 초기화">초기화</button>
+            </div>
+            <div class="row">
+                <span class="mutetip" style="border:0;background:transparent;">단축키: <b>Ctrl/⌘ + Enter</b> = 시작/종료 토글</span>
+            </div>
+        </div>
+        <textarea id="ta" placeholder="여기에 문장을 입력해 주세요. (붙여넣기 및 드래그-투-드롭 입력은 방지됩니다.)" disabled></textarea>
+        <div class="mutetip">붙여넣기, 드래그-투-드롭, 컨텍스트 메뉴(우클릭) 입력은 방지됩니다.</div>
+    </div>
+</div>
+
+<script>
+    // ===== 설정 및 상태 =====
+    let start = false;
+    let tStart = 0;
+    let raf = null;
+
+    // 한글 가중치 (초성/중성/종성)
+    const nCho  = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]; // 19
+    const nJung = [1,1,1,1,1,1,1,1,1,2,2,2,1,1,2,2,2,1,1,2,1]; // 21
+    const nJong = [0,1,1,2,1,2,2,1,1,2,2,2,2,2,2,2,1,1,2,1,1,1,1,1,1,1,1,1]; // 28
+    const DV = 21 * 28;
+
+    // ===== DOM 헬퍼 =====
+    const $ = id => document.getElementById(id);
+    const elT1 = $('t1'), elT2 = $('t2'), elT3 = $('t3'), elT4 = $('t4');
+    const ta = $('ta'), btnStart = $('btnStart'), btnClear = $('btnClear');
+
+    // ===== 유틸 =====
+    const pad2 = n => String(n).padStart(2,'0');
+    function formatMMSS(ms) {
+        const s = Math.floor(ms / 1000);
+        return `${pad2(Math.floor(s/60))}:${pad2(s%60)}`;
+    }
+
+    // 총타수 계산 (한글 조합 분해)
+    function calcTotalStrokes(str) {
+        let tn = 0;
+        for (let i=0, l=str.length; i<l; i++) {
+            let code = str.charCodeAt(i);
+            if (code < 200) { // 영문/숫자/기타
+                tn++;
+                continue;
+            }
+            code -= 0xAC00;
+            if (code < 0) { // 한글 범위 이전 (특수문자 등)
+                tn++;
+                continue;
+            }
+            const cho = Math.floor(code / DV);
+            code %= DV;
+            const jung = Math.floor(code / 28);
+            const jong = code % 28;
+
+            tn += (nCho[cho] || 1) + (nJung[jung] || 1) + (nJong[jong] || 0);
+        }
+        return tn;
+    }
+
+    function resetResults(){
+        elT1.textContent = '–';
+        elT2.textContent = '00:00';
+        elT3.textContent = '0';
+        elT4.textContent = '0';
+    }
+
+    // 진행 중 실시간 시간표시
+    function tick(){
+        if (!start) return;
+        elT2.textContent = formatMMSS(performance.now() - tStart);
+        raf = requestAnimationFrame(tick);
+    }
+
+    // 시작/종료 토글
+    function toggleStart(){
+        if (start){
+            // 종료
+            start = false;
+            cancelAnimationFrame(raf);
+            ta.disabled = true;
+            btnStart.textContent = '시작';
+
+            const dt = Math.max(1, performance.now() - tStart); // ms
+            const text = ta.value;
+            if (text.length < 5){
+                alert('최소 5글자 이상 입력하셔야 속도가 계산됩니다!');
+                return;
+            }
+            const tn = calcTotalStrokes(text);
+            const tpm = Math.floor((tn * 60000) / dt);
+
+            elT3.textContent = String(text.length);
+            elT4.textContent = String(tn);
+            elT2.textContent = formatMMSS(dt);
+            elT1.textContent = String(tpm);
+        } else {
+            // 시작
+            start = true;
+            ta.disabled = false;
+            ta.value = '';
+            ta.focus();
+            btnStart.textContent = '종료';
+            resetResults();
+            tStart = performance.now();
+            tick();
+        }
+    }
+
+    // 초기화
+    function clearAll(){
+        const wasRunning = start;
+        start = false;
+        cancelAnimationFrame(raf);
+        ta.value = '';
+        ta.disabled = true;
+        btnStart.textContent = '시작';
+        resetResults();
+        if (wasRunning) ta.blur();
+    }
+
+    // 이벤트 바인딩
+    btnStart.addEventListener('click', toggleStart);
+    btnClear.addEventListener('click', clearAll);
+
+    // 단축키: Ctrl/⌘ + Enter
+    window.addEventListener('keydown', (e)=>{
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter'){
+            e.preventDefault();
+            toggleStart();
+        }
+    });
+
+    // 붙여넣기/드롭/우클릭 방지
+    ['paste','drop'].forEach(ev =>
+        ta.addEventListener(ev, e => { e.preventDefault(); })
+    );
+    ta.addEventListener('contextmenu', e => e.preventDefault());
+
+    // 시작 상태 기본값
+    clearAll();
+</script>
+</body>
+</html>
