@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>한국어 텍스트 읽기 (Vanilla JS)</title>
+    <style>
+        :root { font-family: system-ui, -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", Segoe UI, Arial; }
+        body { margin: 24px; background: #0f1115; color: #e6e6e6; }
+        h1 { font-size: 20px; margin: 0 0 14px; }
+        .wrap { max-width: 880px; margin: 0 auto; }
+        .controls, .buttons { display: grid; gap: 10px; }
+        .controls { grid-template-columns: 1fr; background: #171a21; border: 1px solid #2a2f3a; padding: 12px; border-radius: 14px; }
+        .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+        label { font-size: 14px; opacity: .85; }
+        select, input[type="range"] { width: min(500px, 100%); }
+        textarea { width: 100%; height: 220px; padding: 12px; border-radius: 12px; border: 1px solid #2a2f3a; background:#0b0d12; color:#e6e6e6; line-height:1.6; }
+        .buttons { grid-template-columns: repeat(4, 1fr); margin-top: 12px; }
+        button { padding: 12px 10px; border-radius: 12px; border: 1px solid #2a2f3a; background:#1e2430; color:#e6e6e6; cursor: pointer; font-weight: 600; }
+        button:hover { filter: brightness(1.1); }
+        #status { margin-top: 10px; font-size: 13px; opacity: .85; }
+        .hint { font-size: 12px; opacity: .7; }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <h1>한국어 텍스트 읽기 (Vanilla JS)</h1>
+
+    <div class="controls">
+        <div class="row">
+            <label for="voiceSelect">음성</label>
+            <select id="voiceSelect" title="한국어 음성을 선택하세요"></select>
+            <span id="voiceHint" class="hint"></span>
+        </div>
+
+        <div class="row">
+            <label for="rate">속도 <b id="rateVal">1.0</b></label>
+            <input id="rate" type="range" min="0.5" max="2" step="0.1" value="1" />
+        </div>
+
+        <div class="row">
+            <label for="pitch">피치 <b id="pitchVal">1.0</b></label>
+            <input id="pitch" type="range" min="0" max="2" step="0.1" value="1" />
+        </div>
+
+        <div class="row">
+            <label for="volume">볼륨 <b id="volVal">1.0</b></label>
+            <input id="volume" type="range" min="0" max="1" step="0.05" value="1" />
+        </div>
+
+        <div class="row">
+            <label><input id="selOnly" type="checkbox"> 선택 영역만 읽기</label>
+        </div>
+    </div>
+
+    <textarea id="text" placeholder="여기에 한국어 문장을 입력하세요.">
+안녕하세요! 이 페이지는 브라우저의 Web Speech API를 사용해 한국어 문장을 자연스럽게 읽어줍니다.
+상단에서 한국어 음성을 고르고, 속도·피치·볼륨을 조절해보세요.
+텍스트의 일부만 드래그해서 ‘선택 영역만 읽기’로 재생할 수도 있어요.
+즐거운 타자 연습과 함께, 듣기 연습도 해보실래요?
+  </textarea>
+
+    <div class="buttons">
+        <button id="speak">읽기</button>
+        <button id="pause">일시정지</button>
+        <button id="resume">다시재생</button>
+        <button id="stop">중지</button>
+    </div>
+
+    <div id="status">대기 중…</div>
+    <div class="hint">⚙️ 음성이 안 보이면: 운영체제의 "한국어 음성"을 설치한 뒤 브라우저를 재실행하세요. (브라우저·OS마다 제공 음성이 다릅니다)</div>
+</div>
+
+<script>
+    (() => {
+        const synth = window.speechSynthesis;
+        if (!synth) {
+            alert("이 브라우저는 Speech Synthesis를 지원하지 않습니다. 최신 Chrome/Edge/Safari를 사용해 주세요.");
+            return;
+        }
+
+        const els = {
+            voiceSelect: document.getElementById('voiceSelect'),
+            voiceHint: document.getElementById('voiceHint'),
+            text: document.getElementById('text'),
+            rate: document.getElementById('rate'),
+            pitch: document.getElementById('pitch'),
+            volume: document.getElementById('volume'),
+            rateVal: document.getElementById('rateVal'),
+            pitchVal: document.getElementById('pitchVal'),
+            volVal: document.getElementById('volVal'),
+            selOnly: document.getElementById('selOnly'),
+            speak: document.getElementById('speak'),
+            pause: document.getElementById('pause'),
+            resume: document.getElementById('resume'),
+            stop: document.getElementById('stop'),
+            status: document.getElementById('status'),
+        };
+
+        let voices = [];
+        let queue = [];
+        let isSpeaking = false;
+
+        // ---- 저장된 설정 불러오기 ----
+        const saved = {
+            voiceURI: localStorage.getItem('tts.voiceURI') || '',
+            rate: parseFloat(localStorage.getItem('tts.rate') || '1'),
+            pitch: parseFloat(localStorage.getItem('tts.pitch') || '1'),
+            volume: parseFloat(localStorage.getItem('tts.volume') || '1'),
+        };
+        els.rate.value = saved.rate;
+        els.pitch.value = saved.pitch;
+        els.volume.value = saved.volume;
+        els.rateVal.textContent = Number(els.rate.value).toFixed(1);
+        els.pitchVal.textContent = Number(els.pitch.value).toFixed(1);
+        els.volVal.textContent = Number(els.volume.value).toFixed(2);
+
+        // ---- 한국어 음성 로드 ----
+        function loadVoices() {
+            const all = synth.getVoices() || [];
+            // ko, ko-KR 등을 우선 필터
+            voices = all.filter(v => (v.lang || '').toLowerCase().startsWith('ko'));
+            // 한국어가 하나도 없으면 모든 음성 노출 (사용자는 OS에 한국어 음성을 설치해야 자연스러운 결과)
+            const list = voices.length ? voices : all;
+
+            // 정렬: 기본 음성 우선 → 언어 → 이름
+            list.sort((a, b) => {
+                if (a.default && !b.default) return -1;
+                if (!a.default && b.default) return 1;
+                return (a.lang || '').localeCompare(b.lang || '') || a.name.localeCompare(b.name);
+            });
+
+            els.voiceSelect.innerHTML = '';
+            list.forEach(v => {
+                const opt = document.createElement('option');
+                opt.value = v.voiceURI || v.name;
+                opt.textContent = `${v.name} — ${v.lang}${v.default ? ' (기본)' : ''}`;
+                els.voiceSelect.appendChild(opt);
+            });
+
+            // 저장된 음성 복원 or ko 우선 선택
+            let targetURI = saved.voiceURI;
+            if (targetURI && list.some(v => (v.voiceURI || v.name) === targetURI)) {
+                els.voiceSelect.value = targetURI;
+            } else if (voices.length) {
+                els.voiceSelect.value = (voices[0].voiceURI || voices[0].name);
+            }
+
+            els.voiceHint.textContent = voices.length
+                ? `한국어 음성 ${voices.length}개`
+                : `한국어 전용 음성이 감지되지 않았습니다. (OS에 한국어 음성을 설치하면 품질이 좋아집니다)`;
+        }
+
+        // 일부 브라우저는 비동기로 로드됨
+        loadVoices();
+        if (typeof synth.onvoiceschanged !== 'undefined') {
+            synth.onvoiceschanged = loadVoices;
+        }
+
+        // ---- 유틸 ----
+        const getSelectedVoice = () => {
+            const key = els.voiceSelect.value;
+            const all = synth.getVoices() || [];
+            return all.find(v => (v.voiceURI || v.name) === key) || null;
+        };
+
+        const segmentText = (t) => {
+            if (!t) return [];
+            // 문장 기준으로 최대한 자연스럽게 분할
+            const segs = t.match(/[^.!?。！？\n]+[.!?。！？…]?/g) || [];
+            return segs.map(s => s.trim()).filter(Boolean);
+        };
+
+        const chunkLong = (s, max = 180) => {
+            if (s.length <= max) return [s];
+            const out = [];
+            let cur = s.trim();
+            while (cur.length > max) {
+                let idx = cur.lastIndexOf(' ', max);
+                if (idx < 50) idx = max; // 너무 앞에서 끊기면 그냥 고정 길이로
+                out.push(cur.slice(0, idx).trim());
+                cur = cur.slice(idx).trim();
+            }
+            if (cur) out.push(cur);
+            return out;
+        };
+
+        const buildQueue = (text) => {
+            queue = [];
+            segmentText(text).forEach(seg => {
+                chunkLong(seg).forEach(ch => queue.push(ch));
+            });
+        };
+
+        const makeUtterance = (text) => {
+            const u = new SpeechSynthesisUtterance(text);
+            u.voice = getSelectedVoice();
+            u.rate = parseFloat(els.rate.value);
+            u.pitch = parseFloat(els.pitch.value);
+            u.volume = parseFloat(els.volume.value);
+            u.onstart = () => { els.status.textContent = `읽는 중… (남은 문장 ${queue.length + 1}개)`; };
+            u.onend = () => speakNext();
+            u.onerror = (e) => {
+                console.error('TTS error:', e);
+                speakNext();
+            };
+            return u;
+        };
+
+        function speakNext() {
+            if (queue.length === 0) {
+                isSpeaking = false;
+                els.status.textContent = '완료';
+                return;
+            }
+            const part = queue.shift();
+            const u = makeUtterance(part);
+            isSpeaking = true;
+            synth.speak(u);
+        }
+
+        function startSpeak() {
+            // 저장
+            localStorage.setItem('tts.voiceURI', els.voiceSelect.value);
+            localStorage.setItem('tts.rate', els.rate.value);
+            localStorage.setItem('tts.pitch', els.pitch.value);
+            localStorage.setItem('tts.volume', els.volume.value);
+
+            // 재시작 시 초기화
+            synth.cancel();
+            queue = [];
+
+            let t = els.text.value;
+            if (els.selOnly.checked) {
+                const s = els.text.selectionStart;
+                const e = els.text.selectionEnd;
+                const picked = (s !== e) ? els.text.value.substring(s, e) : '';
+                if (picked.trim().length) t = picked;
+            }
+
+            if (!t.trim()) {
+                els.status.textContent = '읽을 텍스트가 없습니다.';
+                return;
+            }
+
+            buildQueue(t);
+            els.status.textContent = `재생 시작 (문장 ${queue.length}개)`;
+            speakNext();
+        }
+
+        // ---- 이벤트 바인딩 ----
+        els.rate.addEventListener('input', () => els.rateVal.textContent = Number(els.rate.value).toFixed(1));
+        els.pitch.addEventListener('input', () => els.pitchVal.textContent = Number(els.pitch.value).toFixed(1));
+        els.volume.addEventListener('input', () => els.volVal.textContent = Number(els.volume.value).toFixed(2));
+
+        els.speak.addEventListener('click', startSpeak);
+        els.pause.addEventListener('click', () => {
+            if (synth.speaking && !synth.paused) { synth.pause(); els.status.textContent = '일시정지'; }
+        });
+        els.resume.addEventListener('click', () => {
+            if (synth.paused) { synth.resume(); els.status.textContent = '다시재생 중…'; }
+        });
+        els.stop.addEventListener('click', () => {
+            synth.cancel(); queue = []; isSpeaking = false; els.status.textContent = '중지됨';
+        });
+
+        // 키보드 단축키: Ctrl/Cmd+Enter = 읽기
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') startSpeak();
+        });
+    })();
+</script>
+</body>
+</html>
