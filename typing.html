@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <title>타자 능력 테스트 - 기미독립선언서 (바닐라 JS)</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", system-ui, sans-serif;
+            background: #f4f4f4;
+            color: #111;
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            min-height: 100vh;
+        }
+        .app {
+            width: 100%;
+            max-width: 520px;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #ddd;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+        .app-header {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: #222;
+            color: #fff;
+        }
+        .app-header .back {
+            margin-right: 0.5rem;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: none;
+            background: #444;
+            color: #fff;
+            cursor: pointer;
+        }
+        .app-title {
+            flex: 1;
+            text-align: center;
+            font-size: 1rem;
+            text-decoration: none;
+            color: inherit;
+        }
+        .app-main {
+            padding: 1rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+        .game-header .test {
+            font-weight: 600;
+            font-size: 0.95rem;
+            background: #f0f0f0;
+            padding: 0.4rem 0.6rem;
+            border-radius: 4px;
+        }
+        #statusArea {
+            text-align: right;
+            font-size: 0.8rem;
+            line-height: 1.3;
+        }
+        #realAccuracyText,
+        #realTypingSpeed,
+        #typingTime {
+            margin-bottom: 0.1rem;
+        }
+
+        .game-wrap {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            overflow: hidden;
+        }
+        .game-body {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .sentence-block {
+            margin-bottom: 0.75rem;
+        }
+        .word-area {
+            min-height: 1.6rem;
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
+            color: #737373;
+            word-break: keep-all;
+        }
+        .typing-input {
+            width: 100%;
+            padding: 0.45rem 0.5rem;
+            font-size: 0.95rem;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-family: inherit;
+        }
+        .typing-input:disabled {
+            background: #f7f7f7;
+            color: #999;
+        }
+
+        .char-pending { color: #737373; }
+        .char-correct { color: #111; }
+        .char-wrong { color: #d60000; }
+
+        .game-footer {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+        .game-footer button {
+            flex: 1;
+            padding: 0.55rem 0.5rem;
+            border-radius: 4px;
+            border: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        #resetBtn {
+            background: #e0e0e0;
+            color: #333;
+        }
+        #finishBtn {
+            background: #0066ff;
+            color: #fff;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        #finishBtn.on {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        @media (max-width: 480px) {
+            .app-main { padding: 0.75rem; }
+            .typing-input { font-size: 0.9rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <header class="app-header">
+        <button type="button" class="back" onclick="history.back()">←</button>
+        <a href="#" class="app-title">타자 능력 테스트</a>
+    </header>
+
+    <main class="app-main phoneta">
+        <div class="game-header phoneta">
+            <div class="test">기미독립선언서</div>
+            <div id="statusArea">
+                <div id="realAccuracyText">정확도: 0%</div>
+                <div id="realTypingSpeed">현재 타수: 0타 (최고 0타)</div>
+                <div id="typingTime">00:00</div>
+            </div>
+        </div>
+
+        <article class="game-wrap">
+            <section class="game-body" id="gameBody"></section>
+            <section class="game-footer">
+                <button id="resetBtn" type="button">처음부터 다시</button>
+                <button id="finishBtn" type="button">누르면 끝</button>
+            </section>
+        </article>
+    </main>
+</div>
+
+<script>
+    // ---------------- 공통 상태 ----------------
+    const SENTENCE_TEXT =
+              "우리는 이에 우리 조선이,%%" +
+              "독립한 나라임과 조선 사람이,%%" +
+              "자주적인 민족임을 선언한다.%%" +
+              "이로써 세계 만국에 알리어%%" +
+              "인류 평등의 큰 도의를,%%" +
+              "분명히 하는 바이며,%%" +
+              "이로써 자손 만대에 깨우쳐 일러,%%" +
+              "민족의 독자적 생존의 정당한 권리를,%%" +
+              "영원히 누려 가지게 하는 바이다.%%" +
+              "(기미독립선언서 중에서 발췌)";
+
+    const lines = SENTENCE_TEXT.split("%%");
+
+    const state = {
+        correctCounts: [],
+        typedCounts: [],
+        startTime: null,
+        timerId: null,
+        maxSpeed: 0
+    };
+
+    const elements = {
+        gameBody: document.getElementById("gameBody"),
+        realAccuracyText: document.getElementById("realAccuracyText"),
+        realTypingSpeed: document.getElementById("realTypingSpeed"),
+        typingTime: document.getElementById("typingTime"),
+        resetBtn: document.getElementById("resetBtn"),
+        finishBtn: document.getElementById("finishBtn")
+    };
+
+    // ---------------- 유틸 함수 ----------------
+    function pad2(num) {
+        return num.toString().padStart(2, "0");
+    }
+
+    function updateTimer() {
+        if (!state.startTime) return;
+        const elapsedMs = performance.now() - state.startTime;
+        const totalSec = Math.floor(elapsedMs / 1000);
+        const min = Math.floor(totalSec / 60);
+        const sec = totalSec % 60;
+        elements.typingTime.textContent = pad2(min) + ":" + pad2(sec);
+    }
+
+    function updateStats() {
+        const totalTyped = state.typedCounts.reduce((a, b) => a + b, 0);
+        const totalCorrect = state.correctCounts.reduce((a, b) => a + b, 0);
+
+        if (!state.startTime || totalTyped === 0) {
+            elements.realAccuracyText.textContent = "정확도: 0%";
+            elements.realTypingSpeed.textContent = "현재 타수: 0타 (최고 " + state.maxSpeed + "타)";
+            return;
+        }
+
+        const elapsedMs = performance.now() - state.startTime;
+        const minutes = elapsedMs / 60000;
+        const accuracy = Math.floor((totalCorrect / totalTyped) * 100);
+        const cpm = minutes > 0 ? Math.floor(totalCorrect / minutes) : 0;
+
+        if (cpm > state.maxSpeed) state.maxSpeed = cpm;
+
+        elements.realAccuracyText.textContent = "정확도: " + accuracy + "%";
+        elements.realTypingSpeed.textContent =
+            "현재 타수: " + cpm + "타 (최고 " + state.maxSpeed + "타)";
+    }
+
+    function disableAllInputs() {
+        const inputs = elements.gameBody.querySelectorAll(".typing-input");
+        inputs.forEach(inp => inp.disabled = true);
+    }
+
+    function enableInput(index) {
+        const input = elements.gameBody.querySelector('.typing-input[data-index="' + index + '"]');
+        if (input) {
+            input.disabled = false;
+            input.focus();
+        }
+    }
+
+    function preventPaste(input) {
+        input.addEventListener("paste", e => {
+            e.preventDefault();
+            alert("복사/붙여넣기 기능은 사용하실 수 없습니다.");
+        });
+    }
+
+    // ---------------- 이벤트 핸들러 ----------------
+    function handleKeyDown(e) {
+        const input = e.target;
+        const idx = Number(input.dataset.index);
+
+        if (!state.startTime) {
+            state.startTime = performance.now();
+            state.timerId = setInterval(updateTimer, 1000);
+        }
+
+        if (e.key === "Enter") {
+            const lineText = lines[idx];
+            if (input.value.length >= lineText.length) {
+                input.disabled = true;
+                const nextIndex = idx + 1;
+                if (nextIndex < lines.length) {
+                    enableInput(nextIndex);
+                } else {
+                    // 마지막 줄까지 입력 완료 -> 끝 버튼 활성화
+                    elements.finishBtn.classList.add("on");
+                }
+            } else {
+                alert("해당 줄을 끝까지 입력해 주세요!");
+            }
+        }
+    }
+
+    function handleInput(e) {
+        const input = e.target;
+        const idx = Number(input.dataset.index);
+        const targetText = lines[idx];
+        const typed = input.value;
+
+        let html = "";
+        let correctCount = 0;
+
+        for (let i = 0; i < targetText.length; i++) {
+            const targetChar = targetText[i];
+            const typedChar = typed[i] || "";
+            if (!typedChar) {
+                html += '<span class="char-pending">' + targetChar + "</span>";
+            } else if (typedChar === targetChar) {
+                html += '<span class="char-correct">' + targetChar + "</span>";
+                correctCount++;
+            } else {
+                html += '<span class="char-wrong">' + targetChar + "</span>";
+            }
+        }
+
+        state.correctCounts[idx] = correctCount;
+        state.typedCounts[idx] = typed.length;
+
+        const wordArea = elements.gameBody.querySelector('.word-area[data-index="' + idx + '"]');
+        if (wordArea) wordArea.innerHTML = html;
+
+        updateStats();
+
+        // 마지막 줄이 모두 입력되면 버튼 활성화
+        if (idx === lines.length - 1 && typed.length >= targetText.length) {
+            elements.finishBtn.classList.add("on");
+        }
+    }
+
+    function handleFinish() {
+        const lastIdx = lines.length - 1;
+        const lastInput = elements.gameBody.querySelector('.typing-input[data-index="' + lastIdx + '"]');
+        const lastLine = lines[lastIdx];
+
+        if (!lastInput || lastInput.value.length < lastLine.length) {
+            alert("마지막 문장까지 모두 입력해 주세요!");
+            if (lastInput) lastInput.focus();
+            return;
+        }
+
+        if (state.timerId) {
+            clearInterval(state.timerId);
+            state.timerId = null;
+            updateTimer();
+        }
+
+        const totalTyped = state.typedCounts.reduce((a, b) => a + b, 0);
+        const totalCorrect = state.correctCounts.reduce((a, b) => a + b, 0);
+        let accuracy = 0;
+        let avgSpeed = 0;
+
+        if (totalTyped > 0 && state.startTime) {
+            const elapsedMs = performance.now() - state.startTime;
+            const minutes = elapsedMs / 60000;
+            accuracy = Math.floor((totalCorrect / totalTyped) * 100);
+            avgSpeed = minutes > 0 ? Math.floor(totalCorrect / minutes) : 0;
+        }
+
+        if (accuracy > 100) accuracy = 100;
+
+        const resultMsg =
+                  "테스트 완료!\n\n" +
+                  "정확도: " + accuracy + "%\n" +
+                  "평균 타수: " + avgSpeed + "타\n" +
+                  "최고 타수: " + state.maxSpeed + "타\n" +
+                  "총 시간: " + elements.typingTime.textContent;
+
+        alert(resultMsg);
+    }
+
+    function handleReset() {
+        if (state.timerId) clearInterval(state.timerId);
+        state.startTime = null;
+        state.timerId = null;
+        state.maxSpeed = 0;
+        state.correctCounts = [];
+        state.typedCounts = [];
+        elements.typingTime.textContent = "00:00";
+        elements.realAccuracyText.textContent = "정확도: 0%";
+        elements.realTypingSpeed.textContent = "현재 타수: 0타 (최고 0타)";
+        elements.finishBtn.classList.remove("on");
+        buildSentences();
+    }
+
+    // ---------------- 초기 DOM 생성 ----------------
+    function buildSentences() {
+        elements.gameBody.innerHTML = "";
+        lines.forEach((line, idx) => {
+            const block = document.createElement("div");
+            block.className = "sentence-block";
+
+            const wordArea = document.createElement("div");
+            wordArea.className = "word-area";
+            wordArea.dataset.index = idx;
+            wordArea.textContent = line;
+
+            const input = document.createElement("input");
+            input.type = "text";
+            input.className = "typing-input";
+            input.dataset.index = idx;
+            input.disabled = idx !== 0;
+
+            preventPaste(input);
+            input.addEventListener("keydown", handleKeyDown);
+            input.addEventListener("input", handleInput);
+
+            block.appendChild(wordArea);
+            block.appendChild(input);
+            elements.gameBody.appendChild(block);
+
+            state.correctCounts[idx] = 0;
+            state.typedCounts[idx] = 0;
+        });
+
+        enableInput(0);
+    }
+
+    // ---------------- 시작 ----------------
+    document.addEventListener("DOMContentLoaded", () => {
+        buildSentences();
+        elements.finishBtn.addEventListener("click", handleFinish);
+        elements.resetBtn.addEventListener("click", handleReset);
+    });
+</script>
+</body>
+</html>

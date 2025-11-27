@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <title>타자 속도 테스트 (바닐라 JS)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", system-ui, sans-serif;
+            background: #f4f4f4;
+            color: #111;
+        }
+        #mask { display: none; }
+
+        .page-wrap {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 10px 12px 40px;
+        }
+
+        .quiz_title_box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 5px;
+            margin-bottom: 8px;
+        }
+        .quiz_title_box .backlist {
+            text-decoration: none;
+            font-size: 18px;
+            color: #333;
+        }
+        .quiz_title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+        .quiz_doc {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #555;
+        }
+
+        .answer_shadow {
+            background: #fff;
+            border-radius: 6px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            padding: 12px 12px 16px;
+        }
+
+        #game-display {
+            position: relative;
+            background-color: #ffffff;
+            box-sizing: border-box;
+            margin-top: 4px;
+        }
+
+        /* 오버레이 (게임 설명 및 결과) */
+        #overlay,
+        #resultOverlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+        }
+        #overlay .content,
+        #resultOverlay .resultContent {
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+            width: 100%;
+            max-width: 460px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            color: #fff;
+            background-color: #484848;
+        }
+        #overlay h3,
+        #resultOverlay h3 {
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-size: 18px;
+        }
+        #overlay p,
+        #resultOverlay p {
+            font-size: 13px;
+            line-height: 1.6;
+            margin: 4px 0;
+        }
+        #languageButtons {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        .langBtn {
+            border: 2px solid #ccc;
+            background: transparent;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 4px;
+            padding: 8px 14px;
+            font-size: 14px;
+            transition: background 0.2s, color 0.2s, border-color 0.2s;
+        }
+        .langBtn.selected {
+            background: #007bff;
+            border-color: #007bff;
+            color: #fff;
+        }
+        .btn-basic {
+            border-radius: 4px;
+            padding: 8px 16px;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            background: #fff;
+            color: #333;
+            margin-top: 14px;
+        }
+
+        /* 그래프 영역 */
+        #graphContainer {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 12px auto 0;
+        }
+        #speedGraph {
+            display: block;
+            width: 100%;
+            height: 200px;
+            background-color: #ffffff;
+            border: 1px solid #ccc;
+        }
+        #graphStatus {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            color: #007bff;
+            font-weight: bold;
+            font-size: 13px;
+            background: rgba(255,255,255,0.9);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        /* 게임 영역 */
+        #gameArea {
+            max-width: 800px;
+            margin: 8px auto 0;
+            background: #fff;
+            border-radius: 8px;
+            text-align: center;
+            width: 100%;
+            padding: 12px 10px 16px;
+        }
+        #sentenceDisplay {
+            font-size: 20px;
+            margin-bottom: 12px;
+            word-wrap: break-word;
+            text-align: left;
+            line-height: 1.6;
+        }
+        #sentenceDisplay span.correct {
+            color: green;
+        }
+        #sentenceDisplay span.incorrect {
+            color: red;
+        }
+        #textInput {
+            width: 100%;
+            padding: 10px;
+            font-size: 18px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+        #textInput:disabled {
+            background: #f0f0f0;
+            color: #999;
+        }
+
+        .footer-note {
+            font-size: 12px;
+            color: #777;
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        @media (max-width: 600px) {
+            .page-wrap {
+                padding: 8px 8px 32px;
+            }
+            #sentenceDisplay {
+                font-size: 17px;
+            }
+            #textInput {
+                font-size: 16px;
+            }
+            .quiz_title {
+                font-size: 18px;
+            }
+            .langBtn {
+                padding: 7px 12px;
+                font-size: 13px;
+            }
+            #overlay .content,
+            #resultOverlay .resultContent {
+                padding: 12px;
+                background-color: #444;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="mask"></div>
+
+<div class="page-wrap">
+    <div class="quiz_title_box">
+        <a href="#" class="backlist">←</a>
+        <div class="quiz_title">타자 속도 테스트</div>
+    </div>
+    <div class="quiz_doc">
+        간단하게 타자 속도를 테스트할 수 있습니다. 시간, 정확도, 타수 등을 확인해 보세요.
+    </div>
+
+    <div id="game-display" class="answer_shadow">
+        <div id="game">
+
+            <!-- 게임 시작 오버레이 -->
+            <div id="overlay">
+                <div class="content">
+                    <h3>타자 속도 테스트</h3>
+                    <p>
+                        한글과 영문 문장을 이용해 타자 속도를 측정합니다.<br>
+                        아래 버튼에서 원하는 언어를 선택하면 테스트가 시작되며,<br>
+                        첫 글자를 입력하는 순간부터 시간이 측정됩니다.<br>
+                        본 테스트는 PC 키보드 타이핑 기준으로 설계되었습니다.
+                    </p>
+
+                    <div id="languageButtons">
+                        <button class="langBtn selected" data-lang="korean">한국어</button>
+                        <button class="langBtn" data-lang="english">English</button>
+                    </div>
+
+                    <button class="btn-basic" id="startBtn">선택한 언어로 시작하기</button>
+                </div>
+            </div>
+
+            <!-- 결과 오버레이 -->
+            <div id="resultOverlay" style="display:none;"></div>
+
+            <!-- 그래프 -->
+            <div id="graphContainer">
+                <canvas id="speedGraph"></canvas>
+                <div id="graphStatus">
+                    시간: 0.0초 | 타수: 0 | 정확도: 0%
+                </div>
+            </div>
+
+            <!-- 게임 영역 -->
+            <div id="gameArea">
+                <div id="sentenceDisplay"></div>
+                <input type="text" id="textInput" placeholder="여기에 타이핑 해보세요" disabled autocomplete="off">
+            </div>
+
+        </div>
+    </div>
+
+    <div class="answer_shadow" style="margin-top:20px;text-align:center;">
+        <div class="quiz_doc" style="margin-bottom:0;">
+            이 테스트는 한글·영문 타이핑 속도를 간단히 측정하는 개인용 도구입니다.
+        </div>
+    </div>
+
+    <div class="footer-note">
+        (광고·트래킹·랭킹 기능 없음)
+    </div>
+</div>
+
+<script>
+    // --- 캔버스 크기 조정 ---
+    const speedGraph = document.getElementById('speedGraph');
+    const graphCtx = speedGraph.getContext('2d');
+
+    function resizeCanvas() {
+        const maxWidth = 800;
+        speedGraph.width = Math.min(maxWidth, window.innerWidth * 0.9);
+        speedGraph.height = 200;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // --- 문장 데이터 (원본 그대로 사용 가능) ---
+    const englishSentences = [
+        "In the heart of the bustling city, the quick brown fox gracefully leaped over the lazy dog that rested under an ancient oak tree, capturing the admiration of every passerby.",
+        "During a calm summer evening, the radiant sunset painted the sky with vivid hues as a gentle breeze carried the scent of blooming flowers through the quiet streets.",
+        "In a small village nestled between rolling hills, the diligent farmer harvested his crops with unwavering dedication while the birds chirped melodiously in the background.",
+        "On a foggy morning, the determined cyclist pedaled along the winding road, his eyes focused on the distant horizon where the first rays of sunlight began to emerge.",
+        "At the edge of the sparkling lake, children played joyfully, their laughter mingling with the sound of rippling water and the rustle of leaves in the soft breeze.",
+        "Under a starry night sky, a group of friends gathered around a crackling bonfire, sharing stories and dreams that illuminated their hearts with warmth and hope.",
+        "In a quaint bookshop filled with the aroma of aged paper and wisdom, a curious reader discovered a rare manuscript that held secrets of a long-forgotten era.",
+        "High above the majestic mountains, an eagle soared effortlessly, its sharp eyes surveying the vast, rugged landscape with unmatched precision and grace.",
+        "In the midst of a vibrant festival, colorful lanterns illuminated the night as people danced to the rhythmic beats of traditional music with contagious enthusiasm.",
+        "Within a sprawling garden of meticulously trimmed hedges and fragrant blossoms, a solitary poet found inspiration in the harmonious blend of nature and art.",
+        "As the rain softly pattered on the windowpane, a thoughtful artist sketched the reflection of city lights on the wet pavement, creating a masterpiece in solitude.",
+        "On a breezy autumn afternoon, fallen leaves painted the ground in hues of orange and red while a gentle stream flowed quietly through the forest.",
+        "In an old, cobblestone street lined with charming cafés, a young couple strolled hand in hand, savoring the timeless romance of their shared memories.",
+        "Under the glow of a full moon, the mysterious ruins of an ancient castle whispered secrets of lost civilizations and forgotten legends to anyone who would listen.",
+        "In a bustling market square, vendors enthusiastically displayed their vibrant produce as local residents haggled and laughed amidst the lively atmosphere.",
+        "On a serene beach at sunrise, the soft sound of crashing waves mingled with the gentle chirping of seagulls, creating a symphony of natural beauty.",
+        "Amidst a field of golden sunflowers, a solitary wanderer paused to admire the boundless sky and to reflect on the infinite possibilities that lay ahead.",
+        "In the depths of a dense forest, sunlight filtered through the canopy of leaves, casting enchanting patterns on the forest floor and sparking wonder with every step.",
+        "During a festive holiday celebration, the aroma of freshly baked treats filled the air as families gathered together to share stories and create lasting memories.",
+        "In a modern art gallery filled with abstract masterpieces, an insightful observer contemplated the intricate details and hidden meanings behind each vibrant piece.",
+        "As twilight embraced the city, neon lights flickered to life on busy streets while towering skyscrapers stood as symbols of modern ambition against the darkening sky.",
+        "At a charming seaside town, the rhythmic sound of crashing waves blended with the joyful chatter of locals, evoking an endless sense of summer bliss.",
+        "In a lively classroom full of eager students, an inspiring teacher shared fascinating stories and innovative ideas that ignited a passion for lifelong learning.",
+        "Beneath a canopy of blossoming cherry trees, soft petals danced in the wind as couples enjoyed peaceful moments filled with tender whispers.",
+        "In the quiet solitude of a mountain cabin, the gentle crackle of a warm fireplace and the distant hoot of an owl created an atmosphere of serene contemplation.",
+        "On a bright, sunny day, a group of enthusiastic hikers embarked on an adventurous journey, exploring rugged trails and marveling at breathtaking vistas.",
+        "In a bustling urban park, joggers, dog walkers, and picnickers coexisted harmoniously, each embracing the refreshing energy of a vibrant community.",
+        "During a lively street parade, elaborate costumes and mesmerizing performances captivated onlookers, transforming the ordinary day into an extraordinary celebration.",
+        "In the heart of an ancient city, historic monuments stood as timeless witnesses to the evolution of culture, art, and human ingenuity over centuries.",
+        "At a serene lakeside retreat, the reflective water mirrored the surrounding mountains and the colorful sky, creating a scene of perfect tranquility.",
+        "As the day turned to dusk, the gentle hum of conversation and the clink of glasses in a bustling rooftop bar set the stage for an unforgettable night.",
+        "Inside a state-of-the-art library filled with endless rows of books, a quiet scholar immersed themselves in the accumulated wisdom of ages past and present.",
+        "On a crisp winter morning, pristine snow blanketed the landscape in a shimmering white layer, inviting both children and adults to revel in its enchanting beauty.",
+        "In a sophisticated downtown district, elegant boutiques and fine dining establishments offered a glimpse into the refined tastes and aspirations of urban life.",
+        "Amidst the historic cobblestone streets of a European town, the aroma of freshly brewed coffee mingled with soft strains of classical music, evoking nostalgic charm.",
+        "Under a clear, azure sky, a lively outdoor concert brought people together as harmonious melodies and vibrant rhythms filled the air with pure joy.",
+        "In a bustling port city, majestic ships sailed gracefully across the horizon, carrying dreams and aspirations to distant, uncharted lands.",
+        "At a lively outdoor market, artisanal crafts and unique treasures were showcased with pride, reflecting the creativity and passion of local craftsmen.",
+        "In the warm glow of a candlelit restaurant, friends gathered for an evening of delightful conversation, sumptuous food, and hearty, shared laughter.",
+        "On a sunlit afternoon, a gentle river meandered through a verdant valley, its tranquil waters weaving a timeless story of nature’s serene majesty.",
+        "In a state-of-the-art science museum, interactive exhibits and groundbreaking discoveries inspired curious minds to explore the wonders of the universe.",
+        "During a peaceful meditation session at a secluded retreat, the soft whisper of the wind and the gentle rustle of leaves created a symphony of inner calm.",
+        "Inside the vibrant corridors of a bustling art studio, creative minds merged colors and ideas to produce masterpieces that challenged the boundaries of conventional beauty.",
+        "Under the expansive sky of a remote desert, the profound silence was interrupted only by the shimmering of stars that narrated ancient, timeless mysteries.",
+        "At a charming vineyard, the rich aroma of ripened grapes mingled with soft murmurings as visitors savored exquisite wines and the picturesque surrounding landscape.",
+        "In a lively sports arena filled with roaring fans, the electrifying energy of competition and camaraderie elevated the spirit of every devoted spectator.",
+        "During an adventurous safari in the heart of the wilderness, majestic animals roamed freely across the vast landscape, embodying the wild, untamed beauty of nature.",
+        "On a tranquil lakeside morning, a gentle mist rose from the water as birds chirped softly, creating an idyllic scene of poetic serenity."
+    ];
+
+    const koreanSentences = [
+        "분주한 도심 한복판에서, 빠른 갈색 여우가 고요히 잠든 개를 우아하게 뛰어넘으며, 오래된 나무 그늘 아래에서 지나가는 사람들의 시선을 사로잡았습니다.",
+        "따스한 여름 저녁, 화려한 노을이 하늘을 붉은빛과 주황빛으로 물들이고, 산들바람이 만개한 꽃들의 향기를 실어 조용한 거리를 감쌌습니다.",
+        "완만한 언덕 사이에 자리한 작은 마을에서, 성실한 농부가 하루 종일 정성껏 농작물을 수확하며, 새들이 감미로운 노래를 불러 자연의 조화를 이루었습니다.",
+        "안개 낀 이른 아침, 결연한 의지를 지닌 자전거 타는 사람이 굽이치는 길을 따라 페달을 밟으며, 멀리서 떠오르는 첫 햇살을 바라보는 모습이 인상적이었습니다.",
+        "반짝이는 호숫가에서 아이들이 신나게 뛰놀며, 잔잔하게 일렁이는 물결과 바람에 실려 흩날리는 잎소리가 어우러져 풍경을 더욱 아름답게 만들었습니다.",
+        "별빛 가득한 밤하늘 아래, 친구들이 모여 모닥불 주위에 둘러앉아 서로의 꿈과 이야기를 나누며 따스한 온기를 나누었습니다.",
+        "오래된 서적 냄새와 지혜가 가득한 작은 서점에서, 호기심 많은 독자가 잊혀진 시대의 비밀을 품은 희귀한 원고를 발견하고 감탄을 금치 못했습니다.",
+        "높은 산봉우리 위에서 한 마리 독수리가 우아하게 날아다니며, 날카로운 눈으로 험준한 풍경을 주시하는 모습은 누구에게나 깊은 인상을 남겼습니다.",
+        "활기찬 축제 한복판에서, 다채로운 등불이 밤을 밝히고 전통 음악의 리듬에 맞춰 사람들이 신나게 춤을 추며 잊지 못할 순간을 만들어냈습니다.",
+        "정성껏 가꾼 정원의 한가운데에서, 향긋한 꽃내음과 가지런히 다듬어진 화단 사이에서 고독한 시인이 자연의 아름다움과 예술적 감동을 느꼈습니다.",
+        "빗방울이 창문을 두드리는 고요한 저녁, 외로운 화가는 젖은 포장도로에 비친 도시의 불빛을 섬세하게 스케치하며 고독 속에서 예술의 의미를 탐구했습니다.",
+        "선선한 가을 오후, 낙엽들이 주황빛과 붉은빛으로 땅을 수놓으며 숲속 시냇물이 조용히 흐르는 소리가 마음 깊은 곳에 잔잔한 울림을 주었습니다.",
+        "오래된 자갈길이 늘어선 골목길에서, 매력적인 카페들이 즐비한 거리를 배경으로 젊은 연인이 손을 맞잡고 로맨틱한 추억을 쌓아갔습니다.",
+        "보름달이 환하게 빛나는 밤, 신비로운 고성의 폐허가 잊혀진 문명의 이야기를 조용히 속삭이며 전설 같은 분위기를 자아냈습니다.",
+        "분주한 시장 광장에서, 다채로운 채소와 과일이 가지런히 진열되고 사람들의 웃음소리와 흥정 소리가 어우러져 생동감 넘치는 풍경을 만들어냈습니다.",
+        "잔잔한 해변에서 해돋이를 맞이한 이른 아침, 부드러운 파도 소리와 갈매기들의 노랫소리가 조용한 자연의 선율을 전해주었습니다.",
+        "황금빛 해바라기가 만발한 들판에서, 한 외로운 방랑자가 끝없이 펼쳐진 푸른 하늘을 바라보며 새로운 꿈과 희망을 품었습니다.",
+        "울창한 숲 속 깊은 곳에서, 나뭇잎 사이로 스며드는 햇살이 아름다운 무늬를 그리며 고요한 자연의 신비로움을 전했습니다.",
+        "즐거운 명절을 맞아, 갓 구운 음식 냄새와 함께 가족들이 모여 옛 추억을 회상하며 따뜻한 웃음과 사랑을 나누었습니다.",
+        "현대 미술관의 화려한 전시실에서, 추상적이고 다채로운 작품들이 관람객들에게 새로운 시각과 깊은 감동을 선사했습니다.",
+        "어스름이 깔린 도시의 거리를 배경으로, 네온사인이 하나둘씩 켜지며 고층 건물들이 어둠 속에서 빛나 현대적 야경을 완성했습니다.",
+        "아름다운 해안 마을에서, 잔잔한 파도 소리와 함께 활기찬 주민들의 웃음소리가 여름의 무한한 행복을 느끼게 했습니다.",
+        "분주한 교실 안에서, 열정적인 선생님이 학생들에게 흥미로운 이야기와 창의적인 아이디어를 전하며 지식의 씨앗을 심었습니다.",
+        "분홍빛 벚꽃이 만개한 거리에서, 바람에 흩날리는 부드러운 꽃잎 사이로 연인들이 조용히 속삭이며 로맨스를 만끽했습니다.",
+        "산속 외딴 오두막에서, 따스한 벽난로의 불꽃과 멀리 들려오는 올빼미 소리가 평온하고 사색적인 분위기를 만들어냈습니다.",
+        "맑은 날씨의 화창한 오후, 모험심 강한 등산객들이 험난한 산길을 오르며 정상에서 펼쳐진 장대한 풍경에 감탄했습니다.",
+        "분주한 도시 공원에서, 조깅하는 사람들과 산책하는 가족들이 어우러져 활기찬 커뮤니티의 따스함을 만끽했습니다.",
+        "화려한 거리 퍼레이드가 펼쳐지는 날, 정교하게 꾸며진 의상과 다채로운 공연들이 관중들의 눈과 마음을 사로잡았습니다.",
+        "오랜 역사를 간직한 도심 한복판에서, 유서 깊은 건축물들이 과거의 이야기를 조용히 전하며 현대 문화와 예술을 잇고 있었습니다.",
+        "고요한 호숫가에서, 잔잔한 물결과 그 위에 비친 산과 하늘이 한 폭의 그림처럼 평화로운 풍경을 자아냈습니다.",
+        "일몰 무렵, 도시의 옥상 바에서 사람들이 모여 잔잔한 음악과 함께 하루의 피로를 잊으며 따뜻한 대화를 나누었습니다.",
+        "최첨단 도서관의 넓은 서가 사이에서, 한 학자가 고요히 책을 읽으며 오랜 세월 쌓인 지혜를 자신의 삶에 녹여내고 있었습니다.",
+        "서리가 내린 겨울 아침, 온 세상이 순백의 눈으로 덮인 가운데 사람들은 설레는 마음으로 겨울의 낭만을 즐겼습니다.",
+        "세련된 도심 거리에는 고급 부티크와 레스토랑들이 즐비해, 현대인의 세련된 감각과 품격을 한눈에 느낄 수 있었습니다.",
+        "유럽의 옛 도시를 연상시키는 자갈길과 고풍스러운 건물들이 어우러진 거리에서, 신선한 커피 향기와 클래식 음악이 감미롭게 퍼졌습니다.",
+        "맑고 푸른 하늘 아래, 야외 콘서트장에서 라이브 음악의 열정적인 연주가 관중들의 가슴 깊은 곳을 울렸습니다.",
+        "바다를 마주한 항구 도시에서, 웅장한 선박들이 한가로이 항해를 시작하며 사람들의 마음속에 모험과 꿈을 불어넣었습니다.",
+        "분주한 야외 시장에서는, 수공예품과 독특한 예술작품들이 각양각색으로 전시되어 지역 장인들의 열정과 창의력을 엿볼 수 있었습니다.",
+        "따스한 촛불 아래, 조용한 레스토랑에서 친구들이 모여 오랜 시간을 이야기하며 맛있는 음식을 나누는 잔잔한 저녁이 이어졌습니다.",
+        "햇살 가득한 오후, 잔잔하게 흐르는 강물과 푸른 들판이 어우러진 풍경 속에서 자연의 위대함과 평온함을 깊이 느낄 수 있었습니다.",
+        "미래 과학 전시관에서는, 최신 기술과 혁신적인 발견들이 한데 모여 관람객들에게 놀라움과 영감을 동시에 선사했습니다.",
+        "한적한 명상 센터에서, 고요한 음악과 은은한 향기가 어우러진 공간에서 참석자들이 마음의 평화를 찾으며 깊은 명상의 시간을 보냈습니다.",
+        "도심 속 한 예술가의 작업실에서, 다양한 색채와 독창적인 아이디어가 서로 어우러져 매혹적인 작품들이 탄생하는 모습을 감상할 수 있었습니다.",
+        "광활한 사막 한복판에서, 고요한 바람이 불어와 모래 언덕 위에 신비로운 그림자를 드리우며 오랜 전설을 속삭였습니다.",
+        "포도밭이 펼쳐진 시골 마을에서, 따스한 햇살 아래 익어가는 포도들과 함께 방문객들이 맛있는 와인과 여유로운 시간을 즐겼습니다.",
+        "경기장에서는, 열정적인 응원과 함께 치열한 경쟁이 펼쳐지며 선수들의 노력과 팀워크가 관중들의 마음을 사로잡았습니다.",
+        "자연 보호구역의 넓은 초원에서, 야생 동물들이 자유롭게 뛰놀며 인간과 자연의 조화로운 공존을 상징적으로 보여주었습니다.",
+        "고요한 호숫가 마을에서, 잔잔한 물결과 함께 한적한 일상이 이어지며 사람들은 소소한 행복을 천천히 음미했습니다.",
+        "역사적인 박물관 내부에서, 세월의 흔적이 고스란히 담긴 유물들이 전시되어 관람객들에게 깊은 감동과 소중한 교훈을 전달했습니다.",
+        "분위기 있는 도시 광장에서, 현대적 건축물과 전통적인 요소들이 어우러져 과거와 현재가 조화롭게 만나는 독특한 문화적 풍경을 선보였습니다."
+    ];
+
+    // --- 전역 상태 ---
+    let language = "korean";
+    let gameStarted = false;
+    let timerStarted = false;
+    let startTime = 0;
+    let timerInterval = null;
+    let speedData = [];
+    let targetSentence = "";
+
+    // --- DOM 요소 ---
+    const overlay = document.getElementById("overlay");
+    const resultOverlay = document.getElementById("resultOverlay");
+    const textInput = document.getElementById("textInput");
+    const sentenceDisplay = document.getElementById("sentenceDisplay");
+    const graphStatus = document.getElementById("graphStatus");
+    const langBtns = document.querySelectorAll(".langBtn");
+    const startBtn = document.getElementById("startBtn");
+
+    // 언어 버튼 선택 토글
+    langBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            langBtns.forEach(b => b.classList.remove("selected"));
+            btn.classList.add("selected");
+            language = btn.getAttribute("data-lang");
+        });
+    });
+
+    // 시작 버튼
+    startBtn.addEventListener("click", () => {
+        startGame();
+    });
+
+    // 게임 시작
+    function startGame() {
+        overlay.style.display = "none";
+        resultOverlay.style.display = "none";
+
+        gameStarted = true;
+        timerStarted = false;
+        startTime = 0;
+        speedData = [];
+        graphStatus.textContent = "시간: 0.0초 | 타수: 0 | 정확도: 0%";
+        graphCtx.clearRect(0, 0, speedGraph.width, speedGraph.height);
+
+        // 문장 선택
+        if (language === "english") {
+            targetSentence = englishSentences[Math.floor(Math.random() * englishSentences.length)];
+        } else {
+            targetSentence = koreanSentences[Math.floor(Math.random() * koreanSentences.length)];
+        }
+
+        // 문장 표시를 span으로 쪼개기
+        sentenceDisplay.innerHTML = "";
+        for (const ch of targetSentence) {
+            const span = document.createElement("span");
+            span.textContent = ch;
+            sentenceDisplay.appendChild(span);
+        }
+
+        textInput.value = "";
+        textInput.disabled = false;
+        textInput.focus();
+    }
+
+    // 입력 처리
+    textInput.addEventListener("input", handleInput);
+
+    function handleInput(e) {
+        if (!gameStarted) return;
+
+        let inputVal = e.target.value;
+
+        // 길이 초과 방지
+        if (inputVal.length > targetSentence.length) {
+            inputVal = inputVal.substring(0, targetSentence.length);
+            textInput.value = inputVal;
+        }
+
+        // 첫 글자 입력 시 타이머 시작
+        if (!timerStarted && inputVal.length > 0) {
+            timerStarted = true;
+            startTime = Date.now();
+            timerInterval = setInterval(updateStats, 100);
+        }
+
+        updateSentenceDisplay(inputVal);
+
+        if (inputVal.length === targetSentence.length) {
+            finishGame();
+        }
+    }
+
+    // 문장 표시 업데이트
+    function updateSentenceDisplay(inputVal) {
+        const spans = sentenceDisplay.querySelectorAll("span");
+        spans.forEach((span, index) => {
+            const expectedChar = span.textContent;
+            const typedChar = inputVal[index];
+            if (typedChar == null) {
+                span.classList.remove("correct", "incorrect");
+            } else if (typedChar === expectedChar) {
+                span.classList.add("correct");
+                span.classList.remove("incorrect");
+            } else {
+                span.classList.add("incorrect");
+                span.classList.remove("correct");
+            }
+        });
+    }
+
+    // 실시간 타이머·타수·정확도 업데이트
+    function updateStats() {
+        const now = Date.now();
+        const elapsedSec = (now - startTime) / 1000;
+
+        const inputVal = textInput.value;
+        let correctCount = 0;
+        for (let i = 0; i < inputVal.length; i++) {
+            if (inputVal[i] === targetSentence[i]) correctCount++;
+        }
+
+        const totalLen = targetSentence.length || 1;
+        const accuracy = (correctCount / totalLen) * 100;
+
+        let speed; // 영어: WPM, 한글: CPM
+        if (language === "english") {
+            // WPM: (정타 / 5) / 분
+            speed = (correctCount / 5) / (elapsedSec / 60);
+        } else {
+            // CPM: 정타 / 분
+            speed = correctCount / (elapsedSec / 60);
+        }
+        speed = Math.round(speed);
+
+        const statusText = `시간: ${elapsedSec.toFixed(1)}초 | 타수: ${speed} | 정확도: ${accuracy.toFixed(1)}%`;
+        graphStatus.textContent = statusText;
+
+        speedData.push({ time: elapsedSec, speed: speed });
+        drawGraph();
+    }
+
+    // 그래프 그리기
+    function drawGraph() {
+        graphCtx.clearRect(0, 0, speedGraph.width, speedGraph.height);
+        if (speedData.length < 2) return;
+
+        const maxTime = speedData[speedData.length - 1].time;
+        const maxSpeed = Math.max(...speedData.map(d => d.speed)) || 1;
+
+        const w = speedGraph.width;
+        const h = speedGraph.height;
+
+        // 채워진 영역
+        const gradient = graphCtx.createLinearGradient(0, 0, 0, h);
+        gradient.addColorStop(0, "rgba(0,123,255,0.45)");
+        gradient.addColorStop(1, "rgba(0,123,255,0)");
+
+        graphCtx.beginPath();
+        speedData.forEach((p, i) => {
+            const x = (p.time / maxTime) * w;
+            const y = h - (p.speed / maxSpeed) * h;
+            if (i === 0) {
+                graphCtx.moveTo(x, h);
+                graphCtx.lineTo(x, y);
+            } else {
+                graphCtx.lineTo(x, y);
+            }
+        });
+        const last = speedData[speedData.length - 1];
+        const lastX = (last.time / maxTime) * w;
+        graphCtx.lineTo(lastX, h);
+        graphCtx.closePath();
+        graphCtx.fillStyle = gradient;
+        graphCtx.fill();
+
+        // 선
+        graphCtx.beginPath();
+        speedData.forEach((p, i) => {
+            const x = (p.time / maxTime) * w;
+            const y = h - (p.speed / maxSpeed) * h;
+            if (i === 0) graphCtx.moveTo(x, y);
+            else graphCtx.lineTo(x, y);
+        });
+        graphCtx.strokeStyle = "#007bff";
+        graphCtx.lineWidth = 2;
+        graphCtx.stroke();
+
+        // 포인트
+        speedData.forEach(p => {
+            const x = (p.time / maxTime) * w;
+            const y = h - (p.speed / maxSpeed) * h;
+            graphCtx.beginPath();
+            graphCtx.arc(x, y, 3, 0, 2 * Math.PI);
+            graphCtx.fillStyle = "#007bff";
+            graphCtx.fill();
+        });
+    }
+
+    // 게임 종료
+    function finishGame() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+        textInput.disabled = true;
+
+        const now = Date.now();
+        const elapsedSec = (now - startTime) / 1000;
+
+        const inputVal = textInput.value;
+        let correctCount = 0;
+        for (let i = 0; i < inputVal.length; i++) {
+            if (inputVal[i] === targetSentence[i]) correctCount++;
+        }
+        const totalLen = targetSentence.length || 1;
+        const accuracy = (correctCount / totalLen) * 100;
+
+        let baseSpeed;
+        if (language === "english") {
+            baseSpeed = (correctCount / 5) / (elapsedSec / 60);
+        } else {
+            baseSpeed = correctCount / (elapsedSec / 60);
+        }
+        baseSpeed = Math.round(baseSpeed);
+
+        const finalScore = Math.round(baseSpeed * (accuracy / 100));
+
+        showResultOverlay(elapsedSec, baseSpeed, accuracy, finalScore);
+    }
+
+    // 결과 오버레이
+    function showResultOverlay(elapsedSec, baseSpeed, accuracy, finalScore) {
+        resultOverlay.innerHTML = `
+      <div class="resultContent">
+        <h3>테스트 완료!</h3>
+        <p>총 소요 시간: ${elapsedSec.toFixed(2)}초</p>
+        <p>기본 타수: ${baseSpeed} (${language === "english" ? "WPM 기준" : "CPM 기준"})</p>
+        <p>최종 정확도: ${accuracy.toFixed(1)}%</p>
+        <p>최종 점수 (정확도 반영): ${finalScore}</p>
+        <button class="btn-basic" id="retryBtn">다시하기</button>
+      </div>
+    `;
+        resultOverlay.style.display = "flex";
+
+        const retryBtn = document.getElementById("retryBtn");
+        retryBtn.addEventListener("click", resetGame);
+    }
+
+    // 리셋
+    function resetGame() {
+        resultOverlay.style.display = "none";
+        textInput.value = "";
+        textInput.disabled = true;
+        sentenceDisplay.innerHTML = "";
+        graphCtx.clearRect(0, 0, speedGraph.width, speedGraph.height);
+        graphStatus.textContent = "시간: 0.0초 | 타수: 0 | 정확도: 0%";
+
+        gameStarted = false;
+        timerStarted = false;
+        startTime = 0;
+        speedData = [];
+
+        // 다시 언어 선택 오버레이로
+        overlay.style.display = "flex";
+    }
+</script>
+</body>
+</html>

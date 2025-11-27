@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <title>한국어 TTS 예시 (유나/속1/피치0.5/볼륨1)</title>
+    <style>
+        body{font-family:system-ui,Apple SD Gothic Neo,Noto Sans KR,Arial;margin:24px}
+        textarea{width:100%;height:180px;padding:12px}
+        button{padding:10px 14px;margin-right:6px}
+        #status{margin-top:8px;font-size:13px;opacity:.8}
+    </style>
+</head>
+<body>
+<h1>한국어 텍스트 읽기</h1>
+<p><textarea id="txt">안녕하세요. 유나 음성, 속도 1, 피치 0.5, 볼륨 1로 읽습니다.</textarea></p>
+<p>
+    <button id="speak">읽기</button>
+    <button id="pause">일시정지</button>
+    <button id="resume">다시재생</button>
+    <button id="stop">중지</button>
+</p>
+<div id="status">대기 중…</div>
+
+<script src="tts-yuna.js"></script>
+<script>
+    (async () => {
+        await KoTTS.init({
+            statusEl: '#status',
+            preferVoice: ['Yuna', '유나'],            // 우선순위 이름
+            defaults: { rate: 1, pitch: 0.5, volume: 1 } // 기본값
+        });
+
+        document.getElementById('speak').addEventListener('click', () => {
+            KoTTS.speakFromTextarea('#txt'); // 선택 영역만 있으면 그 부분만 읽기
+        });
+        document.getElementById('pause').addEventListener('click', () => KoTTS.pause());
+        document.getElementById('resume').addEventListener('click', () => KoTTS.resume());
+        document.getElementById('stop').addEventListener('click', () => KoTTS.stop());
+
+        // 단축키: Ctrl/Cmd+Enter로 재생
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') KoTTS.speakFromTextarea('#txt');
+        });
+    })();
+</script>
+</body>
+</html>
