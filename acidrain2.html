@@ -1,0 +1,1114 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>산성비 타자연습게임</title>
+    <style>
+        :root{
+            --bg1:#0ea5e9;
+            --bg2:#22c55e;
+            --card: rgba(255,255,255,.70);
+            --card2: rgba(255,255,255,.45);
+            --stroke: rgba(255,255,255,.35);
+            --shadow: 0 12px 40px rgba(0,0,0,.18);
+            --shadow2: 0 10px 25px rgba(0,0,0,.12);
+            --text:#0f172a;
+            --muted:#475569;
+            --danger:#ef4444;
+            --good:#10b981;
+            --blue:#3b82f6;
+        }
+
+        *{ box-sizing:border-box; }
+        html,body{ height:100%; }
+        body{
+            margin:0;
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", sans-serif;
+            color: var(--text);
+            background:
+                    radial-gradient(1200px 600px at 20% 10%, rgba(34,197,94,.35), transparent 55%),
+                    radial-gradient(1000px 600px at 80% 20%, rgba(14,165,233,.35), transparent 55%),
+                    linear-gradient(135deg, #0b1220, #0b1220);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding: 18px;
+        }
+
+        /* 레이아웃 컨테이너 */
+        .app{
+            width:min(980px, 100%);
+            position:relative;
+        }
+
+        .hidden{ display:none !important; }
+
+        /* Glass UI */
+        .glass{
+            background: linear-gradient(180deg, var(--card), var(--card2));
+            border: 1px solid var(--stroke);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .glass-card{
+            background: rgba(255,255,255,.62);
+            border: 1px solid rgba(255,255,255,.40);
+            box-shadow: var(--shadow2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .rounded-xl{ border-radius: 18px; }
+        .rounded-lg{ border-radius: 14px; }
+
+        .p-4{ padding:16px; }
+        .p-6{ padding:24px; }
+        .mb-4{ margin-bottom:16px; }
+        .mb-6{ margin-bottom:24px; }
+        .mb-8{ margin-bottom:32px; }
+
+        .text-center{ text-align:center; }
+        .text-gray-900{ color: var(--text); }
+        .text-gray-700{ color: var(--muted); }
+        .text-gray-600{ color: #64748b; }
+        .text-red-600{ color: var(--danger); }
+        .text-blue-800{ color: #1e40af; }
+        .text-green-800{ color: #065f46; }
+
+        .font-bold{ font-weight: 800; }
+        .font-semibold{ font-weight: 700; }
+        .font-medium{ font-weight: 600; }
+
+        .text-3xl{ font-size: clamp(22px, 3.4vw, 34px); }
+        .text-xl{ font-size: 20px; }
+        .text-lg{ font-size: 18px; }
+        .text-base{ font-size: 16px; }
+        .text-sm{ font-size: 13px; }
+
+        .leading-relaxed{ line-height:1.6; }
+
+        /* 버튼 */
+        .glass-button{
+            border: 1px solid rgba(255,255,255,.45);
+            background: linear-gradient(135deg, rgba(255,255,255,.75), rgba(255,255,255,.35));
+            box-shadow: 0 10px 25px rgba(0,0,0,.16);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            cursor:pointer;
+            transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
+            user-select:none;
+        }
+        .glass-button:hover{
+            transform: translateY(-1px);
+            box-shadow: 0 14px 30px rgba(0,0,0,.20);
+            filter: brightness(1.02);
+        }
+        .glass-button:active{
+            transform: translateY(0px) scale(.99);
+            box-shadow: 0 8px 18px rgba(0,0,0,.16);
+        }
+        .px-8{ padding-left:32px; padding-right:32px; }
+        .py-4{ padding-top:16px; padding-bottom:16px; }
+
+        /* 메인 화면 카드 */
+        .main-wrap{
+            padding: 18px;
+        }
+
+        .game-image{
+            display:block;
+            margin: 0 auto;
+        }
+
+        /* 랭킹 */
+        .ranking-container{
+            max-height: 360px;
+            overflow:auto;
+            padding-right: 6px;
+        }
+        .ranking-container::-webkit-scrollbar{ width: 10px; }
+        .ranking-container::-webkit-scrollbar-thumb{
+            background: rgba(15,23,42,.25);
+            border-radius: 20px;
+            border: 2px solid rgba(255,255,255,.35);
+        }
+
+        /* 게임 영역 */
+        .game-container{
+            position:relative;
+            width:100%;
+            height: 520px;
+            overflow:hidden;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,.4);
+            background:
+                    radial-gradient(800px 260px at 50% 0%, rgba(59,130,246,.25), transparent 60%),
+                    linear-gradient(180deg, rgba(255,255,255,.25), rgba(255,255,255,.10));
+        }
+
+        /* 물 표면 */
+        .water-surface{
+            position:absolute;
+            left:0;
+            right:0;
+            bottom:0;
+            height: 110px;
+            background:
+                    radial-gradient(120px 30px at 10% 20%, rgba(255,255,255,.22), transparent 60%),
+                    radial-gradient(160px 40px at 70% 30%, rgba(255,255,255,.18), transparent 60%),
+                    linear-gradient(180deg, rgba(59,130,246,.35), rgba(14,165,233,.55));
+            filter: blur(.2px);
+            border-top: 1px solid rgba(255,255,255,.35);
+            box-shadow: 0 -12px 30px rgba(14,165,233,.22) inset;
+            animation: waterMove 4s ease-in-out infinite;
+        }
+        @keyframes waterMove{
+            0%,100%{ transform: translateY(0); }
+            50%{ transform: translateY(2px); }
+        }
+
+        /* 입력창 */
+        .typing-input{
+            position:absolute;
+            left: 16px;
+            right: 16px;
+            bottom: 16px;
+            z-index: 30;
+            height: 52px;
+            border-radius: 14px;
+            border: 2px solid rgba(255,255,255,.45);
+            padding: 0 16px;
+            font-size: 16px;
+            outline: none;
+            background: rgba(255,255,255,.88);
+            box-shadow: 0 10px 25px rgba(0,0,0,.14);
+        }
+        .typing-input:focus{
+            border-color: rgba(59,130,246,.65);
+            box-shadow: 0 12px 30px rgba(59,130,246,.18);
+        }
+        .typing-input:disabled{
+            opacity:.75;
+            cursor:not-allowed;
+        }
+
+        /* 떨어지는 단어 */
+        .falling-word{
+            position:absolute;
+            top:0;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(255,255,255,.90);
+            border: 1px solid rgba(255,255,255,.55);
+            box-shadow: 0 10px 22px rgba(0,0,0,.15);
+            font-weight: 800;
+            letter-spacing: .2px;
+            white-space: nowrap;
+            user-select:none;
+            will-change: transform, top, left;
+        }
+        .falling-word.bomb{
+            background: rgba(239,68,68,.92);
+            color: #fff;
+            border-color: rgba(255,255,255,.35);
+            box-shadow: 0 12px 28px rgba(239,68,68,.25);
+            animation: bombPulse 1s ease-in-out infinite;
+        }
+        @keyframes bombPulse{
+            0%,100%{ transform: scale(1); }
+            50%{ transform: scale(1.03); }
+        }
+
+        /* 스탯 UI */
+        .game-stats{
+            position:absolute;
+            top: 14px;
+            left: 14px;
+            z-index: 40;
+            display:flex;
+            gap: 14px;
+            align-items:center;
+            padding: 10px 12px;
+            border-radius: 14px;
+            background: rgba(255,255,255,.70);
+            border: 1px solid rgba(255,255,255,.45);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 10px 22px rgba(0,0,0,.12);
+        }
+        .game-stats.right{
+            left:auto;
+            right: 14px;
+        }
+        .game-stats.pause-button-mobile{
+            position:absolute;
+            top:auto;
+            right:auto;
+            background: transparent;
+            border:none;
+            box-shadow:none;
+            padding:0;
+        }
+
+        /* 하트 */
+        #heartsContainer{
+            display:flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            max-width: 260px;
+            justify-content:flex-end;
+        }
+        .heart{
+            font-size: 18px;
+            filter: drop-shadow(0 6px 10px rgba(0,0,0,.16));
+            transition: transform .2s ease, opacity .2s ease, filter .2s ease;
+        }
+        .heart.lost{
+            opacity:.25;
+            filter: grayscale(1);
+            transform: scale(.95);
+        }
+
+        /* Stage 표시 */
+        .stage-display{
+            position:absolute;
+            inset: 0;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            z-index: 60;
+            font-size: clamp(26px, 4vw, 46px);
+            font-weight: 900;
+            color: rgba(255,255,255,.95);
+            text-shadow: 0 12px 30px rgba(0,0,0,.30);
+            background: radial-gradient(600px 260px at 50% 40%, rgba(59,130,246,.45), rgba(0,0,0,.25));
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            animation: stageIn .35s ease-out;
+            border-radius: 16px;
+        }
+        @keyframes stageIn{
+            from{ opacity:0; transform: scale(.98); }
+            to{ opacity:1; transform: scale(1); }
+        }
+
+        /* 일시정지 오버레이 */
+        .pause-overlay{
+            position:absolute;
+            inset:0;
+            z-index: 80;
+            display:flex;
+            flex-direction: column;
+            align-items:center;
+            justify-content:center;
+            gap: 16px;
+            background: rgba(15,23,42,.40);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .pause-text{
+            font-size: 28px;
+            font-weight: 900;
+            color:#fff;
+            text-shadow: 0 10px 24px rgba(0,0,0,.35);
+        }
+        .pause-button{
+            border:none;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 800;
+            cursor:pointer;
+            color:#0b1220;
+            background: rgba(255,255,255,.92);
+            box-shadow: 0 12px 28px rgba(0,0,0,.22);
+            transition: transform .15s ease;
+        }
+        .pause-button:hover{ transform: translateY(-1px); }
+
+        /* 모달 */
+        .modal{
+            position:fixed;
+            inset:0;
+            z-index: 10000;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding: 18px;
+            background: rgba(15,23,42,.55);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .modal-content{
+            width: min(520px, 96vw);
+            border-radius: 18px;
+            padding: 22px;
+            background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.72));
+            border: 1px solid rgba(255,255,255,.45);
+            box-shadow: 0 18px 60px rgba(0,0,0,.28);
+            animation: pop .20s ease-out;
+        }
+        @keyframes pop{
+            from{ transform: translateY(8px) scale(.98); opacity:.3; }
+            to{ transform: translateY(0) scale(1); opacity:1; }
+        }
+
+        /* 토스트 */
+        @keyframes slideInRight{
+            from{ transform: translateX(14px); opacity:0; }
+            to{ transform: translateX(0); opacity:1; }
+        }
+
+        /* 반응형 */
+        @media (max-width: 560px){
+            .game-container{ height: 500px; }
+            #heartsContainer{ max-width: 200px; }
+            .heart{ font-size: 16px; }
+            .typing-input{ height: 50px; }
+        }
+    </style>
+</head>
+
+<body>
+<div class="app glass rounded-xl p-4">
+
+    <!-- 메인 화면 -->
+    <div id="mainScreen" class="main-wrap">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-4">🌧️ 산성비 타자연습게임 🌧️</h1>
+            <p class="text-gray-700 text-base leading-relaxed">
+                하늘에서 산성비가 되어 내려오는 한글 단어를 타이핑으로 제거하세요!<br>
+                산성비가 없어지지 않고 바닥에 닿으면 다리가 무너집니다.<br>
+                <span class="text-red-600 font-medium">붉은색 단어</span>를 없애면 화면의 모든 단어가 사라집니다!
+            </p>
+        </div>
+
+        <div class="text-center mb-6">
+            <img decoding="async"
+                 src="https://www.medcalc.co.kr/wp-content/uploads/2025/10/image-1-768x512.png"
+                 alt="산성비 타자연습게임"
+                 class="game-image rounded-lg"
+                 style="max-width:450px;height:auto;border:2px solid rgba(59,130,246,.3); box-shadow: 0 14px 40px rgba(0,0,0,.18);">
+        </div>
+
+        <div class="text-center mb-8">
+            <button id="startGameBtn" class="glass-button px-8 py-4 text-xl font-bold rounded-lg">🎮 게임 시작</button>
+        </div>
+
+        <div class="glass-card rounded-lg p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">🏆 명예의 전당 (Top 20)</h2>
+            <div id="rankingContainer" class="ranking-container">
+                <p class="text-gray-600">랭킹 정보를 불러오는 중&#8230;</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 게임 화면 -->
+    <div id="gameScreen" class="hidden">
+        <div class="glass rounded-xl p-4">
+
+            <div class="game-container" id="gameContainer">
+
+                <div class="game-stats">
+                    <div class="text-lg font-bold text-blue-800">Stage: <span id="currentStage">1</span></div>
+                    <div class="text-lg font-bold text-green-800">Score: <span id="currentScore">0</span></div>
+                    <div class="text-sm text-gray-600">문제: <span id="currentProblem">0</span>/<span id="totalProblems">8</span></div>
+                </div>
+
+                <div class="game-stats right">
+                    <div id="heartsContainer">
+                        <span class="heart">❤️</span><span class="heart">❤️</span><span class="heart">❤️</span>
+                        <span class="heart">❤️</span><span class="heart">❤️</span><span class="heart">❤️</span>
+                        <span class="heart">❤️</span><span class="heart">❤️</span><span class="heart">❤️</span>
+                    </div>
+                </div>
+
+                <div class="game-stats pause-button-mobile" style="bottom:20px; left:20px; top:auto; transform:none; width:auto; z-index:90;">
+                    <button id="pauseBtn" class="glass-button" style="padding:8px 12px; font-size:16px; min-width:40px;">⏸️</button>
+                </div>
+
+                <!-- 타이핑 입력 -->
+                <input type="text" id="typingInput" class="typing-input"
+                       placeholder="단어를 입력하고 엔터를 누르세요..." autocomplete="off">
+
+                <!-- 물 표면 -->
+                <div class="water-surface"></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // 게임 상태 변수
+    let gameState = {
+        isPlaying: false,
+        isPaused: false,
+        currentStage: 1,
+        currentScore: 0,
+        currentProblem: 0,
+        totalProblems: 8,
+        hearts: 9,
+        words: [],
+        wordIdCounter: 0,
+        koreanWords: [],
+        gameInterval: null,
+        wordSpawnInterval: null,
+        totalWordsHit: 0
+    };
+
+    // 스테이지 설정
+    const stageConfig = {
+        1: { problems: 12, spawnInterval: 2000, fallSpeed: 0.8, wordInterval: 1500 },
+        2: { problems: 12, spawnInterval: 1600, fallSpeed: 1.0, wordInterval: 1300 },
+        3: { problems: 16, spawnInterval: 1200, fallSpeed: 1.2, wordInterval: 1100 },
+        4: { problems: 18, spawnInterval: 1000, fallSpeed: 1.4, wordInterval: 900 },
+        5: { problems: 20, spawnInterval: 800,  fallSpeed: 1.7, wordInterval: 700 },
+        6: { problems: 20, spawnInterval: 600,  fallSpeed: 1.9, wordInterval: 500 },
+        7: { problems: 20, spawnInterval: 500,  fallSpeed: 2.3, wordInterval: 400 },
+        8: { problems: 20, spawnInterval: 400,  fallSpeed: 2.7, wordInterval: 300 }
+    };
+
+    // DOM 요소들
+    const mainScreen = document.getElementById('mainScreen');
+    const gameScreen = document.getElementById('gameScreen');
+    const gameContainer = document.getElementById('gameContainer');
+    const typingInput = document.getElementById('typingInput');
+    const currentStageEl = document.getElementById('currentStage');
+    const currentScoreEl = document.getElementById('currentScore');
+    const currentProblemEl = document.getElementById('currentProblem');
+    const totalProblemsEl = document.getElementById('totalProblems');
+    const heartsContainer = document.getElementById('heartsContainer');
+    const rankingContainer = document.getElementById('rankingContainer');
+
+    // 사운드 효과
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+    function safeResumeAudio(){
+        if (audioContext && audioContext.state === 'suspended') {
+            audioContext.resume().catch(()=>{});
+        }
+    }
+
+    function playTypingSound() {
+        safeResumeAudio();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        const filter = audioContext.createBiquadFilter();
+
+        oscillator.connect(filter);
+        filter.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.frequency.setValueAtTime(1200, audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.05);
+
+        filter.type = 'highpass';
+        filter.frequency.setValueAtTime(1000, audioContext.currentTime);
+
+        gainNode.gain.setValueAtTime(0.05, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.1);
+
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.1);
+    }
+
+    function playHeartLostSound() {
+        safeResumeAudio();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.frequency.setValueAtTime(2000, audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(1500, audioContext.currentTime + 0.1);
+
+        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.1);
+
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.1);
+    }
+
+    function playGameOverSound() {
+        safeResumeAudio();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 1.0);
+
+        gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 1.0);
+
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 1.0);
+    }
+
+    function playBombSound() {
+        safeResumeAudio();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        const filter = audioContext.createBiquadFilter();
+
+        oscillator.connect(filter);
+        filter.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.3);
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(500, audioContext.currentTime);
+
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
+
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+    }
+
+    // 한글 단어 로드
+    async function loadKoreanWords() {
+        try {
+            const response = await fetch('json/korean-word.json');
+            const data = await response.json();
+            gameState.koreanWords = data.map(item => item.word);
+            console.log('한글 단어 로드 완료:', gameState.koreanWords.length + '개');
+        } catch (error) {
+            console.error('한글 단어 로드 실패:', error);
+            gameState.koreanWords = [
+                '사과','바나나','포도','딸기','오렌지','수박','참외','복숭아',
+                '책상','의자','침대','문','창문','거울','시계','전화',
+                '학교','병원','은행','우체국','도서관','공원','상점','식당',
+                '가족','친구','선생님','학생','의사','간호사','요리사','운전사'
+            ];
+        }
+    }
+
+    // 게임 시작
+    function startGame() {
+        safeResumeAudio();
+
+        mainScreen.classList.add('hidden');
+        gameScreen.classList.remove('hidden');
+
+        const existingWords = gameContainer.querySelectorAll('.falling-word');
+        existingWords.forEach(w => w.remove());
+
+        gameState.isPlaying = true;
+        gameState.isPaused = false;
+        gameState.currentStage = 1;
+        gameState.currentScore = 0;
+        gameState.currentProblem = 0;
+        gameState.hearts = 9;
+        gameState.words = [];
+        gameState.totalWordsHit = 0;
+
+        updateDisplay();
+        startGameLoop();
+
+        typingInput.disabled = false;
+        typingInput.value = '';
+        typingInput.focus();
+    }
+
+    function showStageDisplay() {
+        const stageDisplay = document.createElement('div');
+        stageDisplay.className = 'stage-display';
+        stageDisplay.textContent = `Stage ${gameState.currentStage}`;
+        gameContainer.appendChild(stageDisplay);
+
+        setTimeout(() => {
+            if (stageDisplay.parentNode) stageDisplay.remove();
+        }, 2000);
+    }
+
+    function startGameLoop() {
+        const config = stageConfig[gameState.currentStage];
+        gameState.totalProblems = config.problems;
+        updateDisplay();
+
+        showStageDisplay();
+
+        setTimeout(() => {
+            gameState.wordSpawnInterval = setInterval(() => {
+                spawnWord();
+            }, config.spawnInterval);
+
+            gameState.gameInterval = setInterval(() => {
+                moveWords();
+            }, 16);
+        }, 2000);
+    }
+
+    function spawnWord() {
+        if (gameState.koreanWords.length === 0) return;
+
+        const word = gameState.koreanWords[Math.floor(Math.random() * gameState.koreanWords.length)];
+        const isBomb = Math.random() < 0.07;
+
+        const wordElement = document.createElement('div');
+        wordElement.className = `falling-word ${isBomb ? 'bomb' : ''}`;
+        wordElement.textContent = word;
+        wordElement.id = `word-${gameState.wordIdCounter++}`;
+
+        const containerWidth = gameContainer.offsetWidth;
+        const wordWidth = word.length * 20;
+        const minX = 20;
+        const maxX = Math.max(minX, containerWidth - wordWidth - 20);
+
+        const x = Math.random() * (maxX - minX) + minX;
+        wordElement.style.left = x + 'px';
+        wordElement.style.top = '0px';
+
+        gameContainer.appendChild(wordElement);
+
+        gameState.words.push({
+            element: wordElement,
+            word: word,
+            isBomb: isBomb,
+            x: x,
+            y: 0,
+            zigzagOffset: 0,
+            zigzagDirection: 1
+        });
+    }
+
+    // ✅ 안전하게: 뒤에서 앞으로 루프 (splice 누락 방지)
+    function moveWords() {
+        if (gameState.isPaused) return;
+
+        const config = stageConfig[gameState.currentStage];
+        const fallSpeed = config.fallSpeed;
+
+        for (let i = gameState.words.length - 1; i >= 0; i--) {
+            const wordObj = gameState.words[i];
+
+            if (wordObj.isBomb) {
+                wordObj.y += fallSpeed * 2;
+                wordObj.zigzagOffset += 0.1;
+                const zigzagX = wordObj.x + Math.sin(wordObj.zigzagOffset) * 30;
+                wordObj.element.style.left = zigzagX + 'px';
+            } else {
+                wordObj.y += fallSpeed;
+            }
+
+            wordObj.element.style.top = wordObj.y + 'px';
+
+            if (wordObj.y > gameContainer.offsetHeight - 100) {
+                wordObj.element.remove();
+                gameState.words.splice(i, 1);
+                loseHeart();
+            }
+        }
+    }
+
+    function loseHeart() {
+        gameState.hearts--;
+        playHeartLostSound();
+        updateHearts();
+
+        if (gameState.hearts <= 0) {
+            gameOver();
+            return;
+        }
+    }
+
+    function updateHearts() {
+        const hearts = heartsContainer.querySelectorAll('.heart');
+        hearts.forEach((heart, index) => {
+            if (index < gameState.hearts) heart.classList.remove('lost');
+            else heart.classList.add('lost');
+        });
+    }
+
+    typingInput.addEventListener('keydown', (e) => {
+        if (gameState.isPaused) return;
+
+        if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Shift' && e.key !== 'Control' && e.key !== 'Alt') {
+            playTypingSound();
+        }
+
+        if (e.key === 'Enter' || e.key === ' ') {
+            const inputWord = typingInput.value.trim();
+            if (inputWord) {
+                checkWord(inputWord);
+                typingInput.value = '';
+            }
+        }
+    });
+
+    function checkWord(inputWord) {
+        let foundWord = null;
+        let foundIndex = -1;
+
+        gameState.words.forEach((wordObj, index) => {
+            if (wordObj.word === inputWord) {
+                foundWord = wordObj;
+                foundIndex = index;
+            }
+        });
+
+        if (foundWord) {
+            playTypingSound();
+
+            if (foundWord.isBomb) {
+                playBombSound();
+                const removedWordsCount = gameState.words.length;
+                gameState.words.forEach(w => w.element.remove());
+                gameState.words = [];
+                addScore(removedWordsCount * 10 * gameState.currentStage);
+                gameState.totalWordsHit += removedWordsCount;
+            } else {
+                foundWord.element.remove();
+                gameState.words.splice(foundIndex, 1);
+                addScore(foundWord.word.length * 10 * gameState.currentStage);
+                gameState.currentProblem++;
+                gameState.totalWordsHit++;
+            }
+
+            updateDisplay();
+
+            if (gameState.currentProblem >= gameState.totalProblems) {
+                nextStage();
+            }
+        }
+    }
+
+    function addScore(points) {
+        gameState.currentScore += points;
+        updateDisplay();
+    }
+
+    function nextStage() {
+        if (gameState.currentStage >= 8) {
+            gameComplete();
+            return;
+        }
+
+        gameState.currentStage++;
+        gameState.currentProblem = 0;
+
+        if (gameState.wordSpawnInterval) clearInterval(gameState.wordSpawnInterval);
+        if (gameState.gameInterval) clearInterval(gameState.gameInterval);
+
+        setTimeout(() => {
+            gameState.words.forEach(w => w.element.remove());
+            gameState.words = [];
+
+            setTimeout(() => startGameLoop(), 1000);
+        }, 2000);
+    }
+
+    function gameComplete() {
+        gameState.isPlaying = false;
+        clearInterval(gameState.wordSpawnInterval);
+        clearInterval(gameState.gameInterval);
+        showGameOverModal(true);
+    }
+
+    function gameOver() {
+        gameState.isPlaying = false;
+        clearInterval(gameState.wordSpawnInterval);
+        clearInterval(gameState.gameInterval);
+        playGameOverSound();
+        showGameOverModal(false);
+    }
+
+    function showGameOverModal(isComplete) {
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+
+        const title = isComplete ? '🎉 Congratulations! 🎉' : '💥 Game Over 💥';
+        const message = isComplete ? '모든 스테이지를 무사히 통과했습니다!' : '게임이 끝났습니다.';
+
+        modal.innerHTML = `
+      <div class="modal-content">
+        <h2 style="font-size:24px;font-weight:900;margin:0 0 14px;">${title}</h2>
+        <p style="font-size:15px;margin:0 0 16px;opacity:.9;color:#334155;">${message}</p>
+
+        <div style="background: rgba(15,23,42,0.06); border-radius: 14px; padding: 16px; margin: 14px 0;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;text-align:left;font-size:14px;color:#0f172a;">
+            <div><strong>최종 점수:</strong> ${gameState.currentScore}</div>
+            <div><strong>완료 스테이지:</strong> Stage ${gameState.currentStage}</div>
+            <div><strong>총 맞춘 단어수:</strong> ${gameState.totalWordsHit}개</div>
+            <div><strong>남은 라이프:</strong> ${gameState.hearts}개</div>
+          </div>
+        </div>
+
+        <p style="font-size:15px;margin: 10px 0 12px;color:#0f172a;">
+          랭킹에 이름을 올리시겠습니까?
+        </p>
+
+        <div style="margin-bottom: 14px;">
+          <input type="text" id="userNameInput" placeholder="이름을 입력하세요 (최대 12자)"
+                 maxlength="12"
+                 style="width:100%;padding:12px 14px;border:2px solid rgba(15,23,42,.15);border-radius:12px;background:#fff;font-size:16px;">
+        </div>
+
+        <div style="display:flex;gap:10px;justify-content:center;">
+          <button id="registerBtn" style="
+            background: linear-gradient(135deg, #10b981, #059669);
+            color:#fff;border:none;padding:12px 18px;border-radius:12px;
+            font-size:16px;font-weight:900;cursor:pointer;box-shadow:0 10px 22px rgba(16,185,129,.25);
+          ">등록하기</button>
+
+          <button id="skipBtn" style="
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color:#fff;border:none;padding:12px 18px;border-radius:12px;
+            font-size:16px;font-weight:900;cursor:pointer;box-shadow:0 10px 22px rgba(239,68,68,.20);
+          ">건너뛰기</button>
+        </div>
+      </div>
+    `;
+
+        document.body.appendChild(modal);
+
+        const userNameInput = document.getElementById('userNameInput');
+        const registerBtn = document.getElementById('registerBtn');
+        const skipBtn = document.getElementById('skipBtn');
+
+        userNameInput.focus();
+
+        userNameInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') registerBtn.click();
+        });
+
+        registerBtn.addEventListener('click', () => {
+            const userName = userNameInput.value.trim();
+            if (userName) {
+                registerToRanking(userName, isComplete);
+                modal.remove();
+                resetGame();
+            } else {
+                userNameInput.style.borderColor = '#ef4444';
+                userNameInput.placeholder = '이름을 입력해주세요!';
+                setTimeout(() => {
+                    userNameInput.style.borderColor = 'rgba(15,23,42,.15)';
+                    userNameInput.placeholder = '이름을 입력하세요 (최대 12자)';
+                }, 1500);
+            }
+        });
+
+        skipBtn.addEventListener('click', () => {
+            modal.remove();
+            resetGame();
+        });
+
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                modal.remove();
+                resetGame();
+            }
+        });
+    }
+
+    function registerToRanking(userName, isComplete) {
+        const payload = {
+            name: userName.substring(0, 12),
+            score: gameState.currentScore,
+            stage: gameState.currentStage,
+            problems: gameState.currentProblem,
+            isComplete: isComplete,
+            timestamp: Math.floor(Date.now() / 1000),
+            datetime: new Date().toISOString()
+        };
+
+        fetch("https://www.medcalc.co.kr/js/typing-rain-save-ranking-ko.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        })
+        .then(r => r.json())
+        .then(() => {
+            showSuccessMessage();
+            loadRankings();
+        })
+        .catch(() => {
+            showErrorMessage();
+        });
+    }
+
+    function showSuccessMessage() {
+        const message = document.createElement('div');
+        message.innerHTML = `
+      <div style="
+        position:fixed;top:20px;right:20px;z-index:10001;
+        background: linear-gradient(135deg,#10b981,#059669);
+        color:#fff;padding:14px 18px;border-radius:14px;font-weight:900;
+        box-shadow:0 14px 30px rgba(16,185,129,.28);
+        animation: slideInRight .3s ease-out;
+      ">✅ 랭킹에 등록되었습니다!</div>
+    `;
+        document.body.appendChild(message);
+        setTimeout(() => message.remove(), 2600);
+    }
+
+    function showErrorMessage() {
+        const message = document.createElement('div');
+        message.innerHTML = `
+      <div style="
+        position:fixed;top:20px;right:20px;z-index:10001;
+        background: linear-gradient(135deg,#ef4444,#dc2626);
+        color:#fff;padding:14px 18px;border-radius:14px;font-weight:900;
+        box-shadow:0 14px 30px rgba(239,68,68,.22);
+        animation: slideInRight .3s ease-out;
+      ">❌ 등록 중 오류가 발생했습니다.</div>
+    `;
+        document.body.appendChild(message);
+        setTimeout(() => message.remove(), 2600);
+    }
+
+    function togglePause() {
+        if (!gameState.isPlaying) return;
+
+        gameState.isPaused = !gameState.isPaused;
+
+        if (gameState.isPaused) {
+            const pauseOverlay = document.createElement('div');
+            pauseOverlay.className = 'pause-overlay';
+            pauseOverlay.id = 'pauseOverlay';
+            pauseOverlay.innerHTML = `
+        <div class="pause-text">⏸️ 일시정지</div>
+        <button class="pause-button" id="pauseResumeBtn">▶️ 계속하기</button>
+      `;
+            gameContainer.appendChild(pauseOverlay);
+
+            document.getElementById('pauseResumeBtn').addEventListener('click', togglePause);
+
+            typingInput.disabled = true;
+            typingInput.placeholder = '일시정지 중...';
+        } else {
+            const pauseOverlay = document.getElementById('pauseOverlay');
+            if (pauseOverlay) pauseOverlay.remove();
+
+            typingInput.disabled = false;
+            typingInput.placeholder = '단어를 입력하고 엔터를 누르세요...';
+            typingInput.focus();
+        }
+    }
+
+    function resetGame() {
+        gameScreen.classList.add('hidden');
+        mainScreen.classList.remove('hidden');
+
+        gameState.isPlaying = false;
+        gameState.isPaused = false;
+        gameState.currentStage = 1;
+        gameState.currentScore = 0;
+        gameState.currentProblem = 0;
+        gameState.hearts = 9;
+        gameState.words = [];
+        gameState.totalWordsHit = 0;
+
+        const existingWords = gameContainer.querySelectorAll('.falling-word');
+        existingWords.forEach(w => w.remove());
+
+        const pauseOverlay = document.getElementById('pauseOverlay');
+        if (pauseOverlay) pauseOverlay.remove();
+
+        typingInput.disabled = false;
+        typingInput.placeholder = '단어를 입력하고 엔터를 누르세요...';
+
+        if (gameState.wordSpawnInterval) clearInterval(gameState.wordSpawnInterval);
+        if (gameState.gameInterval) clearInterval(gameState.gameInterval);
+
+        updateDisplay();
+    }
+
+    function updateDisplay() {
+        currentStageEl.textContent = gameState.currentStage;
+        currentScoreEl.textContent = gameState.currentScore;
+        currentProblemEl.textContent = gameState.currentProblem;
+        totalProblemsEl.textContent = gameState.totalProblems;
+        updateHearts();
+    }
+
+    function loadRankings() {
+        fetch("https://www.medcalc.co.kr/js/typing-rain-get-ranking-ko.php")
+        .then(r => r.json())
+        .then(data => {
+            rankingContainer.innerHTML = "";
+
+            data.slice(0, 20).forEach((entry, index) => {
+                const rank = index + 1;
+                const isTop10 = rank <= 10;
+                const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
+                const fontWeight = isTop10 ? '900' : '600';
+                const fontSize = isTop10 ? '15px' : '13px';
+                const background = isTop10 ? 'rgba(255,215,0,0.18)' : 'rgba(255,255,255,0.10)';
+                const border = isTop10 ? '2px solid rgba(255,215,0,0.35)' : '1px solid rgba(255,255,255,0.20)';
+
+                const displayScore = entry.score ? `Score ${entry.score}` : 'N/A Score';
+                const displayStage = entry.stage ? `Stage ${entry.stage}` : 'N/A Stage';
+                const displayTime = formatTimestamp(entry.timestamp, entry.datetime);
+                const statusText = entry.isComplete ? '완료' : '실패';
+
+                const row = document.createElement("div");
+                row.innerHTML = `
+            <div style="
+              padding: 8px 12px;
+              margin: 4px 0;
+              background: ${background};
+              border: ${border};
+              border-radius: 12px;
+              font-weight: ${fontWeight};
+              font-size: ${fontSize};
+              display:flex;justify-content:space-between;align-items:center;
+              transition: all .2s ease;
+            " onmouseover="this.style.transform='translateX(4px)'; this.style.boxShadow='0 10px 20px rgba(0,0,0,.12)'"
+               onmouseout="this.style.transform='translateX(0)'; this.style.boxShadow='none'">
+              <span>${medal} ${rank}. ${entry.name} (${statusText})</span>
+              <div style="text-align:right;">
+                <div style="color:#3b82f6;font-weight:900;">${displayScore}</div>
+                <div style="color:#10b981;font-size:12px;font-weight:800;">${displayStage}</div>
+                <div style="font-size:10px;color:#64748b;margin-top:2px;">${displayTime}</div>
+              </div>
+            </div>
+          `;
+                rankingContainer.appendChild(row);
+            });
+        })
+        .catch(() => {
+            rankingContainer.innerHTML = "<p style='color:#ef4444;font-weight:800;'>랭킹 정보를 불러올 수 없습니다.</p>";
+        });
+    }
+
+    function formatTimestamp(timestamp, datetime) {
+        if (datetime) {
+            const date = new Date(datetime);
+            return date.toLocaleString('ko-KR', {
+                timeZone: 'Asia/Seoul',
+                year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit'
+            });
+        }
+        if (timestamp) {
+            const date = new Date(timestamp * 1000);
+            return date.toLocaleString('ko-KR', {
+                timeZone: 'Asia/Seoul',
+                year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit'
+            });
+        }
+        return '등록시간 없음';
+    }
+
+    // 이벤트
+    document.getElementById('startGameBtn').addEventListener('click', startGame);
+    document.getElementById('pauseBtn').addEventListener('click', togglePause);
+
+    window.addEventListener('load', () => {
+        loadKoreanWords();
+        loadRankings();
+    });
+</script>
+</body>
+</html>

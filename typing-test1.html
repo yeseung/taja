@@ -1,0 +1,1086 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>타자 속도 측정기 (타이핑 속도 테스트)</title>
+
+    <style>
+        :root{
+            --card: rgba(255,255,255,.68);
+            --card2: rgba(255,255,255,.42);
+            --stroke: rgba(255,255,255,.35);
+            --shadow: 0 14px 45px rgba(0,0,0,.18);
+            --shadow2: 0 10px 25px rgba(0,0,0,.12);
+
+            --text: #0f172a;
+            --muted:#475569;
+            --blue:#2563eb;
+            --green:#16a34a;
+            --purple:#7c3aed;
+            --red:#ef4444;
+            --orange:#f97316;
+            --yellow:#eab308;
+        }
+
+        *{ box-sizing:border-box; }
+        html,body{ height:100%; }
+        body{
+            margin:0;
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", sans-serif;
+            color: var(--text);
+            background:
+                    radial-gradient(1200px 600px at 15% 15%, rgba(34,197,94,.28), transparent 55%),
+                    radial-gradient(1200px 600px at 85% 15%, rgba(14,165,233,.28), transparent 55%),
+                    linear-gradient(135deg, #0b1220, #0b1220);
+            padding: 18px;
+            display:flex;
+            justify-content:center;
+        }
+
+        .page{ width:min(980px, 100%); }
+
+        .text-center{ text-align:center; }
+        .font-bold{ font-weight:800; }
+        .font-semibold{ font-weight:700; }
+        .text-gray-900{ color: var(--text); }
+        .text-gray-800{ color: #1f2937; }
+        .text-gray-700{ color: var(--muted); }
+        .text-gray-600{ color: #64748b; }
+        .text-blue-600{ color: var(--blue); }
+        .leading-relaxed{ line-height:1.6; }
+
+        .mb-4{ margin-bottom:16px; }
+        .mb-6{ margin-bottom:24px; }
+        .mb-8{ margin-bottom:32px; }
+
+        .title{
+            font-size: clamp(20px, 2.8vw, 34px);
+            font-weight: 900;
+            margin: 0 0 14px;
+            letter-spacing:-.3px;
+        }
+        .desc{
+            font-size: clamp(13px, 1.5vw, 16px);
+            margin:0;
+        }
+
+        .glass-card{
+            background: linear-gradient(180deg, var(--card), var(--card2));
+            border: 1px solid var(--stroke);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .p-6{ padding:24px; }
+
+        .grade-grid{
+            display:grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+        @media (min-width: 640px){
+            .grade-grid{ grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (min-width: 1024px){
+            .grade-grid{ grid-template-columns: repeat(3, 1fr); }
+        }
+        .grade{
+            border-radius: 14px;
+            padding: 12px;
+            border: 1px solid rgba(15,23,42,.06);
+            box-shadow: 0 8px 18px rgba(0,0,0,.08);
+            background: rgba(255,255,255,.65);
+            font-size: 14px;
+        }
+        .grade.red{ background: rgba(239,68,68,.14); }
+        .grade.orange{ background: rgba(249,115,22,.14); }
+        .grade.yellow{ background: rgba(234,179,8,.14); }
+        .grade.green{ background: rgba(22,163,74,.14); }
+        .grade.purple{ background: rgba(124,58,237,.14); }
+
+        .row{
+            display:flex;
+            flex-direction:column;
+            gap: 10px;
+            align-items:stretch;
+        }
+        @media (min-width: 640px){
+            .row{ flex-direction:row; align-items:center; }
+        }
+
+        .form-select{
+            width:100%;
+            height: 44px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,.45);
+            background: rgba(255,255,255,.90);
+            padding: 0 12px;
+            font-size: 15px;
+            outline:none;
+            box-shadow: 0 10px 22px rgba(0,0,0,.12);
+        }
+        .form-select:focus{
+            border-color: rgba(37,99,235,.55);
+            box-shadow: 0 12px 30px rgba(37,99,235,.18);
+        }
+
+        .glass-button{
+            border: 1px solid rgba(255,255,255,.45);
+            background: linear-gradient(135deg, rgba(255,255,255,.78), rgba(255,255,255,.35));
+            box-shadow: 0 12px 28px rgba(0,0,0,.16);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            cursor:pointer;
+            border-radius: 14px;
+            padding: 12px 16px;
+            font-weight: 900;
+            transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
+        }
+        .glass-button:hover{
+            transform: translateY(-1px);
+            box-shadow: 0 16px 34px rgba(0,0,0,.20);
+            filter: brightness(1.02);
+        }
+        .glass-button:active{ transform: translateY(0) scale(.99); }
+
+        .typing-stats{ margin: 18px 0; }
+        .stats-grid{
+            display:grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        @media (min-width: 640px){
+            .stats-grid{ grid-template-columns: repeat(3, 1fr); }
+        }
+        .stat-box{
+            border-radius: 16px;
+            padding: 14px;
+            background: rgba(255,255,255,.70);
+            border: 1px solid rgba(255,255,255,.40);
+            box-shadow: var(--shadow2);
+            text-align:center;
+        }
+        .stat-box.blue{ background: rgba(37,99,235,.13); }
+        .stat-box.green{ background: rgba(22,163,74,.13); }
+        .stat-box.purple{ background: rgba(124,58,237,.13); }
+
+        .stat-text{
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: -.2px;
+        }
+        #cpmDisplay{ color:#1e40af; }
+        #accuracyDisplay{ color:#065f46; }
+        #timerDisplay{ color:#4c1d95; }
+
+        .typing-area{ margin: 18px 0; }
+        #sentenceDiv{
+            border-radius: 16px;
+            padding: 14px;
+            border: 2px solid rgba(15,23,42,.10);
+            background: rgba(255,255,255,.78);
+            box-shadow: var(--shadow2);
+            min-height: 64px;
+            font-size: 18px;
+            font-weight: 900;
+        }
+
+        #typingDiv{
+            margin-top: 12px;
+            border-radius: 16px;
+            border: 2px solid rgba(255,255,255,.42);
+            background: rgba(255,255,255,.90);
+            box-shadow: 0 14px 34px rgba(0,0,0,.14);
+            outline:none;
+            line-height: 1.6;
+            min-height: 120px;
+            padding: 14px;
+            font-size: 18px;
+            white-space: pre-wrap;
+        }
+        #typingDiv:focus{
+            border-color: rgba(37,99,235,.55);
+            box-shadow: 0 18px 40px rgba(37,99,235,.20);
+        }
+
+        .btn-wrap{ margin-top: 14px; text-align:center; }
+        .btn-wide{ width: 100%; }
+        @media (min-width: 640px){
+            .btn-wide{ width:auto; min-width: 220px; padding: 14px 22px; }
+        }
+
+        .record-container, .ranking-container{
+            max-height: 360px;
+            overflow:auto;
+            padding-right: 6px;
+            border-radius: 14px;
+        }
+        .record-container::-webkit-scrollbar,
+        .ranking-container::-webkit-scrollbar{ width: 10px; }
+        .record-container::-webkit-scrollbar-thumb,
+        .ranking-container::-webkit-scrollbar-thumb{
+            background: rgba(15,23,42,.25);
+            border-radius: 20px;
+            border: 2px solid rgba(255,255,255,.35);
+        }
+
+        /* 문장 글자 span 기본색 */
+        #sentenceDiv span{ color:#0f172a; }
+
+        /* small helper */
+        .note{ font-size: 12px; color:#64748b; margin-top: 8px; }
+    </style>
+</head>
+
+<body>
+<div class="page">
+
+    <div class="text-center mb-8">
+        <h1 class="title text-gray-900">타자 속도 측정기 (타이핑 속도 테스트)</h1>
+        <p class="desc text-gray-700 leading-relaxed">
+            본인의 타자 속도를 테스트 해 보세요.<br>
+            10문장 타이핑을 완료할 경우 CPM 과 Score 기록이 랭크에 올라갑니다.<br>
+            <span class="text-blue-600 font-bold">CPM : Characters Per Minute (분당 글자수)</span><br>
+            <span class="text-blue-600 font-bold">Score : CPM x ( 입력한 문자수 / 예문의 문자수 ) x ( 정확도(%) / 100 )</span><br>
+            <span class="text-gray-600">※ CPM 과 타이핑한 글자의 정확도 모두 높아야 좋은 Score 가 나옵니다.</span>
+        </p>
+    </div>
+
+    <!-- 난이도 등급 -->
+    <div class="glass-card p-6 mb-6">
+        <h2 class="font-semibold text-gray-900 mb-4" style="font-size:20px;">난이도 등급</h2>
+        <div class="grade-grid">
+            <div class="grade red">
+                <span class="font-bold" style="color:#7f1d1d;">1. 하수 (Beginner)</span><br>
+                <span style="color:#b91c1c;">CPM 150 이하</span>
+            </div>
+            <div class="grade orange">
+                <span class="font-bold" style="color:#7c2d12;">2. 중수 (Intermediate)</span><br>
+                <span style="color:#c2410c;">CPM 151 ~ 300</span>
+            </div>
+            <div class="grade yellow">
+                <span class="font-bold" style="color:#713f12;">3. 고수 (Advanced)</span><br>
+                <span style="color:#a16207;">CPM 301 ~ 500</span>
+            </div>
+            <div class="grade green">
+                <span class="font-bold" style="color:#064e3b;">4. 초고수 (Expert)</span><br>
+                <span style="color:#047857;">CPM 501 ~ 700</span>
+            </div>
+            <div class="grade purple">
+                <span class="font-bold" style="color:#4c1d95;">5. 신 (Legend)</span><br>
+                <span style="color:#6d28d9;">CPM 701 이상</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 언어 선택 -->
+    <div class="glass-card p-6 mb-6">
+        <h2 class="font-semibold text-gray-900 mb-4" style="font-size:20px;">언어 선택</h2>
+        <div class="row">
+            <label for="languageSelect" class="font-bold text-gray-700" style="min-width:160px;">한글/영어 선택:</label>
+            <select id="languageSelect" onchange="changeLanguage()" class="form-select">
+                <option value="korean">한글 문장</option>
+                <option value="english">영어 문장</option>
+                <option value="alternating">한글/영어 혼합</option>
+            </select>
+        </div>
+        <div class="note">※ 혼합 모드는 한글/영어가 번갈아 나옵니다.</div>
+    </div>
+
+    <!-- 실시간 통계 -->
+    <div class="typing-stats">
+        <h2 class="font-semibold text-gray-900 mb-4" style="font-size:20px;">실시간 통계</h2>
+        <div class="stats-grid">
+            <div class="stat-box blue">
+                <div id="cpmDisplay" class="stat-text">CPM: 0</div>
+            </div>
+            <div class="stat-box green">
+                <div id="accuracyDisplay" class="stat-text">Accuracy: 100%</div>
+            </div>
+            <div class="stat-box purple">
+                <div id="timerDisplay" class="stat-text">Time: 0.0초</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 타이핑 영역 -->
+    <div class="typing-area">
+        <h2 class="font-semibold text-gray-900 mb-4" style="font-size:20px;">타이핑 영역</h2>
+        <div id="sentenceDiv" class="mb-4"></div>
+        <div id="typingDiv" contenteditable="true" spellcheck="false" autocapitalize="off" onpaste="return false;"></div>
+        <div class="btn-wrap">
+            <input type="button" value="다음문제 넘어가기" onclick="nextSentence()" class="glass-button btn-wide">
+        </div>
+    </div>
+
+    <!-- 기록 -->
+    <div class="glass-card p-6 mb-6">
+        <h2 class="font-semibold text-gray-900 mb-4" style="font-size:20px;">기록</h2>
+        <div id="averageVelocityDiv" class="font-bold text-blue-600 mb-4" style="font-size:18px;">평균 CPM: 0</div>
+        <div id="recordContainer" class="record-container"></div>
+    </div>
+
+    <!-- 명예의 전당 -->
+    <div class="glass-card p-6 mb-6">
+        <h2 class="font-semibold text-gray-900 mb-4" style="font-size:20px;">명예의 전당 (Top 100)</h2>
+        <div id="rankingContainer" class="ranking-container">
+            <p class="text-gray-600">랭킹 정보를 불러오는 중&#8230;</p>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const sentencePools = {
+        korean: [
+            "세상에서 가장 중요한 일은 바로 자신을 아는 일이다.",
+            "인생은 용감한 모험이거나 아니면 아무것도 아니다.",
+            "성공은 작은 노력들이 모여 이루어진다.",
+            "지식은 힘이다.",
+            "행복은 우리가 하는 일에 달려 있다.",
+            "사랑은 모든 것을 이긴다.",
+            "꿈을 꿔라, 그리고 그 꿈을 좇아라.",
+            "불가능은 노력하지 않는 자의 변명일 뿐이다.",
+            "가장 어두운 밤이 지나야 새벽이 온다.",
+            "인생은 속도가 아니라 방향이다.",
+            "오늘을 잡아라. 내일은 알 수 없다.",
+            "긍정적인 생각은 긍정적인 결과를 낳는다.",
+            "모든 것은 변한다. 변하지 않는 것은 아무것도 없다.",
+            "시작이 반이다.",
+            "천 리 길도 한 걸음부터.",
+            "구르는 돌에는 이끼가 끼지 않는다.",
+            "일찍 일어나는 새가 벌레를 잡는다.",
+            "벼는 익을수록 고개를 숙인다.",
+            "가는 말이 고와야 오는 말이 곱다.",
+            "말은 마음의 거울이다."
+        ],
+        english: [
+            "The quick brown fox jumps over the lazy dog.",
+            "Never underestimate the power of a good book.",
+            "Practice makes perfect in every endeavor.",
+            "The only way to do great work is to love what you do.",
+            "Innovation distinguishes between a leader and a follower.",
+            "Be the change that you wish to see in the world.",
+            "The future belongs to those who believe in the beauty of their dreams.",
+            "You miss 100% of the shots you don't take.",
+            "Good morning! Did you sleep well?",
+            "I'm off to work. See you at dinnertime."
+        ]
+    };
+
+    let currentSentence = "";
+    let startTime = 0;
+    let timerInterval = null;        // CPM/정확도 (1초)
+    let visualTimerInterval = null;  // 시간표시 (0.1초)
+    let correctCharacters = 0;
+    let totalTypedCharacters = 0;
+    let isTypingStarted = false;
+
+    let recordCounter = 0;
+    let totalCpmSum = 0;
+    let completedSentences = 0;
+
+    let selectedLanguageOption = 'korean';
+    let lastMixedLanguageWasKorean = true;
+
+    // 10문장 누적
+    let totalCorrectCharacters = 0;
+    let totalElapsedTime = 0;
+    let cumulativeTotalTypedCharacters = 0;
+    let totalScoreSum = 0;
+
+    const sentenceDiv = document.getElementById("sentenceDiv");
+    const typingDiv = document.getElementById("typingDiv");
+    const cpmDisplay = document.getElementById("cpmDisplay");
+    const accuracyDisplay = document.getElementById("accuracyDisplay");
+    const timerDisplay = document.getElementById("timerDisplay");
+    const recordContainer = document.getElementById("recordContainer");
+    const averageVelocityDiv = document.getElementById("averageVelocityDiv");
+    const languageSelect = document.getElementById("languageSelect");
+    const rankingContainer = document.getElementById("rankingContainer");
+
+    function initializeTypingTest() {
+        let targetPool;
+        if (selectedLanguageOption === 'alternating') {
+            if (lastMixedLanguageWasKorean) {
+                targetPool = sentencePools.english;
+                lastMixedLanguageWasKorean = false;
+            } else {
+                targetPool = sentencePools.korean;
+                lastMixedLanguageWasKorean = true;
+            }
+        } else {
+            targetPool = sentencePools[selectedLanguageOption];
+        }
+
+        currentSentence = targetPool[Math.floor(Math.random() * targetPool.length)];
+        sentenceDiv.innerHTML = currentSentence.split('').map(char => `<span>${escapeHtml(char)}</span>`).join('');
+        typingDiv.innerText = "";
+
+        cpmDisplay.innerText = "CPM: 0";
+        accuracyDisplay.innerText = "Accuracy: 100%";
+        timerDisplay.innerText = "Time: 0.0초";
+
+        correctCharacters = 0;
+        totalTypedCharacters = 0;
+        isTypingStarted = false;
+        stopAllTimers();
+        typingDiv.focus();
+    }
+
+    function escapeHtml(s){
+        return s
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function changeLanguage() {
+        selectedLanguageOption = languageSelect.value;
+
+        recordCounter = 0;
+        totalCpmSum = 0;
+        completedSentences = 0;
+        recordContainer.innerHTML = "";
+
+        totalCorrectCharacters = 0;
+        totalElapsedTime = 0;
+        cumulativeTotalTypedCharacters = 0;
+        totalScoreSum = 0;
+
+        updateAverageVelocity();
+
+        if (selectedLanguageOption === 'alternating') lastMixedLanguageWasKorean = true;
+
+        initializeTypingTest();
+    }
+
+    typingDiv.addEventListener("input", startTyping);
+
+    // 붙여넣기 방지
+    typingDiv.addEventListener("paste", function(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        showCheatingWarning();
+        return false;
+    });
+
+    // 우클릭 방지
+    typingDiv.addEventListener("contextmenu", function(event) {
+        event.preventDefault();
+        return false;
+    });
+
+    // 드롭 방지
+    typingDiv.addEventListener("dragover", function(event) {
+        event.preventDefault();
+        return false;
+    });
+    typingDiv.addEventListener("drop", function(event) {
+        event.preventDefault();
+        showCheatingWarning();
+        return false;
+    });
+
+    // 키다운 (엔터/복붙)
+    typingDiv.addEventListener("keydown", (event) => {
+        if ((event.ctrlKey && (event.key === 'v' || event.key === 'V')) ||
+            (event.ctrlKey && event.shiftKey && (event.key === 'v' || event.key === 'V')) ||
+            (event.ctrlKey && event.key === 'Insert') ||
+            (event.shiftKey && event.key === 'Insert')) {
+            event.preventDefault();
+            event.stopPropagation();
+            showCheatingWarning();
+            return false;
+        }
+
+        if (event.key === "Enter") {
+            event.preventDefault();
+            finalizeSentence();
+        }
+    });
+
+    function startTyping() {
+        if (!isTypingStarted) {
+            startTime = new Date().getTime();
+            timerInterval = setInterval(updateStats, 1000);
+            visualTimerInterval = setInterval(updateVisualTimer, 100);
+            isTypingStarted = true;
+        }
+        updateTypingDisplay();
+        updateStats();
+    }
+
+    function updateTypingDisplay() {
+        const typedText = typingDiv.innerText;
+        const sentenceChars = sentenceDiv.querySelectorAll('span');
+        let currentCorrectCount = 0;
+
+        totalTypedCharacters = typedText.length;
+
+        sentenceChars.forEach((charSpan, index) => {
+            if (index < typedText.length) {
+                if (typedText[index] === currentSentence[index]) {
+                    charSpan.style.color = "blue";
+                    currentCorrectCount++;
+                } else {
+                    charSpan.style.color = "red";
+                }
+            } else {
+                charSpan.style.color = "black";
+            }
+        });
+
+        correctCharacters = currentCorrectCount;
+
+        if (typedText.length === currentSentence.length) {
+            if (correctCharacters === currentSentence.length) finalizeSentence();
+        }
+    }
+
+    function updateStats() {
+        if (!isTypingStarted) return;
+
+        const currentTime = new Date().getTime();
+        const elapsedSeconds = (currentTime - startTime) / 1000;
+        const elapsedMinutes = elapsedSeconds / 60;
+
+        if (elapsedMinutes > 0) {
+            const cpm = Math.round(correctCharacters / elapsedMinutes);
+            cpmDisplay.innerText = `CPM: ${cpm}`;
+        } else {
+            cpmDisplay.innerText = "CPM: 0";
+        }
+
+        if (totalTypedCharacters > 0) {
+            const accuracy = ((correctCharacters / totalTypedCharacters) * 100).toFixed(1);
+            accuracyDisplay.innerText = `Accuracy: ${accuracy}%`;
+        } else {
+            accuracyDisplay.innerText = "Accuracy: 100%";
+        }
+    }
+
+    function updateVisualTimer() {
+        if (!isTypingStarted) return;
+        const currentTime = new Date().getTime();
+        const elapsedSeconds = (currentTime - startTime) / 1000;
+        timerDisplay.innerText = `Time: ${elapsedSeconds.toFixed(1)}초`;
+    }
+
+    function stopAllTimersimersSafe(){
+        stopAllTimers();
+    }
+
+    function stopAllTimers() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+        if (visualTimerInterval) {
+            clearInterval(visualTimerInterval);
+            visualTimerInterval = null;
+        }
+    }
+
+    function finalizeSentence() {
+        if (!isTypingStarted) return;
+
+        stopAllTimers();
+        isTypingStarted = false;
+
+        // 최종 표시 1회 더
+        const now = new Date().getTime();
+        const elapsedSeconds = (now - startTime) / 1000;
+        const elapsedMinutes = elapsedSeconds / 60;
+
+        const finalCpm = (elapsedMinutes > 0) ? Math.round(correctCharacters / elapsedMinutes) : 0;
+        const finalAccuracyNum = (totalTypedCharacters > 0) ? ((correctCharacters / totalTypedCharacters) * 100) : 100;
+        const finalAccuracy = finalAccuracyNum.toFixed(1);
+        const finalTime = elapsedSeconds.toFixed(1);
+
+        cpmDisplay.innerText = `CPM: ${finalCpm}`;
+        accuracyDisplay.innerText = `Accuracy: ${finalAccuracy}%`;
+        timerDisplay.innerText = `Time: ${finalTime}초`;
+
+        // 누적
+        totalCorrectCharacters += correctCharacters;
+        totalElapsedTime += elapsedSeconds;
+        cumulativeTotalTypedCharacters += totalTypedCharacters;
+
+        const typedCharsInSentence = typingDiv.innerText.length;
+        const sentenceLength = currentSentence.length;
+
+        let currentSentenceScore = 0;
+        if (sentenceLength > 0 && typedCharsInSentence > 0) {
+            currentSentenceScore = finalCpm * (typedCharsInSentence / sentenceLength) * (finalAccuracyNum / 100);
+            currentSentenceScore = Math.round(currentSentenceScore);
+        }
+        totalScoreSum += currentSentenceScore;
+
+        recordCounter++;
+        const recordItem = document.createElement('p');
+        recordItem.innerHTML = `#${recordCounter}: <span style="font-weight:900;">${finalCpm} CPM</span>, Accuracy: ${finalAccuracy}%, Time: ${finalTime}초, <span style="font-weight:900; color:${getScoreColor(currentSentenceScore)};">Score ${currentSentenceScore}</span>`;
+        recordItem.style.margin = "6px 0";
+        recordContainer.prepend(recordItem);
+        recordContainer.scrollTop = 0;
+
+        totalCpmSum += finalCpm;
+        completedSentences++;
+        updateAverageVelocity();
+
+        if (completedSentences === 10) {
+            const avgCpm = Math.round(totalCpmSum / completedSentences);
+            const avgAccuracy = ((totalCorrectCharacters / (cumulativeTotalTypedCharacters || 1)) * 100).toFixed(1);
+            const totalSessionTime = totalElapsedTime.toFixed(1);
+            const finalTotalScore = Math.round(totalScoreSum);
+
+            const finalRecord = document.createElement('p');
+            finalRecord.innerHTML =
+                `<span style="font-weight:900; color:#16a34a;">평균 CPM (10문장 기준): ${avgCpm}</span><br>` +
+                `<span style="font-weight:900; color:#f97316;">총 Score: ${finalTotalScore}</span>`;
+            finalRecord.style.marginTop = "12px";
+            finalRecord.style.padding = "10px 12px";
+            finalRecord.style.background = "rgba(22,163,74,.12)";
+            finalRecord.style.borderTop = "2px dashed rgba(22,163,74,.45)";
+            finalRecord.style.borderRadius = "12px";
+            recordContainer.appendChild(finalRecord);
+
+            setTimeout(() => {
+                showRankingModal(avgCpm, avgAccuracy, totalSessionTime, finalTotalScore);
+            }, 100);
+
+            // 다음 라운드 초기화(모달 뒤에서 자동 재시작되게)
+            recordCounter = 0;
+            totalCpmSum = 0;
+            completedSentences = 0;
+
+            totalCorrectCharacters = 0;
+            totalElapsedTime = 0;
+            cumulativeTotalTypedCharacters = 0;
+            totalScoreSum = 0;
+
+            recordContainer.innerHTML = "";
+            updateAverageVelocity();
+            initializeTypingTest();
+        } else {
+            setTimeout(nextSentence, 500);
+        }
+    }
+
+    function getScoreColor(score){
+        if (score >= 800) return "#7c3aed";
+        if (score >= 500) return "#2563eb";
+        if (score >= 300) return "#16a34a";
+        if (score >= 150) return "#f97316";
+        return "#ef4444";
+    }
+
+    function updateAverageVelocity() {
+        let modeText = "";
+        if (selectedLanguageOption === 'korean') modeText = "(한글)";
+        else if (selectedLanguageOption === 'english') modeText = "(영어)";
+        else if (selectedLanguageOption === 'alternating') modeText = "(한/영 혼합)";
+
+        if (completedSentences > 0) {
+            const averageCpm = Math.round(totalCpmSum / completedSentences);
+            averageVelocityDiv.innerText = `${modeText} 평균 CPM: ${averageCpm}`;
+        } else {
+            averageVelocityDiv.innerText = `${modeText} 평균 CPM: 0`;
+        }
+    }
+
+    function nextSentence() {
+        initializeTypingTest();
+    }
+
+    function showCheatingWarning() {
+        const existingWarning = document.getElementById('cheating-warning');
+        if (existingWarning) existingWarning.remove();
+
+        const warning = document.createElement('div');
+        warning.id = 'cheating-warning';
+        warning.innerHTML = `
+      <div style="
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        color: white;
+        padding: 20px 30px;
+        border-radius: 12px;
+        font-size: 18px;
+        font-weight: 900;
+        text-align: center;
+        z-index: 10000;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        border: 3px solid #fff;
+        animation: shake 0.5s ease-in-out;
+      ">
+        🚫 복사/붙여넣기는 금지됩니다!<br>
+        <small style="font-size: 14px; opacity: 0.9; font-weight:700;">
+          정직한 타이핑으로 실력을 측정해주세요.
+        </small>
+      </div>
+    `;
+
+        if (!document.getElementById('cheating-animation')) {
+            const style = document.createElement('style');
+            style.id = 'cheating-animation';
+            style.textContent = `
+        @keyframes shake {
+          0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
+          25% { transform: translate(-50%, -50%) rotate(-5deg); }
+          75% { transform: translate(-50%, -50%) rotate(5deg); }
+        }
+      `;
+            document.head.appendChild(style);
+        }
+
+        document.body.appendChild(warning);
+        setTimeout(() => { if (warning && warning.parentNode) warning.remove(); }, 2500);
+    }
+
+    function showRankingModal(avgCpm, avgAccuracy, totalSessionTime, finalTotalScore) {
+        const existingModal = document.getElementById('ranking-modal');
+        if (existingModal) existingModal.remove();
+
+        const modal = document.createElement('div');
+        modal.id = 'ranking-modal';
+        modal.innerHTML = `
+      <div style="
+        position: fixed; inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(5px);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease-out;
+        padding: 18px;
+      ">
+        <div style="
+          background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+          border-radius: 20px;
+          padding: 26px;
+          max-width: 520px;
+          width: 100%;
+          box-shadow: 0 20px 60px rgba(59, 130, 246, 0.3);
+          border: 2px solid rgba(255, 255, 255, 0.2);
+          animation: slideIn 0.3s ease-out;
+        ">
+          <div style="text-align: center; color: white;">
+            <h2 style="font-size: 24px; font-weight: 900; margin:0 0 14px;">
+              🎉 축하합니다! 🎉
+            </h2>
+            <p style="font-size: 16px; margin:0 0 18px; opacity: 0.92;">
+              10개의 문장 타이핑을 완료했습니다!
+            </p>
+
+            <div style="
+              background: rgba(255, 255, 255, 0.12);
+              border-radius: 14px;
+              padding: 16px;
+              margin: 16px 0 14px;
+              text-align:left;
+              font-weight:700;
+            ">
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div><strong>평균 CPM:</strong> ${avgCpm}</div>
+                <div><strong>정확도:</strong> ${avgAccuracy}%</div>
+                <div><strong>총 시간:</strong> ${totalSessionTime}초</div>
+                <div><strong>총 Score:</strong> ${finalTotalScore}</div>
+              </div>
+            </div>
+
+            <p style="font-size: 16px; margin: 10px 0 12px;">
+              랭킹에 이름을 올리시겠습니까?
+            </p>
+
+            <div style="margin-bottom: 14px;">
+              <input type="text" id="userNameInput" placeholder="이름을 입력하세요 (최대 12자)"
+                maxlength="12"
+                style="
+                  width: 100%;
+                  padding: 12px 16px;
+                  border: 2px solid rgba(255, 255, 255, 0.3);
+                  border-radius: 12px;
+                  background: rgba(255, 255, 255, 0.95);
+                  font-size: 16px;
+                  color: #333;
+                  box-sizing: border-box;
+                  outline:none;
+                "
+              >
+            </div>
+
+            <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+              <button id="registerBtn" style="
+                background: linear-gradient(135deg, #4CAF50, #45a049);
+                color: white;
+                border: none;
+                padding: 12px 22px;
+                border-radius: 12px;
+                font-size: 16px;
+                font-weight: 900;
+                cursor: pointer;
+                box-shadow: 0 6px 20px rgba(76, 175, 80, 0.35);
+              ">등록하기</button>
+
+              <button id="skipBtn" style="
+                background: linear-gradient(135deg, #f44336, #d32f2f);
+                color: white;
+                border: none;
+                padding: 12px 22px;
+                border-radius: 12px;
+                font-size: 16px;
+                font-weight: 900;
+                cursor: pointer;
+                box-shadow: 0 6px 20px rgba(244, 67, 54, 0.30);
+              ">건너뛰기</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+        if (!document.getElementById('modal-animation')) {
+            const style = document.createElement('style');
+            style.id = 'modal-animation';
+            style.textContent = `
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { transform: scale(0.92) translateY(-20px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+      `;
+            document.head.appendChild(style);
+        }
+
+        document.body.appendChild(modal);
+
+        const userNameInput = document.getElementById('userNameInput');
+        const registerBtn = document.getElementById('registerBtn');
+        const skipBtn = document.getElementById('skipBtn');
+
+        userNameInput.focus();
+
+        userNameInput.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') registerBtn.click();
+        });
+
+        registerBtn.addEventListener('click', function() {
+            const userName = userNameInput.value.trim();
+            if (userName) {
+                registerToRanking(userName, avgCpm, avgAccuracy, totalSessionTime, finalTotalScore);
+                modal.remove();
+            } else {
+                userNameInput.style.borderColor = '#f44336';
+                userNameInput.placeholder = '이름을 입력해주세요!';
+                setTimeout(() => {
+                    userNameInput.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                    userNameInput.placeholder = '이름을 입력하세요 (최대 12자)';
+                }, 1500);
+            }
+        });
+
+        skipBtn.addEventListener('click', function() {
+            modal.remove();
+            resetAndRestart();
+        });
+
+        modal.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                modal.remove();
+                resetAndRestart();
+            }
+        });
+    }
+
+    function registerToRanking(userName, avgCpm, avgAccuracy, totalSessionTime, finalTotalScore) {
+        const languageMode = selectedLanguageOption;
+        const payload = {
+            name: userName.substring(0, 12),
+            cpm: avgCpm,
+            language: languageMode,
+            accuracy: parseFloat(avgAccuracy),
+            time: parseFloat(totalSessionTime),
+            totalScore: finalTotalScore,
+            timestamp: Math.floor(Date.now() / 1000),
+            datetime: new Date().toISOString()
+        };
+
+        fetch("https://www.medcalc.co.kr/js/typing-velocity-save-ranking-ko.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        })
+        .then(r => r.json())
+        .then(() => {
+            showSuccessMessage();
+            loadRankings();
+        })
+        .catch((error) => {
+            console.error('랭킹 등록 오류:', error);
+            showErrorMessage();
+        });
+    }
+
+    function showSuccessMessage() {
+        const message = document.createElement('div');
+        message.innerHTML = `
+      <div style="
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #4CAF50, #45a049);
+        color: white;
+        padding: 14px 18px;
+        border-radius: 14px;
+        font-weight: 900;
+        z-index: 10001;
+        box-shadow: 0 10px 28px rgba(76, 175, 80, 0.28);
+        animation: slideInRight 0.3s ease-out;
+      ">✅ 랭킹에 등록되었습니다!</div>
+    `;
+
+        if (!document.getElementById('success-animation')) {
+            const style = document.createElement('style');
+            style.id = 'success-animation';
+            style.textContent = `
+        @keyframes slideInRight {
+          from { transform: translateX(20px); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+      `;
+            document.head.appendChild(style);
+        }
+
+        document.body.appendChild(message);
+        setTimeout(() => message.remove(), 2600);
+    }
+
+    function showErrorMessage() {
+        const message = document.createElement('div');
+        message.innerHTML = `
+      <div style="
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #f44336, #d32f2f);
+        color: white;
+        padding: 14px 18px;
+        border-radius: 14px;
+        font-weight: 900;
+        z-index: 10001;
+        box-shadow: 0 10px 28px rgba(244, 67, 54, 0.24);
+        animation: slideInRight 0.3s ease-out;
+      ">❌ 등록 중 오류가 발생했습니다.</div>
+    `;
+        document.body.appendChild(message);
+        setTimeout(() => message.remove(), 2600);
+    }
+
+    function resetAndRestart() {
+        recordCounter = 0;
+        totalCpmSum = 0;
+        completedSentences = 0;
+
+        totalCorrectCharacters = 0;
+        totalElapsedTime = 0;
+        cumulativeTotalTypedCharacters = 0;
+        totalScoreSum = 0;
+
+        recordContainer.innerHTML = "";
+        updateAverageVelocity();
+        initializeTypingTest();
+    }
+
+    function formatTimestamp(timestamp, datetime) {
+        if (datetime) {
+            const date = new Date(datetime);
+            return date.toLocaleString('ko-KR', {
+                timeZone: 'Asia/Seoul',
+                year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit'
+            });
+        }
+        if (timestamp) {
+            const date = new Date(timestamp * 1000);
+            return date.toLocaleString('ko-KR', {
+                timeZone: 'Asia/Seoul',
+                year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit'
+            });
+        }
+        return '등록시간 없음';
+    }
+
+    function loadRankings() {
+        fetch("https://www.medcalc.co.kr/js/typing-velocity-get-ranking-ko.php")
+        .then(response => {
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return response.json();
+        })
+        .then(data => {
+            rankingContainer.innerHTML = "";
+
+            data.forEach((entry, index) => {
+                const rank = index + 1;
+                const isTop10 = rank <= 10;
+                const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
+                const fontWeight = isTop10 ? '900' : '700';
+                const fontSize = isTop10 ? '15px' : '13px';
+                const background = isTop10 ? 'rgba(255,215,0,0.18)' : 'rgba(255,255,255,0.10)';
+                const border = isTop10 ? '2px solid rgba(255,215,0,0.35)' : '1px solid rgba(255,255,255,0.20)';
+
+                let langLabel = "";
+                if (entry.language === "korean") langLabel = "(한글)";
+                else if (entry.language === "english") langLabel = "(영어)";
+                else if (entry.language === "alternating") langLabel = "(혼합)";
+
+                const displayCpm = entry.cpm ? `${entry.cpm} CPM` : 'N/A CPM';
+                const displayScore = entry.totalScore ? `Score ${entry.totalScore}` : 'N/A Score';
+                const displayTime = formatTimestamp(entry.timestamp, entry.datetime);
+
+                const row = document.createElement("div");
+                row.innerHTML = `
+            <div style="
+              padding: 8px 12px;
+              margin: 4px 0;
+              background: ${background};
+              border: ${border};
+              border-radius: 12px;
+              font-weight: ${fontWeight};
+              font-size: ${fontSize};
+              display:flex;
+              justify-content:space-between;
+              align-items:center;
+              transition: all .2s ease;
+            " onmouseover="this.style.transform='translateX(4px)'; this.style.boxShadow='0 10px 20px rgba(0,0,0,.12)'"
+               onmouseout="this.style.transform='translateX(0)'; this.style.boxShadow='none'">
+              <span>${medal} ${rank}. ${entry.name} ${langLabel}</span>
+              <div style="text-align:right;">
+                <div style="color:#3b82f6; font-weight:900;">${displayCpm}</div>
+                <div style="color:#10b981; font-size:12px; font-weight:900;">${displayScore}</div>
+                <div style="font-size:10px; color:#64748b; margin-top:2px;">${displayTime}</div>
+              </div>
+            </div>
+          `;
+                rankingContainer.appendChild(row);
+            });
+        })
+        .catch(error => {
+            rankingContainer.innerHTML = "<p style='color:#ef4444; font-weight:900;'>랭킹 정보를 불러올 수 없습니다. 오류: " + escapeHtml(String(error.message)) + "</p>";
+            console.error("랭킹 로딩 중 오류 발생:", error);
+        });
+    }
+
+    window.onload = function() {
+        initializeTypingTest();
+        loadRankings();
+    };
+</script>
+</body>
+</html>
