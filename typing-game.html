@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>타자 연습 게임</title>
+    <style>
+        :root{
+            --bg:#0b1020;
+            --panel:#101936;
+            --panel2:#0f1732;
+            --text:#e9eefc;
+            --muted:#9fb0dd;
+            --accent:#7aa2ff;
+            --danger:#ff5d7a;
+            --border:rgba(255,255,255,.10);
+            --shadow: 0 18px 50px rgba(0,0,0,.45);
+            --radius:16px;
+        }
+        *{ box-sizing:border-box; }
+        body{
+            margin:0;
+            font-family: ui-sans-serif, system-ui, -apple-system, "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+            background:
+                    radial-gradient(900px 600px at 20% 10%, rgba(122,162,255,.20), transparent 60%),
+                    radial-gradient(800px 500px at 80% 30%, rgba(255,93,122,.14), transparent 55%),
+                    var(--bg);
+            color:var(--text);
+            min-height:100vh;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:18px;
+        }
+
+        /* loader */
+        #loader{
+            width:min(900px, 100%);
+            background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+            border:1px solid var(--border);
+            border-radius:var(--radius);
+            box-shadow:var(--shadow);
+            padding:28px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            gap:14px;
+        }
+        #loader-text{
+            font-size:20px;
+            letter-spacing:.4px;
+            color:var(--muted);
+        }
+        .spinner{
+            width:20px;height:20px;
+            border-radius:999px;
+            border:2px solid rgba(255,255,255,.18);
+            border-top-color: rgba(255,255,255,.75);
+            animation: spin .9s linear infinite;
+        }
+        @keyframes spin{ to { transform:rotate(360deg);} }
+
+        /* app shell */
+        #container{
+            width:min(980px, 100%);
+            background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+            border:1px solid var(--border);
+            border-radius:var(--radius);
+            box-shadow:var(--shadow);
+            overflow:hidden;
+            display:none;
+        }
+
+        #header{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            padding:16px 18px;
+            background:rgba(0,0,0,.18);
+            border-bottom:1px solid var(--border);
+            gap:12px;
+        }
+        #header-text{
+            font-weight:800;
+            letter-spacing:.3px;
+            font-size:16px;
+            color:rgba(255,255,255,.92);
+            text-align:center;
+            flex:1;
+        }
+        #score-box{
+            display:flex;
+            gap:8px;
+            align-items:baseline;
+            min-width:150px;
+            color:rgba(255,255,255,.9);
+            font-weight:700;
+        }
+        #score-box span:first-child{ color:var(--muted); font-weight:600; }
+        #score{ font-size:18px; color:rgba(255,255,255,.95); }
+
+        #main-container{
+            position:relative;
+            height:420px;
+            background:linear-gradient(180deg, rgba(15,23,50,.85), rgba(16,25,54,.65));
+            overflow:hidden;
+        }
+
+        /* random words */
+        .random-str{
+            position:absolute;
+            padding:4px 10px;
+            border-radius:999px;
+            border:1px solid rgba(255,255,255,.16);
+            background:rgba(0,0,0,.25);
+            color:rgba(255,255,255,.92);
+            font-weight:700;
+            font-size:14px;
+            backdrop-filter: blur(4px);
+            user-select:none;
+            transform: translateY(-6px);
+            opacity:0;
+            transition: opacity .18s ease, transform .18s ease;
+            white-space:nowrap;
+        }
+        .random-str.act{
+            opacity:1;
+            transform: translateY(0);
+        }
+
+        /* start counter */
+        .start-counter{
+            position:absolute;
+            inset:0;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:64px;
+            font-weight:900;
+            letter-spacing:.8px;
+            color:rgba(255,255,255,.92);
+            background:rgba(0,0,0,.15);
+            opacity:0;
+            transform: scale(.96);
+            transition: opacity .25s ease, transform .25s ease;
+        }
+        .start-counter.act{
+            opacity:1;
+            transform: scale(1);
+        }
+
+        /* bottom panel */
+        #input-box-container{
+            display:grid;
+            grid-template-columns: 1fr 1fr;
+            gap:14px;
+            padding:16px 18px 18px;
+            background:rgba(0,0,0,.12);
+            border-top:1px solid var(--border);
+        }
+
+        .panel{
+            background:rgba(255,255,255,.04);
+            border:1px solid var(--border);
+            border-radius:14px;
+            padding:14px;
+        }
+
+        #verb-num-descriptor{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:10px;
+            color:var(--muted);
+            font-size:13px;
+        }
+        #verb-num{
+            min-width:44px;
+            text-align:center;
+            padding:6px 10px;
+            border-radius:999px;
+            border:1px solid rgba(255,255,255,.16);
+            background:rgba(0,0,0,.20);
+            color:rgba(255,255,255,.92);
+            font-weight:800;
+        }
+        #verb-num.red{
+            border-color: rgba(255,93,122,.55);
+            color: #ffd2da;
+            background: rgba(255,93,122,.10);
+        }
+
+        #start-button, #renew-button{
+            width:100%;
+            padding:12px 14px;
+            border-radius:12px;
+            border:1px solid rgba(122,162,255,.55);
+            background:rgba(122,162,255,.14);
+            color:rgba(255,255,255,.92);
+            font-weight:800;
+            letter-spacing:.8px;
+            cursor:pointer;
+            transition: transform .08s ease, background .2s ease;
+        }
+        #start-button:hover, #renew-button:hover{ background:rgba(122,162,255,.22); }
+        #start-button:active, #renew-button:active{ transform: translateY(1px); }
+
+        #input-box{
+            width:100%;
+            padding:12px 12px;
+            border-radius:12px;
+            border:1px solid rgba(255,255,255,.16);
+            background:rgba(0,0,0,.22);
+            color:rgba(255,255,255,.92);
+            outline:none;
+            font-size:15px;
+            font-weight:700;
+        }
+        #input-box:focus{
+            border-color: rgba(122,162,255,.70);
+            box-shadow: 0 0 0 4px rgba(122,162,255,.12);
+        }
+
+        /* toggles */
+        .toggle{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            cursor:pointer;
+            user-select:none;
+            color:rgba(255,255,255,.88);
+            font-weight:800;
+            letter-spacing:.2px;
+        }
+        .toggle small{
+            color:var(--muted);
+            font-weight:600;
+            letter-spacing:0;
+        }
+        .collapse{
+            max-height:0;
+            overflow:hidden;
+            transition: max-height .25s ease;
+        }
+        .collapse.open{
+            max-height:240px;
+        }
+        .collapse .inner{
+            padding-top:10px;
+            color:var(--muted);
+            font-size:13px;
+            line-height:1.6;
+        }
+
+        #ranking-board{
+            list-style:none;
+            padding:0;
+            margin:0;
+            display:flex;
+            flex-direction:column;
+            gap:8px;
+        }
+        .ranking-each{
+            display:grid;
+            grid-template-columns: 64px 1fr 92px;
+            gap:8px;
+            padding:10px 10px;
+            border-radius:12px;
+            border:1px solid rgba(255,255,255,.12);
+            background:rgba(0,0,0,.18);
+            color:rgba(255,255,255,.90);
+            font-weight:700;
+            font-size:13px;
+        }
+        .ranking-each span:first-child{ color:rgba(255,255,255,.78); }
+        .ranking-each span:last-child{ text-align:right; color:#cfe0ff; }
+
+        @media (max-width: 780px){
+            #input-box-container{ grid-template-columns: 1fr; }
+            #main-container{ height:360px; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="loader">
+    <div class="spinner" aria-hidden="true"></div>
+    <div id="loader-text">타자 연습 게임 로딩 중…</div>
+</div>
+
+<div id="container">
+    <div id="header">
+        <div id="score-box">
+            <span>score :</span>
+            <span id="score">0</span>
+        </div>
+        <div id="header-text">타자 연습 게임</div>
+        <div style="min-width:150px;"></div>
+    </div>
+
+    <div id="main-container"></div>
+
+    <div id="input-box-container">
+        <!-- left -->
+        <div class="panel">
+            <div id="verb-num-descriptor">
+                <div>단어개수가 <b>10개</b>가 되면 Game Over 입니다.</div>
+                <div id="verb-num">0</div>
+            </div>
+
+            <div style="height:12px;"></div>
+
+            <button id="start-button">시 작 하 기</button>
+
+            <div style="height:10px;"></div>
+
+            <input type="text" id="input-box" placeholder="단어 입력 후 Enter" autocomplete="off" />
+
+            <div style="height:12px;"></div>
+
+            <div class="panel" style="padding:12px;">
+                <div id="rule" class="toggle">
+                    <div>규칙 보기</div>
+                    <small>열기/닫기</small>
+                </div>
+                <div id="rule-descriptor-container" class="collapse">
+                    <div class="inner">
+                        1. 시작 버튼을 누르면 일정 시간마다 화면에 무작위 단어가 생성됩니다.<br/>
+                        2. 입력창에 단어를 작성하고 엔터키를 누르면 단어가 없어지고 점수가 올라갑니다.<br/>
+                        3. 화면에 단어가 10개가 되면 Game Over 입니다.<br/>
+                        4. 점수가 올라가면 단어 생성이 빨라집니다.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- right -->
+        <div class="panel">
+            <div id="ranking" class="toggle">
+                <div>랭킹 보기</div>
+                <small>열기/닫기</small>
+            </div>
+            <div id="ranking-container" class="collapse open">
+                <div class="inner">
+                    <h3 style="margin:0 0 10px; color:rgba(255,255,255,.92);">랭 킹</h3>
+                    <ul id="ranking-board"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (() => {
+        // ===== 단어 배열 (예시) =====
+        const strArr = [
+            "가게","가격","가구","가까워지다","가까이","가깝다","가꾸다","가끔","가난","가난하다",
+            "가늘다","가능","가능성","가능하다"
+        ];
+
+        // ===== 상태 =====
+        const container = document.querySelector("#container");
+        const loader = document.querySelector("#loader");
+        const mainContainer = document.querySelector("#main-container");
+        const scoreBox = document.querySelector("#score");
+        const verbNum = document.querySelector("#verb-num");
+        const startButton = document.querySelector("#start-button");
+        const inputBox = document.querySelector("#input-box");
+        const rankingBoard = document.querySelector("#ranking-board");
+
+        let intervalRender = null;
+        let score = 0;
+        const oneLetterScore = 10;
+        const executed = [true, true, true, true];
+
+        // 이름(간단 기본값)
+        const username = localStorage.getItem("typing_username") || "Player";
+
+        // ===== 로딩 -> 화면 전환 =====
+        window.addEventListener("load", () => {
+            setTimeout(() => {
+                loader.style.display = "none";
+                container.style.display = "block";
+            }, 350);
+        });
+
+        // ===== 토글 UI =====
+        const bindToggle = (btnId, panelId, defaultOpen=false) => {
+            const btn = document.querySelector(btnId);
+            const panel = document.querySelector(panelId);
+            if (!defaultOpen) panel.classList.remove("open");
+            btn.addEventListener("click", () => {
+                panel.classList.toggle("open");
+            });
+        };
+        bindToggle("#rule", "#rule-descriptor-container", false);
+        bindToggle("#ranking", "#ranking-container", true);
+
+        // ===== 헬퍼: 현재 단어 개수 갱신 =====
+        function updateVerbCounter(){
+            const count = document.querySelectorAll(".random-str").length;
+            verbNum.textContent = count;
+            if (count > 7) verbNum.classList.add("red");
+            else verbNum.classList.remove("red");
+            return count;
+        }
+
+        // ===== 시작 카운터 =====
+        const setCounter = (text) => {
+            const el = document.createElement("div");
+            el.className = "start-counter";
+            el.textContent = text ?? "";
+            mainContainer.appendChild(el);
+            setTimeout(() => el.classList.add("act"), 30);
+            return el;
+        };
+
+        const stepCounter = (text, delay, showNext=true) => {
+            setTimeout(() => {
+                const c = document.querySelector(".start-counter");
+                if (c) c.remove();
+                if (showNext) setCounter(text);
+            }, delay);
+        };
+
+        // ===== 랜덤 위치에 단어 렌더 =====
+        function randomRender(str){
+            const rect = mainContainer.getBoundingClientRect();
+            const el = document.createElement("div");
+            el.className = "random-str";
+
+            // 실제 글자 길이에 맞춰 대략 폭 계산(가변)
+            // 최소/최대 폭 제한
+            const approxW = Math.min(220, Math.max(70, 14 * String(str).length + 26));
+            const approxH = 30;
+
+            let x, y;
+            let tries = 0;
+            do {
+                x = Math.random() * (rect.width - approxW);
+                y = Math.random() * (rect.height - approxH);
+                tries++;
+                if (tries > 30) break; // 안전장치
+            } while (x < 0 || y < 0);
+
+            el.style.left = `${Math.max(0, x)}px`;
+            el.style.top  = `${Math.max(0, y)}px`;
+            el.textContent = str;
+
+            mainContainer.appendChild(el);
+            requestAnimationFrame(() => el.classList.add("act"));
+        }
+
+        // ===== 랜덤 단어 생성 =====
+        function randomStrRender(arr){
+            const idx = Math.floor(Math.random() * arr.length); // ✅ 안전
+            randomRender(arr[idx]);
+
+            const count = updateVerbCounter();
+
+            // Game Over
+            if (count >= 10){
+                stopGame(true);
+            }
+        }
+
+        function startSpawner(ms){
+            clearInterval(intervalRender);
+            intervalRender = setInterval(randomStrRender, ms, strArr);
+        }
+
+        function stopGame(isGameOver=false){
+            clearInterval(intervalRender);
+            intervalRender = null;
+
+            // 화면 단어 제거
+            document.querySelectorAll(".random-str").forEach(el => el.remove());
+            updateVerbCounter();
+
+            if (isGameOver){
+                setCounter("Game Over");
+
+                // 기록 저장
+                localStorage.setItem(
+                    "typing_score_" + Date.now(),
+                    JSON.stringify({ username, score })
+                );
+
+                // 다시하기 버튼
+                const renewButton = document.createElement("button");
+                renewButton.id = "renew-button";
+                renewButton.textContent = "다시하기";
+                renewButton.addEventListener("click", () => location.reload());
+
+                setTimeout(() => {
+                    mainContainer.appendChild(renewButton);
+                }, 900);
+            }
+        }
+
+        // ===== 단어 제거 =====
+        function removeStr(str){
+            const targets = Array.from(document.querySelectorAll(".random-str"));
+            const target = targets.find(el => el.textContent === str);
+
+            if (!target) {
+                // 못 맞춘 경우: 카운터만 갱신
+                updateVerbCounter();
+                return;
+            }
+
+            target.remove();
+
+            // 점수 계산
+            score += str.length * oneLetterScore;
+            scoreBox.textContent = String(score);
+
+            // 점수에 따른 속도 변화
+            if (score > 200 && executed[0]) { startSpawner(1600); executed[0] = false; }
+            if (score > 500 && executed[1]) { startSpawner(1200); executed[1] = false; }
+            if (score > 1000 && executed[2]){ startSpawner(1000); executed[2] = false; }
+            if (score > 1500 && executed[3]){ startSpawner(800);  executed[3] = false; }
+
+            updateVerbCounter();
+        }
+
+        // ===== 입력 처리 =====
+        inputBox.addEventListener("keydown", (e) => {
+            if (e.key === "Enter"){
+                const value = inputBox.value.trim();
+                if (value) removeStr(value);
+                inputBox.value = "";
+            }
+        });
+
+        // ===== 시작 버튼 =====
+        startButton.addEventListener("click", () => {
+            startButton.disabled = true;
+            startButton.style.opacity = ".6";
+
+            setCounter(3);
+            stepCounter(2, 1000);
+            stepCounter(1, 2000);
+            stepCounter("Start!", 3000);
+            stepCounter("", 4000, false);
+
+            setTimeout(() => {
+                startButton.style.display = "none";
+                inputBox.focus();
+                startSpawner(2000);
+            }, 4000);
+        });
+
+        // ===== 랭킹 로드 =====
+        function loadRanking(){
+            const list = [];
+            for (let i = 0; i < localStorage.length; i++){
+                const key = localStorage.key(i);
+                if (!key || !key.startsWith("typing_score_")) continue;
+                try{
+                    list.push(JSON.parse(localStorage.getItem(key)));
+                }catch(e){}
+            }
+
+            list.sort((a,b) => (b.score||0) - (a.score||0));
+
+            rankingBoard.innerHTML = "";
+            for (let i = 0; i < 10; i++){
+                if (!list[i]) break;
+                const li = document.createElement("li");
+                li.className = "ranking-each";
+                li.innerHTML = `
+        <span>${i+1}등!</span>
+        <span>${list[i].username ?? "Player"}</span>
+        <span>${list[i].score ?? 0}점</span>
+      `;
+                rankingBoard.appendChild(li);
+            }
+
+            if (!list.length){
+                const li = document.createElement("li");
+                li.className = "ranking-each";
+                li.innerHTML = `<span>-</span><span>기록이 없습니다</span><span>0점</span>`;
+                rankingBoard.appendChild(li);
+            }
+        }
+        loadRanking();
+    })();
+</script>
+</body>
+</html>
