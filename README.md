@@ -17,6 +17,8 @@
 - https://happycgi.com/9541
 - https://www.banggooso.com/intro.html?idx=9
 - https://www.jiraksil.com/service/typingspeed
+- https://www.medcalc.co.kr/typing-rain/
+- https://riverpigeon.tistory.com/135
 <br><br>
 
 ![스크린샷 2025-03-31 오전 11 39 20](https://github.com/user-attachments/assets/0ee2ae0f-b397-46b7-ae84-c59c48de4dbd)
@@ -48,6 +50,13 @@
 ![스크린샷 2025-08-22 오전 9 52 44](https://github.com/user-attachments/assets/fb65e07a-b103-49f0-aaa9-8cd68af4436e)
 ![스크린샷 2025-08-28 오후 12 34 41](https://github.com/user-attachments/assets/594cc5a7-8e71-4ef0-97a4-46b9e8216e92)
 ![스크린샷 2025-08-28 오후 12 42 23](https://github.com/user-attachments/assets/5b0a02e2-20a3-48e4-876f-eded51e20d07)
+![스크린샷 2025-12-19 오전 10 56 43](https://github.com/user-attachments/assets/b971ffe9-f187-4d73-9034-e2863c108c67)
+![스크린샷 2025-12-19 오전 10 55 04](https://github.com/user-attachments/assets/de36c3c8-4a35-493d-9c48-95b5262522f3)
+
+
+
+
+
 ![스크린샷 2025-08-29 오전 11 26 20](https://github.com/user-attachments/assets/c9fd322a-b3c0-47e7-976d-04a32f0e6298)
 ![스크린샷 2025-11-27 오후 3 58 45](https://github.com/user-attachments/assets/98aa84a3-d336-4fcd-928a-ccbc735eea40)
 ![스크린샷 2025-11-27 오후 3 57 07](https://github.com/user-attachments/assets/8703739a-83dd-4017-a666-f33a604386cb)
