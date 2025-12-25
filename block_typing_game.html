@@ -1,0 +1,1107 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>Block Typing Game</title>
+    <style>
+        :root{
+            --bg1:#0b1220;
+            --bg2:#0a1628;
+            --panel:#ffffff;
+            --stroke:#e6edf6;
+            --text:#0f172a;
+            --muted:#6b7280;
+            --sky:#38bdf8;
+            --sky2:#0ea5e9;
+            --yellow:#fbbf24;
+            --green:#22c55e;
+            --shadow: 0 18px 55px rgba(0,0,0,.28);
+            --shadow2: 0 12px 30px rgba(15,23,42,.12);
+            --radius:28px;
+        }
+
+        *{ box-sizing:border-box; }
+        html,body{ height:100%; }
+        body{
+            margin:0;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", Arial, sans-serif;
+            background: radial-gradient(1200px 700px at 50% 15%, #1a2a46 0%, var(--bg1) 45%, #000 100%);
+            overflow:hidden;
+            user-select:none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* cloud pattern layer */
+        .cloud-bg{
+            position:absolute; inset:0;
+            opacity:.55;
+            background-image:
+                    radial-gradient(circle, rgba(255,255,255,.25) 18%, transparent 19%),
+                    radial-gradient(circle, rgba(255,255,255,.18) 18%, transparent 19%);
+            background-color: rgba(56,189,248,.10);
+            background-position: 0 0, 55px 55px;
+            background-size: 110px 110px;
+            animation: moveBg 20s linear infinite;
+            pointer-events:none;
+        }
+        @keyframes moveBg{
+            0%{ background-position: 0 0, 55px 55px; }
+            100%{ background-position: 110px 110px, 165px 165px; }
+        }
+
+        /* ====== MENU ====== */
+        .menu{
+            position:absolute; inset:0;
+            display:flex; align-items:center; justify-content:center;
+            background: rgba(240,249,255,.92);
+        }
+        .menu .decor{
+            position:absolute; font-size:54px; opacity:.18;
+            animation: floaty 3.2s ease-in-out infinite;
+        }
+        .menu .decor.d1{ top:36px; left:36px; }
+        .menu .decor.d2{ bottom:70px; right:70px; animation-delay:1s; }
+        .menu .decor.d3{ top:32%; right:38px; animation-delay:2s; }
+        @keyframes floaty{
+            0%,100%{ transform:translateY(0); }
+            50%{ transform:translateY(-10px); }
+        }
+
+        .menu-card{
+            width:min(760px, calc(100% - 28px));
+            background:var(--panel);
+            border:1px solid var(--stroke);
+            border-bottom:8px solid #bae6fd;
+            border-radius:48px;
+            box-shadow: var(--shadow);
+            padding:44px 26px 28px;
+            text-align:center;
+            position:relative;
+        }
+        .menu-title{
+            margin:0;
+            font-size:56px;
+            font-weight:1000;
+            color:var(--sky2);
+            letter-spacing:-1px;
+            text-shadow: 0 2px 0 rgba(0,0,0,.04);
+        }
+        .menu-sub{
+            margin:8px 0 18px;
+            color:var(--muted);
+            font-weight:800;
+            font-size:18px;
+        }
+
+        .hi-score{
+            margin:0 auto 22px;
+            width:min(320px, 100%);
+            background:#fffbeb;
+            border:2px solid #fde68a;
+            border-radius:22px;
+            padding:14px 16px;
+            text-align:left;
+            position:relative;
+            overflow:hidden;
+        }
+        .hi-score small{
+            display:block;
+            font-weight:900;
+            color:#ca8a04;
+            letter-spacing:.9px;
+            text-transform:uppercase;
+            margin-bottom:4px;
+        }
+        .hi-score .value{
+            font-size:40px;
+            font-weight:1000;
+            color:#eab308;
+        }
+
+        .cat-grid{
+            display:grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap:12px;
+            width:min(620px, 100%);
+            margin:0 auto;
+        }
+        @media (max-width: 520px){
+            .menu-title{ font-size:44px; }
+            .cat-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+
+        .btn3d{
+            height:60px;
+            position:relative;
+            border:0;
+            background:transparent;
+            cursor:pointer;
+            outline:none;
+        }
+        .btn3d .base{
+            position:absolute; inset:0;
+            border-radius:16px;
+            background:#bae6fd;
+            transform:translateY(8px);
+            transition: transform .12s ease;
+        }
+        .btn3d .face{
+            position:absolute; inset:0;
+            border-radius:16px;
+            background:#fff;
+            border:2px solid #38bdf8;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:20px;
+            font-weight:1000;
+            color:#0284c7;
+            transform:translateY(0);
+            transition: transform .12s ease, filter .12s ease;
+        }
+        .btn3d:hover .face{ transform:translateY(-3px); }
+        .btn3d:active .face{ transform:translateY(5px); }
+        .btn3d:hover .base{ transform:translateY(10px); }
+
+        /* ====== GAME HUD ====== */
+        .game{
+            position:absolute; inset:0;
+            display:none;
+            overflow:hidden;
+            background: rgba(240,249,255,.35);
+        }
+        .hud{
+            position:absolute;
+            top:0; left:0; right:0;
+            padding:18px 18px 0;
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
+            z-index:40;
+            pointer-events:none;
+        }
+        .hud-left{
+            display:flex;
+            gap:12px;
+        }
+        .hud-box{
+            pointer-events:none;
+            background:#fff;
+            border:1px solid var(--stroke);
+            border-bottom:4px solid #bae6fd;
+            border-radius:18px;
+            padding:10px 12px;
+            min-width:120px;
+            box-shadow: var(--shadow2);
+        }
+        .hud-box .label{
+            font-size:11px;
+            font-weight:1000;
+            letter-spacing:1px;
+            color:#38bdf8;
+            text-transform:uppercase;
+        }
+        .hud-box .num{
+            font-size:30px;
+            font-weight:1000;
+            color:#334155;
+            margin-top:2px;
+        }
+        .hud-box.level .label{ color:#fbbf24; }
+        .hud-box.level{ border-bottom-color:#fde68a; }
+
+        .lives{
+            pointer-events:none;
+            background: rgba(255,255,255,.7);
+            border:2px solid #fee2e2;
+            padding:10px 12px;
+            border-radius:999px;
+            box-shadow: var(--shadow2);
+            display:flex;
+            gap:4px;
+            align-items:center;
+        }
+        .heart{
+            font-size:22px;
+            transition: transform .18s ease, opacity .18s ease, filter .18s ease;
+        }
+        .heart.off{
+            transform:scale(.85);
+            opacity:.22;
+            filter: grayscale(1);
+        }
+
+        /* falling words area */
+        #playfield{
+            position:absolute; inset:0;
+            z-index:10;
+            pointer-events:none;
+        }
+        .word{
+            position:absolute;
+            transform:translate(-50%,-50%);
+            will-change: transform, top;
+        }
+        .word-bubble{
+            min-width:100px;
+            padding:12px 18px;
+            border-radius:999px;
+            color:#fff;
+            font-weight:1000;
+            font-size:22px;
+            letter-spacing:-.2px;
+            border-bottom:4px solid rgba(0,0,0,.18);
+            box-shadow: 0 18px 35px rgba(15,23,42,.18);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            gap:0;
+            position:relative;
+            white-space:nowrap;
+        }
+        .word-bubble::after{
+            content:"";
+            position:absolute;
+            top:8px;
+            right:18px;
+            width:14px;
+            height:6px;
+            border-radius:999px;
+            background: rgba(255,255,255,.35);
+        }
+        .word-bubble .ch.hit{
+            color:#fde68a;
+        }
+        .word-bubble.focus{
+            transform:scale(1.08);
+            box-shadow: 0 22px 50px rgba(15,23,42,.25);
+            outline:4px solid rgba(255,255,255,.75);
+            outline-offset:2px;
+        }
+
+        /* bottom input zone */
+        .bottom{
+            position:absolute;
+            left:0; right:0; bottom:0;
+            height:190px;
+            z-index:50;
+            display:flex;
+            align-items:flex-end;
+            justify-content:center;
+            padding:0 14px 22px;
+            background: linear-gradient(to top, rgba(186,230,253,.85), rgba(186,230,253,0));
+        }
+        .input-wrap{
+            width:min(880px, 100%);
+            display:flex;
+            gap:14px;
+            align-items:flex-end;
+        }
+        .mascot{
+            width:120px; height:120px;
+            border-radius:28px;
+            background:#fff;
+            border:1px solid var(--stroke);
+            box-shadow: var(--shadow2);
+            display:grid;
+            place-items:center;
+            font-size:58px;
+            user-select:none;
+        }
+        .speech{
+            flex:1;
+            position:relative;
+        }
+        .speech::before{
+            content:"";
+            position:absolute;
+            left:-10px;
+            bottom:56px;
+            width:18px; height:18px;
+            background:#fff;
+            transform:rotate(45deg);
+            border-left:4px solid #bae6fd;
+            border-bottom:4px solid #bae6fd;
+            z-index:0;
+        }
+        .input-panel{
+            position:relative;
+            z-index:2;
+            height:78px;
+            background:#fff;
+            border:4px solid #bae6fd;
+            border-radius:34px;
+            border-bottom-left-radius:14px;
+            box-shadow: var(--shadow2);
+            padding:0 22px;
+            display:flex;
+            align-items:center;
+            transition: transform .12s ease, border-color .12s ease;
+        }
+        .input-panel.active{
+            border-color:#38bdf8;
+            transform:scale(1.02);
+        }
+        .typed{
+            font-size:36px;
+            font-weight:1000;
+            color:#334155;
+            letter-spacing:.5px;
+            width:100%;
+            overflow:hidden;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+        }
+        .cursor{
+            display:inline-block;
+            width:4px;
+            height:34px;
+            background:#0ea5e9;
+            margin-left:8px;
+            vertical-align:middle;
+            animation: blink 1s steps(2,end) infinite;
+        }
+        @keyframes blink{ 50%{ opacity:0; } }
+
+        .hint{
+            margin-top:8px;
+            font-weight:900;
+            font-size:13px;
+            color:#38bdf8;
+            padding-left:14px;
+        }
+
+        /* hidden real input */
+        #hiddenInput{
+            position:absolute;
+            inset:0;
+            opacity:0;
+            width:100%;
+            height:100%;
+            border:0;
+            outline:0;
+            caret-color:transparent;
+            background:transparent;
+            z-index:5;
+        }
+
+        /* ====== GAME OVER MODAL ====== */
+        .modal{
+            position:absolute; inset:0;
+            display:none;
+            align-items:center;
+            justify-content:center;
+            background: rgba(0,0,0,.20);
+            backdrop-filter: blur(6px);
+            z-index:200;
+            padding:18px;
+        }
+        .modal-card{
+            width:min(520px, 100%);
+            background:#fff;
+            border:1px solid var(--stroke);
+            border-bottom:8px solid #cbd5e1;
+            border-radius:48px;
+            box-shadow: var(--shadow);
+            padding:34px 22px 22px;
+            text-align:center;
+            position:relative;
+            animation: floaty 3.2s ease-in-out infinite;
+        }
+        .modal-card .face{
+            position:absolute;
+            top:-74px;
+            left:50%;
+            transform:translateX(-50%);
+            width:140px;
+            height:140px;
+            border-radius:999px;
+            background:#fff;
+            border:1px solid var(--stroke);
+            box-shadow: var(--shadow2);
+            display:grid;
+            place-items:center;
+            font-size:70px;
+        }
+        .modal-card h2{
+            margin:62px 0 6px;
+            font-size:44px;
+            font-weight:1000;
+            color:#0f172a;
+            letter-spacing:-.5px;
+        }
+        .modal-card p{
+            margin:0 0 16px;
+            color:#94a3b8;
+            font-weight:900;
+        }
+        .scorebox{
+            background:#f0f9ff;
+            border:2px solid #e0f2fe;
+            border-radius:22px;
+            padding:18px 16px;
+            margin:0 auto 18px;
+        }
+        .scorebox .label{
+            font-size:11px;
+            font-weight:1000;
+            letter-spacing:2px;
+            color:#38bdf8;
+            text-transform:uppercase;
+            margin-bottom:4px;
+        }
+        .scorebox .value{
+            font-size:62px;
+            font-weight:1000;
+            color:#0ea5e9;
+            line-height:1;
+        }
+        .modal-actions{
+            display:flex;
+            gap:12px;
+            flex-wrap:wrap;
+            justify-content:center;
+        }
+        .btn{
+            border:0;
+            border-radius:999px;
+            padding:14px 18px;
+            font-size:18px;
+            font-weight:1000;
+            cursor:pointer;
+            box-shadow: 0 14px 26px rgba(15,23,42,.14);
+            transition: transform .06s ease, filter .12s ease;
+            min-width:180px;
+        }
+        .btn:active{ transform:translateY(1px); }
+        .btn.green{
+            background:linear-gradient(135deg,#34d399,#16a34a);
+            color:#fff;
+            border-bottom:4px solid #15803d;
+        }
+        .btn.yellow{
+            background:linear-gradient(135deg,#facc15,#f59e0b);
+            color:#fff;
+            border-bottom:4px solid #b45309;
+            position:relative;
+        }
+        .toast{
+            position:absolute;
+            left:50%;
+            top:-44px;
+            transform:translateX(-50%);
+            background:rgba(15,23,42,.92);
+            color:#fff;
+            font-size:12px;
+            font-weight:1000;
+            padding:10px 12px;
+            border-radius:12px;
+            display:none;
+            white-space:nowrap;
+        }
+        .toast::after{
+            content:"";
+            position:absolute;
+            left:50%;
+            bottom:-5px;
+            transform:translateX(-50%) rotate(45deg);
+            width:10px; height:10px;
+            background:rgba(15,23,42,.92);
+        }
+
+        /* word colors */
+        .c1{ background:#fb923c; }
+        .c2{ background:#4ade80; }
+        .c3{ background:#38bdf8; }
+        .c4{ background:#f472b6; }
+        .c5{ background:#facc15; color:#1f2937; }
+
+    </style>
+</head>
+
+<body>
+<div class="cloud-bg"></div>
+
+<!-- MENU -->
+<section class="menu" id="menu">
+    <div class="decor d1">☁️</div>
+    <div class="decor d2">⭐</div>
+    <div class="decor d3">✨</div>
+
+    <div class="menu-card">
+        <h1 class="menu-title">블럭타자게임</h1>
+        <div class="menu-sub">타닥이와 함께 단어 여행을 떠나요!</div>
+
+        <div class="hi-score">
+            <small>최고 기록</small>
+            <div class="value"><span id="hiScoreText">0</span> 점</div>
+        </div>
+
+        <div class="cat-grid" id="catGrid"></div>
+    </div>
+</section>
+
+<!-- GAME -->
+<section class="game" id="game">
+    <div class="hud">
+        <div class="hud-left">
+            <div class="hud-box">
+                <div class="label">점수</div>
+                <div class="num" id="scoreText">0</div>
+            </div>
+            <div class="hud-box level">
+                <div class="label">레벨</div>
+                <div class="num" id="levelText">1</div>
+            </div>
+        </div>
+        <div class="lives" id="livesWrap"></div>
+    </div>
+
+    <div id="playfield"></div>
+
+    <div class="bottom">
+        <div class="input-wrap">
+            <div class="mascot" id="mascot">🙂</div>
+
+            <div class="speech">
+                <div class="input-panel" id="inputPanel">
+                    <div class="typed">
+                        <span id="typedText"></span><span class="cursor"></span>
+                    </div>
+                    <input id="hiddenInput" autocomplete="off" autocapitalize="none" spellcheck="false" />
+                </div>
+                <div class="hint">Space: 지우기 | Enter: 입력</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="gameOverModal">
+        <div class="modal-card">
+            <div class="face">😄</div>
+            <h2>게임 종료!</h2>
+            <p>다시도전해보세요!</p>
+
+            <div class="scorebox">
+                <div class="label">최종 점수</div>
+                <div class="value" id="finalScoreText">0</div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn green" id="btnRestart">다시 시작하기</button>
+                <button class="btn yellow" id="btnShare">
+                    친구에게 공유
+                    <div class="toast" id="shareToast">주소 복사 완료!</div>
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    // ====== CONFIG ======
+    const GameState = { MENU:'MENU', PLAYING:'PLAYING', GAME_OVER:'GAME_OVER' };
+
+    const CATEGORIES = [
+        { key:'ANIMALS', label:'동물' },
+        { key:'FOOD', label:'음식' },
+        { key:'SCHOOL', label:'학교' },
+        { key:'NATURE', label:'자연' },
+        { key:'MIXED', label:'종합' }
+    ];
+
+    const WORDS = {
+        ANIMALS: ["강아지","고양이","호랑이","사자","토끼","다람쥐","코끼리","기린","여우","곰","늑대","펭귄","고래","돌고래","앵무새","독수리"],
+        FOOD: ["사과","바나나","당근","김밥","라면","떡볶이","피자","우유","초밥","사탕","쿠키","치킨","주스","빙수","만두","국수"],
+        SCHOOL:["학교","친구","연필","지우개","공책","선생님","칠판","교실","수업","시험","책상","가방","점심","운동장","도서관","숙제"],
+        NATURE:["하늘","구름","바다","산","강","비","눈","바람","꽃","나무","별","달","태양","번개","무지개","숲"],
+        MIXED: [] // 아래에서 합쳐넣음
+    };
+    WORDS.MIXED = [...new Set([...WORDS.ANIMALS, ...WORDS.FOOD, ...WORDS.SCHOOL, ...WORDS.NATURE])];
+
+    const COLORS = ["c1","c2","c3","c4","c5"];
+
+    const CFG = {
+        INITIAL_LIVES: 5,
+        WORDS_PER_LEVEL: 5,
+        BASE_POINTS: 10,
+        BASE_SPAWN_MS: 2000,
+        MIN_SPAWN_MS: 600,
+        SPAWN_DECAY_PER_LVL: 250,
+        BASE_SPEED_PCT_PER_SEC: 12, // "y%" per sec 느낌
+        EXTRA_SPEED_PER_LVL: 2.5,   // 레벨당 증가
+        MAX_Y: 110
+    };
+
+    // ====== DOM ======
+    const $ = (id)=>document.getElementById(id);
+
+    const menuEl = $("menu");
+    const gameEl = $("game");
+    const playfield = $("playfield");
+
+    const catGrid = $("catGrid");
+    const scoreText = $("scoreText");
+    const levelText = $("levelText");
+    const hiScoreText = $("hiScoreText");
+    const livesWrap = $("livesWrap");
+
+    const inputPanel = $("inputPanel");
+    const hiddenInput = $("hiddenInput");
+    const typedText = $("typedText");
+    const mascot = $("mascot");
+
+    const modal = $("gameOverModal");
+    const finalScoreText = $("finalScoreText");
+    const btnRestart = $("btnRestart");
+    const btnShare = $("btnShare");
+    const shareToast = $("shareToast");
+
+    // ====== STATE ======
+    let state = GameState.MENU;
+    let categoryKey = "MIXED";
+    let wordPool = [];
+
+    let score = 0;
+    let level = 1;
+    let lives = CFG.INITIAL_LIVES;
+    let successCount = 0;
+
+    let typed = "";
+
+    let words = []; // {id,text,x,y,speed,color,el}
+    let lastTime = 0;
+    let lastSpawn = 0;
+    let rafId = 0;
+
+    const HS_KEY = "blocktype_highscore_v1";
+    let highScore = 0;
+
+    // ====== UTILS ======
+    const rand = (a,b)=>Math.random()*(b-a)+a;
+    const pick = (arr)=>arr[Math.floor(Math.random()*arr.length)];
+    const shuffle = (arr)=>arr.sort(()=>Math.random()-0.5);
+
+    function loadHighScore(){
+        const saved = localStorage.getItem(HS_KEY);
+        highScore = saved ? parseInt(saved,10) || 0 : 0;
+        hiScoreText.textContent = highScore;
+    }
+    function saveHighScore(){
+        if(score > highScore){
+            highScore = score;
+            localStorage.setItem(HS_KEY, String(highScore));
+            hiScoreText.textContent = highScore;
+        }
+    }
+
+    // ====== SOUND (WebAudio) ======
+    function playSound(type){
+        try{
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if(!AC) return;
+            const ctx = new AC();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            const now = ctx.currentTime;
+
+            if(type === "type"){
+                osc.type = "sine";
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(420, now + 0.05);
+                gain.gain.setValueAtTime(0.10, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                osc.start(now); osc.stop(now + 0.05);
+            }else if(type === "success"){
+                osc.type = "triangle";
+                osc.frequency.setValueAtTime(523.25, now);
+                osc.frequency.setValueAtTime(659.25, now + 0.09);
+                gain.gain.setValueAtTime(0.10, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.28);
+                osc.start(now); osc.stop(now + 0.28);
+            }else if(type === "clear"){
+                osc.type = "sine";
+                osc.frequency.setValueAtTime(360, now);
+                osc.frequency.exponentialRampToValueAtTime(90, now + 0.18);
+                gain.gain.setValueAtTime(0.10, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.18);
+                osc.start(now); osc.stop(now + 0.18);
+            }else if(type === "levelup"){
+                osc.type = "square";
+                gain.gain.value = 0.06;
+                osc.frequency.setValueAtTime(523.25, now);
+                osc.frequency.setValueAtTime(659.25, now + 0.10);
+                osc.frequency.setValueAtTime(783.99, now + 0.20);
+                osc.frequency.setValueAtTime(1046.50, now + 0.30);
+                gain.gain.linearRampToValueAtTime(0, now + 0.55);
+                osc.start(now); osc.stop(now + 0.55);
+            }else if(type === "gameover"){
+                osc.type = "sawtooth";
+                osc.frequency.setValueAtTime(260, now);
+                osc.frequency.linearRampToValueAtTime(55, now + 0.9);
+                gain.gain.setValueAtTime(0.10, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.9);
+                osc.start(now); osc.stop(now + 0.9);
+            }
+        }catch(e){}
+    }
+
+    // ====== UI ======
+    function renderLives(){
+        livesWrap.innerHTML = "";
+        for(let i=0;i<CFG.INITIAL_LIVES;i++){
+            const span = document.createElement("span");
+            span.className = "heart" + (i < lives ? "" : " off");
+            span.textContent = "❤️";
+            livesWrap.appendChild(span);
+        }
+    }
+
+    function setMascot(mode){
+        // 간단 감정 표시
+        if(mode === "idle") mascot.textContent = "🙂";
+        if(mode === "typing") mascot.textContent = "😮";
+        if(mode === "win") mascot.textContent = "😄";
+        if(mode === "sad") mascot.textContent = "🥺";
+    }
+
+    function setInputActive(active){
+        inputPanel.classList.toggle("active", !!active);
+    }
+
+    function setTyped(val){
+        typed = val;
+        typedText.textContent = typed;
+        setInputActive(typed.length > 0);
+        updateWordHighlights();
+    }
+
+    function showMenu(){
+        state = GameState.MENU;
+        menuEl.style.display = "flex";
+        gameEl.style.display = "none";
+        modal.style.display = "none";
+        stopLoop();
+    }
+
+    function showGame(){
+        menuEl.style.display = "none";
+        gameEl.style.display = "block";
+        modal.style.display = "none";
+    }
+
+    function showGameOver(){
+        state = GameState.GAME_OVER;
+        playSound("gameover");
+        saveHighScore();
+        finalScoreText.textContent = score;
+        modal.style.display = "flex";
+    }
+
+    // ====== WORDS ======
+    function buildWordPool(){
+        const base = WORDS[categoryKey] || WORDS.MIXED;
+        wordPool = shuffle([...base]);
+    }
+
+    function createWord(text){
+        const id = Math.random().toString(36).slice(2);
+        const x = rand(8, 92);         // %
+        const y = -10;                 // %
+        const color = pick(COLORS);
+        const speed = rand(0.8, 1.15); // 랜덤 가중치
+
+        const el = document.createElement("div");
+        el.className = "word";
+        el.style.left = x + "%";
+        el.style.top = y + "%";
+
+        const bubble = document.createElement("div");
+        bubble.className = "word-bubble " + color;
+
+        // 글자별 span
+        for(const ch of text){
+            const s = document.createElement("span");
+            s.className = "ch";
+            s.textContent = ch;
+            bubble.appendChild(s);
+        }
+
+        el.appendChild(bubble);
+        playfield.appendChild(el);
+
+        return { id, text, x, y, speed, color, el, bubble };
+    }
+
+    function spawnWord(){
+        if(wordPool.length === 0) buildWordPool();
+        const text = wordPool.pop();
+        if(!text) return;
+        words.push(createWord(text));
+    }
+
+    function updateWordHighlights(){
+        const v = typed;
+        for(const w of words){
+            const bubble = w.bubble;
+            const match = v && w.text.startsWith(v);
+            bubble.classList.toggle("focus", !!match);
+
+            const spans = bubble.querySelectorAll(".ch");
+            spans.forEach((s, idx)=>{
+                if(match && idx < v.length) s.classList.add("hit");
+                else s.classList.remove("hit");
+            });
+        }
+    }
+
+    function removeWordById(id){
+        const idx = words.findIndex(w=>w.id === id);
+        if(idx >= 0){
+            const w = words[idx];
+            w.el.remove();
+            words.splice(idx,1);
+        }
+    }
+
+    function clearAllWords(){
+        for(const w of words) w.el.remove();
+        words = [];
+    }
+
+    // ====== GAME LOOP ======
+    function calcSpawnRate(){
+        return Math.max(CFG.MIN_SPAWN_MS, CFG.BASE_SPAWN_MS - (level * CFG.SPAWN_DECAY_PER_LVL));
+    }
+
+    function step(dt){
+        // dt: ms
+        const speedLvl = (CFG.BASE_SPEED_PCT_PER_SEC + (level * CFG.EXTRA_SPEED_PER_LVL));
+        const dy = (speedLvl * (dt/1000)); // % per frame
+
+        let lost = 0;
+
+        for(const w of words){
+            w.y += dy * w.speed;
+            w.el.style.top = w.y + "%";
+        }
+
+        // 바닥 도달 검사
+        for(let i=words.length-1;i>=0;i--){
+            if(words[i].y > CFG.MAX_Y){
+                // 제거 + 라이프 감소
+                words[i].el.remove();
+                words.splice(i,1);
+                lost++;
+            }
+        }
+
+        if(lost > 0){
+            lives -= lost;
+            renderLives();
+            setMascot("sad");
+            setTimeout(()=>setMascot("idle"), 700);
+
+            if(lives <= 0){
+                lives = 0;
+                renderLives();
+                stopLoop();
+                showGameOver();
+            }
+        }
+    }
+
+    function loop(t){
+        if(state !== GameState.PLAYING) return;
+
+        if(!lastTime) lastTime = t;
+        const dt = t - lastTime;
+        lastTime = t;
+
+        // spawn
+        const rate = calcSpawnRate();
+        if(t - lastSpawn > rate){
+            spawnWord();
+            lastSpawn = t;
+        }
+
+        step(dt);
+        rafId = requestAnimationFrame(loop);
+    }
+
+    function startLoop(){
+        stopLoop();
+        lastTime = 0;
+        lastSpawn = performance.now();
+        rafId = requestAnimationFrame(loop);
+    }
+
+    function stopLoop(){
+        if(rafId) cancelAnimationFrame(rafId);
+        rafId = 0;
+    }
+
+    // ====== INPUT / MATCH ======
+    function checkMatch(){
+        const v = typed.trim();
+        if(!v) return;
+
+        // 동일 텍스트 중 가장 아래(가장 위험) 우선
+        const candidates = words
+        .filter(w => w.text === v && w.y < 95);
+
+        if(candidates.length === 0) return;
+
+        candidates.sort((a,b)=> b.y - a.y);
+        const target = candidates[0];
+
+        // scoring
+        const points = CFG.BASE_POINTS * level;
+        score += points;
+        scoreText.textContent = score;
+
+        // remove
+        removeWordById(target.id);
+
+        // success count / level up
+        successCount++;
+        if(successCount % CFG.WORDS_PER_LEVEL === 0){
+            level++;
+            levelText.textContent = level;
+            playSound("levelup");
+            setMascot("win");
+            setTimeout(()=>setMascot("idle"), 900);
+        }else{
+            setMascot("win");
+            setTimeout(()=>setMascot("idle"), 500);
+        }
+
+        playSound("success");
+        setTyped("");
+        hiddenInput.value = "";
+    }
+
+    // ====== GAME CONTROL ======
+    function resetGame(){
+        score = 0;
+        level = 1;
+        lives = CFG.INITIAL_LIVES;
+        successCount = 0;
+        setTyped("");
+        scoreText.textContent = "0";
+        levelText.textContent = "1";
+        renderLives();
+        clearAllWords();
+        buildWordPool();
+        setMascot("idle");
+    }
+
+    function startGame(catKey){
+        categoryKey = catKey;
+        state = GameState.PLAYING;
+        showGame();
+        resetGame();
+        focusInputSoon();
+        startLoop();
+    }
+
+    function focusInputSoon(){
+        requestAnimationFrame(()=> {
+            hiddenInput.focus();
+        });
+    }
+
+    // ====== SHARE ======
+    async function share(){
+        const url = location.origin + location.pathname; // 현재 페이지
+        const shareData = {
+            title:"블럭타자게임",
+            text:`..와 함께하는 즐거운 타자연습! 제 점수는 ${score}점이에요. 함께 도전해요!`,
+            url
+        };
+
+        try{
+            if(navigator.share && (!navigator.canShare || navigator.canShare(shareData))){
+                await navigator.share(shareData);
+            }else{
+                await navigator.clipboard.writeText(url);
+                shareToast.style.display = "block";
+                setTimeout(()=>shareToast.style.display="none", 1600);
+            }
+        }catch(e){}
+    }
+
+    // ====== INIT UI ======
+    function buildCategoryButtons(){
+        catGrid.innerHTML = "";
+        CATEGORIES.forEach(cat=>{
+            const btn = document.createElement("button");
+            btn.className = "btn3d";
+            btn.type = "button";
+            btn.innerHTML = `<div class="base"></div><div class="face">${cat.label}</div>`;
+            btn.addEventListener("click", ()=> startGame(cat.key));
+            catGrid.appendChild(btn);
+        });
+    }
+
+    // ====== EVENTS ======
+    hiddenInput.addEventListener("input", (e)=>{
+        // IME 조합 중 값 변동 대비: 여기서는 간단히 전체 문자열 사용
+        const v = hiddenInput.value;
+        // trim은 표시에서만, 실제는 공백 입력 제거(원하면 제거하지 마세요)
+        const next = v.replace(/\s+/g,"").slice(0, 12);
+        if(next.length > typed.length){
+            playSound("type");
+            setMascot("typing");
+            setTimeout(()=>setMascot("idle"), 350);
+        }
+        setTyped(next);
+        hiddenInput.value = next;
+    });
+
+    hiddenInput.addEventListener("keydown", (e)=>{
+        if(state !== GameState.PLAYING) return;
+
+        if(e.code === "Space"){
+            e.preventDefault();
+            playSound("clear");
+            setTyped("");
+            hiddenInput.value = "";
+            return;
+        }
+        if(e.key === "Enter"){
+            // 조합 중 Enter는 무시
+            if(e.isComposing) return;
+            checkMatch();
+        }
+    });
+
+    // 포커스 유지 (모바일에서 터치해도 입력되게)
+    document.addEventListener("pointerdown", ()=>{
+        if(state === GameState.PLAYING) focusInputSoon();
+    });
+
+    hiddenInput.addEventListener("blur", ()=>{
+        if(state === GameState.PLAYING){
+            setTimeout(()=>focusInputSoon(), 0);
+        }
+    });
+
+    btnRestart.addEventListener("click", ()=> {
+        // 메뉴로 돌아가서 다시 선택하게
+        showMenu();
+    });
+
+    btnShare.addEventListener("click", share);
+
+    // ====== BOOT ======
+    loadHighScore();
+    buildCategoryButtons();
+    renderLives();
+    showMenu();
+</script>
+</body>
+</html>
