@@ -1,0 +1,410 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3x3 빙고 타자 연습</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 10px;
+            background-color: #f0f0f0;
+            background-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+        .game-container {
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: auto;
+        }
+        h1 {
+            color: #4a4a4a;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            font-size: clamp(18px, 4vw, 24px);
+        }
+        .bingo-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .cell {
+            aspect-ratio: 1;
+            border: 2px solid #6c5ce7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: clamp(12px, 3vw, 16px);
+            cursor: pointer;
+            background-color: #fff;
+            transition: all 0.3s ease;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            word-break: break-all;
+            padding: 5px;
+        }
+        .cell:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+        .cell.marked-o {
+            color: #2ecc71;
+            font-weight: bold;
+            background-color: #e8f5e9;
+            border-color: #2ecc71;
+        }
+        .cell.marked-x {
+            color: #e74c3c;
+            font-weight: bold;
+            background-color: #ffebee;
+            border-color: #e74c3c;
+        }
+        #typing-input {
+            font-size: clamp(14px, 3vw, 16px);
+            padding: 10px;
+            width: 100%;
+            max-width: 250px;
+            margin-bottom: 15px;
+            border: 2px solid #6c5ce7;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        #typing-input:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+            outline: none;
+        }
+        #message, #timer {
+            font-size: clamp(14px, 3vw, 16px);
+            margin-bottom: 15px;
+            min-height: 20px;
+            color: #4a4a4a;
+        }
+        button {
+            font-size: clamp(12px, 2.5vw, 14px);
+            padding: 10px 20px;
+            background-color: #6c5ce7;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #5649c0;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .winner {
+            font-size: clamp(18px, 4vw, 24px);
+            font-weight: bold;
+            margin-top: 15px;
+            color: #2ecc71;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .winning-cell {
+            animation: pulse 0.5s infinite;
+        }
+        #difficulty-selector {
+            margin-bottom: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        #difficulty-selector button {
+            margin: 5px;
+            background-color: #3498db;
+            flex-grow: 1;
+            max-width: 100px;
+        }
+        #difficulty-selector button:hover {
+            background-color: #2980b9;
+        }
+        #difficulty-selector button.active {
+            background-color: #2ecc71;
+        }
+        #level-display {
+            font-size: clamp(14px, 3vw, 18px);
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #6c5ce7;
+        }
+        .game-content {
+            display: none;
+        }
+        #level-instruction {
+            font-size: clamp(14px, 3vw, 18px);
+            margin-bottom: 15px;
+            color: #4a4a4a;
+        }
+        #go-back-button {
+            background-color: #e74c3c;
+            margin-top: 15px;
+        }
+        #go-back-button:hover {
+            background-color: #c0392b;
+        }
+        @media (max-width: 400px) {
+            .game-container {
+                padding: 10px;
+            }
+            .bingo-board {
+                gap: 5px;
+            }
+            .cell {
+                font-size: 12px;
+            }
+            #typing-input {
+                font-size: 14px;
+            }
+            button {
+                padding: 8px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <h1>3x3 빙고 타자 연습</h1>
+    <div id="level-instruction">레벨을 선택해주세요:</div>
+    <div id="difficulty-selector">
+        <button class="difficulty-btn" data-level="1">Level 1</button>
+        <button class="difficulty-btn" data-level="2">Level 2</button>
+        <button class="difficulty-btn" data-level="3">Level 3</button>
+        <button class="difficulty-btn" data-level="4">Level 4</button>
+        <button class="difficulty-btn" data-level="5">Level 5</button>
+    </div>
+    <div class="game-content">
+        <div id="level-display"></div>
+        <div id="timer"></div>
+        <div class="bingo-board" id="bingo-board"></div>
+        <div id="message"></div>
+        <input type="text" id="typing-input" placeholder="단어를 입력하세요..." autofocus>
+        <button id="reset-button" style="display: none;">게임 리셋</button>
+        <div class="winner" id="winner"></div>
+    </div>
+    <button id="go-back-button">돌아가기</button>
+</div>
+
+<script>
+    const wordsPoolByLevel = {
+        1: ['사과', '바나나', '오렌지', '포도', '키위', '망고', '수박', '딸기', '레몬', '복숭아', '멜론', '자두', '파인애플', '블루베리', '라즈베리'],
+        2: ['컴퓨터', '스마트폰', '인터넷', '프로그램', '네트워크', '데이터', '알고리즘', '보안', '클라우드', '인공지능', '머신러닝', '빅데이터', '블록체인', '가상현실', '증강현실'],
+        3: ['양자컴퓨팅', '사물인터넷', '신경망', '딥러닝', '엣지컴퓨팅', '사이버보안', '생체인식', '로보틱스', '드론기술', '나노기술', '유전자편집', '신재생에너지', '우주탐사', '핵융합', '생명공학'],
+        4: ['메타버스', '퀀텀암호', '뉴로모픽칩', '바이오닉스', '포토닉스', '엑소스켈레톤', '초전도체', '테라헤르츠', '홀로그램', '초음속비행', '탄소포집', '유전자치료', '뇌-컴퓨터인터페이스', '극초음속', '핵융합발전'],
+        5: ['양자얽힘', '초끈이론', '다크매터', '중력파', '반물질', '특이점', '웜홀', '타키온', '초대칭성', '카이랄성', '양자색역학', '초유체', '위상절연체', '맥스웰의악마', '양자홀효과']
+    };
+    let words = [];
+    let currentWord = '';
+    let currentCell = null;
+    let playerTurn = true;
+    let gameOver = false;
+    let currentLevel = 1;
+    const wordTimeLimit = 8; // 각 단어에 대한 시간 제한 (초)
+    let timer;
+
+    const board = document.getElementById('bingo-board');
+    const input = document.getElementById('typing-input');
+    const message = document.getElementById('message');
+    const resetButton = document.getElementById('reset-button');
+    const winnerDisplay = document.getElementById('winner');
+    const timerDisplay = document.getElementById('timer');
+    const levelDisplay = document.getElementById('level-display');
+    const difficultyButtons = document.querySelectorAll('.difficulty-btn');
+    const gameContent = document.querySelector('.game-content');
+    const goBackButton = document.getElementById('go-back-button');
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    function initializeBoard() {
+        board.innerHTML = '';
+        words = [];
+        shuffleArray(wordsPoolByLevel[currentLevel]);
+        words = wordsPoolByLevel[currentLevel].slice(0, 9);
+
+        words.forEach((word, index) => {
+            const cell = document.createElement('div');
+            cell.classList.add('cell');
+            cell.textContent = word;
+            board.appendChild(cell);
+        });
+        startPlayerTurn();
+    }
+
+    function startPlayerTurn() {
+        clearInterval(timer);
+        let timeLeft = wordTimeLimit;
+        timerDisplay.textContent = `남은 시간: ${timeLeft}초`;
+        message.textContent = '단어를 입력하세요.';
+        input.focus();
+
+        timer = setInterval(() => {
+            timeLeft--;
+            timerDisplay.textContent = `남은 시간: ${timeLeft}초`;
+
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                message.textContent = '시간 초과! 다음 차례로 넘어갑니다.';
+                playerTurn = false;
+                setTimeout(botMove, 1000);
+            }
+        }, 1000);
+    }
+
+    function checkInput() {
+        const inputWord = input.value.trim();
+        const cells = document.querySelectorAll('.cell');
+
+        for (let i = 0; i < cells.length; i++) {
+            if (cells[i].textContent === inputWord && !cells[i].classList.contains('marked-o') && !cells[i].classList.contains('marked-x')) {
+                markCell(cells[i], 'O');
+                return;
+            }
+        }
+    }
+
+    function markCell(cell, mark) {
+        cell.textContent = mark;
+        cell.classList.add(mark === 'O' ? 'marked-o' : 'marked-x');
+        input.value = '';
+        clearInterval(timer);
+
+        if (checkWinner()) {
+            endGame(mark === 'O' ? '플레이어 승리!' : '컴퓨터 승리!');
+            return;
+        }
+
+        if (checkDraw()) {
+            endGame('무승부!');
+            return;
+        }
+
+        playerTurn = !playerTurn;
+
+        if (playerTurn) {
+            startPlayerTurn();
+        } else {
+            setTimeout(botMove, 1000);
+        }
+    }
+
+    function botMove() {
+        const emptyCells = Array.from(document.querySelectorAll('.cell')).filter(
+            cell => !cell.classList.contains('marked-o') && !cell.classList.contains('marked-x')
+        );
+
+        if (emptyCells.length > 0) {
+            const randomCell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            markCell(randomCell, 'X');
+        }
+    }
+
+    function checkWinner() {
+        const cells = document.querySelectorAll('.cell');
+        const winningCombos = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], // 가로
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], // 세로
+            [0, 4, 8], [2, 4, 6] // 대각선
+        ];
+
+        for (let combo of winningCombos) {
+            if (
+                cells[combo[0]].textContent !== '' &&
+                cells[combo[0]].textContent === cells[combo[1]].textContent &&
+                cells[combo[0]].textContent === cells[combo[2]].textContent
+            ) {
+                combo.forEach(index => cells[index].classList.add('winning-cell'));
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    function checkDraw() {
+        const cells = document.querySelectorAll('.cell');
+        return Array.from(cells).every(cell =>
+            cell.classList.contains('marked-o') || cell.classList.contains('marked-x')
+        );
+    }
+
+    function resetGame() {
+        gameOver = false;
+        playerTurn = true;
+        currentWord = '';
+        currentCell = null;
+        winnerDisplay.textContent = '';
+        resetButton.style.display = 'none';
+        clearInterval(timer);
+        initializeBoard();
+    }
+
+    function endGame(message) {
+        gameOver = true;
+        winnerDisplay.textContent = message;
+        resetButton.style.display = 'inline-block';
+        clearInterval(timer);
+    }
+
+    function setDifficulty(level) {
+        currentLevel = level;
+        levelDisplay.textContent = `현재 레벨: ${level} (제한 시간: ${wordTimeLimit}초)`;
+        resetGame();
+        gameContent.style.display = 'block';
+    }
+
+    input.addEventListener('input', checkInput);
+
+    resetButton.addEventListener('click', resetGame);
+
+    difficultyButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            const level = parseInt(e.target.getAttribute('data-level'));
+            setDifficulty(level);
+            difficultyButtons.forEach(btn => btn.classList.remove('active'));
+            e.target.classList.add('active');
+        });
+    });
+
+    goBackButton.addEventListener('click', () => {
+        window.location.href = 'https://tajai.shop';
+    });
+
+    // 초기 게임 설정
+    gameContent.style.display = 'none';
+</script>
+</body>
+</html>

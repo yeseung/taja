@@ -1,0 +1,548 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typing Bird</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nanum Gothic', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            transition: background 0.5s;
+        }
+        #gameContainer {
+            text-align: center;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            transition: background-color 0.5s, box-shadow 0.5s;
+        }
+        canvas {
+            border: 3px solid #4CAF50;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+        }
+        #word {
+            font-size: 32px;
+            margin-top: 20px;
+            font-weight: bold;
+            transition: color 0.5s;
+        }
+        #input {
+            font-size: 24px;
+            padding: 10px;
+            margin: 15px auto;
+            width: 250px;
+            border: 2px solid #4CAF50;
+            border-radius: 5px;
+            outline: none;
+            display: block;
+            transition: background-color 0.5s, color 0.5s;
+        }
+        select, .button {
+            margin: 10px 5px;
+            font-size: 18px;
+            padding: 8px 15px;
+            border: 2px solid #4CAF50;
+            border-radius: 5px;
+            background-color: white;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+        #score {
+            font-size: 24px;
+            margin-top: 15px;
+            font-weight: bold;
+            transition: color 0.5s;
+        }
+        #endGameButton {
+            background-color: #f44336;
+        }
+        #endGameButton:hover {
+            background-color: #d32f2f;
+        }
+        #backButton {
+            background-color: #2196F3;
+        }
+        #backButton:hover {
+            background-color: #1976D2;
+        }
+        .earth-theme {
+            background: linear-gradient(to bottom, #87CEEB, #E0F6FF);
+        }
+        .earth-theme #gameContainer {
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+        .earth-theme #word, .earth-theme #score {
+            color: #333;
+        }
+        .earth-theme #input {
+            background-color: white;
+            color: #333;
+        }
+        .space-theme {
+            background: #000000;
+        }
+        .space-theme #gameContainer {
+            background-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 20px rgba(255,255,255,0.1);
+        }
+        .space-theme #word, .space-theme #score {
+            color: #ffffff;
+        }
+        .space-theme #input {
+            background-color: rgba(255,255,255,0.1);
+            color: #ffffff;
+        }
+        .space-theme select, .space-theme .button {
+            background-color: rgba(255,255,255,0.1);
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body class="earth-theme">
+<div id="gameContainer">
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <div id="word"></div>
+    <input type="text" id="input" autocomplete="off">
+    <div>
+        <select id="themeSelect">
+            <option value="earth">지구 테마</option>
+            <option value="space">우주 테마</option>
+        </select>
+        <select id="difficultySelect">
+            <option value="1">매우 쉬움</option>
+            <option value="2">쉬움</option>
+            <option value="3" selected>보통</option>
+            <option value="4">어려움</option>
+            <option value="5">매우 어려움</option>
+        </select>
+        <button id="startButton" class="button">게임 시작</button>
+        <button id="endGameButton" class="button">게임 종료</button>
+        <button id="backButton" class="button">돌아가기</button>
+    </div>
+    <div id="score">점수: 0</div>
+</div>
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const wordDiv = document.getElementById('word');
+    const input = document.getElementById('input');
+    const difficultySelect = document.getElementById('difficultySelect');
+    const themeSelect = document.getElementById('themeSelect');
+    const startButton = document.getElementById('startButton');
+    const endGameButton = document.getElementById('endGameButton');
+    const backButton = document.getElementById('backButton');
+    const scoreDiv = document.getElementById('score');
+
+    let bird = { x: 100, y: 200, velocity: 0, angle: 0 };
+    let pipes = [];
+    let stars = [];
+    let clouds = [];
+    let score = 0;
+    let currentWord = '';
+    let earthWords = [
+        '안녕', '행복', '사랑', '가족', '친구', '꿈', '희망', '열정',
+        '노력', '성공', '도전', '창의', '혁신', '지혜', '용기', '인내',
+        '겸손', '정직', '배려', '감사', '존중', '협력', '소통', '성장'
+    ];
+    let spaceWords = [
+        '우주', '별', '행성', '은하', '로켓', '우주선', '우주인', '블랙홀',
+        '태양', '달', '화성', '목성', '토성', '천왕성', '해왕성', '소행성',
+        '위성', '광년', '성운', '성단', '퀘이사', '중력', '무중력', '우주복'
+    ];
+    let gameStarted = false;
+    let difficulty = 3;
+    let lastTime = 0;
+    let isColliding = false;
+    let collisionTime = 0;
+    let allowedCollisionTime = 3;
+    let currentTheme = 'earth';
+
+    function generateWord() {
+        const words = currentTheme === 'earth' ? earthWords : spaceWords;
+        currentWord = words[Math.floor(Math.random() * words.length)];
+        wordDiv.textContent = currentWord;
+    }
+
+    function drawBird() {
+        ctx.save();
+        ctx.translate(bird.x, bird.y);
+        ctx.rotate(bird.angle);
+
+        if (currentTheme === 'earth') {
+            // 지구 테마 새 그리기
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 25, 20, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#FFA500';
+            ctx.beginPath();
+            ctx.ellipse(-5, 10, 18, 12, Math.PI / 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = 'black';
+            ctx.beginPath();
+            ctx.arc(15, -5, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = 'orange';
+            ctx.beginPath();
+            ctx.moveTo(25, 0);
+            ctx.lineTo(35, 5);
+            ctx.lineTo(25, 10);
+            ctx.closePath();
+            ctx.fill();
+        } else {
+            // 우주 테마 우주선 그리기
+            // 우주선 본체
+            ctx.fillStyle = '#A0A0A0';
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 30, 15, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 창문
+            ctx.fillStyle = '#00FFFF';
+            ctx.beginPath();
+            ctx.arc(10, -5, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 날개
+            ctx.fillStyle = '#808080';
+            ctx.beginPath();
+            ctx.moveTo(-25, 0);
+            ctx.lineTo(-15, 15);
+            ctx.lineTo(15, 15);
+            ctx.lineTo(25, 0);
+            ctx.closePath();
+            ctx.fill();
+
+            // 엔진 불꽃
+            ctx.fillStyle = '#FF4500';
+            ctx.beginPath();
+            ctx.moveTo(-30, -5);
+            ctx.lineTo(-40, 0);
+            ctx.lineTo(-30, 5);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        ctx.restore();
+    }
+
+    function drawPipes() {
+        pipes.forEach(pipe => {
+            const gradient = ctx.createLinearGradient(pipe.x, 0, pipe.x + 50, 0);
+            gradient.addColorStop(0, '#4CAF50');
+            gradient.addColorStop(1, '#45a049');
+
+            ctx.fillStyle = gradient;
+            ctx.fillRect(pipe.x, 0, 50, pipe.top);
+            ctx.fillRect(pipe.x, pipe.bottom, 50, canvas.height - pipe.bottom);
+
+            ctx.strokeStyle = currentTheme === 'earth' ? '#45a049' : '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(pipe.x, 0, 50, pipe.top);
+            ctx.strokeRect(pipe.x, pipe.bottom, 50, canvas.height - pipe.bottom);
+
+            ctx.fillStyle = currentTheme === 'earth' ? '#45a049' : '#ffffff';
+            ctx.fillRect(pipe.x - 2, pipe.top - 20, 54, 20);
+            ctx.fillRect(pipe.x - 2, pipe.bottom, 54, 20);
+        });
+    }
+
+    function createStars() {
+        stars = [];
+        for (let i = 0; i < 100; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 2 + 1,
+                speed: Math.random() * 0.5 + 0.1
+            });
+        }
+    }
+
+    function createClouds() {
+        clouds = [];
+        for (let i = 0; i < 5; i++) {
+            clouds.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * (canvas.height / 2),
+                width: Math.random() * 50 + 50,
+                speed: Math.random() * 0.5 + 0.1
+            });
+        }
+    }
+
+    function drawBackground() {
+        if (currentTheme === 'earth') {
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, "#87CEEB");
+            gradient.addColorStop(1, "#E0F6FF");
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 구름 그리기
+            ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+            clouds.forEach(cloud => {
+                ctx.beginPath();
+                ctx.arc(cloud.x, cloud.y, cloud.width / 2, 0, Math.PI * 2);
+                ctx.arc(cloud.x + cloud.width / 4, cloud.y - cloud.width / 4, cloud.width / 3, 0, Math.PI * 2);
+                ctx.arc(cloud.x + cloud.width / 2, cloud.y, cloud.width / 3, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        } else {
+            ctx.fillStyle = "#000000";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 별 그리기
+            ctx.fillStyle = "white";
+            stars.forEach(star => {
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+    }
+
+    function updateBackgroundElements() {
+        if (currentTheme === 'earth') {
+            clouds.forEach(cloud => {
+                cloud.x -= cloud.speed;
+                if (cloud.x + cloud.width < 0) {
+                    cloud.x = canvas.width;
+                    cloud.y = Math.random() * (canvas.height / 2);
+                }
+            });
+        } else {
+            stars.forEach(star => {
+                star.x -= star.speed;
+                if (star.x < 0) {
+                    star.x = canvas.width;
+                    star.y = Math.random() * canvas.height;
+                }
+            });
+        }
+    }
+
+    function updateGame(time) {
+        const deltaTime = (time - lastTime) / 1000;
+        lastTime = time;
+
+        updateBackgroundElements();
+
+        if (!isColliding) {
+            bird.velocity += 0.3;
+            bird.y += bird.velocity;
+
+            pipes.forEach(pipe => {
+                pipe.x -= 1 + difficulty * 0.3;
+            });
+
+            const pipeFrequency = 300 - difficulty * 20;
+            if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - pipeFrequency) {
+                const baseGap = 250 - difficulty * 10;
+                const gap = Math.max(baseGap, 150);
+
+                const minTopHeight = 50;
+                const maxTopHeight = canvas.height - gap - 50;
+                const topHeight = Math.random() * (maxTopHeight - minTopHeight) + minTopHeight;
+
+                pipes.push({
+                    x: canvas.width,
+                    top: topHeight,
+                    bottom: topHeight + gap
+                });
+            }
+
+            if (pipes[0] && pipes[0].x < -50) {
+                pipes.shift();
+                score++;
+                updateScore();
+            }
+        } else {
+            collisionTime += deltaTime;
+            if (collisionTime >= allowedCollisionTime || difficulty >= 4) {
+                gameOver();
+            }
+        }
+
+        let collision = checkCollision();
+
+        bird.angle = Math.min(Math.max(bird.velocity * 0.03, -0.3), 0.3);
+
+        if (bird.y > canvas.height - 20) {
+            bird.y = canvas.height - 20;
+            bird.velocity = 0;
+        } else if (bird.y < 20) {
+            bird.y = 20;
+            bird.velocity = 0;
+        }
+
+        if (collision.collided && !isColliding) {
+            isColliding = true;
+            if (difficulty <= 3 && collision.topCollision) {
+                bird.velocity = Math.abs(bird.velocity) * 0.5;
+                bird.y = collision.pipeTop + 25;
+            } else {
+                bird.velocity = 0;
+            }
+        } else if (!collision.collided && isColliding) {
+            isColliding = false;
+            collisionTime = 0;
+        }
+    }
+
+    function checkCollision() {
+        for (let pipe of pipes) {
+            if (bird.x + 15 > pipe.x && bird.x - 15 < pipe.x + 50) {
+                if (bird.y - 15 < pipe.top) {
+                    return { collided: true, topCollision: true, pipeTop: pipe.top };
+                } else if (bird.y + 15 > pipe.bottom) {
+                    return { collided: true, topCollision: false };
+                }
+            }
+        }
+        return { collided: false };
+    }
+
+    function drawGame() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawBackground();
+        drawPipes();
+        drawBird();
+
+        if (isColliding) {
+            ctx.fillStyle = `rgba(255, 0, 0, ${Math.min(collisionTime / allowedCollisionTime, 0.5)})`;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+    }
+
+    function gameLoop(time) {
+        if (gameStarted) {
+            updateGame(time);
+            drawGame();
+            requestAnimationFrame(gameLoop);
+        }
+    }
+
+    function gameOver() {
+        alert(`게임 오버! 점수: ${score}`);
+        resetGame();
+    }
+
+    function resetGame() {
+        bird = { x: 100, y: 200, velocity: 0, angle: 0 };
+        pipes = [];
+        score = 0;
+        isColliding = false;
+        collisionTime = 0;
+        updateScore();
+        gameStarted = false;
+        generateWord();
+        startButton.disabled = false;
+        endGameButton.disabled = true;
+        difficultySelect.disabled = false;
+        themeSelect.disabled = false;
+        input.disabled = true;
+        input.value = '';
+        drawBackground();
+        drawBird();
+    }
+
+    function updateScore() {
+        scoreDiv.textContent = `점수: ${score}`;
+    }
+
+    input.addEventListener('input', () => {
+        if (gameStarted && input.value === currentWord) {
+            // 난이도에 따라 상승 속도 조절
+            const baseUpwardVelocity = -8;
+            const upwardVelocity = baseUpwardVelocity + (difficulty - 1) * 0.01;
+            bird.velocity = upwardVelocity;
+
+            if (isColliding && difficulty < 4) {
+                bird.y -= 30 + (difficulty - 1) * 10;  // 난이도에 따라 추가 상승
+            }
+            isColliding = false;
+            collisionTime = 0;
+            input.value = '';
+            generateWord();
+        }
+    });
+
+    startButton.addEventListener('click', () => {
+        if (!gameStarted) {
+            gameStarted = true;
+            difficulty = parseInt(difficultySelect.value);
+            startButton.disabled = true;
+            endGameButton.disabled = false;
+            difficultySelect.disabled = true;
+            themeSelect.disabled = true;
+            input.disabled = false;
+            input.focus();
+            lastTime = performance.now();
+
+            if (difficulty === 1) {
+                allowedCollisionTime = 5;
+            } else if (difficulty === 2) {
+                allowedCollisionTime = 3;
+            } else if (difficulty === 3) {
+                allowedCollisionTime = 2;
+            } else if (difficulty === 4) {
+                allowedCollisionTime = 0;
+            } else {
+                allowedCollisionTime = 0;
+            }
+
+            gameLoop(lastTime);
+        }
+    });
+
+    endGameButton.addEventListener('click', () => {
+        if (gameStarted) {
+            gameOver();
+        }
+    });
+
+    backButton.addEventListener('click', () => {
+        window.location.href = 'https://tajai.shop';
+    });
+
+    themeSelect.addEventListener('change', (e) => {
+        currentTheme = e.target.value;
+        document.body.className = currentTheme + '-theme';
+        if (currentTheme === 'earth') {
+            createClouds();
+        } else {
+            createStars();
+        }
+        resetGame();
+    });
+
+    createStars();
+    createClouds();
+    generateWord();
+    drawBackground();
+    drawBird();
+    input.disabled = true;
+    endGameButton.disabled = true;
+</script>
+</body>
+</html>
