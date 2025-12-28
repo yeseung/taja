@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>타자 연습 게임</title>
+
+    <!-- jQuery (필요하면 로컬로 교체하세요) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <style>
+        :root{
+            --bg:#f6f7fb;
+            --card:#ffffff;
+            --text:#111827;
+            --muted:#6b7280;
+            --line:#e5e7eb;
+            --accent:#2563eb;
+            --danger:#ef4444;
+            --shadow: 0 12px 30px rgba(17,24,39,.10);
+            --radius:16px;
+        }
+        *{ box-sizing:border-box; }
+        body{
+            margin:0;
+            font-family: ui-sans-serif, system-ui, -apple-system, "Malgun Gothic","Apple SD Gothic Neo", sans-serif;
+            background:
+                    radial-gradient(900px 600px at 20% 10%, rgba(37,99,235,.10), transparent 60%),
+                    radial-gradient(800px 500px at 80% 30%, rgba(239,68,68,.08), transparent 55%),
+                    var(--bg);
+            color:var(--text);
+            min-height:100vh;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:18px;
+        }
+
+        /* app shell */
+        #container{
+            width:min(980px, 100%);
+            background:var(--card);
+            border:1px solid var(--line);
+            border-radius:var(--radius);
+            box-shadow:var(--shadow);
+            overflow:hidden;
+        }
+
+        /* header */
+        #header{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            padding:14px 18px;
+            background:#fff;
+            border-bottom:1px solid var(--line);
+            gap:12px;
+        }
+        #header-text{
+            font-weight:900;
+            letter-spacing:.2px;
+            font-size:16px;
+            text-align:center;
+            flex:1;
+        }
+        #score-box{
+            display:flex;
+            gap:8px;
+            align-items:baseline;
+            min-width:170px;
+            font-weight:800;
+        }
+        #score-box span:first-child{
+            color:var(--muted);
+            font-weight:700;
+        }
+        #score{
+            font-size:18px;
+            color:var(--accent);
+        }
+
+        .hint{
+            min-width:170px;
+            text-align:right;
+            color:var(--muted);
+            font-size:12px;
+            font-weight:700;
+            line-height:1.25;
+        }
+        .hint b{ color:#111827; }
+
+        /* main */
+        #main-container{
+            position:relative;
+            height:420px;
+            background: linear-gradient(180deg, #ffffff, #fafbff);
+            overflow:hidden;
+        }
+
+        /* random words */
+        .random-str{
+            position:absolute;
+            padding:6px 12px;
+            border-radius:999px;
+            border:1px solid var(--line);
+            background:#fff;
+            color:#111827;
+            font-weight:800;
+            font-size:14px;
+            box-shadow: 0 10px 22px rgba(17,24,39,.06);
+            user-select:none;
+            transform: translateY(-6px);
+            opacity:0;
+            transition: opacity .16s ease, transform .16s ease;
+            white-space:nowrap;
+        }
+        .random-str.act{ opacity:1; transform: translateY(0); }
+
+        /* overlay counter */
+        .start-counter{
+            position:absolute;
+            inset:0;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:64px;
+            font-weight:1000;
+            letter-spacing:.8px;
+            color:#111827;
+            background: rgba(255,255,255,.65);
+            backdrop-filter: blur(6px);
+            opacity:0;
+            transform: scale(.98);
+            transition: opacity .18s ease, transform .18s ease;
+            z-index:5;
+        }
+        .start-counter.act{ opacity:1; transform: scale(1); }
+
+        /* bottom */
+        #bottom{
+            display:grid;
+            grid-template-columns: 1fr;
+            gap:12px;
+            padding:16px 18px 18px;
+            background:#fff;
+            border-top:1px solid var(--line);
+        }
+
+        .panel{
+            border:1px solid var(--line);
+            border-radius:14px;
+            padding:14px;
+            background:#fff;
+        }
+
+        #verb-num-descriptor{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:10px;
+            color:var(--muted);
+            font-size:13px;
+            font-weight:700;
+        }
+        #verb-num{
+            min-width:44px;
+            text-align:center;
+            padding:6px 10px;
+            border-radius:999px;
+            border:1px solid var(--line);
+            background:#f9fafb;
+            color:#111827;
+            font-weight:900;
+        }
+        #verb-num.red{
+            border-color: rgba(239,68,68,.35);
+            color: #b91c1c;
+            background: rgba(239,68,68,.08);
+        }
+
+        #input-box{
+            width:100%;
+            padding:12px 12px;
+            border-radius:12px;
+            border:1px solid var(--line);
+            background:#fff;
+            color:#111827;
+            outline:none;
+            font-size:15px;
+            font-weight:800;
+            margin-top:10px;
+        }
+        #input-box:focus{
+            border-color: rgba(37,99,235,.55);
+            box-shadow: 0 0 0 4px rgba(37,99,235,.12);
+        }
+
+        /* rules (optional) */
+        .toggle{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            cursor:pointer;
+            user-select:none;
+            font-weight:900;
+            letter-spacing:.1px;
+        }
+        .toggle small{
+            color:var(--muted);
+            font-weight:800;
+        }
+        .collapse{
+            max-height:0;
+            overflow:hidden;
+            transition: max-height .25s ease;
+        }
+        .collapse.open{ max-height:240px; }
+        .collapse .inner{
+            padding-top:10px;
+            color:var(--muted);
+            font-size:13px;
+            line-height:1.6;
+            font-weight:700;
+        }
+
+        /* game over button */
+        #renew-button{
+            position:absolute;
+            left:50%;
+            bottom:16px;
+            transform:translateX(-50%);
+            padding:10px 14px;
+            border-radius:12px;
+            border:1px solid rgba(37,99,235,.35);
+            background: rgba(37,99,235,.10);
+            color:#0f172a;
+            font-weight:900;
+            cursor:pointer;
+            box-shadow: 0 10px 22px rgba(17,24,39,.06);
+            z-index:6;
+        }
+        #renew-button:hover{ background: rgba(37,99,235,.16); }
+
+        @media (max-width: 780px){
+            #main-container{ height:360px; }
+            #score-box{ min-width:150px; }
+            .hint{ min-width:150px; }
+        }
+    </style>
+</head>
+
+<body>
+<div id="container">
+    <div id="header">
+        <div id="score-box">
+            <span>score :</span>
+            <span id="score">0</span>
+        </div>
+
+        <div id="header-text">타자 연습 게임</div>
+
+        <div class="hint">
+            <div>시간: <b><span id="time">0</span></b>s</div>
+            <div>Enter: 제출 · ESC: 재시작</div>
+        </div>
+    </div>
+
+    <div id="main-container"></div>
+
+    <div id="bottom">
+        <div class="panel">
+            <div id="verb-num-descriptor">
+                <div>단어개수가 <b>10개</b>가 되면 Game Over 입니다.</div>
+                <div id="verb-num">0</div>
+            </div>
+
+            <input type="text" id="input-box" placeholder="단어 입력 후 Enter" autocomplete="off" />
+
+            <div style="height:12px;"></div>
+
+            <div class="panel" style="padding:12px; margin:0;">
+                <div id="rule" class="toggle">
+                    <div>규칙 보기</div>
+                    <small>열기/닫기</small>
+                </div>
+                <div id="rule-descriptor-container" class="collapse">
+                    <div class="inner">
+                        1. 페이지가 열리면 바로 게임이 시작됩니다.<br/>
+                        2. 입력창에 단어를 작성하고 Enter를 누르면 해당 단어가 제거되고 점수가 올라갑니다.<br/>
+                        3. 화면에 단어가 10개가 되면 Game Over 입니다.<br/>
+                        4. 점수가 올라가면 단어 생성이 빨라집니다.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        // ===== 단어 배열 =====
+        const strArr = [
+            "가게","가격","가구","가까워지다","가까이","가깝다","가꾸다","가끔","가난","가난하다",
+            "가늘다","가능","가능성","가능하다"
+        ];
+
+        // ===== DOM =====
+        const $main = $("#main-container");
+        const $score = $("#score");
+        const $verbNum = $("#verb-num");
+        const $input = $("#input-box");
+        const $time = $("#time");
+
+        // ===== 상태 =====
+        let intervalRender = null;
+        let score = 0;
+        const oneLetterScore = 10;
+        const executed = [true, true, true, true];
+
+        let time = 0;
+        let timerInterval = null;
+
+        // ===== 토글(규칙) =====
+        $("#rule").on("click", function(){
+            $("#rule-descriptor-container").toggleClass("open");
+        });
+
+        // ===== 헬퍼: 단어 개수 =====
+        function updateVerbCounter(){
+            const count = $(".random-str").length;
+            $verbNum.text(count);
+            if (count > 7) $verbNum.addClass("red");
+            else $verbNum.removeClass("red");
+            return count;
+        }
+
+        // ===== 타이머 =====
+        function renderTime(){
+            $time.text(String(time));
+        }
+        function stopTimer(){
+            if (timerInterval){
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+        function startTimer(){
+            stopTimer();
+            timerInterval = setInterval(() => {
+                time += 1;
+                renderTime();
+            }, 1000);
+        }
+
+        // ===== 중앙 메시지 =====
+        function setCounter(text){
+            $(".start-counter").remove();
+            const $el = $("<div/>", { class:"start-counter", text: String(text ?? "") });
+            $main.append($el);
+            setTimeout(() => $el.addClass("act"), 20);
+            return $el;
+        }
+        function clearCounter(){
+            $(".start-counter").remove();
+        }
+
+        // ===== 랜덤 렌더 =====
+        function randomRender(str){
+            const rect = $main[0].getBoundingClientRect();
+
+            const approxW = Math.min(240, Math.max(70, 14 * String(str).length + 32));
+            const approxH = 32;
+
+            let x = Math.random() * (rect.width - approxW);
+            let y = Math.random() * (rect.height - approxH - 60); // 아래 버튼 영역 여유
+
+            x = Math.max(0, x);
+            y = Math.max(0, y);
+
+            const $el = $("<div/>", { class:"random-str", text: str })
+            .css({ left: x + "px", top: y + "px" });
+
+            $main.append($el);
+            requestAnimationFrame(() => $el.addClass("act"));
+        }
+
+        function randomStrRender(){
+            const idx = Math.floor(Math.random() * strArr.length);
+            randomRender(strArr[idx]);
+
+            const count = updateVerbCounter();
+            if (count >= 10) stopGame(true);
+        }
+
+        function startSpawner(ms){
+            clearInterval(intervalRender);
+            intervalRender = setInterval(randomStrRender, ms);
+        }
+
+        function stopGame(isGameOver=false){
+            stopTimer();
+
+            clearInterval(intervalRender);
+            intervalRender = null;
+
+            $(".random-str").remove();
+            updateVerbCounter();
+
+            $("#renew-button").remove();
+
+            if (isGameOver){
+                setCounter("Game Over");
+
+                const $btn = $("<button/>", {
+                    id: "renew-button",
+                    text: "다시하기"
+                }).on("click", function(){
+                    initGame(true);
+                });
+
+                $main.append($btn);
+                $input.blur();
+            }
+        }
+
+        function removeStr(str){
+            const $target = $(".random-str").filter(function(){
+                return $(this).text() === str;
+            }).first();
+
+            if (!$target.length){
+                updateVerbCounter();
+                return;
+            }
+
+            $target.remove();
+
+            score += str.length * oneLetterScore;
+            $score.text(String(score));
+
+            if (score > 200  && executed[0]) { startSpawner(1600); executed[0] = false; }
+            if (score > 500  && executed[1]) { startSpawner(1200); executed[1] = false; }
+            if (score > 1000 && executed[2]) { startSpawner(1000); executed[2] = false; }
+            if (score > 1500 && executed[3]) { startSpawner(800);  executed[3] = false; }
+
+            updateVerbCounter();
+        }
+
+        // ===== 입력 처리 =====
+        $input.on("keydown", function(e){
+            if (e.key === "Enter"){
+                const value = $(this).val().trim();
+                if (value) removeStr(value);
+                $(this).val("");
+            }
+        });
+
+        // ===== ESC: 재시작 =====
+        $(document).on("keydown", function(e){
+            if (e.key === "Escape"){
+                initGame(true);
+            }
+        });
+
+        // ===== 시작(바로 시작) =====
+        function initGame(skipCountDown=false){
+            clearInterval(intervalRender);
+            intervalRender = null;
+
+            stopTimer();
+            time = 0;
+            renderTime();
+
+            score = 0;
+            $score.text("0");
+            executed[0]=executed[1]=executed[2]=executed[3]=true;
+
+            $(".random-str").remove();
+            $("#renew-button").remove();
+            updateVerbCounter();
+            $input.val("");
+
+            if (skipCountDown){
+                clearCounter();
+                $input.focus();
+                startTimer();
+                startSpawner(2000);
+                return;
+            }
+
+            // 첫 진입 카운트다운
+            setCounter("3");
+            setTimeout(() => setCounter("2"), 700);
+            setTimeout(() => setCounter("1"), 1400);
+            setTimeout(() => {
+                clearCounter();
+                $input.focus();
+                startTimer();
+                startSpawner(2000);
+            }, 2100);
+        }
+
+        // 페이지 열리면 바로 시작
+        initGame(false);
+    });
+</script>
+</body>
+</html>
