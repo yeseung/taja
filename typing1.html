@@ -1,0 +1,2990 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 한글 타자연습</title>
+
+    <!-- PWA 설정 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="">
+    <meta name="theme-color" content="#1a365d">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
+
+    <!-- Google Fonts 사전 연결 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- 폰트 로드 - 마루부리 & 서예체 -->
+    <link href="https://fonts.googleapis.com/css2?family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
+
+
+    <style>
+        /* 마루부리 폰트 정의 */
+        @font-face {
+            font-family: 'MaruBuri';
+            src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10-21@1.0/MaruBuri-Regular.woff') format('woff');
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        :root {
+            /* 템플릿 색상 테마 적용 */
+            --theme-primary: #1e293b;
+            --theme-secondary: #334155;
+            --theme-accent: #0ea5e9;
+            --theme-success: #10b981;
+            --theme-danger: #ef4444;
+            --theme-warning: #f59e0b;
+
+            /* 배경 관련 */
+            --theme-bg-overlay: rgba(248, 250, 252, 0.5);
+            --theme-bg-primary: #ffffff;
+            --theme-bg-secondary: #f8fafc;
+            --theme-bg-card: rgba(255, 255, 255, 0.85);
+
+            /* 텍스트 색상 */
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-light: #64748b;
+
+            /* 공통 스타일 */
+            --border-color: rgba(30, 41, 59, 0.1);
+            --hover-bg: rgba(14, 165, 233, 0.1);
+            --shadow-soft: 0 8px 32px rgba(30, 41, 59, 0.12);
+            --shadow-hover: 0 12px 40px rgba(30, 41, 59, 0.18);
+            --radius: 1.25rem;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'MaruBuri', -apple-system, BlinkMacSystemFont, serif;
+            background-color: var(--theme-bg-primary);
+            background-image: url('https://images.unsplash.com/photo-1516321497487-e288fb19713f?q=50&w=1200&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            color: var(--text-primary);
+            line-height: 1.7;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* 배경 오버레이 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--theme-bg-overlay);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+
+        .header-left .main-info {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .header-left strong {
+            color: var(--theme-primary);
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .header-left .website-info {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.7rem;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .header-left .website-info i {
+            font-size: 0.65rem;
+        }
+
+        .browser-tip {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            background: transparent;
+            padding: 0.5rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.5rem;
+        }
+
+        .browser-tip:hover {
+            background: var(--hover-bg);
+            transform: rotate(72deg);
+            color: var(--theme-accent);
+        }
+
+        /* 헤더용 작은 信 서예체 스타일 */
+        .shin-calligraphy-small {
+            font-family: 'Zhi Mang Xing', cursive !important;
+            font-size: 1.2rem;
+            font-weight: 400;
+            font-style: normal;
+            display: inline-block;
+            margin: 0 0.1em;
+            line-height: 1;
+            vertical-align: baseline;
+            letter-spacing: 0;
+            color: inherit !important;
+            background: none !important;
+            -webkit-text-fill-color: initial !important;
+            position: relative;
+            top: 0.05em;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 3rem 1.5rem;
+            position: relative;
+        }
+
+        /* Page Title Box - 템플릿 스타일 적용 */
+        .page-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            padding: 2rem 2rem;
+            background: var(--theme-bg-card);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 1.5rem;
+            box-shadow: var(--shadow-soft);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle,
+            rgba(14, 165, 233, 0.1) 0%,
+            transparent 70%);
+            animation: float 20s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(-30%, -30%) rotate(0deg); }
+            50% { transform: translate(-20%, -20%) rotate(180deg); }
+        }
+
+        .page-title {
+            font-size: 2.125rem;
+            font-weight: 700;
+            color: var(--theme-primary);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.875rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-icon {
+            font-size: 2.125rem;
+            color: var(--theme-accent);
+            opacity: 0.9;
+        }
+
+        .page-description {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+            position: relative;
+            z-index: 1;
+            font-weight: 500;
+        }
+
+        /* Game Container - 템플릿 카드 스타일 */
+        .game-container {
+            background: var(--theme-bg-card);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-soft);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: var(--transition);
+        }
+
+        /* Start Screen */
+        .start-screen {
+            text-align: center;
+            padding: 1rem;
+        }
+
+        /* Section Wrapper - 템플릿 스타일 */
+        .section-wrapper {
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+
+        .section-wrapper:hover {
+            background: rgba(255, 255, 255, 0.8);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--theme-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-title i {
+            color: var(--theme-accent);
+            font-size: 1.125rem;
+        }
+
+        /* Game Mode Buttons */
+        .game-mode-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 380px) {
+            .game-mode-buttons {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
+
+        .mode-btn {
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 2rem 1.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mode-btn:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+            border-color: var(--theme-accent);
+        }
+
+        .mode-btn.selected {
+            border-color: var(--theme-accent);
+            background: rgba(14, 165, 233, 0.05);
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+        }
+
+        .mode-btn i {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 1rem;
+        }
+
+        .classic-mode i {
+            color: var(--theme-accent);
+        }
+
+        .survival-mode i {
+            color: var(--theme-warning);
+        }
+
+        .mode-title {
+            display: block;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .mode-desc {
+            display: block;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Survival Mode Info */
+        .survival-info {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 30%, #fbbf24 100%);
+            border: 2px solid #f59e0b;
+        }
+
+        .survival-rules {
+            display: grid;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .rule-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: #92400e;
+            font-size: 0.95rem;
+        }
+
+        .rule-item i {
+            color: #059669;
+            font-size: 1.125rem;
+        }
+
+        .best-record {
+            background: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .best-record i {
+            color: #f59e0b;
+            font-size: 1.5rem;
+        }
+
+        .best-record span {
+            font-size: 1.125rem;
+        }
+
+        /* Survival Mode Game UI */
+        .survival-level-display {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 700;
+            font-size: 1.125rem;
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .survival-level-display i {
+            font-size: 1.25rem;
+        }
+        .option-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .option-btn {
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--border-color);
+            background: white;
+            border-radius: 0.5rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        .option-btn:hover {
+            background: var(--hover-bg);
+            border-color: var(--accent-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+        }
+
+        .option-btn.selected {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+        }
+
+        /* Stage Grid */
+        .stage-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.5rem;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .stage-btn {
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            background: white;
+            border-radius: 0.375rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-primary);
+        }
+
+        .stage-btn:hover {
+            background: var(--hover-bg);
+            border-color: var(--accent-color);
+            transform: translateY(-1px);
+        }
+
+        .stage-btn.selected {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+
+        /* AI Theme Button */
+        .ai-theme-button {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 1rem;
+        }
+
+        .ai-theme-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(251, 191, 36, 0.3);
+        }
+
+        .theme-input {
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 0.95rem;
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .theme-input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+        }
+
+        /* Start Button */
+        .start-btn {
+            padding: 1rem 2.5rem;
+            background: var(--theme-accent);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+            box-shadow: 0 4px 16px rgba(14, 165, 233, 0.3);
+        }
+
+        .start-btn:hover:not(:disabled) {
+            background: var(--theme-primary);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(30, 41, 59, 0.3);
+        }
+
+        .start-btn:disabled {
+            background: var(--text-light);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            opacity: 0.6;
+        }
+
+        /* Game Screen */
+        .game-screen {
+            display: none;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .game-stats {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+
+        .combo-display {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-weight: 700;
+            display: none;
+            animation: pulse 0.5s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .game-controls {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .control-btn {
+            padding: 0.5rem 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .control-btn:hover {
+            background: var(--hover-bg);
+            border-color: var(--accent-color);
+        }
+
+        /* 음소거 버튼 스타일 */
+        .mute-btn {
+            position: fixed;
+            top: 100px;
+            right: 30px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 99;
+        }
+
+        .mute-btn:hover {
+            background: var(--hover-bg);
+            border-color: var(--accent-color);
+            transform: scale(1.1);
+        }
+
+        .mute-btn.muted {
+            background: var(--theme-danger);
+            color: white;
+            border-color: var(--theme-danger);
+        }
+
+        /* Typing Area - 템플릿 스타일 */
+        .typing-area {
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+
+        .typing-area:hover {
+            background: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .text-display {
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            min-height: 4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            line-height: 1.8;
+            position: relative;
+        }
+
+        .char {
+            display: inline-block;
+            padding: 0.125rem;
+            margin: 0.0625rem;
+            border-radius: 0.25rem;
+            transition: all 0.2s;
+        }
+
+        .char.current {
+            background: var(--theme-warning);
+            color: white;
+            transform: scale(1.2);
+            font-weight: 700;
+        }
+
+        .char.correct {
+            color: var(--theme-success);
+            font-weight: 700;
+        }
+
+        .char.incorrect {
+            background: var(--theme-danger);
+            color: white;
+            animation: shake 0.3s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .input-area {
+            position: relative;
+        }
+
+        .typing-input {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.5rem;
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            text-align: center;
+            transition: var(--transition);
+            background: white;
+        }
+
+        .typing-input:focus {
+            outline: none;
+            border-color: var(--theme-accent);
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+        }
+
+        .typing-input.correct-flash {
+            border-color: var(--theme-success);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            margin-bottom: 1rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 1.5rem;
+            background: var(--border-color);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-color), var(--primary-color));
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 0.5rem;
+        }
+
+        .progress-text {
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .time-bar {
+            width: 100%;
+            height: 0.5rem;
+            background: var(--border-color);
+            border-radius: 0.25rem;
+            overflow: hidden;
+            margin-top: 1rem;
+            position: relative;
+        }
+
+        .time-fill {
+            height: 100%;
+            background: var(--success-color);
+            transition: width 0.1s linear, background-color 0.3s;
+        }
+
+        .time-fill.warning {
+            background: var(--warning-color);
+        }
+
+        .time-fill.danger {
+            background: var(--error-color);
+            animation: pulse-danger 0.5s infinite;
+        }
+
+        @keyframes pulse-danger {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Result Screen - 템플릿 스타일 */
+        .result-screen {
+            display: none;
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .result-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--theme-primary);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        .result-title i {
+            color: var(--theme-accent);
+            font-size: 1.75rem;
+        }
+
+        .ai-title-container {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border: 2px solid #fbbf24;
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            margin-bottom: 1.5rem;
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .ai-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #92400e;
+            margin-top: 0.5rem;
+        }
+
+        .result-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .result-stat {
+            background: rgba(255, 255, 255, 0.6);
+            padding: 1.25rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+
+        .result-stat:hover {
+            background: rgba(255, 255, 255, 0.8);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .result-stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .result-stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--theme-accent);
+        }
+
+        .result-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* AI Coaching Section - 템플릿 스타일 */
+        .ai-coaching-section {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 0.75rem;
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+
+        .ai-coaching-section:hover {
+            background: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .ai-coaching-result {
+            margin-top: 1rem;
+            padding: 1.25rem;
+            background: rgba(14, 165, 233, 0.1);
+            border-radius: 0.5rem;
+            text-align: left;
+        }
+
+        .ai-analysis {
+            color: var(--theme-primary);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .practice-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .practice-list li {
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: white;
+            border-radius: 0.375rem;
+            border-left: 4px solid var(--theme-accent);
+            transition: var(--transition);
+        }
+
+        .practice-list li:hover {
+            transform: translateX(4px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Records Section */
+        .records-section {
+            margin-top: 1.5rem;
+        }
+
+        .record-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 0.375rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+
+        .record-item:hover {
+            background: rgba(255, 255, 255, 0.8);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .record-date {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .record-info {
+            display: flex;
+            gap: 1rem;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .record-score {
+            font-weight: 700;
+            color: var(--theme-accent);
+        }
+
+
+        .footer-links a {
+            color: var(--theme-secondary);
+            text-decoration: none;
+            font-size: 1rem;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+
+        .footer-links a:hover {
+            color: var(--theme-accent);
+            transform: translateY(-2px);
+        }
+
+        .footer-copyright {
+            color: var(--text-light);
+            font-size: 0.75rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+            line-height: 1.6;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* 홈 버튼 - 템플릿 스타일 */
+        .home-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--theme-accent), var(--theme-primary));
+            color: white;
+            border: none;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+            z-index: 1000;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .home-button:hover {
+            transform: scale(1.1) translateY(-2px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+        }
+
+        .home-button i {
+            font-size: 20px;
+        }
+
+        /* 홈 화면 추가 안내 모달 - 템플릿 스타일 */
+        .home-guide-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .home-guide-modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .home-guide-content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            padding-top: 60px;
+            max-width: 380px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            position: relative;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 링크 복사 버튼 - 서비스별 색상 변경 가능 */
+        .service-link-copy {
+            position: absolute;
+            top: 15px;
+            left: 20px;
+            right: 50px;
+            background: linear-gradient(135deg, var(--accent-color) 0%, #1e293b 100%);
+            border: 1px solid var(--accent-color);
+            border-radius: 8px;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 12px;
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        }
+
+        .service-link-copy:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .service-link-copy.copied {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border-color: #059669;
+        }
+
+        .guide-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .guide-header h3 {
+            font-size: 20px;
+            color: var(--primary-color);
+            margin-bottom: 6px;
+            font-weight: 700;
+            padding: 0 30px;
+            line-height: 1.4;
+        }
+
+        .guide-header p {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .guide-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+            transition: all 0.2s;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .guide-close:hover {
+            background: var(--hover-bg);
+            color: var(--primary-color);
+        }
+
+        .browser-section {
+            margin-bottom: 15px;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .browser-section h4 {
+            font-size: 14px;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .browser-icon {
+            width: 18px;
+            height: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .samsung-icon {
+            background: #1428A0;
+            color: white;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .guide-steps {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .guide-steps li {
+            font-size: 12px;
+            color: var(--text-secondary);
+            padding: 3px 0;
+            padding-left: 16px;
+            position: relative;
+        }
+
+        .guide-steps li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 10px;
+            width: 3px;
+            height: 3px;
+            background: var(--accent-color);
+            border-radius: 50%;
+        }
+
+        .guide-footer {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .guide-benefit {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            color: var(--success-color);
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border-left-color: white;
+            animation: spin 1s ease infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Confetti Effect */
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 1000;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            animation: confetti-fall 3s linear;
+        }
+
+        .confetti-1 { background: #ff0000; left: 10%; animation-delay: 0s; }
+        .confetti-2 { background: #00ff00; left: 20%; animation-delay: 0.2s; }
+        .confetti-3 { background: #0000ff; left: 30%; animation-delay: 0.4s; }
+        .confetti-4 { background: #ffff00; left: 40%; animation-delay: 0.6s; }
+        .confetti-5 { background: #ff00ff; left: 50%; animation-delay: 0.8s; }
+        .confetti-6 { background: #00ffff; left: 60%; animation-delay: 1s; }
+        .confetti-7 { background: #ff8800; left: 70%; animation-delay: 1.2s; }
+        .confetti-8 { background: #ff0088; left: 80%; animation-delay: 1.4s; }
+        .confetti-9 { background: #88ff00; left: 90%; animation-delay: 1.6s; }
+        .confetti-10 { background: #8800ff; left: 15%; animation-delay: 0.3s; }
+        .confetti-11 { background: #ff8888; left: 25%; animation-delay: 0.5s; }
+        .confetti-12 { background: #88ff88; left: 35%; animation-delay: 0.7s; }
+        .confetti-13 { background: #8888ff; left: 45%; animation-delay: 0.9s; }
+        .confetti-14 { background: #ffff88; left: 55%; animation-delay: 1.1s; }
+        .confetti-15 { background: #ff88ff; left: 65%; animation-delay: 1.3s; }
+
+        /* Lives Display */
+        .lives-display {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 700;
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+        }
+
+        .lives-display i {
+            font-size: 1.125rem;
+        }
+
+        @media (max-width: 768px) {
+            .lives-display {
+                position: static;
+                margin-top: 1rem;
+            }
+        }
+        @media (max-width: 599px) {
+            .header-container {
+                padding: 0 1rem;
+            }
+
+            .header-left {
+                font-size: 0.8rem;
+                padding: 0.25rem;
+            }
+
+            .header-left strong {
+                font-size: 0.8rem;
+            }
+
+            .browser-tip {
+                font-size: 0.7rem;
+                padding: 0.3rem 0.5rem;
+            }
+
+            .shin-calligraphy-small {
+                font-size: 1rem;
+            }
+
+            .main-content {
+                padding: 2rem 1rem;
+            }
+
+            .page-header {
+                margin-bottom: 1.5rem;
+                padding: 2rem 1.5rem;
+                border-radius: 1.25rem;
+            }
+
+            .page-title {
+                font-size: 1.75rem;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .page-icon {
+                font-size: 1.75rem;
+            }
+
+            .page-description {
+                font-size: 0.9rem;
+            }
+
+            .game-container {
+                padding: 1.5rem;
+            }
+
+            .section-wrapper {
+                padding: 1rem;
+            }
+
+            .mode-btn {
+                padding: 1.5rem 1rem;
+            }
+
+            .mode-btn i {
+                font-size: 2.5rem;
+            }
+
+            .mode-title {
+                font-size: 1.1rem;
+            }
+
+            .mode-desc {
+                font-size: 0.8rem;
+            }
+
+            .text-display {
+                font-size: 1.5rem;
+            }
+
+            .typing-input {
+                font-size: 1.25rem;
+            }
+
+            .game-stats {
+                justify-content: center;
+                width: 100%;
+            }
+
+            .option-buttons {
+                flex-direction: column;
+            }
+
+            .option-btn {
+                width: 100%;
+            }
+
+            .footer {
+                padding: 0.75rem 0;
+            }
+
+            .footer-links {
+                gap: 1.5rem;
+                font-size: 0.875rem;
+            }
+
+            .footer-copyright {
+                font-size: 0.7rem;
+                margin-top: 0.75rem;
+                padding-top: 0.75rem;
+                line-height: 1.4;
+            }
+
+            .home-button {
+                bottom: 20px;
+                right: 15px;
+                width: 40px;
+                height: 40px;
+            }
+
+            .home-button i {
+                font-size: 16px;
+            }
+
+            .mute-btn {
+                top: 80px;
+                right: 15px;
+                width: 40px;
+                height: 40px;
+            }
+
+            .home-guide-content {
+                padding: 25px 20px;
+                padding-top: 60px;
+            }
+
+            .guide-header h3 {
+                font-size: 20px;
+            }
+
+            .browser-section {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+
+<!-- 음소거 버튼 -->
+<button class="mute-btn no-print" id="muteBtn" onclick="toggleMute()" title="음소거">
+    <i class="fas fa-volume-up"></i>
+</button>
+
+<!-- Main Content -->
+<main class="main-content">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="fas fa-keyboard"></i>
+            AI 한글 타자연습
+        </h1>
+        <p class="page-description">
+            AI가 생성하는 맞춤형 문장으로 한글 타자 실력을 향상시켜보세요!<br>
+            난이도와 단계를 선택하고 게임을 시작하세요.
+        </p>
+    </div>
+
+    <!-- Game Container -->
+    <div class="game-container">
+        <!-- Start Screen -->
+        <div class="start-screen" id="startScreen">
+            <!-- 게임 모드 선택 -->
+            <div class="section-wrapper">
+                <h2 class="section-title">
+                    <i class="fas fa-gamepad"></i>
+                    게임 모드 선택
+                </h2>
+                <div class="game-mode-buttons">
+                    <button onclick="selectGameMode('classic')" class="mode-btn classic-mode">
+                        <i class="fas fa-graduation-cap"></i>
+                        <span class="mode-title">클래식 모드</span>
+                        <span class="mode-desc">난이도와 단계를 선택하여 20문제를 연습합니다</span>
+                    </button>
+                    <button onclick="selectGameMode('survival')" class="mode-btn survival-mode">
+                        <i class="fas fa-infinity"></i>
+                        <span class="mode-title">랜덤 서바이벌</span>
+                        <span class="mode-desc">초급 1단계부터 시작해 끝까지 도전합니다</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 클래식 모드 설정 -->
+            <div id="classic-settings" style="display: none;">
+                <div class="section-wrapper">
+                    <h2 class="section-title">
+                        <i class="fas fa-sliders-h"></i>
+                        난이도 선택
+                    </h2>
+                    <div class="option-buttons">
+                        <button onclick="setDifficulty('beginner')" class="option-btn">
+                            <i class="fas fa-baby"></i> 초급
+                        </button>
+                        <button onclick="setDifficulty('intermediate')" class="option-btn">
+                            <i class="fas fa-user"></i> 중급
+                        </button>
+                        <button onclick="setDifficulty('advanced')" class="option-btn">
+                            <i class="fas fa-user-graduate"></i> 상급
+                        </button>
+                    </div>
+                </div>
+
+                <div id="stage-selection-container" class="section-wrapper" style="display: none;">
+                    <h2 class="section-title">
+                        <i class="fas fa-layer-group"></i>
+                        단계 선택 (1-10)
+                    </h2>
+                    <div class="stage-grid" id="stage-selection"></div>
+                </div>
+
+                <div id="custom-theme-container" class="section-wrapper" style="display: none;">
+                    <h2 class="section-title">
+                        <i class="fas fa-magic"></i>
+                        AI 맞춤 주제 (선택사항)
+                    </h2>
+                    <button onclick="useAITheme()" class="ai-theme-button">
+                        <i class="fas fa-wand-magic-sparkles"></i> AI 추천 주제 사용하기
+                    </button>
+                    <input type="text" id="custom-theme-input"
+                           class="theme-input"
+                           placeholder="원하는 주제를 입력하세요 (예: 법률, 재판, 시사, 상식, 연예, 스포츠, 일상대화 등)">
+                </div>
+            </div>
+
+            <!-- 서바이벌 모드 설정 -->
+            <div id="survival-settings" style="display: none;">
+                <div class="section-wrapper survival-info">
+                    <h2 class="section-title">
+                        <i class="fas fa-trophy"></i>
+                        랜덤 서바이벌 규칙
+                    </h2>
+                    <div class="survival-rules">
+                        <div class="rule-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>초급 1단계부터 시작합니다</span>
+                        </div>
+                        <div class="rule-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>각 단계마다 5개의 문제를 통과해야 합니다</span>
+                        </div>
+                        <div class="rule-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>시간 초과나 오답 시 게임이 종료됩니다</span>
+                        </div>
+                        <div class="rule-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>AI가 자동으로 다양한 주제의 문장을 생성합니다</span>
+                        </div>
+                    </div>
+                    <div class="best-record">
+                        <i class="fas fa-crown"></i>
+                        <span>최고 기록: <span id="survivalBestScore">0</span>점 (레벨 <span id="survivalBestLevel">-</span>)</span>
+                    </div>
+                </div>
+            </div>
+
+            <button id="start-btn" onclick="startGame()" class="start-btn" style="display: none;">
+                <span id="start-btn-text">게임 시작</span>
+                <div id="start-spinner" class="spinner" style="display: none;"></div>
+            </button>
+        </div>
+
+        <!-- Game Screen -->
+        <div class="game-screen" id="gameScreen">
+            <div class="game-header">
+                <div class="game-stats">
+                    <div class="stat-item">
+                        <div class="stat-label">진행도</div>
+                        <div class="stat-value" id="progress">1/20</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">점수</div>
+                        <div class="stat-value" id="score">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">정확도</div>
+                        <div class="stat-value" id="accuracy">100%</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">속도</div>
+                        <div class="stat-value"><span id="speed">0</span> 타/분</div>
+                    </div>
+                </div>
+                <div class="survival-level-display" id="survivalLevelDisplay">
+                    <i class="fas fa-layer-group"></i>
+                    <span>레벨 <span id="currentLevel">1-1</span></span>
+                </div>
+                <div class="combo-display" id="comboDisplay">
+                    <i class="fas fa-fire"></i> 콤보 x<span id="comboCount">0</span>
+                </div>
+                <div class="lives-display" id="livesDisplay">
+                    <i class="fas fa-heart"></i>
+                    <span>생명 <span id="livesCount">1</span></span>
+                </div>
+                <div class="game-controls">
+                    <button onclick="togglePause()" class="control-btn">
+                        <i class="fas fa-pause"></i> 일시정지
+                    </button>
+                    <button onclick="endGame()" class="control-btn">
+                        <i class="fas fa-stop"></i> 종료
+                    </button>
+                </div>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressBar" style="width: 0%">
+                        <span class="progress-text" id="progressText">0%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="typing-area">
+                <div class="text-display" id="textDisplay"></div>
+                <div class="input-area">
+                    <input type="text"
+                           id="typingInput"
+                           class="typing-input"
+                           placeholder="여기에 입력하세요..."
+                           autocomplete="off">
+                    <div class="time-bar">
+                        <div class="time-fill" id="timeFill" style="width: 100%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div class="result-screen" id="resultScreen">
+            <h2 class="result-title">
+                <i class="fas fa-trophy"></i>
+                게임 결과
+            </h2>
+
+            <div class="ai-title-container" id="aiTitleContainer" style="display: none;">
+                <p style="color: #92400e; font-size: 0.9rem;">✨ AI가 부여한 칭호</p>
+                <p class="ai-title" id="aiTitle"></p>
+            </div>
+
+            <div class="result-stats">
+                <div class="result-stat">
+                    <div class="result-stat-label">최종 점수</div>
+                    <div class="result-stat-value" id="finalScore">0</div>
+                </div>
+                <div class="result-stat">
+                    <div class="result-stat-label">정확도</div>
+                    <div class="result-stat-value" id="finalAccuracy">0%</div>
+                </div>
+                <div class="result-stat">
+                    <div class="result-stat-label">평균 속도</div>
+                    <div class="result-stat-value" id="finalSpeed">0</div>
+                </div>
+                <div class="result-stat">
+                    <div class="result-stat-label">최대 콤보</div>
+                    <div class="result-stat-value" id="maxCombo">0</div>
+                </div>
+            </div>
+
+            <div class="ai-coaching-section">
+                <button id="ai-coach-btn" onclick="getAICoaching()" class="start-btn">
+                    <span>✨ AI 코칭 받기</span>
+                    <div id="coach-spinner" class="spinner" style="display: none;"></div>
+                </button>
+                <div class="ai-coaching-result" id="aiCoachingResult" style="display: none;">
+                    <h3 style="color: var(--primary-color); margin-bottom: 1rem;">AI 분석 결과</h3>
+                    <p class="ai-analysis" id="aiAnalysis"></p>
+                    <ul class="practice-list" id="practiceList"></ul>
+                </div>
+            </div>
+
+            <div class="records-section">
+                <h3 class="section-title">최근 기록</h3>
+                <div id="recordsContainer"></div>
+            </div>
+
+            <div class="result-buttons">
+                <button onclick="restartGame()" class="start-btn">
+                    <i class="fas fa-redo"></i> 다시 시작
+                </button>
+                <button onclick="goHome()" class="start-btn" style="background: var(--secondary-color);">
+                    <i class="fas fa-arrow-left"></i> 처음으로
+                </button>
+            </div>
+        </div>
+    </div>
+</main>
+
+
+
+<!-- 홈 화면 추가 안내 모달 -->
+<div class="home-guide-modal" id="homeGuideModal">
+    <div class="home-guide-content">
+        <button class="guide-close" onclick="closeHomeGuide()">&times;</button>
+
+        <!-- 링크 복사 버튼 -->
+        <div class="service-link-copy" onclick="copyServiceLink()">
+            <i class="fas fa-link"></i>
+            <span id="serviceLinkText">AI 한글 타자연습 <strong style="color: #ffffff;">주소 복사</strong></span>
+            <i class="fas fa-external-link-alt" style="font-size: 11px; margin-left: auto; opacity: 0.8;"></i>
+        </div>
+
+        <div class="guide-header">
+            <h3>
+                <span style="display: block; margin-bottom: 5px;">📱 "AI 한글 타자연습"을</span>
+                <span style="display: block;">홈 화면에 추가하세요!</span>
+            </h3>
+            <p>앱처럼 편리하게 사용하실 수 있습니다</p>
+        </div>
+
+        <div class="browser-section">
+            <h4>
+                <span class="browser-icon samsung-icon">S</span>
+                삼성 브라우저
+            </h4>
+            <ol class="guide-steps">
+                <li>우측 상단 메뉴(⋮) 터치</li>
+                <li>'홈페이지 추가' 선택</li>
+                <li>이름 확인 후 '추가' 터치</li>
+            </ol>
+        </div>
+
+        <div class="browser-section">
+            <h4>
+                    <span class="browser-icon chrome-icon">
+                        <img src="https://cdn.jsdelivr.net/npm/simple-icons@v6/icons/googlechrome.svg" width="16" height="16" style="filter: invert(48%) sepia(79%) saturate(2476%) hue-rotate(86deg) brightness(118%) contrast(119%);">
+                    </span>
+                Chrome
+            </h4>
+            <ol class="guide-steps">
+                <li>우측 상단 메뉴(⋮) 터치</li>
+                <li>'홈 화면에 추가' 선택</li>
+                <li>이름 확인 후 '추가' 터치</li>
+            </ol>
+        </div>
+
+        <div class="browser-section">
+            <h4>
+                    <span class="browser-icon safari-icon">
+                        <i class="fab fa-safari"></i>
+                    </span>
+                iPhone (Safari)
+            </h4>
+            <ol class="guide-steps">
+                <li>하단 공유 버튼 터치</li>
+                <li>'홈 화면에 추가' 선택</li>
+                <li>이름 확인 후 '추가' 터치</li>
+            </ol>
+        </div>
+
+        <div class="guide-footer">
+            <div class="guide-benefit">
+                <i class="fas fa-check-circle"></i>
+                <span>앱처럼 빠르게 접속할 수 있어요!</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 브라우저 팁 표시 함수
+    function showBrowserTip() {
+        document.getElementById('homeGuideModal').classList.add('show');
+    }
+
+    // 홈 화면 추가 안내 모달 닫기
+    function closeHomeGuide() {
+        document.getElementById('homeGuideModal').classList.remove('show');
+    }
+
+    // 서비스 링크 복사 함수
+    function copyServiceLink() {
+        const serviceUrl = 'https://lawfirm-shin-hangeultyping.netlify.app/';
+        const copyButton = document.querySelector('.service-link-copy');
+        const originalHTML = copyButton.innerHTML;
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(serviceUrl).then(() => {
+                // 복사 성공 시 버튼 상태 변경
+                copyButton.classList.add('copied');
+                copyButton.innerHTML = '<i class="fas fa-check"></i><span>복사 완료!</span>';
+
+                // 2초 후 원래 상태로 복원
+                setTimeout(() => {
+                    copyButton.classList.remove('copied');
+                    copyButton.innerHTML = originalHTML;
+                }, 2000);
+            }).catch(() => {
+                fallbackCopyService(serviceUrl);
+            });
+        } else {
+            fallbackCopyService(serviceUrl);
+        }
+    }
+
+    function fallbackCopyService(text) {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+
+        try {
+            document.execCommand('copy');
+            const copyButton = document.querySelector('.service-link-copy');
+            const originalHTML = copyButton.innerHTML;
+
+            copyButton.classList.add('copied');
+            copyButton.innerHTML = '<i class="fas fa-check"></i><span>복사 완료!</span>';
+
+            setTimeout(() => {
+                copyButton.classList.remove('copied');
+                copyButton.innerHTML = originalHTML;
+            }, 2000);
+        } catch (err) {
+            alert('AI 한글 타자연습 주소: ' + text);
+        }
+
+        document.body.removeChild(textarea);
+    }
+
+    // 홈 포털로 이동 (기기별 분기)
+    function goToPortal() {
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+
+        if (isMobile) {
+            window.open('https://jsulaw.co.kr/', '_blank');
+        } else {
+            window.location.href = 'https://jsulaw.co.kr/';
+        }
+    }
+
+    // 모달 외부 클릭 시 닫기
+    document.getElementById('homeGuideModal')?.addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeHomeGuide();
+        }
+    });
+
+    // 음소거 상태
+    let isMuted = false;
+
+    // 효과음 객체
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+    // 효과음 생성 함수들
+    function createCorrectSound() {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+        oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1); // E5
+        oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2); // G5
+
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+    }
+
+    function createWrongSound() {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.type = 'sawtooth';
+        oscillator.frequency.setValueAtTime(130.81, audioContext.currentTime); // C3
+
+        gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.2);
+    }
+
+    function createComboSound() {
+        const oscillator1 = audioContext.createOscillator();
+        const oscillator2 = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator1.type = 'sine';
+        oscillator1.frequency.setValueAtTime(440, audioContext.currentTime); // A4
+        oscillator1.frequency.setValueAtTime(880, audioContext.currentTime + 0.1); // A5
+
+        oscillator2.type = 'sine';
+        oscillator2.frequency.setValueAtTime(554.37, audioContext.currentTime); // C#5
+        oscillator2.frequency.setValueAtTime(1108.73, audioContext.currentTime + 0.1); // C#6
+
+        gainNode.gain.setValueAtTime(0.25, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+
+        oscillator1.connect(gainNode);
+        oscillator2.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator1.start(audioContext.currentTime);
+        oscillator2.start(audioContext.currentTime);
+        oscillator1.stop(audioContext.currentTime + 0.4);
+        oscillator2.stop(audioContext.currentTime + 0.4);
+    }
+
+    // 효과음 재생 함수
+    function playSound(soundName) {
+        if (isMuted) return;
+
+        try {
+            if (soundName === 'correct') {
+                createCorrectSound();
+            } else if (soundName === 'wrong') {
+                createWrongSound();
+            } else if (soundName === 'combo') {
+                createComboSound();
+            }
+        } catch (e) {
+            console.log('Sound play failed:', e);
+        }
+    }
+
+    // 음소거 토글 함수
+    function toggleMute() {
+        isMuted = !isMuted;
+        const muteBtn = document.getElementById('muteBtn');
+        const icon = muteBtn.querySelector('i');
+
+        if (isMuted) {
+            muteBtn.classList.add('muted');
+            icon.className = 'fas fa-volume-mute';
+        } else {
+            muteBtn.classList.remove('muted');
+            icon.className = 'fas fa-volume-up';
+        }
+    }
+
+    function decomposeHangul(str) {
+        const CHO = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+        const JUNG = ['ㅏ','ㅐ','ㅑ','ㅒ','ㅓ','ㅔ','ㅕ','ㅖ','ㅗ','ㅘ','ㅙ','ㅚ','ㅛ','ㅜ','ㅝ','ㅞ','ㅟ','ㅠ','ㅡ','ㅢ','ㅣ'];
+        const JONG = ['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+
+        let count = 0;
+        for (let i = 0; i < str.length; i++) {
+            const code = str.charCodeAt(i) - 44032;
+            if (code >= 0 && code <= 11171) {
+                // 한글 음절
+                const jong = code % 28;
+                const jung = ((code - jong) / 28) % 21;
+                const cho = (((code - jong) / 28) - jung) / 21;
+
+                count += 2; // 초성 + 중성
+                if (jong > 0) count += 1; // 종성이 있으면 +1
+            } else {
+                // 한글이 아닌 경우 (영문, 숫자, 공백 등)
+                count += 1;
+            }
+        }
+        return count;
+    }
+
+    // Game State
+    let gameState = {
+        mode: null,  // 'classic' or 'survival'
+        difficulty: null,
+        stage: null,
+        words: [],
+        currentWordIndex: 0,
+        score: 0,
+        correctChars: 0,
+        totalChars: 0,
+        correctStrokes: 0,  // 정확한 타수
+        totalStrokes: 0,    // 전체 타수
+        incorrectWords: [],
+        startTime: null,
+        isPaused: false,
+        combo: 0,
+        maxCombo: 0,
+        typingStartTime: null,
+        charSpeeds: [],
+        // 서바이벌 모드 전용
+        survivalLevel: 1,
+        survivalStage: 1,
+        survivalWordsInStage: 0,
+        survivalTotalWords: 0,
+        survivalLives: 1  // 생명 시스템 추가
+    };
+
+    // DOM Elements
+    const screens = {
+        start: document.getElementById('startScreen'),
+        game: document.getElementById('gameScreen'),
+        result: document.getElementById('resultScreen')
+    };
+
+    // Word Lists (더 다양한 단어들 추가)
+    const wordLists = {
+        beginner: {
+            1: ['가나', '다라', '마바', '사아', '자차', '카타', '파하', '아가', '어머', '우유', '오이', '요리', '이유', '우리', '아이'],
+            2: ['고기', '노래', '도시', '로봇', '모자', '보리', '소리', '오리', '조개', '초록', '토끼', '포도', '호박', '코코아', '도로'],
+            3: ['구름', '누나', '두부', '루비', '무지개', '부모', '수박', '우유', '주말', '추억', '투자', '푸른', '후추', '무릎', '구두'],
+            4: ['그림', '느낌', '드라마', '느티나무', '므네모', '브라보', '스키', '으뜸', '즐거움', '츠나미', '크림', '트럭', '플라워', '클래식'],
+            5: ['하늘', '바다', '나무', '구름', '별빛', '달빛', '햇살', '노을', '무지개', '바람', '파도', '모래', '산책', '여행', '풍경'],
+            6: ['학교', '친구', '가족', '선생님', '동네', '시장', '병원', '도서관', '공원', '놀이터', '버스', '지하철', '택시', '기차', '비행기'],
+            7: ['사과', '바나나', '딸기', '수박', '포도', '오렌지', '키위', '망고', '체리', '복숭아', '자두', '멜론', '레몬', '라임', '블루베리'],
+            8: ['강아지', '고양이', '토끼', '햄스터', '앵무새', '금붕어', '거북이', '다람쥐', '원숭이', '코끼리', '기린', '사자', '호랑이', '곰', '여우'],
+            9: ['컴퓨터', '스마트폰', '태블릿', '노트북', '마우스', '키보드', '모니터', '프린터', '스피커', '이어폰', '충전기', '케이블', '카메라', '메모리', '하드디스크'],
+            10: ['안녕하세요', '감사합니다', '죄송합니다', '괜찮습니다', '반갑습니다', '수고하셨습니다', '잘부탁드립니다', '즐거운하루되세요', '행복하세요', '건강하세요']
+        },
+        intermediate: {
+            1: ['프로그래밍', '알고리즘', '데이터베이스', '네트워크', '인터페이스', '애플리케이션', '소프트웨어', '하드웨어', '운영체제', '클라우드'],
+            2: ['경제발전', '문화교류', '국제협력', '환경보호', '기술혁신', '교육개혁', '의료서비스', '복지정책', '사회보장', '공공안전'],
+            3: ['인공지능', '머신러닝', '딥러닝', '빅데이터', '클라우드컴퓨팅', '사물인터넷', '블록체인', '가상현실', '증강현실', '메타버스'],
+            4: ['지속가능한발전', '기후변화대응', '신재생에너지', '탄소중립실현', '생물다양성보전', '순환경제구축', '녹색성장전략', '친환경정책'],
+            5: ['디지털전환', '스마트시티', '자율주행차', '드론배송', '원격의료', '온라인교육', '재택근무', '화상회의', '전자상거래', '핀테크'],
+            6: ['글로벌경제위기', '금융시장안정', '통화정책조정', '재정건전성확보', '무역수지개선', '외환보유고관리', '국가신용등급', '경제성장률'],
+            7: ['헌법재판소', '대법원판결', '행정소송절차', '민사조정제도', '형사재판과정', '가사소송사건', '특허권분쟁', '노동쟁의조정'],
+            8: ['국민건강보험', '노인장기요양', '기초생활보장', '고용보험제도', '산업재해보상', '국민연금급여', '실업급여신청', '의료급여제도'],
+            9: ['정보통신기술의 발전은 우리 생활을 크게 변화시켰습니다.', '환경보호는 미래세대를 위한 중요한 과제입니다.', '건강한 식습관은 장수의 비결입니다.'],
+            10: ['인공지능 기술의 발전으로 많은 산업 분야가 혁신적으로 변화하고 있습니다.', '지속가능한 발전을 위해서는 경제성장과 환경보호의 균형이 필요합니다.', '교육의 기회균등은 사회발전의 초석입니다.']
+        },
+        advanced: {
+            1: ['대한민국헌법', '민주주의원칙', '기본권보장', '권력분립원칙', '법치주의이념', '국민주권주의', '헌법개정절차', '위헌법률심판'],
+            2: ['헌법재판소의권한쟁의심판', '국회의원의면책특권', '대통령의긴급명령권', '국무총리의부서권한', '감사원의회계검사권', '선거관리위원회의독립성'],
+            3: ['행정심판전치주의', '행정소송의대상적격', '처분의취소소송', '무효등확인소송', '부작위위법확인소송', '행정지도의한계', '재량권의일탈남용'],
+            4: ['민사소송의관할권', '소송요건의심리', '변론준비절차', '증거조사절차', '판결의기판력', '상소의이익', '재심사유'],
+            5: ['형사소송의기본원칙', '강제수사와임의수사', '구속영장실질심사', '공판중심주의', '증거능력과증명력', '양형의기준', '보호관찰제도'],
+            6: ['지적재산권의보호범위', '특허권의존속기간', '상표권의효력범위', '저작권의제한사유', '영업비밀의요건', '부정경쟁방지법', '디자인보호법'],
+            7: ['국제사법의준거법결정', '국제재판관할권', '외국판결의승인집행', '국제중재의준거법', '국제상사분쟁해결', '해외직접투자보호', '국제조세조약'],
+            8: ['헌법소원심판의대상', '기본권침해의자기관련성', '보충성의원칙', '권리보호이익', '청구기간의준수', '가처분신청요건', '헌법불합치결정'],
+            9: ['모든 국민은 법 앞에 평등하며 성별, 종교 또는 사회적 신분에 의하여 차별받지 아니한다.', '국가는 전통문화의 계승발전과 민족문화의 창달에 노력하여야 한다.'],
+            10: ['국가는 모든 국민이 인간다운 생활을 할 수 있도록 사회보장과 사회복지의 증진에 노력할 의무를 진다.', '모든 국민은 건강하고 쾌적한 환경에서 생활할 권리를 가지며 국가와 국민은 환경보전을 위하여 노력하여야 한다.']
+        }
+    };
+
+    // Load survival best record
+    function loadSurvivalBestRecord() {
+        const bestRecord = localStorage.getItem('survivalBestRecord');
+        if (bestRecord) {
+            const record = JSON.parse(bestRecord);
+            document.getElementById('survivalBestScore').textContent = record.score.toLocaleString();
+            document.getElementById('survivalBestLevel').textContent = `${record.difficulty} ${record.stage}`;
+        }
+    }
+
+    // Game mode selection
+    window.selectGameMode = (mode) => {
+        gameState.mode = mode;
+
+        // Update button styles
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.classList.remove('selected');
+        });
+        event.target.closest('.mode-btn').classList.add('selected');
+
+        // Show appropriate settings
+        if (mode === 'classic') {
+            document.getElementById('classic-settings').style.display = 'block';
+            document.getElementById('survival-settings').style.display = 'none';
+            document.getElementById('start-btn').style.display = 'none';
+        } else {
+            document.getElementById('classic-settings').style.display = 'none';
+            document.getElementById('survival-settings').style.display = 'block';
+            document.getElementById('start-btn').style.display = 'inline-flex';
+            document.getElementById('start-btn').disabled = false;
+            loadSurvivalBestRecord();
+        }
+    };
+
+    // AI theme recommendation
+    window.useAITheme = () => {
+        const themes = ['법률 및 재판', '최신 시사 뉴스', '일반 상식', '연예 및 문화', '스포츠', '일상 대화', '과학 기술', '경제 금융'];
+        const randomTheme = themes[Math.floor(Math.random() * themes.length)];
+        document.getElementById('custom-theme-input').value = randomTheme;
+
+        // Visual feedback
+        const btn = event.target;
+        btn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+        setTimeout(() => {
+            btn.style.background = 'linear-gradient(135deg, #fbbf24, #f59e0b)';
+        }, 1000);
+    };
+
+    // Set difficulty
+    window.setDifficulty = (level) => {
+        gameState.difficulty = level;
+
+        // Update button styles
+        document.querySelectorAll('.option-btn').forEach(btn => {
+            btn.classList.remove('selected');
+        });
+        event.target.classList.add('selected');
+
+        // Show stage selection
+        const stageContainer = document.getElementById('stage-selection-container');
+        const customThemeContainer = document.getElementById('custom-theme-container');
+        stageContainer.style.display = 'block';
+        customThemeContainer.style.display = 'block';
+
+        // Create stage buttons
+        const stageSelection = document.getElementById('stage-selection');
+        stageSelection.innerHTML = '';
+        for (let i = 1; i <= 10; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'stage-btn';
+            btn.textContent = i;
+            btn.onclick = () => setStage(i);
+            stageSelection.appendChild(btn);
+        }
+
+        checkReady();
+    };
+
+    // Set stage
+    window.setStage = (stg) => {
+        gameState.stage = stg;
+        document.querySelectorAll('.stage-btn').forEach(btn => btn.classList.remove('selected'));
+        event.target.classList.add('selected');
+        checkReady();
+    };
+
+    // Check if ready to start
+    function checkReady() {
+        const startBtn = document.getElementById('start-btn');
+        if (gameState.mode === 'classic' && gameState.difficulty && gameState.stage) {
+            startBtn.style.display = 'inline-flex';
+            startBtn.disabled = false;
+        }
+    }
+
+    // Start game
+    window.startGame = async () => {
+        const startBtn = document.getElementById('start-btn');
+        const startBtnText = document.getElementById('start-btn-text');
+        const startSpinner = document.getElementById('start-spinner');
+
+        startBtn.disabled = true;
+        startBtnText.textContent = '게임 준비중...';
+        startSpinner.style.display = 'inline-block';
+
+        try {
+            // 서바이벌 모드 초기화
+            if (gameState.mode === 'survival') {
+                gameState.difficulty = 'beginner';
+                gameState.stage = 1;
+                gameState.survivalLevel = 1;
+                gameState.survivalStage = 1;
+                gameState.survivalWordsInStage = 0;
+                gameState.survivalTotalWords = 0;
+                gameState.survivalLives = 1;
+
+                // UI 업데이트
+                document.getElementById('survivalLevelDisplay').style.display = 'flex';
+                document.getElementById('livesDisplay').style.display = 'flex';
+                document.getElementById('currentLevel').textContent = '초급 1';
+                document.getElementById('livesCount').textContent = '1';
+            }
+
+            // Get words for current level
+            await loadWordsForCurrentLevel();
+
+            // Initialize game
+            resetGameState();
+            screens.start.style.display = 'none';
+            screens.game.style.display = 'block';
+            showNextWord();
+            document.getElementById('typingInput').focus();
+
+        } catch (error) {
+            console.error('게임 시작 오류:', error);
+            alert('문장 생성에 실패했습니다. 기본 문장으로 시작합니다.');
+
+            // Use default words
+            loadDefaultWords();
+
+            resetGameState();
+            screens.start.style.display = 'none';
+            screens.game.style.display = 'block';
+            showNextWord();
+        } finally {
+            startBtn.disabled = false;
+            startBtnText.textContent = '게임 시작';
+            startSpinner.style.display = 'none';
+        }
+    };
+
+    // Load words for current level
+    async function loadWordsForCurrentLevel() {
+        const customTheme = document.getElementById('custom-theme-input').value.trim();
+
+        if (gameState.mode === 'survival' || customTheme) {
+            // Generate words using AI
+            const themes = ['법률', '시사', '일상', '과학', '문화', '스포츠', '경제', '교육'];
+            const randomTheme = gameState.mode === 'survival'
+                ? themes[Math.floor(Math.random() * themes.length)]
+                : customTheme;
+
+            const wordCount = gameState.mode === 'survival' ? 5 : 20;
+
+            const prompt = `한글 타자 연습용 문장을 ${wordCount}개 생성해주세요.
+주제: ${randomTheme}
+난이도: ${gameState.difficulty}
+단계: ${gameState.stage}/10 (높을수록 어려움)
+
+조건:
+1. 각 문장은 세미콜론(;)으로만 구분
+2. 문장 길이는 난이도와 단계에 맞게 조절
+3. 다른 설명이나 번호 없이 문장만 출력
+4. 초급은 2-4단어, 중급은 4-8단어, 상급은 8단어 이상
+5. 영어나 영문자는 절대 포함하지 마세요. 순수 한글과 숫자만 사용하세요.`;
+
+            try {
+                const result = await callGemini(prompt);
+                if (result) {
+                    const sentences = result.split(';')
+                    .map(s => s.trim())
+                    .filter(s => s.length > 0 && !s.includes('```') && !s.includes('문장'));
+
+                    if (sentences.length > 0) {
+                        gameState.words = sentences.slice(0, wordCount);
+                        // 부족한 경우 기본 단어로 채우기
+                        if (gameState.words.length < wordCount) {
+                            const defaultWords = getDefaultWordsForLevel();
+                            while (gameState.words.length < wordCount) {
+                                gameState.words.push(defaultWords[Math.floor(Math.random() * defaultWords.length)]);
+                            }
+                        }
+                        return;
+                    }
+                }
+            } catch (aiError) {
+                console.error('AI 생성 오류:', aiError);
+            }
+        }
+
+        // Fallback to default words
+        loadDefaultWords();
+    }
+
+    // Get default words for current level
+    function getDefaultWordsForLevel() {
+        const wordList = wordLists[gameState.difficulty];
+        return wordList[gameState.stage] || wordList[1];
+    }
+
+    // Load default words
+    function loadDefaultWords() {
+        if (gameState.mode === 'survival') {
+            const defaultWords = getDefaultWordsForLevel();
+            gameState.words = [];
+            for (let i = 0; i < 5; i++) {
+                gameState.words.push(defaultWords[Math.floor(Math.random() * defaultWords.length)]);
+            }
+        } else {
+            const wordList = wordLists[gameState.difficulty];
+            let availableWords = [];
+
+            for (let i = 1; i <= 10; i++) {
+                if (wordList[i]) {
+                    availableWords = availableWords.concat(wordList[i]);
+                }
+            }
+
+            availableWords = [...new Set(availableWords)];
+
+            for (let i = availableWords.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [availableWords[i], availableWords[j]] = [availableWords[j], availableWords[i]];
+            }
+
+            gameState.words = availableWords.slice(0, 20);
+        }
+    }
+
+    // Reset game state
+    function resetGameState() {
+        gameState.currentWordIndex = 0;
+        gameState.score = 0;
+        gameState.correctChars = 0;
+        gameState.totalChars = 0;
+        gameState.correctStrokes = 0;
+        gameState.totalStrokes = 0;
+        gameState.incorrectWords = [];
+        gameState.startTime = Date.now();
+        gameState.combo = 0;
+        gameState.maxCombo = 0;
+        gameState.charSpeeds = [];
+    }
+
+    // 폭죽 효과 함수
+    function showConfetti() {
+        const container = document.createElement('div');
+        container.className = 'confetti-container';
+
+        for (let i = 1; i <= 15; i++) {
+            const confetti = document.createElement('div');
+            confetti.className = `confetti confetti-${i}`;
+            container.appendChild(confetti);
+        }
+
+        document.body.appendChild(container);
+
+        // 3초 후 제거
+        setTimeout(() => {
+            container.remove();
+        }, 3000);
+    }
+
+    // Show next word
+    function showNextWord() {
+        // 서바이벌 모드에서 단계 완료 체크
+        if (gameState.mode === 'survival') {
+            if (gameState.survivalWordsInStage >= 5) {
+                // 다음 단계로 진행
+                gameState.survivalStage++;
+                gameState.survivalWordsInStage = 0;
+
+                // 폭죽 효과
+                showConfetti();
+
+                if (gameState.survivalStage > 10) {
+                    // 다음 난이도로 진행
+                    if (gameState.difficulty === 'beginner') {
+                        gameState.difficulty = 'intermediate';
+                        gameState.survivalLevel = 2;
+                        gameState.survivalLives++; // 생명 보너스
+                        alert('🎉 초급 완료! 생명 +1 획득!');
+                    } else if (gameState.difficulty === 'intermediate') {
+                        gameState.difficulty = 'advanced';
+                        gameState.survivalLevel = 3;
+                        gameState.survivalLives++; // 생명 보너스
+                        alert('🎉 중급 완료! 생명 +1 획득!');
+                    } else {
+                        // 상급 10단계 완료 - 계속 상급 10단계 반복
+                        gameState.survivalStage = 10;
+                        gameState.survivalLives++; // 생명 보너스
+                        alert('🎉 상급 완료! 생명 +1 획득! 계속 도전하세요!');
+                    }
+                    gameState.stage = 1;
+                    gameState.survivalStage = 1;
+                    document.getElementById('livesCount').textContent = gameState.survivalLives;
+                } else {
+                    gameState.stage = gameState.survivalStage;
+                }
+
+                // 새로운 단어 로드
+                loadWordsForCurrentLevel().then(() => {
+                    gameState.currentWordIndex = 0;
+                    showNextWordInternal();
+                });
+                return;
+            }
+        }
+
+        if (gameState.currentWordIndex >= gameState.words.length) {
+            if (gameState.mode === 'survival') {
+                // 서바이벌 모드에서는 계속 진행
+                gameState.currentWordIndex = 0;
+                showNextWordInternal();
+            } else {
+                endGame();
+            }
+            return;
+        }
+
+        showNextWordInternal();
+    }
+
+    function showNextWordInternal() {
+        const word = gameState.words[gameState.currentWordIndex];
+        const display = document.getElementById('textDisplay');
+        display.innerHTML = '';
+
+        // Create character spans
+        word.split('').forEach((char, index) => {
+            const span = document.createElement('span');
+            span.className = 'char';
+            if (index === 0) span.classList.add('current');
+            span.textContent = char;
+            display.appendChild(span);
+        });
+
+        // Update progress
+        if (gameState.mode === 'survival') {
+            const totalProgress = gameState.survivalTotalWords + 1;
+            document.getElementById('progress').textContent = `${totalProgress}문제`;
+            document.getElementById('currentLevel').textContent = `${getDifficultyName(gameState.difficulty)} ${gameState.stage}`;
+        } else {
+            document.getElementById('progress').textContent = `${gameState.currentWordIndex + 1}/20`;
+            document.getElementById('progressBar').style.width = `${(gameState.currentWordIndex / 20) * 100}%`;
+            document.getElementById('progressText').textContent = `${Math.round((gameState.currentWordIndex / 20) * 100)}%`;
+        }
+
+        // Reset input
+        const input = document.getElementById('typingInput');
+        input.value = '';
+        input.classList.remove('correct-flash');
+
+        // Reset timer
+        startWordTimer();
+        gameState.typingStartTime = null;
+    }
+
+    // Handle input
+    let isComposing = false;
+    const typingInput = document.getElementById('typingInput');
+
+    typingInput.addEventListener('compositionstart', () => {
+        isComposing = true;
+    });
+
+    typingInput.addEventListener('compositionend', () => {
+        isComposing = false;
+        checkInput();
+    });
+
+    typingInput.addEventListener('input', (e) => {
+        if (!isComposing) {
+            checkInput();
+        }
+    });
+
+    // 키보드 이벤트로 백스페이스 처리
+    typingInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !isComposing) {
+            // 백스페이스 시 즉시 상태 업데이트
+            setTimeout(() => checkInput(), 10);
+        }
+    });
+
+    function checkInput() {
+        if (gameState.isPaused) return;
+
+        const input = typingInput.value;
+        const currentWord = gameState.words[gameState.currentWordIndex];
+        const chars = document.querySelectorAll('.char');
+
+        // Start typing timer
+        if (!gameState.typingStartTime && input.length > 0) {
+            gameState.typingStartTime = Date.now();
+        }
+
+        // 한글 조합 중인 경우 처리하지 않음
+        if (isComposing) return;
+
+        // Clear all character states
+        chars.forEach(char => char.classList.remove('current', 'correct', 'incorrect'));
+
+        // Check each character
+        let correctCount = 0;
+        let hasError = false;
+
+        for (let i = 0; i < Math.min(input.length, currentWord.length); i++) {
+            if (input[i] === currentWord[i]) {
+                chars[i].classList.add('correct');
+                correctCount++;
+            } else {
+                chars[i].classList.add('incorrect');
+                hasError = true;
+                break; // 첫 오류에서 중단
+            }
+        }
+
+        // Set current character highlight
+        if (correctCount < currentWord.length) {
+            chars[correctCount].classList.add('current');
+        }
+
+        // Word completed correctly
+        if (input === currentWord) {
+            // 한글 타수 계산
+            const strokeCount = decomposeHangul(currentWord);
+            gameState.correctStrokes += strokeCount;
+            gameState.totalStrokes += strokeCount;
+
+            // 전체 게임 시간 기준 타자 속도 계산 (타/분)
+            const totalTime = (Date.now() - gameState.startTime) / 1000 / 60; // 분 단위
+            const typingSpeed = Math.round(gameState.correctStrokes / totalTime);
+
+            // Update score and combo
+            gameState.combo++;
+            gameState.maxCombo = Math.max(gameState.maxCombo, gameState.combo);
+
+            // 서바이벌 모드 점수 계산 (난이도와 단계에 따라 보너스)
+            if (gameState.mode === 'survival') {
+                const levelBonus = gameState.survivalLevel;
+                const stageBonus = gameState.stage;
+                gameState.score += (100 + (gameState.combo * 10)) * levelBonus * (1 + stageBonus * 0.1);
+                gameState.survivalWordsInStage++;
+                gameState.survivalTotalWords++;
+            } else {
+                gameState.score += 100 + (gameState.combo * 10);
+            }
+
+            showCombo();
+
+            gameState.correctChars += currentWord.length;
+            gameState.totalChars += currentWord.length;
+
+            // 실시간 속도 표시 (타/분)
+            document.getElementById('speed').textContent = typingSpeed;
+
+            // Visual feedback
+            typingInput.classList.add('correct-flash');
+            playSound('correct'); // 정답 효과음
+
+            // Next word
+            gameState.currentWordIndex++;
+            clearInterval(wordTimer);
+            setTimeout(showNextWord, 500);
+        } else if (hasError) {
+            // Reset combo on error
+            gameState.combo = 0;
+            gameState.totalStrokes++;  // 오타도 타수에 포함
+            playSound('wrong'); // 오답 효과음
+
+            // 서바이벌 모드에서는 오타 시 생명 차감
+            if (gameState.mode === 'survival' && input.length === currentWord.length) {
+                gameState.survivalLives--;
+                document.getElementById('livesCount').textContent = gameState.survivalLives;
+
+                if (gameState.survivalLives <= 0) {
+                    // 생명이 0이면 게임 종료
+                    setTimeout(() => endGame(), 500);
+                } else {
+                    // 생명이 남아있으면 다음 단어로
+                    alert(`❌ 오답! 생명 -1 (남은 생명: ${gameState.survivalLives})`);
+                    gameState.incorrectWords.push(gameState.words[gameState.currentWordIndex]);
+                    gameState.currentWordIndex++;
+                    clearInterval(wordTimer);
+                    setTimeout(showNextWord, 500);
+                }
+            }
+        } else {
+            // 입력 중인 상태 (에러 없음)
+            gameState.totalStrokes = gameState.correctStrokes + 1; // 현재 입력 중인 타수 반영
+        }
+
+        updateStats();
+    }
+
+    // Update stats
+    function updateStats() {
+        document.getElementById('score').textContent = gameState.score;
+
+        const accuracy = gameState.totalChars > 0
+            ? Math.round((gameState.correctChars / gameState.totalChars) * 100)
+            : 100;
+        document.getElementById('accuracy').textContent = `${accuracy}%`;
+    }
+
+    // Update speed
+    function updateSpeed() {
+        if (gameState.charSpeeds.length > 0) {
+            const avgSpeed = Math.round(
+                gameState.charSpeeds.reduce((a, b) => a + b) / gameState.charSpeeds.length
+            );
+            document.getElementById('speed').textContent = avgSpeed;
+        }
+    }
+
+    // Show combo
+    function showCombo() {
+        const comboDisplay = document.getElementById('comboDisplay');
+        if (gameState.combo >= 3) {
+            comboDisplay.style.display = 'block';
+            document.getElementById('comboCount').textContent = gameState.combo;
+
+            // 콤보 효과음 (5의 배수마다)
+            if (gameState.combo % 5 === 0) {
+                playSound('combo');
+            }
+        } else {
+            comboDisplay.style.display = 'none';
+        }
+    }
+
+    // Word timer - 난이도별 시간 설정
+    let wordTimer;
+    function startWordTimer() {
+        const timeFill = document.getElementById('timeFill');
+        const wordLength = gameState.words[gameState.currentWordIndex].length;
+
+        // 난이도별 기본 시간 (초/글자) - 서바이벌 모드는 더 어렵게
+        let baseTimePerChar;
+        if (gameState.mode === 'survival') {
+            if (gameState.difficulty === 'beginner') {
+                baseTimePerChar = 1.8;  // 초급: 1.8초/글자
+            } else if (gameState.difficulty === 'intermediate') {
+                baseTimePerChar = 1.2;  // 중급: 1.2초/글자
+            } else {
+                baseTimePerChar = 0.8;  // 상급: 0.8초/글자
+            }
+        } else {
+            if (gameState.difficulty === 'beginner') {
+                baseTimePerChar = 2.0;  // 초급: 여유있게 2초/글자
+            } else if (gameState.difficulty === 'intermediate') {
+                baseTimePerChar = 1.5;  // 중급: 보통 1.5초/글자
+            } else {
+                baseTimePerChar = 1.0;  // 상급: 촉박하게 1초/글자
+            }
+        }
+
+        // 단계가 올라갈수록 시간 감소 (10단계에서 30% 감소)
+        const stageReduction = 1 - (gameState.stage - 1) * 0.033;  // 단계당 3.3% 감소
+        const adjustedTimePerChar = baseTimePerChar * stageReduction;
+
+        // 최종 시간 계산 (최소 5초는 보장)
+        const timeLimit = Math.max(5, wordLength * adjustedTimePerChar);
+        let timeLeft = timeLimit;
+
+        // 시간바 초기화
+        timeFill.style.width = '100%';
+        timeFill.classList.remove('warning', 'danger');
+
+        clearInterval(wordTimer);
+        wordTimer = setInterval(() => {
+            timeLeft -= 0.1;
+            const percentage = (timeLeft / timeLimit) * 100;
+            timeFill.style.width = `${percentage}%`;
+
+            // 시간에 따른 색상 변경
+            if (percentage <= 20) {
+                timeFill.classList.add('danger');
+                timeFill.classList.remove('warning');
+            } else if (percentage <= 40) {
+                timeFill.classList.add('warning');
+                timeFill.classList.remove('danger');
+            } else {
+                timeFill.classList.remove('warning', 'danger');
+            }
+
+            if (timeLeft <= 0) {
+                clearInterval(wordTimer);
+                if (gameState.mode === 'survival') {
+                    // 서바이벌 모드에서는 생명 차감
+                    gameState.survivalLives--;
+                    document.getElementById('livesCount').textContent = gameState.survivalLives;
+
+                    if (gameState.survivalLives <= 0) {
+                        // 생명이 0이면 게임 종료
+                        setTimeout(() => endGame(), 500);
+                    } else {
+                        // 생명이 남아있으면 다음 단어로
+                        alert(`⚠️ 시간 초과! 생명 -1 (남은 생명: ${gameState.survivalLives})`);
+                        gameState.incorrectWords.push(gameState.words[gameState.currentWordIndex]);
+                        gameState.combo = 0;
+                        gameState.currentWordIndex++;
+                        showNextWord();
+                    }
+                } else {
+                    gameState.incorrectWords.push(gameState.words[gameState.currentWordIndex]);
+                    gameState.combo = 0;
+                    gameState.currentWordIndex++;
+                    showNextWord();
+                }
+            }
+        }, 100);
+    }
+
+    // Toggle pause
+    window.togglePause = () => {
+        gameState.isPaused = !gameState.isPaused;
+        const btn = event.target.closest('button');
+
+        if (gameState.isPaused) {
+            clearInterval(wordTimer);
+            btn.innerHTML = '<i class="fas fa-play"></i> 계속하기';
+            typingInput.disabled = true;
+        } else {
+            startWordTimer();
+            btn.innerHTML = '<i class="fas fa-pause"></i> 일시정지';
+            typingInput.disabled = false;
+            typingInput.focus();
+        }
+    };
+
+    // End game
+    window.endGame = async () => {
+        clearInterval(wordTimer);
+
+        // Calculate final stats
+        const accuracy = gameState.totalChars > 0
+            ? Math.round((gameState.correctChars / gameState.totalChars) * 100)
+            : 0;
+
+        // 최종 타자 속도 계산 (타/분)
+        const totalTime = (Date.now() - gameState.startTime) / 1000 / 60;
+        const finalSpeed = Math.round(gameState.correctStrokes / totalTime);
+
+        // Update result screen
+        document.getElementById('finalScore').textContent = gameState.score.toLocaleString();
+        document.getElementById('finalAccuracy').textContent = `${accuracy}%`;
+        document.getElementById('finalSpeed').textContent = `${finalSpeed} 타/분`;
+        document.getElementById('maxCombo').textContent = gameState.maxCombo;
+
+        // Show result screen
+        screens.game.style.display = 'none';
+        screens.result.style.display = 'block';
+
+        // Save record
+        if (gameState.mode === 'survival') {
+            // 서바이벌 모드 최고 기록 저장
+            const currentRecord = localStorage.getItem('survivalBestRecord');
+            const currentBest = currentRecord ? JSON.parse(currentRecord).score : 0;
+
+            if (gameState.score > currentBest) {
+                localStorage.setItem('survivalBestRecord', JSON.stringify({
+                    score: gameState.score,
+                    difficulty: getDifficultyName(gameState.difficulty),
+                    stage: gameState.stage,
+                    totalWords: gameState.survivalTotalWords,
+                    date: new Date().toLocaleDateString()
+                }));
+            }
+
+            // 서바이벌 기록 저장
+            const records = JSON.parse(localStorage.getItem('survivalRecords') || '[]');
+            records.unshift({
+                date: new Date().toLocaleDateString(),
+                score: gameState.score,
+                level: `${getDifficultyName(gameState.difficulty)} ${gameState.stage}`,
+                totalWords: gameState.survivalTotalWords,
+                accuracy: accuracy,
+                speed: finalSpeed
+            });
+            records.splice(10);
+            localStorage.setItem('survivalRecords', JSON.stringify(records));
+        } else {
+            saveRecord(gameState.score, accuracy, finalSpeed);
+        }
+
+        loadRecords();
+    };
+
+    // Get AI coaching
+    window.getAICoaching = async () => {
+        const btn = document.getElementById('ai-coach-btn');
+        const spinner = document.getElementById('coach-spinner');
+        const result = document.getElementById('aiCoachingResult');
+
+        btn.disabled = true;
+        spinner.style.display = 'inline-block';
+
+        try {
+            const prompt = `한글 타자 연습 게임 결과 분석:
+- 난이도: ${gameState.difficulty}
+- 단계: ${gameState.stage}
+- 점수: ${gameState.score}
+- 정확도: ${document.getElementById('finalAccuracy').textContent}
+- 속도: ${document.getElementById('finalSpeed').textContent}
+- 틀린 단어: ${gameState.incorrectWords.join(', ') || '없음'}
+
+다음 형식의 JSON으로만 응답해주세요:
+{
+  "title": "플레이어에게 어울리는 재치있는 칭호",
+  "analysis": "약점 분석 (1문장)",
+  "practice_sentences": ["연습 문장 1", "연습 문장 2", "연습 문장 3"]
+}`;
+
+            const response = await callGemini(prompt);
+
+            // JSON 파싱 시도
+            let data;
+            try {
+                // 먼저 전체를 JSON으로 파싱 시도
+                data = JSON.parse(response);
+            } catch (e) {
+                // 실패하면 JSON 부분만 추출
+                const jsonMatch = response.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    data = JSON.parse(jsonMatch[0]);
+                } else {
+                    throw new Error('JSON 형식을 찾을 수 없습니다');
+                }
+            }
+
+            // Show AI title
+            document.getElementById('aiTitle').textContent = data.title;
+            document.getElementById('aiTitleContainer').style.display = 'block';
+
+            // Show analysis
+            document.getElementById('aiAnalysis').textContent = data.analysis;
+
+            // Show practice sentences
+            const practiceList = document.getElementById('practiceList');
+            practiceList.innerHTML = '';
+            data.practice_sentences.forEach(sentence => {
+                const li = document.createElement('li');
+                li.textContent = sentence;
+                practiceList.appendChild(li);
+            });
+
+            result.style.display = 'block';
+
+        } catch (error) {
+            console.error('AI 코칭 오류:', error);
+
+            // 기본 분석 제공
+            const accuracy = parseInt(document.getElementById('finalAccuracy').textContent);
+            const speed = parseInt(document.getElementById('finalSpeed').textContent);
+
+            const defaultTitle = '타자 연습생';
+            let defaultAnalysis = '계속 연습하면 실력이 향상될 거예요!';
+
+            if (accuracy >= 95 && speed >= 300) {
+                defaultTitle = '타자의 달인';
+                defaultAnalysis = '매우 뛰어난 실력입니다! 속도와 정확성 모두 훌륭해요.';
+            } else if (accuracy >= 90 && speed >= 200) {
+                defaultTitle = '타자 고수';
+                defaultAnalysis = '좋은 실력을 보유하고 있습니다. 조금만 더 연습하면 최고가 될 수 있어요!';
+            } else if (accuracy >= 80) {
+                defaultTitle = '성장하는 타자수';
+                defaultAnalysis = '정확도는 좋지만 속도를 더 높여보세요.';
+            } else {
+                defaultTitle = '열정적인 도전자';
+                defaultAnalysis = '천천히 정확하게 치는 연습부터 시작해보세요.';
+            }
+
+            document.getElementById('aiTitle').textContent = defaultTitle;
+            document.getElementById('aiTitleContainer').style.display = 'block';
+            document.getElementById('aiAnalysis').textContent = defaultAnalysis;
+
+            // 기본 연습 문장
+            const practiceList = document.getElementById('practiceList');
+            practiceList.innerHTML = '';
+            ['천천히 하나씩 정확하게 연습해보세요.', '자주 틀리는 글자를 집중적으로 연습하세요.', '매일 10분씩 꾸준히 연습하면 실력이 늘어요.'].forEach(sentence => {
+                const li = document.createElement('li');
+                li.textContent = sentence;
+                practiceList.appendChild(li);
+            });
+
+            result.style.display = 'block';
+        } finally {
+            btn.disabled = false;
+            spinner.style.display = 'none';
+        }
+    };
+
+    // Gemini API call
+    async function callGemini(prompt) {
+        const apiKey = "AIzaSyDnszpw5FuAOch90Q25aFFP7_3DZxFg_4A";
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{
+                    role: "user",
+                    parts: [{ text: prompt }]
+                }],
+                generationConfig: {
+                    temperature: 0.7,
+                    topP: 0.95,
+                    topK: 40,
+                    maxOutputTokens: 1024
+                }
+            })
+        });
+
+        if (!response.ok) throw new Error(`API 요청 실패: ${response.status}`);
+
+        const result = await response.json();
+        return result.candidates?.[0]?.content?.parts?.[0]?.text;
+    }
+
+    // Save record
+    function saveRecord(score, accuracy, speed) {
+        const records = JSON.parse(localStorage.getItem('typingRecords') || '[]');
+        records.unshift({
+            date: new Date().toLocaleDateString(),
+            difficulty: gameState.difficulty,
+            stage: gameState.stage,
+            score: score,
+            accuracy: accuracy,
+            speed: speed
+        });
+
+        // Keep only last 10 records
+        records.splice(10);
+        localStorage.setItem('typingRecords', JSON.stringify(records));
+    }
+
+    // Load records
+    function loadRecords() {
+        const container = document.getElementById('recordsContainer');
+
+        if (gameState.mode === 'survival') {
+            const records = JSON.parse(localStorage.getItem('survivalRecords') || '[]');
+
+            if (records.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">아직 서바이벌 기록이 없습니다.</p>';
+                return;
+            }
+
+            container.innerHTML = records.map(record => `
+                    <div class="record-item">
+                        <span class="record-date">${record.date}</span>
+                        <div class="record-info">
+                            <span>도달: ${record.level}</span>
+                            <span>${record.totalWords}문제</span>
+                            <span>정확도: ${record.accuracy}%</span>
+                            <span>속도: ${record.speed} 타/분</span>
+                            <span class="record-score">점수: ${record.score.toLocaleString()}</span>
+                        </div>
+                    </div>
+                `).join('');
+        } else {
+            const records = JSON.parse(localStorage.getItem('typingRecords') || '[]');
+
+            if (records.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">아직 기록이 없습니다.</p>';
+                return;
+            }
+
+            container.innerHTML = records.map(record => `
+                    <div class="record-item">
+                        <span class="record-date">${record.date}</span>
+                        <div class="record-info">
+                            <span>${getDifficultyName(record.difficulty)} ${record.stage}단계</span>
+                            <span>정확도: ${record.accuracy}%</span>
+                            <span>속도: ${record.speed} ${record.speed > 1000 ? 'CPM' : '타/분'}</span>
+                            <span class="record-score">점수: ${record.score.toLocaleString()}</span>
+                        </div>
+                    </div>
+                `).join('');
+        }
+    }
+
+    // Get difficulty name
+    function getDifficultyName(difficulty) {
+        const names = {
+            beginner: '초급',
+            intermediate: '중급',
+            advanced: '상급'
+        };
+        return names[difficulty] || difficulty;
+    }
+
+    // Restart game
+    window.restartGame = () => {
+        screens.result.style.display = 'none';
+        screens.game.style.display = 'block';
+        resetGameState();
+        showNextWord();
+        document.getElementById('typingInput').focus();
+    };
+
+    // Go home
+    window.goHome = () => {
+        location.reload();
+    };
+</script>
+</body>
+</html>
