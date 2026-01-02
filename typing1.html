@@ -1855,9 +1855,9 @@
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
 
         if (isMobile) {
-            window.open('https://jsulaw.co.kr/', '_blank');
+            window.open('#', '_blank');
         } else {
-            window.location.href = 'https://jsulaw.co.kr/';
+            window.location.href = '#';
         }
     }
 
@@ -2873,7 +2873,7 @@
 
     // Gemini API call
     async function callGemini(prompt) {
-        const apiKey = "AIzaSyDnszpw5FuAOch90Q25aFFP7_3DZxFg_4A";
+        //const apiKey = "AIzaSyDnszpw5FuAOch90Q25aFFP7_3DZxFg_4A";
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
         const response = await fetch(apiUrl, {
@@ -2896,6 +2896,8 @@
         if (!response.ok) throw new Error(`API 요청 실패: ${response.status}`);
 
         const result = await response.json();
+        console.log(result);
+
         return result.candidates?.[0]?.content?.parts?.[0]?.text;
     }
 
