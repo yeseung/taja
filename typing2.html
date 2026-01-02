@@ -1,0 +1,725 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="타자와 함께 타자를 연습하고 타자 전문가가 되어보세요!">
+  <title>타자 Juhan Taja</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    body {
+      font-family: 'IBM Plex Sans KR', sans-serif;
+      background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      overflow-y: auto;
+    }
+
+    .main-container {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    #text-display .current {
+      position: relative;
+      background-color: #fef08a;
+    }
+    #text-display .current-space {
+      position: relative;
+      background-color: #fecaca;
+    }
+
+    .correct { color: #1e40af; font-weight: 600; }
+    .incorrect {
+      color: #b91c1c;
+      background-color: #fee2e2;
+      text-decoration: underline;
+      text-decoration-thickness: 2px;
+      border-radius: 4px;
+    }
+
+    #input-field:focus {
+      outline: none;
+      border-color: #818cf8;
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.4);
+    }
+
+    .game-mode-btn {
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .game-mode-btn:hover {
+      transform: translateY(-3px) scale(1.03);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .game-mode-btn.active {
+      transform: translateY(-3px) scale(1.05);
+      color: white;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+    .game-mode-btn[data-mode="key"].active { background-image: linear-gradient(to right, #4facfe 0%, #00f2fe 100%); }
+    .game-mode-btn[data-mode="word"].active { background-image: linear-gradient(to right, #43e97b 0%, #38f9d7 100%); }
+    .game-mode-btn[data-mode="sentence"].active { background-image: linear-gradient(to right, #8f94fb 0%, #4e54c8 100%); }
+    .game-mode-btn[data-mode="long"].active { background-image: linear-gradient(to right, #f83600 0%, #f9d423 100%); }
+
+    .modal-overlay { animation: fadeIn 0.3s ease-out; }
+    .modal-content { animation: scaleUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes scaleUp { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    .stat-icon { width: 1.5rem; height: 1.5rem; margin-right: 0.75rem; opacity: 0.7; }
+
+    .stat-card {
+      transform: translateY(20px);
+      opacity: 0;
+      transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .stat-card.visible {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .loader {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+  </style>
+</head>
+<body class="flex flex-col items-center min-h-screen p-4 sm:p-8 pt-8 sm:pt-16 antialiased">
+
+<div class="w-full md:w-4/5 max-w-5xl mx-auto">
+  <header class="text-center mb-6">
+    <h1 class="text-5xl md:text-6xl font-bold text-white" style="text-shadow: 0 4px 15px rgba(0,0,0,0.2);">타자연습 Taja</h1>
+  </header>
+
+  <div class="main-container p-8 rounded-[2rem] shadow-2xl">
+    <div class="flex flex-wrap justify-between items-center mb-6 pb-6 border-b border-white/30 gap-4">
+      <div class="flex items-center gap-3">
+        <span class="font-semibold text-slate-700"><span data-i18n-key="siteLanguage">사이트 언어</span></span>
+        <select id="site-lang-select" class="bg-white/60 rounded-full py-2 px-4 border-gray-300 shadow-sm focus:border-indigo-400 focus:ring focus:ring-indigo-300 focus:ring-opacity-50">
+          <option value="ko">한국어</option> <option value="en">English</option> <option value="ja">日本語</option> <option value="cn">中文</option>
+        </select>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="font-semibold text-slate-700"><span data-i18n-key="typingLanguage">타자 언어</span></span>
+        <select id="typing-lang-select" class="bg-white/60 rounded-full py-2 px-4 border-gray-300 shadow-sm focus:border-indigo-400 focus:ring focus:ring-indigo-300 focus:ring-opacity-50">
+          <option value="ko">한국어</option> <option value="en">English</option> <option value="ja">日本語</option> <option value="cn">中文</option>
+        </select>
+      </div>
+    </div>
+
+    <nav class="flex justify-center flex-wrap gap-4 mb-8">
+      <button data-mode="key" class="game-mode-btn bg-white/80 hover:bg-white text-slate-700 font-bold py-3 px-8 rounded-full shadow-lg"><span data-i18n-key="keyPractice">자리 연습</span></button>
+      <button data-mode="word" class="game-mode-btn bg-white/80 hover:bg-white text-slate-700 font-bold py-3 px-8 rounded-full shadow-lg"><span data-i18n-key="wordPractice">단어 연습</span></button>
+      <button data-mode="sentence" class="game-mode-btn bg-white/80 hover:bg-white text-slate-700 font-bold py-3 px-8 rounded-full shadow-lg"><span data-i18n-key="sentencePractice">문장 연습</span></button>
+      <button data-mode="long" class="game-mode-btn bg-white/80 hover:bg-white text-slate-700 font-bold py-3 px-8 rounded-full shadow-lg"><span data-i18n-key="longPractice">긴 글 연습</span></button>
+      <button id="ai-generate-btn" class="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-3 px-8 rounded-full shadow-lg transition transform hover:scale-105">✨ <span data-i18n-key="aiGenerate">AI 생성</span></button>
+    </nav>
+
+    <div id="game-container" class="space-y-6">
+      <div id="text-display" class="text-3xl sm:text-4xl p-8 bg-white/60 rounded-3xl leading-loose tracking-wider min-h-[140px] flex items-center justify-center flex-wrap">
+        <span data-i18n-key="selectMode" class="text-slate-500 text-2xl">모드를 선택하여 연습을 시작하세요.</span>
+      </div>
+
+      <div id="input-container">
+        <input type="text" id="input-field" class="w-full text-3xl p-5 rounded-3xl border-2 border-slate-300/70 transition duration-300 bg-white/80" disabled autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+      </div>
+
+      <div class="w-full bg-white/50 rounded-full h-6 shadow-inner">
+        <div id="progress-bar" class="bg-gradient-to-r from-green-400 to-blue-500 h-6 rounded-full transition-all duration-300" style="width: 0%"></div>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+        <div class="stat-card bg-white/60 p-4 rounded-2xl shadow-md"><p class="text-sm font-semibold text-slate-500 flex items-center justify-center"><svg class="stat-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 21v-1.5M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 002.25-2.25V8.25a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 8.25v7.5A2.25 2.25 0 006.75 18z" /></svg><span data-i18n-key="speed">타수</span></p><p id="kpm-stat" class="text-3xl font-bold text-slate-800">0</p></div>
+        <div class="stat-card bg-white/60 p-4 rounded-2xl shadow-md"><p class="text-sm font-semibold text-slate-500 flex items-center justify-center"><svg class="stat-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" /></svg><span data-i18n-key="accuracy">정확도</span></p><p id="accuracy-stat" class="text-3xl font-bold text-slate-800">100 %</p></div>
+        <div class="stat-card bg-white/60 p-4 rounded-2xl shadow-md"><p class="text-sm font-semibold text-slate-500 flex items-center justify-center"><svg class="stat-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" /></svg><span data-i18n-key="typed">입력</span></p><p id="typed-stat" class="text-3xl font-bold text-slate-800">0</p></div>
+        <div class="stat-card bg-white/60 p-4 rounded-2xl shadow-md"><p class="text-sm font-semibold text-slate-500 flex items-center justify-center"><svg class="stat-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" /></svg><span data-i18n-key="progress">진행률</span></p><p id="progress-stat" class="text-3xl font-bold text-slate-800">0 / 0</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="completion-modal" class="modal-overlay fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+  <div class="modal-content bg-white p-10 rounded-3xl text-center shadow-2xl w-full max-w-md">
+    <h2 class="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-cyan-500 mb-6" data-i18n-key="welldone">참 잘했어요!</h2>
+
+    <div id="ai-feedback-container" class="my-4 p-4 bg-slate-100 rounded-xl text-left hidden min-h-[80px]">
+      <div id="ai-feedback-loader" class="hidden mx-auto loader"></div>
+      <p id="ai-feedback-text" class="text-slate-700"></p>
+    </div>
+
+    <div class="flex justify-center gap-4">
+      <button id="ai-feedback-btn" class="bg-gradient-to-r from-green-400 to-blue-500 hover:opacity-90 text-white font-bold py-3 px-8 rounded-full text-lg shadow-lg transition transform hover:scale-105">✨ <span data-i18n-key="getFeedback">AI 피드백</span></button>
+      <button id="close-modal-btn" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3 px-8 rounded-full text-lg transition"><span data-i18n-key="close">닫기</span></button>
+    </div>
+  </div>
+</div>
+
+<div id="ai-modal" class="modal-overlay fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+  <div class="modal-content bg-white p-8 rounded-3xl text-center shadow-2xl w-full max-w-lg space-y-4">
+    <h2 class="text-3xl font-bold text-slate-800" data-i18n-key="aiModalTitle">✨ AI 연습문제 생성</h2>
+    <p class="text-slate-600" data-i18n-key="aiModalDesc">연습하고 싶은 주제를 입력해주세요.</p>
+    <input type="text" id="ai-topic-input" class="w-full text-xl p-3 rounded-xl border-2 border-slate-300 focus:border-purple-400 focus:ring focus:ring-purple-200 transition" placeholder="예: 우주, 코딩, BTS...">
+    <div class="flex justify-center gap-4">
+      <button id="ai-generate-confirm-btn" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 text-white font-bold py-3 px-8 rounded-full text-lg shadow-lg transition transform hover:scale-105"><span data-i18n-key="generate">생성</span></button>
+      <button id="ai-modal-close-btn" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3 px-8 rounded-full text-lg transition"><span data-i18n-key="close">닫기</span></button>
+    </div>
+    <div id="ai-loader" class="hidden mx-auto loader"></div>
+    <p id="ai-error" class="text-red-500 hidden" data-i18n-key="aiError">생성에 실패했습니다. 다시 시도해주세요.</p>
+  </div>
+</div>
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const textDisplay = document.getElementById('text-display');
+    const inputField = document.getElementById('input-field');
+    const kpmStat = document.getElementById('kpm-stat');
+    const accuracyStat = document.getElementById('accuracy-stat');
+    const typedStat = document.getElementById('typed-stat');
+    const progressStat = document.getElementById('progress-stat');
+    const progressBar = document.getElementById('progress-bar');
+    const gameModeButtons = document.querySelectorAll('.game-mode-btn');
+    const siteLangSelect = document.getElementById('site-lang-select');
+    const typingLangSelect = document.getElementById('typing-lang-select');
+    const completionModal = document.getElementById('completion-modal');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const statCards = document.querySelectorAll('.stat-card');
+
+    // AI Modal Elements
+    const aiGenerateBtn = document.getElementById('ai-generate-btn');
+    const aiModal = document.getElementById('ai-modal');
+    const aiModalCloseBtn = document.getElementById('ai-modal-close-btn');
+    const aiGenerateConfirmBtn = document.getElementById('ai-generate-confirm-btn');
+    const aiTopicInput = document.getElementById('ai-topic-input');
+    const aiLoader = document.getElementById('ai-loader');
+    const aiError = document.getElementById('ai-error');
+
+    // AI Feedback elements
+    const aiFeedbackBtn = document.getElementById('ai-feedback-btn');
+    const aiFeedbackContainer = document.getElementById('ai-feedback-container');
+    const aiFeedbackLoader = document.getElementById('ai-feedback-loader');
+    const aiFeedbackText = document.getElementById('ai-feedback-text');
+
+    const data = {
+      ko: { key: 'ㅂㅈㄷㄱㅅㅛㅕㅑㅐㅔㅁㄴㅇㄹㅎㅗㅓㅏㅣㅋㅌㅊㅍㅠㅜㅡ', word: ['하늘', '바람', '구름', '나무', '대한민국', '컴퓨터', '프로그래밍', '인공지능', '타자연습', '코딩', '자바스크립트', '웹사이트', '인터넷', '스마트폰', '애플리케이션', '데이터베이스', '알고리즘', '네트워크', '보안', '서버', '클라이언트', '디자인', '프론트엔드', '백엔드', '개발자', '소프트웨어', '하드웨어', '모니터', '키보드', '마우스', '안녕하세요', '감사합니다', '죄송합니다', '사랑합니다', '행복하세요'], sentence: [ '가나다라마바사 아자차카타파하.', '하늘이 맑고 날씨가 좋습니다.', '타자 연습을 열심히 합시다.', '인생은 겸손에 대한 오랜 수업이다.', '성공의 비결은 목적을 향한 불변이다.', '오늘 걷지 않으면 내일은 뛰어야 한다.', '가장 큰 영광은 결코 넘어지지 않는 데 있는 것이 아니라, 넘어질 때마다 일어서는 데 있다.', '배우고 때로 익히면 또한 기쁘지 아니한가.', '실패는 성공의 어머니다.', '백지장도 맞들면 낫다.', '구슬이 서 말이라도 꿰어야 보배다.', '시작이 반이다.', '코딩은 즐거운 창작 활동입니다.', '이 웹사이트는 정말 멋지군요!', '오늘도 좋은 하루 보내세요.', '열심히 공부해서 훌륭한 사람이 되자.', '겨울이 오면 봄도 멀지 않으리.', '세상에 공짜는 없다.', '웃음은 최고의 보약이다.', '꿈을 향해 끊임없이 나아가자.', '당신의 노력을 항상 응원합니다.', '포기하지 않는 것이 가장 중요하다.', '시간은 금이라는 것을 잊지 말자.', '건강이 최고의 재산입니다.', '친구는 인생의 소중한 보물이다.', '독서는 마음의 양식이다.', '긍정적인 생각이 긍정적인 결과를 낳는다.', '실수를 두려워하지 마세요.', '오늘 할 일을 내일로 미루지 말라.', '최선을 다하면 후회는 없다.' ], long: [ '동해 물과 백두산이 마르고 닳도록 하느님이 보우하사 우리나라 만세. 무궁화 삼천리 화려 강산 대한 사람 대한으로 길이 보전하세. 남산 위에 저 소나무 철갑을 두른 듯 바람서리 불변함은 우리 기상일세. 가을 하늘 공활한데 높고 구름 없이 밝은 달은 우리 가슴 일편단심일세. 이 기상과 이 맘으로 충성을 다하여 괴로우나 즐거우나 나라 사랑하세.', '모든 국민은 법률이 정하는 바에 의하여 선거권을 가진다. 국가는 농지에 관하여 경자유전의 원칙이 달성될 수 있도록 노력하여야 하며, 농지의 소작제도는 금지된다. 대통령은 법률이 정하는 바에 의하여 사면·감형 또는 복권을 명할 수 있다. 일반사면에 관하여는 국회의 동의를 얻어야 한다. 국회는 국가의 예산안을 심의·확정한다. 정부는 예산안을 편성하여 매 회계연도 개시 90일 전까지 국회에 제출하고, 국회는 회계연도 개시 30일 전까지 이를 의결하여야 한다.', '별 하나에 추억과, 별 하나에 사랑과, 별 하나에 쓸쓸함과, 별 하나에 동경과, 별 하나에 시와, 별 하나에 어머니, 어머니. 어머님, 나는 별 하나에 아름다운 말 한마디씩 불러 봅니다. 소학교 때 책상을 같이했던 아이들의 이름과, 패, 경, 옥 이런 이국 소녀들의 이름과, 벌써 아기 어머니 된 계집애들의 이름과, 가난한 이웃 사람들의 이름과, 비둘기, 강아지, 토끼, 노새, 노루, ‘프랑시스 잠’, ‘라이너 마리아 릴케’ 이런 시인의 이름을 불러 봅니다.' ] },
+      en: { key: 'abcdefghijklmnopqrstuvwxyz', word: ['sky', 'wind', 'cloud', 'tree', 'korea', 'computer', 'programming', 'ai', 'typing', 'coding', 'javascript', 'website', 'internet', 'smartphone', 'application', 'database', 'algorithm', 'network', 'security', 'server', 'client', 'design', 'frontend', 'backend', 'developer', 'software', 'hardware', 'monitor', 'keyboard', 'mouse', 'hello', 'sorry', 'love', 'happy'], sentence: [ 'The quick brown fox jumps over the lazy dog.', 'Practice makes perfect.', 'A journey of a thousand miles begins with a single step.', 'Actions speak louder than words.', 'All that glitters is not gold.', 'The early bird catches the worm.', 'Where there is a will, there is a way.', 'Two heads are better than one.', 'Honesty is the best policy.', 'Never put off until tomorrow what you can do today.', 'Rome was not built in a day.', 'When in Rome, do as the Romans do.', 'An apple a day keeps the doctor away.', 'Look before you leap.', 'If you can dream it, you can do it.', 'The only way to do great work is to love what you do.', 'Stay hungry, stay foolish.', 'Time is money.', 'Knowledge is power.', 'You only live once.', 'Life is like a box of chocolates.', 'To be or not to be, that is the question.', 'The pen is mightier than the sword.', 'No pain, no gain.', 'Every cloud has a silver lining.', 'Better late than never.', 'Keep your friends close and your enemies closer.', 'A picture is worth a thousand words.', 'Beauty is in the eye of the beholder.', 'There is no place like home.' ], long: [ 'Four score and seven years ago our fathers brought forth on this continent, a new nation, conceived in Liberty, and dedicated to the proposition that all men are created equal. Now we are engaged in a great civil war, testing whether that nation, or any nation so conceived and so dedicated, can long endure. We are met on a great battlefield of that war. We have come to dedicate a portion of that field, as a final resting place for those who here gave their lives that that nation might live.', 'We the People of the United States, in Order to form a more perfect Union, establish Justice, insure domestic Tranquility, provide for the common defense, promote the general Welfare, and secure the Blessings of Liberty to ourselves and our Posterity, do ordain and establish this Constitution for the United States of America. All legislative Powers herein granted shall be vested in a Congress of the United States, which shall consist of a Senate and House of Representatives.', 'To be, or not to be, that is the question: Whether \'tis nobler in the mind to suffer The slings and arrows of outrageous fortune, Or to take arms against a sea of troubles And by opposing end them. To die—to sleep, No more; and by a sleep to say we end The heart-ache and the thousand natural shocks That flesh is heir to: \'tis a consummation Devoutly to be wish\'d. To die, to sleep; To sleep, perchance to dream—ay, there\'s the rub: For in that sleep of death what dreams may come.' ] },
+      ja: { key: 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん', word: ['空', '風', '雲', '木', '韓国', 'コンピュータ', 'プログラミング', '人工知能', 'タイピング', 'コーディング', 'ジャバスク립ト', 'ウェブサイト', 'インターネット', 'スマートフォン', 'アプリケーション', 'データベース', 'アルゴリズム', 'ネットワーク', 'セキュリティ', 'サーバー', 'クライアント', 'デザイン', 'フロントエンド', 'バックエンド', '開発者', 'ソフトウェア', 'ハードウェア', 'モニター', 'キーボード', 'マウス', 'こんにちは', 'ありがとう', 'ごめんなさい', '愛してる', 'お幸せに'], sentence: [ 'いろはにほへと ちりぬるを。', '青は藍より出でて藍より青し。', '石の上にも三年。', '一期一会。', '花より団子。', '継続は力なり。', '猿も木から落ちる。', '七転び八起き。', '初心忘るべからず。', '好きこそ物の上手なれ。', '塵も積もれば山となる。', '時は金なり。', '隣の芝生は青い。', '案ずるより産むが易し。', '失敗は成功のもと。', '百聞は一見にしかず。', '明日は明日の風が吹く。', '笑う門には福来る。', '早起きは三文の徳。', '良薬は口に苦し。', '三人寄れば文殊の知恵。', '虎穴に入らずんば虎子を得ず。', '雨降って地固まる。', '出る杭は打たれる。', '急がば回れ。', '能ある鷹は爪を隠す。', '聞くは一時の恥、聞かぬは一生の恥。', '弘法も筆の誤り。', '郷に入っては郷に従え。', '終わりよければすべてよし。' ], long: [ '祇園精舎の鐘の声、諸行無常の響きあり。沙羅双樹の花の色、盛者必衰の理をあらはす. おごれる人も久しからず、ただ春の夜の夢のごとし。たけき者も遂にはほろびぬ、ひとへに風の前の塵に同じ。遠く異朝をとぶらへば、秦の趙高、漢の王莽、梁の朱忌、唐の禄山、これらは皆旧主先皇の政にも従はず、楽しみをきはめ、諌めをも思ひ入れず、天下の乱れん事を悟らずして、民間の愁ふるところを知らざつしかば、久しからずして、亡じにし者どもなり。', '春はあけぼの。やうやう白くなりゆく山ぎは、すこしあかりて、紫だちたる雲のほそくたなびきたる。夏は夜。月のころはさらなり、やみもなほ、蛍の多く飛びちがひたる。また、ただ一つ二つなど、ほのかにうち光りて行くもをかし。雨など降るもをかし。秋は夕暮れ。夕日のさして山の端いと近うなりたるに、烏の寝どころへ行くとて、三つ四つ、二つ三つなど飛び急ぐさへあはれなり。まいて雁などのつらねたるが、いと小さく見ゆるは、いとをかし。日入りはてて、風の音、虫の音など、はた言ふべきにあらず。', '吾輩は猫である。名前はまだ無い。どこで生れたかとんと見当がつかぬ。何でも薄暗いじめじめした所でニャーニャー泣いていた事だけは記憶している。吾輩はここで始めて人間というものを見た。しかもあとで聞くとそれは書生という人間中で一番獰悪な種族であったそうだ。この書生というのは時々我々を捕えて煮て食うという話である。しかしその当時は何という考もなかったから別段恐しいとも思わなかった。' ] },
+      cn: { key: 'abcdefghijklmnopqrstuvwxyz', word: ['天', '风', '云', '树', '韩国', '电脑', '编程', '人工智能', '打字', '编码', 'JavaScript', '网站', '网络', '智能手机', '应用', '数据库', '算法', '网络', '安全', '服务器', '客户', '设计', '前端', '后端', '开发人员', '软件', '硬件', '显示器', '键盘', '鼠标', '你好', '谢谢', '对不起', '我爱你', '祝你幸福'], sentence: [ '温故而知新，可以为师矣。', '学而时习之, 不亦说乎？', '有朋自远方来, 不亦乐乎？', '人不知而不愠, 不亦君子乎？', '千里之行, 始于足下。', '天下无难事, 只怕有心人。', '失败乃成功之母。', '冰冻三尺, 非一日之寒。', '一寸光阴一寸金, 寸金难买寸光陰。', '书山有路勤为径, 学海无涯苦作舟。', '活到老, 学到老。', '种瓜得瓜, 种豆得豆。', '机不可失, 时不再来。', '己所不欲, 勿施于人。', '路遥知马力, 日久见人心。', '世上无难事, 只怕有心人。', '三人行, 必有我师焉。', '欲窮千里目, 更上一层楼。', '读万卷书, 行万里路。', '百闻不如一見。', '前人栽树, 后人乘凉。', '只要功夫深, 铁杵磨成针。', '滴水穿石。', '事实胜于雄辩。', '山外有山, 天外有天。', '不入虎穴, 焉得虎子。', '青出于蓝而胜于蓝。', '授人以鱼, 不如授人以渔。', '天下兴亡, 匹夫有責。', '知己知彼, 百战不殆。' ], long: [ '道可道, 非常道。名可名, 非常名。无名, 天地之始；有名, 万物之母。故常无欲, 以观其妙；常有欲, 以观其徼。此两者同出而异名, 同谓之玄。玄之又玄, 众妙之門。', '大学之道, 在明明德, 在亲民, 在止于至善。知止而后有定, 定而后能静, 静而后能安, 安而后能虑, 虑而后能得。物有本末, 事有终始。知所先后, 则近道矣。古之欲明明德于天下者, 先治其国。欲治其国者, 先齐其家。欲齐其家者, 先修其身。欲修其身者, 先正其心。欲正其心者, 先诚其意。欲诚其意者, 先致其知。致知在格物。物格而后知至, 知至而后意诚, 意诚而后心正, 心正而后身修, 身修而后家齐, 家齐而后国治, 国治而后天下平。', '北国风光, 千里冰封, 万里雪飘。望长城内外, 惟余莽莽；大河上下, 顿失滔滔。山舞银蛇, 原驰蜡象, 欲与天公试比高。须晴日, 看红装素裹, 分外妖娆。江山如此多娇, 引无数英雄竞折腰。惜秦皇汉武, 略输文采；唐宗宋祖, 稍逊风骚。一代天骄, 成吉思汗, 只识弯弓射大雕。俱往矣, 数风流人物, 还看今朝。' ] }
+    };
+
+    const uiText = {
+      ko: { siteLanguage: '사이트 언어', typingLanguage: '타자 언어', keyPractice: '자리 연습', wordPractice: '단어 연습', sentencePractice: '문장 연습', longPractice: '긴 글 연습', selectMode: '모드를 선택하여 연습을 시작하세요.', speed: '타수', accuracy: '정확도', typed: '입력', progress: '진행률', welldone: '참 잘했어요!', close: '닫기', aiGenerate: 'AI 생성', aiModalTitle: '✨ AI 연습문제 생성', aiModalDesc: '연습하고 싶은 주제를 입력해주세요.', generate: '생성', aiError: '생성에 실패했습니다. 다시 시도해주세요.', getFeedback: 'AI 피드백' },
+      en: { siteLanguage: 'Site Language', typingLanguage: 'Typing Language', keyPractice: 'Key Practice', wordPractice: 'Word Practice', sentencePractice: 'Sentence Practice', longPractice: 'Long Text', selectMode: 'Select a mode to start practicing.', speed: 'KPM', accuracy: 'Accuracy', typed: 'Typed', progress: 'Progress', welldone: 'Well done!', close: 'Close', aiGenerate: 'AI Generate', aiModalTitle: '✨ AI Practice Generation', aiModalDesc: 'Enter a topic you want to practice.', generate: 'Generate', aiError: 'Failed to generate. Please try again.', getFeedback: 'AI Feedback' },
+      ja: { siteLanguage: 'サイト言語', typingLanguage: 'タイピング言語', keyPractice: 'キー練習', wordPractice: '単語練習', sentencePractice: '文章練習', longPractice: '長文練習', selectMode: 'モードを選択して練習を開始します。', speed: '打鍵/分', accuracy: '正確性', typed: '入力', progress: '進捗', welldone: 'お見事！', close: '閉じる', aiGenerate: 'AI生成', aiModalTitle: '✨ AI練習問題生成', aiModalDesc: '練習したいテーマを入力してください。', generate: '生成', aiError: '生成に失敗しました。もう一度お試しください。', getFeedback: 'AIフィードバック' },
+      cn: { siteLanguage: '网站语言', typingLanguage: '打字语言', keyPractice: '按键练习', wordPractice: '单词练习', sentencePractice: '句子练习', longPractice: '长文练习', selectMode: '选择一个模式开始练习。', speed: '打字/分', accuracy: '准确性', typed: '已输入', progress: '进度', welldone: '做的好！', close: '关闭', aiGenerate: 'AI 生成', aiModalTitle: '✨ AI练习题生成', aiModalDesc: '请输入您想练习的主题。', generate: '生成', aiError: '生成失败，请重试。', getFeedback: 'AI反馈' }
+    };
+
+    let currentMode = '';
+    let currentTypingLang = 'ko';
+    let currentSiteLang = 'ko';
+    let problems = [];
+    let problemIndex = 0;
+    let charIndex = 0;
+    let typedChars = 0;
+    let startTime;
+    let kpmInterval;
+    let isGameActive = false;
+    let accuracy = 100;
+    let lastGameStats = {};
+
+    // Obfuscated API Key
+    //const encodedApiKey = 'QUl6YVN5QlBDUXZKcV81LXZiQ242YTFlWWFtSWNWeXp6RzAyYlpB';
+
+    // --- Gemini API Function ---
+    async function generateContentWithGemini(topic, mode, lang) {
+      const apiKey = encodedApiKey;
+      //const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+      let prompt;
+      let schema;
+      const languageMap = { ko: 'Korean', en: 'English', ja: 'Japanese', cn: 'Chinese' };
+      const languageName = languageMap[lang] || 'English';
+
+      switch (mode) {
+        case 'word':
+          prompt = `Generate 30 unique ${languageName} words related to the topic "${topic}".`;
+          schema = { type: "ARRAY", items: { type: "STRING" } };
+          break;
+        case 'sentence':
+          prompt = `Generate 20 unique, short ${languageName} sentences for typing practice related to the topic "${topic}".`;
+          schema = { type: "ARRAY", items: { type: "STRING" } };
+          break;
+        case 'long':
+          prompt = `Generate a short ${languageName} paragraph for typing practice, about 3 to 5 sentences long, on the topic "${topic}".`;
+          schema = { type: "OBJECT", properties: { "text": { "type": "STRING" } } };
+          break;
+        default:
+          return null;
+      }
+
+      const payload = {
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: schema,
+        },
+      };
+
+      try {
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const result = await response.json();
+
+        console.log(result);
+
+        const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!jsonText) throw new Error("No content generated.");
+
+        const parsedJson = JSON.parse(jsonText);
+        if (mode === 'long') {
+          return parsedJson.text.match(/[^.!?]+[.!?\s]*|[^.!?]+$/g) || [parsedJson.text];
+        }
+        return parsedJson;
+
+      } catch (error) {
+        console.error("Error calling Gemini API:", error);
+        return null;
+      }
+    }
+
+    async function getAITypingFeedback(stats) {
+      const apiKey = encodedApiKey;
+      //const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+      const languageMap = { ko: 'Korean', en: 'English', ja: 'Japanese', cn: 'Chinese' };
+      const languageName = languageMap[stats.lang] || 'English';
+
+      const practiceText = stats.problems.join(' ');
+
+      const prompt = `You are an encouraging typing coach. A user just finished a typing practice in ${languageName}.
+        - Mode: ${stats.mode}
+        - Speed: ${stats.kpm} KPM
+        - Accuracy: ${stats.accuracy}
+        - Practice Text: "${practiceText.substring(0, 200)}..."
+
+        Based on these stats, provide a short, encouraging, and helpful tip for improvement in one or two sentences. Speak directly to the user in ${languageName}. If their accuracy is below 95%, focus on accuracy over speed. If their speed is low, suggest ways to type faster while maintaining accuracy. Be positive and motivating.`;
+
+      const payload = {
+        contents: [{ parts: [{ text: prompt }] }],
+      };
+
+      try {
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const result = await response.json();
+
+        console.log(result);
+
+        const feedback = result.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!feedback) throw new Error("No feedback generated.");
+        return feedback;
+      } catch (error) {
+        console.error("Error calling Gemini API for feedback:", error);
+        return uiText[currentSiteLang].aiError;
+      }
+    }
+
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function updateUIText() {
+      document.querySelectorAll('[data-i18n-key]').forEach(el => {
+        const key = el.getAttribute('data-i18n-key');
+        if(uiText[currentSiteLang] && uiText[currentSiteLang][key]) {
+          el.innerText = uiText[currentSiteLang][key];
+        }
+      });
+    }
+
+    function resetStats() {
+      typedChars = 0;
+      problemIndex = 0;
+      charIndex = 0;
+      startTime = null;
+      isGameActive = false;
+      accuracy = 100;
+      if (kpmInterval) clearInterval(kpmInterval);
+
+      kpmStat.textContent = '0';
+      accuracyStat.textContent = '100 %';
+      typedStat.textContent = '0';
+      progressBar.style.width = '0%';
+      inputField.value = '';
+    }
+
+    function startGame(mode, lang, customProblems = null) {
+      currentMode = mode;
+      currentTypingLang = lang;
+      resetStats();
+
+      gameModeButtons.forEach(btn => btn.classList.remove('active'));
+      const activeButton = document.querySelector(`.game-mode-btn[data-mode="${mode}"]`);
+      if (activeButton) activeButton.classList.add('active');
+
+      if (mode === 'long') {
+        textDisplay.classList.remove('items-center', 'justify-center');
+        textDisplay.classList.add('items-start', 'justify-start');
+      } else {
+        textDisplay.classList.remove('items-start', 'justify-start');
+        textDisplay.classList.add('items-center', 'justify-center');
+      }
+
+      if (customProblems) {
+        problems = customProblems;
+      } else {
+        let sourceData;
+        if (mode === 'key') {
+          sourceData = data[lang][mode].split('');
+          problems = shuffle([...sourceData]).slice(0, 30); // 자리 연습 30개로 제한
+        } else if (mode === 'long') {
+          const longText = data[lang]['long'][Math.floor(Math.random() * data[lang]['long'].length)];
+          problems = longText.match(/[^.!?]+[.!?\s]*|[^.!?]+$/g) || [longText];
+        } else {
+          sourceData = data[lang][mode];
+          problems = shuffle([...sourceData]).slice(0, 30);
+        }
+      }
+
+      progressStat.textContent = `0 / ${problems.length}`;
+      inputField.disabled = false;
+
+      statCards.forEach((card, index) => {
+        setTimeout(() => { card.classList.add('visible'); }, index * 100);
+      });
+
+      if (mode === 'key') {
+        document.removeEventListener('keydown', handleKeyPractice);
+        document.addEventListener('keydown', handleKeyPractice);
+        inputField.style.display = 'none';
+        loadNextProblem();
+      } else {
+        document.removeEventListener('keydown', handleKeyPractice);
+        inputField.style.display = 'block';
+        inputField.focus();
+        loadNextProblem();
+      }
+    }
+
+    function handleKeyPractice(e) {
+      if (e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt' || e.key === 'Meta' || e.key === 'HangulMode' || e.key === 'Process') return;
+      e.preventDefault();
+
+      if (!isGameActive) {
+        isGameActive = true;
+        startTime = new Date();
+        kpmInterval = setInterval(updateKPM, 1000);
+      }
+
+      typedChars++;
+      typedStat.textContent = typedChars;
+
+      if (e.key === problems[problemIndex]) {
+        accuracy = Math.min(100, accuracy + 2);
+      } else {
+        accuracy = Math.max(0, accuracy - 5);
+      }
+      accuracyStat.textContent = `${Math.round(accuracy)} %`;
+
+      problemIndex++;
+      if (problemIndex >= problems.length) {
+        endGame();
+      } else {
+        loadNextProblem();
+      }
+    }
+
+
+    function loadNextProblem() {
+      if (problemIndex >= problems.length) {
+        endGame();
+        return;
+      }
+
+      charIndex = 0;
+      const currentProblem = problems[problemIndex];
+      let displayHTML = '';
+
+      if(currentMode === 'sentence' || currentMode === 'long'){
+        displayHTML = `<span>${currentProblem}</span>`;
+      } else {
+        displayHTML = currentProblem.split('').map((char, index) => {
+          let className = index === 0 ? (char === ' ' ? 'current-space' : 'current') : '';
+          return `<span class="${className}">${char}</span>`;
+        }).join('');
+      }
+      textDisplay.innerHTML = displayHTML;
+
+      if(currentMode !== 'key') {
+        inputField.value = '';
+        inputField.focus();
+      }
+
+      updateProgress();
+    }
+
+    function updateProgress() {
+      const progress = (problemIndex / problems.length) * 100;
+      progressBar.style.width = `${progress}%`;
+      progressStat.textContent = `${problemIndex} / ${problems.length}`;
+    }
+
+    function updateDisplay() {
+      if (problemIndex >= problems.length) return;
+
+      const currentProblem = problems[problemIndex];
+      const inputValue = inputField.value;
+      charIndex = inputValue.length;
+
+      let html = '';
+
+      if (currentMode === 'sentence' || currentMode === 'long') {
+        let correctPart = '';
+        let incorrectPart = '';
+        let remainingPart = '';
+        let isIncorrect = false;
+
+        for(let i=0; i < currentProblem.length; i++) {
+          if (i < charIndex) {
+            if (currentProblem[i] === inputValue[i] && !isIncorrect) {
+              correctPart += currentProblem[i];
+            } else {
+              isIncorrect = true;
+              incorrectPart += currentProblem[i];
+            }
+          } else {
+            remainingPart += currentProblem[i];
+          }
+        }
+        html = `<span class="correct">${correctPart}</span><span class="incorrect">${incorrectPart}</span><span>${remainingPart}</span>`;
+
+      } else { // For word and key mode
+        for(let i=0; i < currentProblem.length; i++) {
+          let char = currentProblem[i];
+          let className = '';
+          if(i < charIndex) {
+            className = (char === inputValue[i]) ? 'correct' : 'incorrect';
+          } else if (i === charIndex) {
+            className = (char === ' ') ? 'current-space' : 'current';
+          }
+          html += `<span class="${className}">${char}</span>`;
+        }
+      }
+
+      textDisplay.innerHTML = html;
+    }
+
+    function updateKPM() {
+      if (!isGameActive || !startTime) return;
+      const elapsedTime = (new Date() - startTime) / 1000 / 60; // minutes
+      if (elapsedTime > 0) {
+        const kpm = Math.round(typedChars / elapsedTime);
+        kpmStat.textContent = kpm;
+      }
+    }
+
+    function endGame() {
+      isGameActive = false;
+      clearInterval(kpmInterval);
+      inputField.disabled = true;
+      document.removeEventListener('keydown', handleKeyPractice);
+
+      lastGameStats = {
+        mode: currentMode,
+        lang: currentTypingLang,
+        problems: problems,
+        kpm: kpmStat.textContent,
+        accuracy: accuracyStat.textContent,
+      };
+
+      if (currentMode === 'key' || currentMode === 'word') {
+        aiFeedbackBtn.classList.add('hidden');
+      } else {
+        aiFeedbackBtn.classList.remove('hidden');
+      }
+
+      aiFeedbackContainer.classList.add('hidden');
+      aiFeedbackText.textContent = '';
+
+      textDisplay.innerHTML = `<span class="text-green-500">${uiText[currentSiteLang].welldone}</span>`;
+      completionModal.classList.remove('hidden');
+      completionModal.classList.add('flex');
+    }
+
+    inputField.addEventListener('input', () => {
+      if (!isGameActive && problems.length > 0) {
+        isGameActive = true;
+        if (!startTime) {
+          startTime = new Date();
+        }
+        kpmInterval = setInterval(updateKPM, 1000);
+      }
+
+      if (!problems[problemIndex]) return;
+
+      const currentInputValue = inputField.value;
+      let totalTypedSession = 0;
+      for(let i=0; i<problemIndex; i++){
+        totalTypedSession += problems[i].length;
+      }
+      totalTypedSession += currentInputValue.length;
+      typedChars = totalTypedSession;
+      typedStat.textContent = typedChars;
+
+      updateDisplay();
+    });
+
+    inputField.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && currentMode !== 'key') {
+        e.preventDefault();
+
+        isGameActive = false;
+        clearInterval(kpmInterval);
+
+        const currentProblem = problems[problemIndex];
+        const inputValue = inputField.value;
+
+        if (inputValue === currentProblem) {
+          accuracy = Math.min(100, accuracy + 2);
+        } else {
+          accuracy = Math.max(0, accuracy - 5);
+        }
+        accuracyStat.textContent = `${Math.round(accuracy)} %`;
+
+        problemIndex++;
+        loadNextProblem();
+      }
+    });
+
+    gameModeButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        startGame(button.dataset.mode, typingLangSelect.value);
+      });
+    });
+
+    typingLangSelect.addEventListener('change', () => {
+      if(currentMode) {
+        startGame(currentMode, typingLangSelect.value);
+      }
+    });
+
+    siteLangSelect.addEventListener('change', (e) => {
+      currentSiteLang = e.target.value;
+      updateUIText();
+    });
+
+    closeModalBtn.addEventListener('click', () => {
+      completionModal.classList.add('hidden');
+      completionModal.classList.remove('flex');
+      aiFeedbackContainer.classList.add('hidden');
+      aiFeedbackText.textContent = '';
+    });
+
+    // --- AI Modal Logic ---
+    aiGenerateBtn.addEventListener('click', () => {
+      if (!currentMode || currentMode === 'key') {
+        alert(uiText[currentSiteLang].selectMode.replace('연습을 시작하세요.', '모드를 먼저 선택해주세요 (단어, 문장, 긴 글).'));
+        return;
+      }
+      aiError.classList.add('hidden');
+      aiTopicInput.value = '';
+      aiModal.classList.remove('hidden');
+      aiModal.classList.add('flex');
+    });
+
+    aiModalCloseBtn.addEventListener('click', () => {
+      aiModal.classList.add('hidden');
+      aiModal.classList.remove('flex');
+    });
+
+    aiGenerateConfirmBtn.addEventListener('click', async () => {
+      const topic = aiTopicInput.value.trim();
+      if (!topic) {
+        alert('주제를 입력해주세요.');
+        return;
+      }
+
+      aiLoader.classList.remove('hidden');
+      aiError.classList.add('hidden');
+      aiGenerateConfirmBtn.disabled = true;
+
+      const generatedProblems = await generateContentWithGemini(topic, currentMode, currentTypingLang);
+
+      aiLoader.classList.add('hidden');
+      aiGenerateConfirmBtn.disabled = false;
+
+      if (generatedProblems && generatedProblems.length > 0) {
+        aiModal.classList.add('hidden');
+        aiModal.classList.remove('flex');
+        startGame(currentMode, currentTypingLang, generatedProblems);
+      } else {
+        aiError.classList.remove('hidden');
+      }
+    });
+
+    aiFeedbackBtn.addEventListener('click', async () => {
+      aiFeedbackContainer.classList.remove('hidden');
+      aiFeedbackLoader.classList.remove('hidden');
+      aiFeedbackText.textContent = '';
+      aiFeedbackBtn.disabled = true;
+
+      const feedback = await getAITypingFeedback(lastGameStats);
+
+      aiFeedbackLoader.classList.add('hidden');
+      aiFeedbackText.textContent = feedback;
+      aiFeedbackBtn.disabled = false;
+    });
+
+
+    updateUIText();
+  });
+</script>
+
+</body>
+</html>
