@@ -24,6 +24,7 @@
 - https://tajaigame.netlify.app/
 - https://jsulaw.co.kr/hangeultyping
 - https://juhantaja.kro.kr/
+- https://github.com/Choi-T-dev/sungl-i-typing
 <br><br>
 
 

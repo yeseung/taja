@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>자바프로그래밍 타자연습</title>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+    <!-- https://github.com/Choi-T-dev/sungl-i-typing -->
+
+    <style>
+        body {
+            font-family: "Noto Sans KR", Arial, sans-serif;
+            background: #eef1f5;
+            text-align: center;
+            padding: 30px;
+        }
+
+        #captureArea, #finalScreen {
+            background: white;
+            width: 720px;
+            margin: auto;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+
+        .school { font-size: 15px; color: #555; }
+
+        h1 { margin: 6px 0 20px; }
+
+        .info-box input {
+            width: 90px;
+            padding: 8px;
+            margin: 0 5px;
+            text-align: center;
+            border-radius: 12px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            padding: 10px 26px;
+            margin-top: 15px;
+            border-radius: 12px;
+            border: none;
+            background: #4a6cf7;
+            color: white;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        #game {
+            position: relative;
+            width: 640px;
+            height: 320px;
+            margin: 20px auto;
+            background: #f9fafc;
+            border: 2px solid #dcdfe6;
+            border-radius: 12px;
+        }
+
+        .word {
+            position: absolute;
+            background: #e6ebff;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 16px;
+        }
+
+        #input {
+            width: 360px;
+            padding: 10px;
+            font-size: 15px;
+            border-radius: 12px;
+            border: 1px solid #ccc;
+        }
+
+        /* 결과/점수 박스 */
+        .resultBox {
+            background-color: rgba(74,108,247,0.2);
+            border: 2px solid #4a6cf7;
+            color: #000;
+            padding: 12px;
+            margin-top: 20px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            display: none; /* 처음에는 숨김 */
+        }
+
+        #finalScreen { display: none; }
+
+        .explain { text-align: left; margin-top: 20px; }
+        .explain p { margin: 8px 0; }
+
+        .praise {
+            margin-top: 22px;
+            font-size: 18px;
+            color: #2e7d32;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="captureArea">
+    <h1>자바프로그래밍 타자연습</h1>
+
+    <div class="info-box">
+        반 <input id="classNum" type="number" min="9" max="12">
+        번호 <input id="studentNum" type="number" min="1" max="25">
+        이름 <input id="studentName" maxlength="4">
+    </div>
+
+    <button onclick="startGame()">시작</button>
+
+    <div id="game"></div>
+    <input id="input" placeholder="단어 입력" disabled>
+
+    <div>
+        남은 시간 <span id="time">90</span>초
+    </div>
+
+    <!-- 🔹 첫 화면 점수/속도 박스 -->
+    <div id="resultBox" class="resultBox"></div>
+</div>
+
+<div id="finalScreen">
+    <h2>📘앞으로 배우게 될 자바 명령어들</h2>
+
+    <div class="explain">
+        <p>▶️ <b>class</b> : 객체를 만들기 위해 사용하는 틀</p>
+        <p>▶️ <b>public static void main</b> : 프로그램이 시작되는 부분</p>
+        <p>▶️ <b>if / for / while</b> : 조건을 확인하고 반복할 때 사용하는 명령어</p>
+        <p>▶️ <b>ArrayList / HashMap</b> : 데이터를 담아두는 상자</p>
+        <p>▶️ <b>try / catch</b> : 프로그램이 오류가 나도 안전하게 처리할 수 있는 구문</p>
+    </div>
+
+    <div class="praise" id="praiseText"></div>
+
+    <!-- 🔹 다음 화면에도 동일한 박스 표시 -->
+    <div id="finalResultBox" class="resultBox"></div>
+
+    <button onclick="location.reload()">재시도</button>
+</div>
+
+<script>
+    const words = [
+        "class","public","static","void","int","double","boolean",
+        "if","else","for","while",
+        "ArrayList","HashMap","Scanner",
+        "try","catch","finally","throw","Exception",
+        "thread","Runnable"
+    ];
+
+    const game = document.getElementById("game");
+    const input = document.getElementById("input");
+    const timeEl = document.getElementById("time");
+    const resultBox = document.getElementById("resultBox");
+    const finalResultBox = document.getElementById("finalResultBox");
+    const praiseText = document.getElementById("praiseText");
+
+    const classNum = document.getElementById("classNum");
+    const studentNum = document.getElementById("studentNum");
+    const studentName = document.getElementById("studentName");
+
+    let score = 0;
+    let time = 90;
+    let timer, spawner;
+    let activeWords = [];
+    let startTime = 0;
+
+    function validInfo() {
+        return classNum.value >= 9 && classNum.value <= 12 &&
+            studentNum.value >= 1 && studentNum.value <= 25 &&
+            /^[가-힣]{1,4}$/.test(studentName.value);
+    }
+
+    function startGame() {
+        if (!validInfo()) {
+            alert("반(9~12), 번호(1~25), 이름(한글 4자 이내)을 정확히 입력하세요.");
+            return;
+        }
+
+        score = 0;
+        time = 90;
+        activeWords = [];
+        game.innerHTML = "";
+        timeEl.textContent = time;
+        input.disabled = false;
+        input.value = "";
+        input.focus();
+
+        startTime = Date.now();
+
+        timer = setInterval(() => {
+            time--;
+            timeEl.textContent = time;
+            if(time <= 0) endGame();
+        },1000);
+
+        spawner = setInterval(spawnWord, 900);
+    }
+
+    function spawnWord() {
+        if (activeWords.length >= 6) return;
+
+        let word;
+        do {
+            word = words[Math.floor(Math.random() * words.length)];
+        } while (activeWords.includes(word));
+
+        activeWords.push(word);
+
+        const div = document.createElement("div");
+        div.className = "word";
+        div.textContent = word;
+        div.style.left = Math.random() * 560 + "px";
+        div.style.top = Math.random() * 280 + "px";
+        game.appendChild(div);
+    }
+
+    input.addEventListener("input", () => {
+        const value = input.value.trim();
+        const index = activeWords.indexOf(value);
+        if (index !== -1) {
+            activeWords.splice(index,1);
+            [...document.querySelectorAll(".word")]
+            .find(w=>w.textContent===value).remove();
+            score++;
+            input.value = "";
+        }
+    });
+
+    function endGame() {
+        clearInterval(timer);
+        clearInterval(spawner);
+        input.disabled = true;
+
+        const elapsedSec = (Date.now() - startTime)/1000;
+        const wpm = Math.round((score / elapsedSec) * 60);
+
+        // 🔹 첫 화면 박스 업데이트 및 보이기
+        resultBox.textContent = `반: ${classNum.value} | 번호: ${studentNum.value} | 이름: ${studentName.value} | 점수: ${score}점 | 속도: ${wpm} WPM`;
+        resultBox.style.display = "block";
+
+        html2canvas(document.getElementById("captureArea")).then(canvas => {
+            const now = new Date();
+            const date =
+                      now.getFullYear() + "-" +
+                      String(now.getMonth() + 1).padStart(2,"0") + "-" +
+                      String(now.getDate()).padStart(2,"0");
+
+            const link = document.createElement("a");
+            link.download =
+                `${classNum.value}반_${studentNum.value}번_${studentName.value}_${date}.png`;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+
+            // 🔹 다음 화면으로 이동
+            document.getElementById("captureArea").style.display="none";
+            document.getElementById("finalScreen").style.display="block";
+
+            // 🔹 다음 화면 박스에도 동일하게 표시
+            finalResultBox.textContent = `반: ${classNum.value} | 번호: ${studentNum.value} | 이름: ${studentName.value} | 점수: ${score}점 | 속도: ${wpm} WPM`;
+            finalResultBox.style.display = "block";
+
+            praiseText.textContent =
+                "90초 동안 끝까지 집중하며 도전한 모습이 정말 훌륭합니다! 👏 " +
+                "자바 핵심 키워드를 성실하게 입력하며 학습에 임하는 태도가 인상적이었어요. " +
+                "이런 꾸준함은 분명 큰 실력으로 이어질 것입니다!🌟";
+        });
+    }
+</script>
+
+</body>
+</html>
