@@ -26,6 +26,7 @@
 - https://juhantaja.kro.kr/
 - https://github.com/Choi-T-dev/sungl-i-typing
 - https://github.com/wangkodok/Typing-Practice-for-Programmers
+- https://github.com/Powering111/tajaweb
 <br><br>
 
 
