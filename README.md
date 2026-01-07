@@ -25,6 +25,7 @@
 - https://jsulaw.co.kr/hangeultyping
 - https://juhantaja.kro.kr/
 - https://github.com/Choi-T-dev/sungl-i-typing
+- https://github.com/wangkodok/Typing-Practice-for-Programmers
 <br><br>
 
 

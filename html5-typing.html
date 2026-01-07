@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>프로그래밍 타자연습</title>
+
+    <!-- https://github.com/wangkodok/Typing-Practice-for-Programmers -->
+    <style>
+
+        /* 여백 초기화 */
+        body,
+        div,
+        ul,
+        li,
+        ol,
+        dl,
+        dt,
+        dd,
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        input,
+        fieldset,
+        figure,
+        legend,
+        p,
+        select,
+        table,
+        th,
+        td,
+        tr,
+        textarea,
+        button,
+        form,
+        blockquote,
+        address,
+        thead,
+        tbody,
+        tfoot,
+        caption {
+            margin: 0;
+            padding: 0;
+        }
+
+        /* a 링크 초기화 */
+        a {
+            color: #000;
+            text-decoration: none;
+            display: block;
+        }
+
+        a:hover {
+            text-decoration: none;
+        }
+
+        /* 폰트 초기화 */
+        body,
+        input,
+        textarea,
+        select,
+        button,
+        table {
+            font-family: 'Noto Sans KR', 'Nanum Gothic', 'Apple SD Gothic Neo', 'Malgun Gothic', '맑은 고딕', 'dotum', '돋움', sans-serif;
+            color: #000;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        /* 백그라운드 초기화 */
+        button {
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* 폰트 스타일 초기화 */
+        em,
+        address {
+            font-style: normal;
+        }
+
+        /* 블릿기호 초기화 */
+        dl,
+        ul,
+        li,
+        ol,
+        menu {
+            list-style: none;
+        }
+
+        /* 제목 태그 초기화 */
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            font-size: 14px;
+            color: #000;
+            font-weight: normal;
+        }
+
+        /* 이미지 속성 바꾸기 */
+        img {
+            vertical-align: top;
+        }
+
+        /* 테두리 초기화 */
+        img,
+        fieldset {
+            width: 100%;
+            border: 0 none;
+        }
+
+        /* 플롯해제 */
+        /* clearboth */
+        .clearboth::after {
+            content: '';
+            display: block;
+            clear: both;
+        }
+
+        /* 웹 접근성 스크린리더기 */
+        .blind {
+            overflow: hidden;
+            position: absolute;
+            clip: rect(0, 0, 0, 0);
+            width: 1px;
+            height: 1px;
+            margin: -1px;
+        }
+
+        /* 홈페이지 로고 */
+        .target {
+            display: block;
+            /* or inline-block or .... */
+            width: 100px;
+            height: 0;
+            max-height: 50px;
+            padding-top: 50px;
+            background: url('...');
+            background-size: cover;
+            overflow: hidden;
+        }
+
+
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .text-box {
+            margin: 0 0 60px 0;
+        }
+
+        .text-box .title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .contents .desc {
+            position: relative;
+            margin: 0 0 12px 0;
+            padding: 0 8px;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .contents .desc span.on {
+            background-color: #000;
+            color: #fff;
+        }
+
+        /* .contents .desc::after {
+          content: '';
+          position: absolute;
+          top: 50%;
+          left: 0;
+          transform: translate(0, -50%);
+          background-color: #000;
+          width: 4px;
+          height: 4px;
+          border-radius: 2px;
+        } */
+
+
+        .contents input {
+            width: 100%;
+            padding: 8px;
+            outline: none;
+        }
+
+        .contents input.on {
+            border: 2px solid #ff0000;
+        }
+
+    </style>
+</head>
+<body>
+<!-- 프로그래밍 타자연습 v1.0.0 -->
+<div class="container">
+    <div>
+        <!-- 설명 -->
+        <div class="text-box">
+            <h1 class="title">HTML 타자연습</h1>
+            <p class="title-desc">
+                처음 입문하시는 분들에게 HTML5 영타 익숙하게 만들어주는 사이트
+            </p>
+            <p class="title-desc">
+                HTML5 자주 사용하는 태그로 구성이 되어있습니다.
+            </p>
+        </div>
+
+        <!-- 태그 -->
+        <div class="contents">
+            <p class="desc"></p>
+            <input type="text" class="desc-input">
+            <p class="desc-input-error">&#160;</p>
+        </div>
+    </div>
+
+</div>
+
+<script>
+
+    window.onload = function () {
+        let desc = document.querySelector('.contents .desc'); // p 태그를 가져오기
+        const descText = document.querySelector('.contents .desc-input');
+        const textArr = ['<div>', '<span>', '<strong>', '<section>', '<h1>', '<h2>', '<h3>', '<h4>', '<h5>', '<h6>', '<ul>', '<li>', '<ol>', '<li>', '<p>', '<input>', '<figure>', '<table>', '<th>', '<td>', '<tr>', '<button>', '<header>', '<main>', '<footer>',];
+
+
+        // textArr 배열 랜덤으로 가져오기
+        function name(textArr) {
+            return textArr[Math.floor(Math.random() * textArr.length)];
+        }
+        let random = name(textArr);
+        console.log(random);
+
+
+        // 랜덤으로 가져온 값을 한 글자 단위로 나눠서 가져오기
+        function arrayStringSplit() {
+            for (let i = 0; i < textArr.length; i++) {
+                let arrayText = random.split('');
+                return arrayText;
+            }
+        }
+        let result = arrayStringSplit();
+
+
+        // 나눠서 가져온 배열 <span> 태그에 한 글자씩 넣기
+        for (let i = 0; i < result.length; i++) {
+            let tagElem = document.createElement('span');
+            tagElem.textContent = result[i];
+            desc.appendChild(tagElem);
+            // console.log(tagElem); // 현재 태그들
+        }
+
+
+        // 현재 있는 span 태그 가져오기
+        function typing(random) {
+            let descTxt = document.querySelectorAll('.contents .desc span');
+
+            let elementTag = ''
+            for (let i = 0; i < descTxt.length; i++) {
+                elementTag = elementTag + descTxt[i].innerText;
+                descTxt[i].classList.remove('on');
+
+
+                if (elementTag === descText.value) {
+                    // 스크립트에서 스타일 넣어줄 때 쓰는 코드
+                    // descTxt[i].style.backgroundColor = '#000';
+                    // descTxt[i].style.color = '#fff';
+
+                    descTxt[i].classList.add('on');
+
+                    if (window.event.keyCode == 13) {
+                        if (desc.outerText === descText.value) {
+
+                            let arrayRandom = name(textArr).split('');
+                            for (let i = 0; i < arrayRandom.length; i++) {
+                                let tag = document.createElement('span');
+                                desc.appendChild(tag);
+                                tag.textContent = arrayRandom[i];
+                            }
+
+                            for (let i = 0; i < descTxt.length; i++) {
+                                descTxt[i].remove();
+                            }
+
+                            descText.value = '';
+                        }
+                    }
+
+                }
+            }
+        }
+        descText.addEventListener('keyup', typing);
+    };
+</script>
+</body>
+</html>
