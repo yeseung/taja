@@ -1,0 +1,733 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>Typing 3D (Three.js) - White UI</title>
+
+    <style>
+        :root{
+            --bg:#f6f7fb;
+            --card:#ffffff;
+            --text:#0f172a;
+            --muted:#64748b;
+            --border:rgba(15,23,42,.12);
+            --shadow: 0 16px 60px rgba(15,23,42,.12);
+            --accent:#2563eb;
+            --good:#16a34a;
+            --bad:#ef4444;
+            --warn:#f59e0b;
+            --radius:18px;
+        }
+
+        *{box-sizing:border-box}
+        html,body{height:100%}
+        body{
+            margin:0;
+            font-family: ui-sans-serif, system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", Segoe UI, Roboto, Helvetica, Arial, "Noto Sans KR", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow:hidden;
+        }
+
+        /* Three.js canvas layer */
+        #bg{
+            position:fixed;
+            inset:0;
+            width:100%;
+            height:100%;
+            display:block;
+            z-index:0;
+            background: radial-gradient(1200px 700px at 20% 20%, #ffffff 0%, #f3f6ff 38%, #eef2ff 65%, #f6f7fb 100%);
+        }
+
+        /* UI overlay */
+        .ui{
+            position:fixed;
+            inset:0;
+            z-index:10;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:16px;
+            pointer-events:none; /* allow clicks only on card controls */
+        }
+
+        .card{
+            width:min(560px, 100%);
+            background:rgba(255,255,255,.92);
+            backdrop-filter: blur(10px);
+            border:1px solid var(--border);
+            border-radius:var(--radius);
+            box-shadow:var(--shadow);
+            padding:18px 18px 16px;
+            pointer-events:auto;
+        }
+
+        .top{
+            display:flex;
+            align-items:flex-start;
+            justify-content:space-between;
+            gap:12px;
+            margin-bottom:12px;
+        }
+
+        .title{
+            display:flex;
+            flex-direction:column;
+            gap:4px;
+        }
+        .title h1{
+            font-size:18px;
+            margin:0;
+            letter-spacing:-.2px;
+            font-weight:800;
+        }
+        .title p{
+            margin:0;
+            color:var(--muted);
+            font-size:13px;
+            line-height:1.35;
+        }
+
+        .stats{
+            display:flex;
+            gap:8px;
+            align-items:stretch;
+        }
+        .stat{
+            min-width:88px;
+            border:1px solid var(--border);
+            border-radius:14px;
+            padding:10px 10px 8px;
+            background:#fff;
+            display:flex;
+            flex-direction:column;
+            gap:2px;
+            text-align:right;
+        }
+        .stat .k{font-size:11px;color:var(--muted)}
+        .stat .v{font-size:16px;font-weight:800}
+
+        .wordBox{
+            border:1px solid var(--border);
+            border-radius:16px;
+            background:#fff;
+            padding:14px 14px 10px;
+            margin-bottom:12px;
+        }
+
+        .target{
+            font-size:22px;
+            font-weight:900;
+            letter-spacing:-.4px;
+            margin:0;
+            line-height:1.2;
+            word-break:keep-all;
+        }
+
+        .feedback{
+            margin-top:10px;
+            font-size:16px;
+            display:flex;
+            flex-wrap:wrap;
+            gap:2px;
+            line-height:1.25;
+        }
+        .ch{
+            padding:1px 0;
+            border-radius:6px;
+            font-weight:700;
+        }
+        .untyped{color:#94a3b8}
+        .ok{color:var(--good)}
+        .no{color:var(--bad)}
+
+        .row{
+            display:flex;
+            gap:10px;
+            align-items:center;
+        }
+
+        .input{
+            flex:1;
+            height:46px;
+            border-radius:14px;
+            border:1px solid var(--border);
+            background:#fff;
+            padding:0 12px;
+            font-size:16px;
+            outline:none;
+            transition: box-shadow .15s, border-color .15s;
+        }
+        .input:focus{
+            border-color: rgba(37,99,235,.35);
+            box-shadow: 0 0 0 4px rgba(37,99,235,.12);
+        }
+        .input:disabled{
+            background:#f8fafc;
+            color:#94a3b8;
+        }
+
+        .btn{
+            height:46px;
+            padding:0 14px;
+            border-radius:14px;
+            border:1px solid var(--border);
+            background:#fff;
+            font-weight:800;
+            cursor:pointer;
+            transition: transform .06s ease, background .15s, border-color .15s;
+            user-select:none;
+            white-space:nowrap;
+        }
+        .btn:active{transform: translateY(1px)}
+        .btnPrimary{
+            background: var(--accent);
+            border-color: rgba(37,99,235,.2);
+            color:#fff;
+        }
+        .btnPrimary:disabled{
+            opacity:.55;
+            cursor:not-allowed;
+        }
+
+        .msg{
+            margin-top:10px;
+            min-height:18px;
+            font-size:13px;
+            color:var(--muted);
+        }
+        .msg.good{color:var(--good); font-weight:800}
+        .msg.bad{color:var(--bad); font-weight:800}
+
+        .hint{
+            margin-top:10px;
+            font-size:12px;
+            color:var(--muted);
+            display:flex;
+            justify-content:space-between;
+            gap:10px;
+            flex-wrap:wrap;
+        }
+        .pill{
+            border:1px solid var(--border);
+            background:#fff;
+            border-radius:999px;
+            padding:6px 10px;
+            font-weight:700;
+        }
+
+        @media (max-width:420px){
+            .stat{min-width:78px}
+            .target{font-size:20px}
+        }
+    </style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+
+<div class="ui">
+    <div class="card">
+        <div class="top">
+            <div class="title">
+                <h1>Typing 3D</h1>
+                <p>단어를 정확히 입력하면 배경에서 <b>3D 폭발/파티클</b>이 터집니다.</p>
+            </div>
+            <div class="stats">
+                <div class="stat">
+                    <div class="k">정확도</div>
+                    <div class="v" id="acc">100%</div>
+                </div>
+                <div class="stat">
+                    <div class="k">CPM</div>
+                    <div class="v" id="cpm">0</div>
+                </div>
+                <div class="stat">
+                    <div class="k">단어</div>
+                    <div class="v" id="cnt">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="wordBox">
+            <p class="target" id="target">시작을 누르세요</p>
+            <div class="feedback" id="feedback"></div>
+        </div>
+
+        <div class="row">
+            <input id="input" class="input" type="text" placeholder="여기에 타이핑..." disabled
+                   autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+            <button id="start" class="btn btnPrimary">시작</button>
+            <button id="reset" class="btn" disabled>초기화</button>
+        </div>
+
+        <div id="msg" class="msg"></div>
+
+        <div class="hint">
+            <span class="pill">Enter: 제출</span>
+            <span class="pill">팁: 정확히 입력하면 3D 폭발 강화</span>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.182.0/build/three.module.js"; // 최신은 변동될 수 있음 :contentReference[oaicite:2]{index=2}
+
+    /* =========================
+       Typing Game (Vanilla JS)
+    ========================== */
+    const $target = document.getElementById("target");
+    const $feedback = document.getElementById("feedback");
+    const $input = document.getElementById("input");
+    const $start = document.getElementById("start");
+    const $reset = document.getElementById("reset");
+    const $msg = document.getElementById("msg");
+    const $acc = document.getElementById("acc");
+    const $cpm = document.getElementById("cpm");
+    const $cnt = document.getElementById("cnt");
+
+    const WORDS = [
+        "우주","별","행성","달","지구","태양","은하","성운","중력","무중력","궤도","탐사","발사",
+        "우주선","우주정거장","망원경","블랙홀","초신성","퀘이사","성단","외계인","소행성","혜성","유성"
+    ];
+
+    let isPlaying = false;
+    let currentWord = "";
+    let wordCount = 0;
+    let correctChars = 0;
+    let totalChars = 0;
+    let startTime = 0;
+
+    function pickWord(){
+        currentWord = WORDS[Math.floor(Math.random()*WORDS.length)];
+        $target.textContent = currentWord;
+        $input.value = "";
+        renderFeedback("");
+        // 3D에도 단어 표시
+        setWordSprite(currentWord);
+    }
+
+    function renderFeedback(typed){
+        $feedback.innerHTML = "";
+        if (!currentWord) return;
+        for (let i=0;i<currentWord.length;i++){
+            const ch = currentWord[i];
+            const span = document.createElement("span");
+            span.className = "ch " + (
+                i < typed.length
+                    ? (typed[i] === ch ? "ok" : "no")
+                    : "untyped"
+            );
+            span.textContent = ch;
+            $feedback.appendChild(span);
+        }
+    }
+
+    function updateStats(){
+        const acc = totalChars > 0 ? Math.round((correctChars/totalChars)*100) : 100;
+        $acc.textContent = `${acc}%`;
+
+        const now = performance.now();
+        const elapsedMin = (now - startTime) / 1000 / 60;
+        const cpm = elapsedMin > 0 ? Math.round(correctChars / elapsedMin) : 0;
+        $cpm.textContent = String(cpm);
+        $cnt.textContent = String(wordCount);
+    }
+
+    function showMsg(text, kind=""){
+        $msg.textContent = text;
+        $msg.className = "msg " + kind;
+    }
+
+    function startGame(){
+        if (isPlaying) return;
+        isPlaying = true;
+        wordCount = 0;
+        correctChars = 0;
+        totalChars = 0;
+        startTime = performance.now();
+
+        $input.disabled = false;
+        $start.disabled = true;
+        $reset.disabled = false;
+        showMsg("게임 시작! 단어를 입력하고 Enter를 누르세요.");
+        pickWord();
+        setTimeout(()=> $input.focus(), 20);
+    }
+
+    function resetGame(){
+        isPlaying = false;
+        $input.disabled = true;
+        $start.disabled = false;
+        $reset.disabled = true;
+
+        currentWord = "";
+        $target.textContent = "시작을 누르세요";
+        $feedback.innerHTML = "";
+        $input.value = "";
+
+        wordCount = 0;
+        correctChars = 0;
+        totalChars = 0;
+        $acc.textContent = "100%";
+        $cpm.textContent = "0";
+        $cnt.textContent = "0";
+        showMsg("");
+
+        // 3D 표시 리셋
+        setWordSprite("");
+    }
+
+    $start.addEventListener("click", startGame);
+    $reset.addEventListener("click", resetGame);
+
+    $input.addEventListener("input", () => {
+        if (!isPlaying) return;
+        renderFeedback($input.value);
+    });
+
+    $input.addEventListener("keydown", (e) => {
+        if (!isPlaying) return;
+        if (e.key !== "Enter") return;
+        e.preventDefault();
+
+        const typed = $input.value;
+        if (!typed) return;
+
+        totalChars += currentWord.length;
+
+        // 부분 정답 카운트(폭발 강도에 반영)
+        let partial = 0;
+        for (let i=0;i<currentWord.length;i++){
+            if (typed[i] === currentWord[i]) partial++;
+        }
+        correctChars += partial;
+
+        if (typed === currentWord){
+            wordCount++;
+            updateStats();
+            showMsg("정확!", "good");
+
+            // === 3D 파티클 폭발 강화 ===
+            // 강도: 단어 길이 기반 + 약간 랜덤
+            burstAtWordSprite( 40 + currentWord.length * 22 );
+
+            // 다음 단어
+            pickWord();
+        }else{
+            updateStats();
+            showMsg("조금 다릅니다. 수정하거나 다시 Enter!", "bad");
+
+            // 틀렸을 때도 약한 '스파크'
+            burstAtWordSprite( 14 + partial * 6, true );
+        }
+    });
+
+    /* =========================
+       Three.js "3D-like" Stage
+    ========================== */
+    const canvas = document.getElementById("bg");
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true, powerPreference:"high-performance" });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight, false);
+
+    const scene = new THREE.Scene();
+
+    // 카메라: 살짝 원근감 강하게(3D 느낌)
+    const camera = new THREE.PerspectiveCamera(52, window.innerWidth/window.innerHeight, 0.1, 2000);
+    camera.position.set(0, 0.7, 8.8);
+
+    // 조명(과하지 않게)
+    const light1 = new THREE.DirectionalLight(0xffffff, 0.9);
+    light1.position.set(2, 3, 4);
+    scene.add(light1);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+
+    // ===== Starfield (깊이감 있는 별) =====
+    function makeStarfield(count, spread, zMin, zMax, size){
+        const geo = new THREE.BufferGeometry();
+        const pos = new Float32Array(count*3);
+        for (let i=0;i<count;i++){
+            const x = (Math.random()-0.5)*spread;
+            const y = (Math.random()-0.5)*spread*0.7;
+            const z = - (zMin + Math.random()*(zMax - zMin));
+            pos[i*3+0]=x; pos[i*3+1]=y; pos[i*3+2]=z;
+        }
+        geo.setAttribute("position", new THREE.BufferAttribute(pos,3));
+        const mat = new THREE.PointsMaterial({
+            color: 0xffffff,
+            size,
+            sizeAttenuation:true,
+            transparent:true,
+            opacity:0.8,
+            depthWrite:false
+        });
+        const pts = new THREE.Points(geo, mat);
+        scene.add(pts);
+        return pts;
+    }
+
+    const starsFar  = makeStarfield(1400, 120, 120, 520, 0.02);
+    const starsMid  = makeStarfield(900,  90,  50, 180, 0.03);
+    const starsNear = makeStarfield(420,  60,  18,  55, 0.05);
+
+    // ===== Soft "nebula" planes (화이트 UI + 은은한 3D 느낌) =====
+    function makeNebulaPlane(w,h,z,opacity){
+        const geo = new THREE.PlaneGeometry(w,h,1,1);
+        const mat = new THREE.MeshBasicMaterial({
+            color: 0xeef2ff,
+            transparent:true,
+            opacity,
+            depthWrite:false
+        });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.position.set(0,0,z);
+        scene.add(mesh);
+        return mesh;
+    }
+    const neb1 = makeNebulaPlane(26, 14, -24, 0.25);
+    const neb2 = makeNebulaPlane(22, 12, -44, 0.18);
+    neb1.rotation.z = 0.15;
+    neb2.rotation.z = -0.12;
+
+    // ===== 3D Word Sprite (캔버스 텍스처) =====
+    let wordSprite = null;
+
+    function makeWordTexture(text){
+        const c = document.createElement("canvas");
+        const ctx = c.getContext("2d");
+        const pad = 40;
+        const fontSize = 84;
+        ctx.font = `900 ${fontSize}px ui-sans-serif, system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif`;
+        const metrics = ctx.measureText(text || " ");
+        const w = Math.ceil(metrics.width + pad*2);
+        const h = Math.ceil(fontSize + pad*2);
+        c.width = w;
+        c.height = h;
+
+        // background transparent
+        ctx.clearRect(0,0,w,h);
+
+        // soft glow
+        ctx.save();
+        ctx.shadowColor = "rgba(37,99,235,0.35)";
+        ctx.shadowBlur = 24;
+        ctx.fillStyle = "rgba(37,99,235,0.06)";
+        ctx.fillRect(18, 18, w-36, h-36);
+        ctx.restore();
+
+        // text
+        ctx.font = `900 ${fontSize}px ui-sans-serif, system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        ctx.fillStyle = "#0f172a";
+        ctx.fillText(text || "", w/2, h/2);
+
+        // underline accent
+        ctx.fillStyle = "rgba(37,99,235,0.35)";
+        ctx.fillRect(w*0.18, h*0.78, w*0.64, 6);
+
+        const tex = new THREE.CanvasTexture(c);
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.needsUpdate = true;
+        return { tex, w, h };
+    }
+
+    function setWordSprite(text){
+        if (wordSprite){
+            scene.remove(wordSprite);
+            wordSprite.material.map?.dispose?.();
+            wordSprite.material.dispose?.();
+            wordSprite = null;
+        }
+        if (!text) return;
+
+        const { tex, w, h } = makeWordTexture(text);
+        const mat = new THREE.SpriteMaterial({ map: tex, transparent:true, depthWrite:false });
+        const spr = new THREE.Sprite(mat);
+        // 크기: 화면 비율에 적당히
+        const scale = Math.min(6.2, Math.max(3.8, w / 220));
+        spr.scale.set(scale, scale*(h/w), 1);
+
+        // 위치: 약간 비스듬히(3D 느낌)
+        spr.position.set(-0.1, 0.2, -6.2);
+        scene.add(spr);
+        wordSprite = spr;
+    }
+
+    // ===== Particle Burst (Points + per-particle velocity) =====
+    const bursts = []; // active bursts
+
+    function createBurst(position, count, weak=false){
+        const geo = new THREE.BufferGeometry();
+        const pos = new Float32Array(count*3);
+        const vel = new Float32Array(count*3);
+        const life = new Float32Array(count);
+
+        // 폭발 반경/속도(진짜 3D 느낌)
+        const speedBase = weak ? 0.55 : 1.25;
+        const spread = weak ? 0.35 : 0.85;
+
+        for (let i=0;i<count;i++){
+            pos[i*3+0] = position.x + (Math.random()-0.5)*0.08;
+            pos[i*3+1] = position.y + (Math.random()-0.5)*0.08;
+            pos[i*3+2] = position.z + (Math.random()-0.5)*0.08;
+
+            // random direction on sphere
+            const theta = Math.random()*Math.PI*2;
+            const u = Math.random()*2 - 1;
+            const s = Math.sqrt(1 - u*u);
+            const dirx = s*Math.cos(theta);
+            const diry = u;
+            const dirz = s*Math.sin(theta);
+
+            const sp = (speedBase + Math.random()*speedBase) * (0.55 + Math.random()*0.9);
+
+            vel[i*3+0] = dirx * sp * spread;
+            vel[i*3+1] = diry * sp * spread;
+            vel[i*3+2] = dirz * sp * spread;
+
+            life[i] = weak ? (0.45 + Math.random()*0.35) : (0.8 + Math.random()*0.65);
+        }
+
+        geo.setAttribute("position", new THREE.BufferAttribute(pos,3));
+        geo.setAttribute("velocity", new THREE.BufferAttribute(vel,3));
+        geo.setAttribute("life", new THREE.BufferAttribute(life,1));
+
+        const mat = new THREE.PointsMaterial({
+            color: 0x2563eb,
+            size: weak ? 0.055 : 0.075,
+            transparent:true,
+            opacity: weak ? 0.55 : 0.78,
+            depthWrite:false,
+            blending: THREE.AdditiveBlending
+        });
+
+        const points = new THREE.Points(geo, mat);
+        scene.add(points);
+
+        bursts.push({
+            obj: points,
+            age: 0,
+            ttl: weak ? 0.75 : 1.15
+        });
+    }
+
+    function burstAtWordSprite(power=60, weak=false){
+        if (!wordSprite) return;
+        const count = Math.max(12, Math.min(220, Math.round(power)));
+        // 스프라이트 위치 근처(앞쪽)에서 폭발
+        const p = wordSprite.position.clone();
+        p.z += 0.2;
+        createBurst(p, count, weak);
+        // 살짝 카메라 흔들림(3D 느낌 강화)
+        kickCamera( weak ? 0.015 : 0.035 );
+    }
+
+    // Camera kick (간단한 손맛)
+    let camKick = 0;
+    function kickCamera(amount){
+        camKick = Math.min(0.08, camKick + amount);
+    }
+
+    // resize
+    window.addEventListener("resize", () => {
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        renderer.setSize(w, h, false);
+        camera.aspect = w/h;
+        camera.updateProjectionMatrix();
+    });
+
+    // animate
+    const clock = new THREE.Clock();
+
+    function animate(){
+        requestAnimationFrame(animate);
+        const dt = Math.min(0.033, clock.getDelta());
+
+        // 별 시차(깊이감)
+        starsFar.rotation.y  += dt*0.01;
+        starsMid.rotation.y  += dt*0.018;
+        starsNear.rotation.y += dt*0.028;
+
+        // 네뷸라 살짝 흔들
+        neb1.position.x = Math.sin(performance.now()*0.0002)*0.12;
+        neb2.position.y = Math.cos(performance.now()*0.00018)*0.10;
+
+        // 단어 스프라이트 미세 3D 부유
+        if (wordSprite){
+            wordSprite.position.y = 0.22 + Math.sin(performance.now()*0.002)*0.05;
+            wordSprite.position.x = -0.08 + Math.cos(performance.now()*0.0017)*0.04;
+        }
+
+        // camera kick decay
+        if (camKick > 0){
+            camKick *= 0.88;
+            camera.position.x = (Math.random()-0.5)*camKick;
+            camera.position.y = 0.7 + (Math.random()-0.5)*camKick;
+        }else{
+            camera.position.x = 0;
+            camera.position.y = 0.7;
+        }
+
+        // bursts update
+        for (let i=bursts.length-1;i>=0;i--){
+            const b = bursts[i];
+            b.age += dt;
+
+            const geo = b.obj.geometry;
+            const posAttr = geo.getAttribute("position");
+            const velAttr = geo.getAttribute("velocity");
+            const lifeAttr = geo.getAttribute("life");
+
+            for (let p=0;p<lifeAttr.count;p++){
+                let life = lifeAttr.getX(p);
+                if (life <= 0) continue;
+
+                // position += velocity
+                const vx = velAttr.getX(p);
+                const vy = velAttr.getY(p);
+                const vz = velAttr.getZ(p);
+
+                posAttr.setX(p, posAttr.getX(p) + vx*dt*60);
+                posAttr.setY(p, posAttr.getY(p) + vy*dt*60);
+                posAttr.setZ(p, posAttr.getZ(p) + vz*dt*60);
+
+                // drag + slight gravity forward
+                velAttr.setX(p, vx*0.985);
+                velAttr.setY(p, vy*0.985 - 0.0008);
+                velAttr.setZ(p, vz*0.985);
+
+                // life decay
+                lifeAttr.setX(p, life - dt*(b.ttl*0.9));
+            }
+
+            posAttr.needsUpdate = true;
+            velAttr.needsUpdate = true;
+            lifeAttr.needsUpdate = true;
+
+            // fade out material
+            const t = 1 - (b.age / b.ttl);
+            b.obj.material.opacity = Math.max(0, Math.min(0.85, t));
+
+            if (b.age >= b.ttl){
+                scene.remove(b.obj);
+                b.obj.geometry.dispose();
+                b.obj.material.dispose();
+                bursts.splice(i,1);
+            }
+        }
+
+        renderer.render(scene, camera);
+    }
+
+    animate();
+
+    // 첫 화면: 단어 스프라이트 비움
+    setWordSprite("");
+</script>
+</body>
+</html>
