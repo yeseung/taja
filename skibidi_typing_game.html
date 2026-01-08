@@ -1,0 +1,2918 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚽 스키비디 타자 디펜스 - 초등학생 타자연습 게임</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Jua', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .stars {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0; transform: scale(0.5); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1200px;
+            width: 95%;
+            z-index: 10;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .main-game-layout {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .left-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 180px;
+        }
+
+        .right-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 180px;
+        }
+
+        .center-game {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .game-title {
+            font-size: 28px;
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient 3s ease infinite;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .game-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: transform 0.3s;
+        }
+
+        .stat-box:hover {
+            transform: translateY(-3px);
+        }
+
+        .stat-icon {
+            font-size: 24px;
+        }
+
+        .game-area {
+            background: linear-gradient(to bottom, #87CEEB 0%, #E0F6FF 50%, #C9E4FF 100%);
+            border-radius: 15px;
+            height: 500px; /* 게임 영역 높이를 대폭 증가 (350px → 500px) */
+            width: 100%;
+            min-width: 600px;
+            position: relative;
+            overflow: visible;
+            border: 3px solid #4ECDC4;
+            margin-bottom: 15px;
+        }
+
+        .ground {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 70px;
+            background: linear-gradient(to bottom, #8FBC8F 0%, #556B2F 100%);
+            border-top: 3px solid #3CB371;
+            z-index: 1;
+        }
+
+        .castle {
+            position: absolute;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 80px;
+            background: linear-gradient(to bottom, #FFE4B5 0%, #DEB887 100%);
+            border-radius: 10px 10px 0 0;
+            border: 3px solid #CD853F;
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+
+        .castle::before {
+            content: '🏰';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 40px;
+            transition: all 0.3s ease;
+        }
+
+        /* 성 상태별 스타일 - 더 디테일한 효과 */
+        .castle.damaged-1 {
+            background: linear-gradient(135deg, #F4A460 0%, #CD853F 50%, #A0522D 100%);
+            border-color: #8B4513;
+            border-style: dashed;
+            animation: castle-shake-1 2s infinite;
+            box-shadow: inset 0 0 20px rgba(139, 69, 19, 0.5);
+        }
+
+        .castle.damaged-1::before {
+            content: '🏚️';
+            filter: sepia(0.3) brightness(0.9);
+        }
+
+        .castle.damaged-1::after {
+            content: '💨';
+            position: absolute;
+            top: -10px;
+            right: 5px;
+            font-size: 20px;
+            animation: smoke-rise 3s infinite;
+        }
+
+        .castle.damaged-2 {
+            background: linear-gradient(135deg, #CD853F 0%, #8B4513 50%, #654321 100%);
+            border-color: #654321;
+            border-style: dotted;
+            height: 65px;
+            animation: castle-shake-2 1.5s infinite;
+            box-shadow: inset 0 0 30px rgba(101, 67, 33, 0.7), 0 0 15px rgba(255, 69, 0, 0.4);
+            transform: translateX(-50%) rotate(-2deg);
+        }
+
+        .castle.damaged-2::before {
+            content: '💥';
+            font-size: 32px;
+            animation: explosion-pulse 1s infinite;
+            filter: brightness(1.2) contrast(1.1);
+        }
+
+        .castle.damaged-2::after {
+            content: '🔥';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 15px;
+            animation: fire-flicker 0.8s infinite;
+        }
+
+        .castle.damaged-3 {
+            background: linear-gradient(135deg, #8B4513 0%, #654321 50%, #2F1B14 100%);
+            border-color: #2F1B14;
+            border-style: solid;
+            border-width: 2px;
+            height: 50px;
+            opacity: 0.7;
+            animation: castle-collapse 2s infinite;
+            box-shadow: inset 0 0 40px rgba(47, 27, 20, 0.9), 0 0 25px rgba(255, 0, 0, 0.6);
+            transform: translateX(-50%) rotate(-5deg) scale(0.9);
+        }
+
+        .castle.damaged-3::before {
+            content: '🔥';
+            font-size: 28px;
+            animation: final-fire 0.5s infinite;
+            filter: brightness(1.5) saturate(2);
+        }
+
+        .castle.damaged-3::after {
+            content: '💀';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 12px;
+            animation: skull-glow 1s infinite;
+        }
+
+        /* 성 파괴 애니메이션 */
+        @keyframes castle-shake-1 {
+            0%, 100% { transform: translateX(-50%) translateY(0px); }
+            25% { transform: translateX(-50%) translateY(-1px); }
+            75% { transform: translateX(-50%) translateY(1px); }
+        }
+
+        @keyframes castle-shake-2 {
+            0%, 100% { transform: translateX(-50%) rotate(-2deg) translateY(0px); }
+            50% { transform: translateX(-50%) rotate(-2deg) translateY(-2px); }
+        }
+
+        @keyframes castle-collapse {
+            0%, 100% { transform: translateX(-50%) rotate(-5deg) scale(0.9) translateY(0px); }
+            50% { transform: translateX(-50%) rotate(-5deg) scale(0.85) translateY(2px); }
+        }
+
+        @keyframes smoke-rise {
+            0% { opacity: 1; transform: translateY(0px); }
+            100% { opacity: 0; transform: translateY(-20px); }
+        }
+
+        @keyframes explosion-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes fire-flicker {
+            0%, 100% { opacity: 1; transform: rotate(0deg); }
+            50% { opacity: 0.7; transform: rotate(5deg); }
+        }
+
+        @keyframes final-fire {
+            0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+            50% { transform: scale(1.2) rotate(10deg); opacity: 0.8; }
+        }
+
+        @keyframes skull-glow {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* 성 파괴 파티클 애니메이션 */
+        @keyframes castle-particle-light {
+            0% {
+                opacity: 1;
+                transform: scale(1) rotate(0deg) translateY(0px);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.5) rotate(360deg) translateY(-40px) translateX(20px);
+            }
+        }
+
+        @keyframes castle-particle-medium {
+            0% {
+                opacity: 1;
+                transform: scale(1) rotate(0deg) translateY(0px);
+            }
+            50% {
+                opacity: 0.8;
+                transform: scale(1.2) rotate(180deg) translateY(-20px) translateX(30px);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.3) rotate(360deg) translateY(-60px) translateX(-20px);
+            }
+        }
+
+        @keyframes castle-particle-heavy {
+            0% {
+                opacity: 1;
+                transform: scale(1) rotate(0deg) translateY(0px);
+            }
+            25% {
+                opacity: 1;
+                transform: scale(1.5) rotate(90deg) translateY(-15px) translateX(40px);
+            }
+            75% {
+                opacity: 0.6;
+                transform: scale(0.8) rotate(270deg) translateY(-50px) translateX(-30px);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.2) rotate(720deg) translateY(-80px) translateX(10px);
+            }
+        }
+
+        /* 파워업 스타일 */
+        .powerup {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 25px;
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.3s ease;
+            animation: powerup-glow 2s infinite, powerup-float 3s infinite;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+        }
+
+        .powerup:hover {
+            transform: scale(1.1);
+        }
+
+        .powerup.time-freeze {
+            background: linear-gradient(135deg, #87CEEB, #4682B4);
+        }
+
+        .powerup.slow-motion {
+            background: linear-gradient(135deg, #98FB98, #32CD32);
+        }
+
+        .powerup.double-score {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+        }
+
+        .powerup.shield {
+            background: linear-gradient(135deg, #DDA0DD, #9370DB);
+        }
+
+        @keyframes powerup-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 255, 255, 0.8); }
+            50% { box-shadow: 0 0 30px rgba(255, 255, 255, 1); }
+        }
+
+        @keyframes powerup-float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* 파워업 UI 표시 */
+        .active-powerups {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .active-powerup {
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            animation: powerup-active 0.3s ease-in;
+        }
+
+        @keyframes powerup-active {
+            0% { opacity: 0; transform: translateX(50px); }
+            100% { opacity: 1; transform: translateX(0px); }
+        }
+
+        /* 화면 효과 */
+        .screen-effect {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .screen-effect.time-freeze {
+            background: radial-gradient(circle, rgba(135, 206, 235, 0.3) 0%, rgba(70, 130, 180, 0.1) 100%);
+            animation: time-freeze-effect 0.5s ease-in-out infinite alternate;
+        }
+
+        .screen-effect.slow-motion {
+            background: radial-gradient(circle, rgba(152, 251, 152, 0.2) 0%, rgba(50, 205, 50, 0.1) 100%);
+        }
+
+        .screen-effect.double-score {
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, rgba(255, 165, 0, 0.1) 100%);
+            animation: double-score-effect 1s ease-in-out infinite;
+        }
+
+        @keyframes time-freeze-effect {
+            0% { opacity: 0.3; }
+            100% { opacity: 0.1; }
+        }
+
+        @keyframes double-score-effect {
+            0% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.1; transform: scale(1.02); }
+            100% { opacity: 0.3; transform: scale(1); }
+        }
+
+        /* 파워업 단어 글로우 애니메이션 */
+        @keyframes powerup-word-glow {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 8px 20px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.3), 0 0 25px currentColor;
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 10px 25px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.4), 0 0 35px currentColor;
+            }
+        }
+
+        /* 파워업 획득 메시지 애니메이션 */
+        @keyframes powerup-message {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.3);
+            }
+            20% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+            30% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+            90% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.8);
+            }
+        }
+
+        .word-enemy {
+            position: absolute;
+            padding: 8px 15px;
+            background: #FFD700;
+            border-radius: 15px;
+            border: 3px solid #FF6B6B;
+            font-size: 22px;
+            font-weight: bold;
+            color: #000;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            z-index: 100;
+            min-width: 80px;
+            text-align: center;
+            display: block;
+            visibility: visible;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .word-enemy.correct {
+            background: #4ECDC4;
+            border-color: #45B7D1;
+            animation: explode 0.5s ease;
+        }
+
+        @keyframes explode {
+            0% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.5) rotate(180deg); }
+            100% { transform: scale(0) rotate(360deg); opacity: 0; }
+        }
+
+        .input-area {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        #gameInput {
+            padding: 18px 30px;
+            font-size: 26px;
+            border: 4px solid #4ECDC4;
+            border-radius: 20px;
+            width: 400px;
+            text-align: center;
+            background: white;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(78, 205, 196, 0.2);
+        }
+
+        #gameInput:focus {
+            outline: none;
+            border-color: #45B7D1;
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(78, 205, 196, 0.3);
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .game-btn {
+            padding: 12px 30px;
+            font-size: 20px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+            color: white;
+        }
+
+        .pause-btn {
+            background: linear-gradient(135deg, #FFE66D 0%, #FF6B6B 100%);
+            color: white;
+        }
+
+        .sound-btn {
+            background: linear-gradient(135deg, #A8E6CF 0%, #7FCDCD 100%);
+            color: white;
+        }
+
+        .game-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .game-btn:active {
+            transform: translateY(0);
+        }
+
+        .character-select {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .character {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            border: 3px solid #ccc;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            background: white;
+        }
+
+        .character.selected {
+            border-color: #4ECDC4;
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(78, 205, 196, 0.5);
+        }
+
+        .character.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+            position: relative;
+        }
+
+        .character.locked::after {
+            content: '🔒';
+            position: absolute;
+            font-size: 20px;
+            bottom: -5px;
+            right: -5px;
+        }
+
+        .combo-display {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 24px;
+            color: #FF6B6B;
+            font-weight: bold;
+            display: none;
+        }
+
+        .combo-display.show {
+            display: block;
+            animation: bounce 0.5s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.5); }
+        }
+
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            animation: particle-float 1s ease-out forwards;
+        }
+
+        @keyframes particle-float {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-50px) scale(0);
+            }
+        }
+
+        .game-over-modal, .pause-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-title {
+            font-size: 36px;
+            margin-bottom: 20px;
+            color: #FF6B6B;
+        }
+
+        .modal-score {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .leaderboard {
+            background: #f0f0f0;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 10px;
+        }
+
+        .rank-medal {
+            font-size: 20px;
+        }
+
+        /* 모바일 대응 */
+        @media (max-width: 768px) {
+            .game-container {
+                padding: 15px;
+                max-width: 100%;
+            }
+
+            .main-game-layout {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .left-controls, .right-controls {
+                min-width: auto;
+                width: 100%;
+            }
+
+            .game-title {
+                font-size: 24px;
+            }
+
+            .game-area {
+                height: 300px;
+                width: 100%;
+            }
+
+            #gameInput {
+                width: 90%;
+                max-width: 300px;
+                font-size: 20px;
+                padding: 15px 20px;
+            }
+
+            .game-btn {
+                padding: 12px 20px;
+                font-size: 16px;
+                width: 100%;
+            }
+
+            .stat-box {
+                font-size: 14px;
+                padding: 8px 12px;
+            }
+
+            .word-enemy {
+                font-size: 16px;
+            }
+
+            .character-select {
+                justify-content: center;
+            }
+
+            .character {
+                width: 45px;
+                height: 45px;
+                font-size: 24px;
+            }
+        }
+
+        .mobile-keyboard {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.2);
+            z-index: 100;
+        }
+
+        .keyboard-row {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin: 5px 0;
+        }
+
+        .key-btn {
+            padding: 10px;
+            min-width: 30px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .key-btn:active {
+            background: #4ECDC4;
+            color: white;
+            transform: scale(0.95);
+        }
+
+        .key-space {
+            min-width: 150px;
+        }
+
+        .key-backspace {
+            min-width: 60px;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-keyboard {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+
+<div class="game-container">
+    <div class="game-header">
+        <h1 class="game-title">🚽 스키비디 타자 디펜스 🎮</h1>
+    </div>
+
+    <div class="game-stats">
+        <div class="stat-box">
+            <span class="stat-icon">💯</span>
+            <span>점수: <span id="score">0</span></span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-icon">⚡</span>
+            <span>레벨: <span id="level">1</span></span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-icon">❤️</span>
+            <span>생명: <span id="lives">3</span></span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-icon">🪙</span>
+            <span>코인: <span id="coins">0</span></span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-icon">🔥</span>
+            <span>콤보: <span id="combo">0</span></span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-icon">⚡</span>
+            <span>속도: <span id="speed">1.0x</span></span>
+        </div>
+    </div>
+
+    <div class="main-game-layout">
+        <!-- 왼쪽 컨트롤 -->
+        <div class="left-controls">
+            <h3 style="color: #333; margin-bottom: 10px; text-align: center;">🎮 게임 설정</h3>
+
+            <button class="game-btn start-btn" id="startBtn">🎮 게임 시작</button>
+            <button class="game-btn pause-btn" id="pauseBtn">⏸️ 일시정지</button>
+            <button class="game-btn sound-btn" id="soundBtn">🔊 소리 ON</button>
+
+            <h4 style="color: #333; margin: 15px 0 8px 0; text-align: center;">📝 출제 방식</h4>
+            <div style="background: rgba(255,255,255,0.9); border-radius: 10px; padding: 10px; margin-bottom: 10px;">
+                <label style="display: block; margin: 5px 0; color: #333; font-size: 14px;">
+                    <input type="radio" name="wordType" value="words" checked style="margin-right: 5px;">
+                    📚 단어 위주
+                </label>
+                <label style="display: block; margin: 5px 0; color: #333; font-size: 14px;">
+                    <input type="radio" name="wordType" value="sentences" style="margin-right: 5px;">
+                    📖 문장 위주
+                </label>
+            </div>
+
+            <h4 style="color: #333; margin: 15px 0 8px 0; text-align: center;">⚡ 속도 조절</h4>
+            <button class="game-btn" id="speedDownBtn" style="background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);">🐌 느리게</button>
+            <div style="padding: 8px; background: rgba(255,255,255,0.8); border-radius: 10px; text-align: center; color: #333; font-weight: bold;">
+                속도: <span id="speedDisplay">1.0x</span>
+            </div>
+            <button class="game-btn" id="speedUpBtn" style="background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);">🚀 빠르게</button>
+
+            <h4 style="color: #333; margin: 15px 0 8px 0; text-align: center;">🎮 조작법</h4>
+            <div style="background: rgba(255,255,255,0.9); border-radius: 10px; padding: 12px; margin-bottom: 10px; font-size: 13px; color: #333;">
+                <div style="margin-bottom: 8px;">
+                    ⌨️ <strong>타이핑:</strong> 단어를 정확히 입력
+                </div>
+                <div style="margin-bottom: 8px;">
+                    💣 <strong>폭탄:</strong> SPACE키 (전체 단어 제거)
+                </div>
+                <div style="margin-bottom: 8px;">
+                    👹 <strong>보스:</strong> 같은 단어를 여러 번 입력
+                </div>
+                <div>
+                    ⏸️ <strong>일시정지:</strong> ESC키
+                </div>
+            </div>
+        </div>
+
+        <!-- 중앙 게임 영역 -->
+        <div class="center-game">
+            <div class="game-area" id="gameArea">
+                <div class="combo-display" id="comboDisplay"></div>
+                <div class="castle"></div>
+                <div class="ground"></div>
+            </div>
+
+            <div class="input-area">
+                <input type="text" id="gameInput" placeholder="단어를 입력하세요!" autocomplete="off" disabled>
+            </div>
+        </div>
+
+        <!-- 오른쪽 컨트롤 -->
+        <div class="right-controls">
+            <h3 style="color: #333; margin-bottom: 10px; text-align: center;">👤 캐릭터 선택</h3>
+
+            <div class="character-select">
+                <div class="character selected" data-char="😎">😎</div>
+                <div class="character" data-char="🤖">🤖</div>
+                <div class="character locked" data-char="🦄">🦄</div>
+                <div class="character locked" data-char="🐉">🐉</div>
+            </div>
+
+            <h4 style="color: #333; margin: 15px 0 8px 0; text-align: center;">📖 조작법</h4>
+            <div style="background: rgba(255,255,255,0.8); border-radius: 10px; padding: 12px; font-size: 12px; color: #333;">
+                <div><strong>키보드:</strong></div>
+                <div>• Enter: 단어 입력</div>
+                <div>• ESC: 일시정지</div>
+                <div><br><strong>파워업:</strong></div>
+                <div>⏰ 파란색: 시간정지</div>
+                <div>🐌 초록색: 슬로우모션</div>
+                <div>💎 금색: 더블스코어</div>
+                <div>🛡️ 보라색: 실드</div>
+                <div><br><strong>목표:</strong></div>
+                <div>• 색깔 단어를 입력해서 특수능력 획득!</div>
+                <div>• 떨어지는 단어를 입력해서 성을 지키세요!</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 파워업 UI -->
+<div class="active-powerups" id="activePowerUps"></div>
+
+<!-- 게임 오버 모달 -->
+<div class="game-over-modal" id="gameOverModal">
+    <div class="modal-content">
+        <h2 class="modal-title">🎮 게임 오버!</h2>
+        <div class="modal-score">
+            <p>최종 점수: <span id="finalScore">0</span></p>
+            <p>획득 코인: <span id="finalCoins">0</span> 🪙</p>
+            <p>최고 콤보: <span id="maxCombo">0</span> 🔥</p>
+        </div>
+        <div class="leaderboard">
+            <h3>🏆 최고 기록</h3>
+            <div id="leaderboardList"></div>
+        </div>
+        <button class="game-btn start-btn" onclick="location.reload()">다시 시작</button>
+    </div>
+</div>
+
+<!-- 일시정지 모달 -->
+<div class="pause-modal" id="pauseModal">
+    <div class="modal-content">
+        <h2 class="modal-title">⏸️ 일시정지</h2>
+        <p>게임을 계속하시려면 버튼을 누르세요!</p>
+        <button class="game-btn start-btn" id="resumeBtn">▶️ 계속하기</button>
+    </div>
+</div>
+
+<!-- 모바일 키보드 -->
+<div class="mobile-keyboard" id="mobileKeyboard">
+    <div class="keyboard-row">
+        <button class="key-btn" data-key="ㅂ">ㅂ</button>
+        <button class="key-btn" data-key="ㅈ">ㅈ</button>
+        <button class="key-btn" data-key="ㄷ">ㄷ</button>
+        <button class="key-btn" data-key="ㄱ">ㄱ</button>
+        <button class="key-btn" data-key="ㅅ">ㅅ</button>
+        <button class="key-btn" data-key="ㅛ">ㅛ</button>
+        <button class="key-btn" data-key="ㅕ">ㅕ</button>
+        <button class="key-btn" data-key="ㅑ">ㅑ</button>
+        <button class="key-btn" data-key="ㅐ">ㅐ</button>
+        <button class="key-btn" data-key="ㅔ">ㅔ</button>
+    </div>
+    <div class="keyboard-row">
+        <button class="key-btn" data-key="ㅁ">ㅁ</button>
+        <button class="key-btn" data-key="ㄴ">ㄴ</button>
+        <button class="key-btn" data-key="ㅇ">ㅇ</button>
+        <button class="key-btn" data-key="ㄹ">ㄹ</button>
+        <button class="key-btn" data-key="ㅎ">ㅎ</button>
+        <button class="key-btn" data-key="ㅗ">ㅗ</button>
+        <button class="key-btn" data-key="ㅓ">ㅓ</button>
+        <button class="key-btn" data-key="ㅏ">ㅏ</button>
+        <button class="key-btn" data-key="ㅣ">ㅣ</button>
+    </div>
+    <div class="keyboard-row">
+        <button class="key-btn" data-key="ㅋ">ㅋ</button>
+        <button class="key-btn" data-key="ㅌ">ㅌ</button>
+        <button class="key-btn" data-key="ㅊ">ㅊ</button>
+        <button class="key-btn" data-key="ㅍ">ㅍ</button>
+        <button class="key-btn" data-key="ㅠ">ㅠ</button>
+        <button class="key-btn" data-key="ㅜ">ㅜ</button>
+        <button class="key-btn" data-key="ㅡ">ㅡ</button>
+        <button class="key-btn key-backspace" data-key="backspace">⌫</button>
+    </div>
+    <div class="keyboard-row">
+        <button class="key-btn key-space" data-key=" ">스페이스</button>
+        <button class="key-btn" data-key="enter">↵</button>
+    </div>
+</div>
+
+<script>
+    // 게임 변수들
+    let score = 0;
+    let level = 1;
+    let lives = 3;
+    let coins = 0;
+    let combo = 0;
+    let maxCombo = 0;
+    let gameRunning = false;
+    let gamePaused = false;
+    let words = [];
+    let wordSpeed = 0.05; // 초기 속도를 훨씬 더 느리게
+    let baseWordSpeed = 0.05; // 더 높은 게임 영역에 맞춰 속도 더 느리게
+    let speedMultiplier = 1.0; // 사용자 조절 가능한 속도 배수
+    let spawnInterval;
+    let gameLoop;
+    let selectedCharacter = '😎';
+    let soundEnabled = true;
+
+    // 보스 시스템
+    let currentBoss = null;
+    let bossActive = false;
+    let bossHP = 0;
+    let bossMaxHP = 0;
+
+    // 폭탄 시스템
+    let bombCount = 0; // 현재 보유한 폭탄 개수
+    const maxBombs = 3; // 최대 폭탄 개수
+    let bombCooldown = false; // 폭탄 재사용 대기 상태
+    const bombCooldownTime = 5000; // 재사용 대기시간 5초
+
+    // 파워업 시스템
+    let powerUps = [];
+    let activePowerUps = {
+        timeFreeze: { active: false, duration: 0 },
+        slowMotion: { active: false, duration: 0 },
+        doubleScore: { active: false, duration: 0 },
+        shield: { active: false, uses: 0 }
+    };
+
+    // 오디오 컨텍스트
+    let audioContext = null;
+
+    // 단어 목록 (한글 타이핑 난이도별 - 받침 없는 글자부터 장문까지)
+    const wordLists = {
+        1: [
+            // 받침이 없는 간단한 글자들 (2-3글자) - 대폭 확장
+            '가나', '나비', '다리', '라디오', '마미', '바나나', '사자', '아기', '야구', '오리',
+            '우유', '이모', '토마토', '파이', '하마', '노리', '도시', '고기', '소리', '모기',
+            '피자', '치즈', '키보드', '티슈', '니모', '리모컨', '미소', '시소', '코카콜라', '포도',
+            '게임', '베개', '세계', '테니스', '네모', '케이크', '레고', '메모', '헤어', '여우',
+            '머리', '허리', '저기', '거기', '여기', '서리', '더위', '너무', '오토바이', '로봇',
+            '가게', '나무', '다소', '라면', '마요', '바지', '사과', '아래', '야채', '오빠',
+            '우리', '이유', '토끼', '파티', '하루', '노래', '도구', '고래', '소파', '모자',
+            '피아노', '치료', '키위', '티켓', '니코', '리본', '미래', '시계', '코피', '포기',
+            '게시', '베이비', '세상', '테이프', '네비', '케어', '레시피', '메뉴', '헬로', '여행',
+            '가위', '나이', '다이어트', '라이터', '마이크', '바이러스', '사이즈', '아이스크림', '야외', '오디오',
+            '우체국', '이마', '토요일', '파도', '하이', '노하우', '도미노', '고구마', '소시지', '모모',
+            '피크닉', '치마', '키즈', '티슈박스', '니트', '리더', '미디어', '시루', '코스모스', '포스터',
+            '가요', '나눔', '다큐', '라떼', '마스크', '바코드', '사파리', '아쿠아', '야호', '오케이',
+            '우산', '이지', '토피', '파우더', '하우스', '노트북', '도어', '고추', '소스', '모델링'
+        ],
+        2: [
+            // 받침이 간단한 글자들 (ㄴ, ㄹ, ㅁ 받침 위주) - 대폭 확장
+            '연필', '컴퓨터', '달님', '물고기', '곰돌이', '딸기', '햄버거', '밤하늘', '공원', '문방구',
+            '선물', '전화', '만화', '단추', '간식', '빵집', '놀이터', '컬러', '그림', '꿈나라',
+            '민들레', '팬더', '컨버스', '멜론', '푸딩', '볼펜', '귤껍질', '홈런', '마술', '텐트',
+            '카메라', '컵라면', '윈도우', '콜라', '털실', '멀티탭', '플라스틱', '할머니', '할아버지', '원숭이',
+            '강아지', '감사', '갑자기', '걸음', '견학', '결정', '공부', '군인', '귀여운', '금요일',
+            '남학생', '눈물', '다음', '달력', '담임', '대답', '동물', '들판', '딱지', '또는',
+            '만남', '말씀', '멋있는', '면접', '명절', '모든', '문제', '미안', '민족', '밀가루',
+            '발견', '방문', '번호', '별님', '병원', '복습', '부모님', '분홍', '불고기', '비누',
+            '산책', '삼촌', '생일', '선생님', '성공', '소년', '수업', '숙제', '순서', '시간',
+            '안녕', '알림', '약속', '어린이', '여름', '연락', '열심히', '영화', '오늘', '우정',
+            '인사', '일기', '자연', '잠깐', '전체', '정말', '종이', '주말', '준비', '중요한',
+            '친구', '칠판', '침실', '컵케익', '토끼', '특별한', '파란색', '편지', '필요한', '학교',
+            '한국', '할일', '항상', '해님', '행복한', '현관', '호랑이', '홈페이지', '화장실', '회의실'
+        ],
+        3: [
+            // 복잡한 받침과 긴 단어들 (4-6글자) - 대폭 확장
+            '스키비디', '토일렛', '찐친', '브롤스타즈', '마인크래프트', '포트나이트', '로블록스', '초등학교', '타자연습',
+            '게임방송', '유튜브', '틱톡', '인스타그램', '카카오톡', '네이버', '구글', '삼성갤럭시', '아이폰',
+            '치킨너겟', '피자헛', '맥도날드', '버거킹', '롯데월드', '에버랜드', '뽀로로', '크레용신짱', '포켓몬스터',
+            '짱구아빠', '도라에몽', '라이언킹', '디즈니랜드', '슈퍼마리오', '젤다의전설', '오버워치', '리그오브레전드',
+            '컴퓨터게임', '스마트폰', '태블릿', '노트북', '키보드', '마우스', '모니터', '스피커', '이어폰', '충전기',
+            '축구공', '농구공', '야구공', '배드민턴', '탁구공', '수영장', '자전거', '스케이트보드', '롤러스케이트', '킥보드',
+            '햄버거', '치킨버거', '불고기버거', '새우버거', '생선버거', '치즈버거', '베이컨버거', '더블버거', '세트메뉴', '콜라',
+            '아이스크림', '초콜릿', '사탕', '젤리', '쿠키', '케이크', '도넛', '마카롱', '와플', '팬케이크',
+            '텔레비전', '냉장고', '세탁기', '전자레인지', '에어컨', '선풍기', '청소기', '다리미', '헤어드라이어', '토스터',
+            '병원', '약국', '은행', '우체국', '도서관', '박물관', '미술관', '영화관', '놀이공원', '동물원',
+            '자동차', '버스', '지하철', '택시', '오토바이', '자전거', '기차', '비행기', '배', '헬리콥터',
+            '사과', '바나나', '오렌지', '딸기', '포도', '수박', '참외', '복숭아', '배', '감',
+            '축구선수', '야구선수', '농구선수', '테니스선수', '수영선수', '골프선수', '배구선수', '탁구선수', '육상선수', '체조선수'
+        ],
+        4: [
+            // 짧은 문장들 - 대폭 확장
+            '게임하고싶어', '숙제다했어', '친구랑놀자', '엄마사랑해', '아빠힘내세요', '선생님안녕하세요', '오늘날씨좋네',
+            '배고파죽겠어', '목말라죽겠어', '심심해죽겠어', '재미있게놀자', '공부열심히하자', '건강하게지내자', '행복하게살자',
+            '내일시험이야', '오늘생일이야', '방학언제와', '크리스마스기다려', '새학기시작이야', '졸업축하해', '입학축하해',
+            '코로나조심해', '마스크꼭써', '손씻기잊지마', '거리두기해', '백신맞았어', '건강이최고야', '가족이소중해',
+            '학교가기싫어', '숙제너무많아', '친구들만나고싶어', '놀이터에서놀자', '축구하고싶어', '만화책읽고싶어', '게임시간이부족해',
+            '피자먹고싶어', '치킨너무맛있어', '아이스크림사줘', '장난감사고싶어', '새옷입고싶어', '머리자르고싶어', '신발바꾸고싶어',
+            '엄마어디갔어', '아빠언제와', '할머니보고싶어', '할아버지안녕하세요', '형이놀려', '누나화났어', '동생귀여워',
+            '선생님고마워요', '친구들모두안녕', '오늘재미있었어', '내일뭐할까', '주말계획있어', '방학숙제끝났어', '새학기준비해야지',
+            '감기조심해', '잘자라꿈꿔', '일찍일어나자', '밥맛있게먹어', '물많이마셔', '운동하자', '책많이읽자',
+            '컴퓨터시간줄이자', '텔레비전그만봐', '게임적당히해', '공부시간이야', '숙제먼저해', '정리정돈하자', '청소도와줘',
+            '생일축하해', '새해복많이받아', '설날잘보내', '추석즐겁게보내', '어린이날축하해', '스승의날감사해', '크리스마스즐겁게',
+            '여행가고싶어', '바다보러가자', '산에올라가자', '공원산책하자', '동물원구경가자', '박물관견학가자', '영화보러가자'
+        ],
+        5: [
+            // 장문의 문장들 - 대폭 확장
+            '안녕하세요친구들아오늘도즐거운하루보내세요', '스키비디토일렛게임정말재미있어서계속하고싶어요',
+            '초등학생친구들타자연습열심히해서컴퓨터박사가되어보세요', '게임만하지말고숙제도열심히하고책도많이읽으세요',
+            '건강한몸과마음으로행복한어린이가되길바라요', '친구들과사이좋게지내고어른들말씀잘들으세요',
+            '미래의꿈을위해서지금부터차근차근준비해나가요', '어려운일이있어도포기하지말고끝까지노력해보세요',
+            '가족을사랑하고친구를소중히여기는마음착한어린이가되세요', '컴퓨터게임도재미있지만밖에서뛰어노는것도중요해요',
+            '매일매일새로운것을배우고성장하는기쁨을느껴보세요', '다른사람을배려하고도와주는따뜻한마음을가져요',
+            '실수를해도괜찮으니까다시도전하는용기를잃지마세요', '오늘하루도열심히공부하고재미있게놀았나요',
+            '내일은더좋은일들이기다리고있을거예요파이팅', '어린이여러분모두건강하고행복한나날보내세요',
+            '학교에서배우는모든과목이다중요하니까골고루열심히공부하세요', '친구들과함께하는모든활동에서배려하는마음을잊지마세요',
+            '부모님과선생님께감사하는마음을항상가지고예의바르게행동하세요', '책을읽으면새로운지식을얻고상상력도기를수있어요',
+            '운동을하면몸이건강해지고친구들과더재미있게놀수있어요', '음악을듣고그림을그리면마음이편안해지고창의력이생겨요',
+            '자연을사랑하고환경을보호하는착한어린이가되어주세요', '다른나라사람들과도친구가되어서평화로운세상을만들어요',
+            '어려운사람들을도와주고나누어주는따뜻한마음을가져보세요', '실패를두려워하지말고새로운도전을계속해보세요',
+            '정직하고성실한사람이되어서모든사람에게사랑받는어린이가되세요', '꿈을크게가지고그꿈을이루기위해서매일노력하세요',
+            '컴퓨터와인터넷을올바르게사용해서좋은정보를얻고공부에도움이되게하세요', '게임도재미있지만독서와운동도균형있게해서건강한생활을하세요'
+        ]
+    };
+
+    // 보스 단어들 (레벨별)
+    const bossWords = {
+        1: { word: '스키비디킹', hp: 3, reward: 1000 },
+        2: { word: '브롤스타즈마스터', hp: 4, reward: 2000 },
+        3: { word: '마인크래프트보스', hp: 5, reward: 3000 },
+        4: { word: '찐친과함께하는대모험', hp: 6, reward: 4000 },
+        5: { word: '초절정스키비디톨렛궁극체', hp: 8, reward: 5000 }
+    };
+
+    // 초기화
+    function init() {
+        console.log('=== 게임 초기화 시작 ===');
+
+        createStars();
+        loadHighScores();
+        setupEventListeners();
+        updateDisplay();
+
+        console.log('게임 초기화 완료');
+
+        // 테스트용: 페이지 로드 후 3초 뒤에 단어 하나 생성
+        setTimeout(() => {
+            console.log('초기화 후 테스트 단어 생성...');
+            createWord('초기화테스트');
+        }, 3000);
+
+        // 오디오 컨텍스트 초기화
+        if (!audioContext) {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+                console.log('Web Audio API not supported');
+                soundEnabled = false;
+            }
+        }
+    }
+
+    // 별 생성
+    function createStars() {
+        const starsContainer = document.getElementById('stars');
+        for (let i = 0; i < 50; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.width = Math.random() * 10 + 'px';
+            star.style.height = star.style.width;
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 3 + 's';
+            starsContainer.appendChild(star);
+        }
+    }
+
+    // 사운드 함수들
+    function playSound(frequency, duration, type = 'sine') {
+        if (!soundEnabled || !audioContext) return;
+
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+        oscillator.type = type;
+
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + duration);
+    }
+
+    function playCorrectSound() {
+        // 귀여운 정답 소리 (도레미파솔 상승음)
+        const notes = [523.25, 587.33, 659.25, 698.46, 783.99]; // C5-D5-E5-F5-G5
+        notes.forEach((freq, index) => {
+            setTimeout(() => {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
+                oscillator.type = 'triangle'; // 부드러운 소리
+
+                gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + 0.01);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.08);
+
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.08);
+            }, index * 40);
+        });
+    }
+
+    function playWrongSound() {
+        // 귀여운 틀림 소리 (내림차순)
+        if (!soundEnabled || !audioContext) return;
+
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.3);
+        oscillator.type = 'square';
+
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.15, audioContext.currentTime + 0.01);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+    }
+
+    function playLevelUpSound() {
+        // 화려한 레벨업 소리 (트윙클 효과)
+        const melody = [523.25, 659.25, 783.99, 1046.50, 783.99, 1046.50, 1318.51]; // C5-E5-G5-C6-G5-C6-E6
+
+        melody.forEach((freq, index) => {
+            setTimeout(() => {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
+                oscillator.type = 'triangle';
+
+                gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.2);
+            }, index * 80);
+        });
+    }
+
+    function playGameOverSound() {
+        // 슬픈 게임오버 소리 (내림차순 멜로디)
+        const sadMelody = [523.25, 493.88, 440.00, 392.00, 349.23]; // C5-B4-A4-G4-F4
+
+        sadMelody.forEach((freq, index) => {
+            setTimeout(() => {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
+                oscillator.type = 'sine';
+
+                gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + 0.01);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.4);
+            }, index * 200);
+        });
+    }
+
+    // 이벤트 리스너 설정
+    function setupEventListeners() {
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const soundBtn = document.getElementById('soundBtn');
+        const resumeBtn = document.getElementById('resumeBtn');
+        const gameInput = document.getElementById('gameInput');
+        const speedUpBtn = document.getElementById('speedUpBtn');
+        const speedDownBtn = document.getElementById('speedDownBtn');
+
+        startBtn.addEventListener('click', startGame);
+        pauseBtn.addEventListener('click', togglePause);
+        soundBtn.addEventListener('click', toggleSound);
+        resumeBtn.addEventListener('click', resumeGame);
+        speedUpBtn.addEventListener('click', increaseSpeed);
+        speedDownBtn.addEventListener('click', decreaseSpeed);
+
+        // input 이벤트는 제거하고 Enter키에서만 체크
+        gameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                checkWord();
+            }
+        });
+
+        // 입력창에서 특정 키 조합 방지
+        gameInput.addEventListener('keydown', (e) => {
+            // Ctrl+키 조합 등으로 인한 의도치 않은 동작 방지
+            if (e.ctrlKey || e.altKey || e.metaKey) {
+                return;
+            }
+
+            // 기능키들 무시
+            if (e.key.startsWith('F') ||
+                e.key === 'Tab' ||
+                e.key === 'CapsLock' ||
+                e.key === 'NumLock' ||
+                e.key === 'ScrollLock') {
+                e.preventDefault();
+                return;
+            }
+        });
+
+        // 캐릭터 선택
+        document.querySelectorAll('.character').forEach(char => {
+            char.addEventListener('click', selectCharacter);
+        });
+
+        // 모바일 키보드
+        document.querySelectorAll('.key-btn').forEach(key => {
+            key.addEventListener('click', (e) => {
+                const keyValue = e.target.dataset.key;
+                const input = document.getElementById('gameInput');
+
+                if (keyValue === 'backspace') {
+                    input.value = input.value.slice(0, -1);
+                } else if (keyValue === 'enter') {
+                    checkWord();
+                } else {
+                    input.value += keyValue;
+                }
+
+                input.focus();
+            });
+        });
+
+        // 키보드 단축키 (입력창에 포커스가 없을 때만)
+        document.addEventListener('keydown', (e) => {
+            // SPACE키로 폭탄 사용 (입력창 포커스 여부와 관계없이)
+            if (e.key === ' ' && gameRunning && !gamePaused) {
+                e.preventDefault();
+                if (useBomb()) {
+                    console.log('폭탄 사용됨!');
+                }
+                return;
+            }
+
+            // 입력창에 포커스가 있으면 다른 단축키 무시
+            if (document.activeElement === gameInput) {
+                return;
+            }
+
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                togglePause();
+            }
+        });
+    }
+
+    // 게임 시작
+    function startGame() {
+        console.log('=== 게임 시작 함수 호출됨 ===');
+
+        score = 0;
+        level = 1;
+        lives = 5; // 시작 생명을 5개로 변경
+        coins = 0;
+        combo = 0;
+        maxCombo = 0;
+        words = [];
+        wordSpeed = baseWordSpeed * speedMultiplier; // 사용자 설정 속도 적용
+
+        // 폭탄 시스템 초기화
+        bombCount = 1; // 게임 시작 시 폭탄 1개 제공
+        bombCooldown = false; // 재사용 대기시간 초기화
+        updateBombDisplay();
+
+        // 성 상태 초기화 (정상 상태로)
+        const castle = document.querySelector('.castle');
+        if (castle) {
+            castle.classList.remove('damaged-1', 'damaged-2', 'damaged-3');
+        }
+        gameRunning = true;
+        gamePaused = false;
+
+        console.log('게임 변수 초기화 완료');
+
+        document.getElementById('gameInput').disabled = false;
+        document.getElementById('gameInput').focus();
+        document.getElementById('startBtn').textContent = '🔄 다시 시작';
+
+        console.log('UI 업데이트 완료');
+
+        updateDisplay();
+
+        // 게임 시작 즉시 첫 번째 단어 생성 (테스트용)
+        console.log('테스트 단어 생성 시도...');
+        createWord('테스트');
+
+        // 2초 후 추가 단어 생성
+        setTimeout(() => {
+            console.log('타이머로 단어 생성 시도...');
+            if (gameRunning) {
+                // 선택된 모드에 따라 단어 배열 가져오기
+                const wordList = getWordsByMode(1); // 첫 레벨
+                const word = wordList[Math.floor(Math.random() * wordList.length)];
+                console.log('선택된 단어:', word);
+                createWord(word);
+            }
+        }, 2000);
+
+        startWordSpawn();
+        startGameLoop();
+
+        // 오디오 컨텍스트 초기화
+        if (!audioContext) {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+                console.log('Web Audio API not supported');
+            }
+        }
+    }
+
+    // 단어 생성
+    function startWordSpawn() {
+        if (spawnInterval) clearInterval(spawnInterval);
+
+        // 점수에 따른 단어 생성 간격 조절 (초기: 2초, 최소: 0.8초)
+        const spawnRate = Math.max(800, 2000 - (score / 200 * 50));
+
+        spawnInterval = setInterval(() => {
+            if (!gameRunning || gamePaused) return;
+
+            // 화면에 단어가 5개 미만일 때만 생성
+            if (words.length < 5) {
+                // 선택된 모드에 따라 단어 배열 가져오기
+                const wordList = getWordsByMode(level);
+                const word = wordList[Math.floor(Math.random() * wordList.length)];
+                createWord(word);
+            }
+
+            // 파워업은 이제 색깔 단어로 대체됨
+        }, spawnRate);
+    }
+
+    // 단어 생성
+    function createWord(text) {
+        console.log('createWord 호출됨:', text);
+
+        const gameArea = document.getElementById('gameArea');
+        if (!gameArea) {
+            console.error('gameArea를 찾을 수 없음');
+            return;
+        }
+
+        // startWordSpawn에서 이미 체크하므로 여기서는 제거
+
+        const wordElement = document.createElement('div');
+        wordElement.textContent = text;
+
+        // 게임 영역 크기 확인 - 실제 렌더링된 크기 가져오기
+        const rect = gameArea.getBoundingClientRect();
+        const gameAreaWidth = rect.width || 600;
+        const gameAreaHeight = rect.height || 350;
+
+        console.log('게임 영역 실제 너비:', gameAreaWidth);
+
+        // 위에서 시작해서 아래로 떨어지도록 설정 - 전체 가로 영역에 골고루 분배
+        const minX = 30; // 최소 여백
+        const maxX = gameAreaWidth - 180; // 단어가 잘리지 않도록 여백 확보
+        const startX = minX + Math.random() * (maxX - minX); // 전체 가로 영역에 골고루
+        const startY = 10; // 화면 위에서 시작
+
+        console.log('단어 생성 위치 - X:', startX, '범위:', minX, '~', maxX);
+
+        // 파워업 타입 결정 (15% 확률로 파워업 단어)
+        let powerUpType = null;
+        let wordStyle = '';
+
+        if (Math.random() < 0.25) { // 25% 확률로 증가
+            const powerUpTypes = [
+                { type: 'time-freeze', name: '시간정지', color: '#87CEEB', borderColor: '#4682B4', emoji: '⏰' },
+                { type: 'slow-motion', name: '슬로우모션', color: '#98FB98', borderColor: '#32CD32', emoji: '🐌' },
+                { type: 'double-score', name: '더블스코어', color: '#FFD700', borderColor: '#FFA500', emoji: '💎' },
+                { type: 'shield', name: '실드', color: '#DDA0DD', borderColor: '#9370DB', emoji: '🛡️' }
+            ];
+            powerUpType = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
+
+            wordStyle = `
+                    position: absolute;
+                    left: ${startX}px;
+                    top: ${startY}px;
+                    z-index: 1000;
+                    background: linear-gradient(135deg, ${powerUpType.color}, ${powerUpType.borderColor});
+                    color: #000000;
+                    padding: 15px 25px;
+                    border: 4px solid ${powerUpType.borderColor};
+                    border-radius: 25px;
+                    font-size: 28px;
+                    font-weight: 900;
+                    font-family: 'Jua', sans-serif;
+                    box-shadow: 0 8px 20px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.3), 0 0 25px ${powerUpType.color}AA;
+                    display: block;
+                    visibility: visible;
+                    opacity: 1;
+                    writing-mode: horizontal-tb;
+                    text-orientation: mixed;
+                    white-space: nowrap;
+                    text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+                    letter-spacing: 2px;
+                    min-width: 80px;
+                    text-align: center;
+                    animation: powerup-word-glow 2s infinite;
+                `;
+
+            // 단어 앞에 파워업 이모지 추가
+            wordElement.textContent = `${powerUpType.emoji} ${text}`;
+            wordElement.dataset.powerUp = powerUpType.type;
+            wordElement.dataset.powerUpName = powerUpType.name;
+        } else {
+            // 일반 단어 스타일
+            wordStyle = `
+                    position: absolute;
+                    left: ${startX}px;
+                    top: ${startY}px;
+                    z-index: 1000;
+                    background: linear-gradient(135deg, #FFD700, #FFA500);
+                    color: #000000;
+                    padding: 15px 25px;
+                    border: 4px solid #FF6B35;
+                    border-radius: 25px;
+                    font-size: 28px;
+                    font-weight: 900;
+                    font-family: 'Jua', sans-serif;
+                    box-shadow: 0 8px 20px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.3);
+                    display: block;
+                    visibility: visible;
+                    opacity: 1;
+                    writing-mode: horizontal-tb;
+                    text-orientation: mixed;
+                    white-space: nowrap;
+                    text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+                    letter-spacing: 2px;
+                    min-width: 80px;
+                    text-align: center;
+                `;
+        }
+
+        wordElement.style.cssText = wordStyle;
+
+        gameArea.appendChild(wordElement);
+
+        console.log('단어 DOM에 추가됨:', text, '위치 X:', startX, 'Y:', startY);
+        console.log('현재 화면 단어 수:', words.length + 1);
+
+        words.push({
+            element: wordElement,
+            text: text,
+            x: startX,
+            y: startY,
+            // 지그재그 움직임을 위한 추가 속성들 - 더욱 역동적으로 강화
+            swayAmount: 80 + Math.random() * 120, // 좌우 흔들림 강도 (80-200px)로 훨씬 더 크게
+            swaySpeed: 0.015 + Math.random() * 0.025, // 흔들림 속도 (0.015-0.04)로 더 다양하게
+            swayOffset: Math.random() * Math.PI * 2, // 초기 위상 (랜덤 시작점)
+            // 상하 미세 움직임 추가 (더 자연스러운 떠다니는 느낌)
+            bobAmount: 3 + Math.random() * 7, // 상하 미세 움직임 (3-10px)
+            bobSpeed: 0.02 + Math.random() * 0.03, // 상하 움직임 속도
+            baseX: startX // 원래 X 위치 기억
+        });
+    }
+
+    // 보스 생성
+    function createBoss(level) {
+        if (bossActive || !bossWords[level]) return;
+
+        const boss = bossWords[level];
+        bossActive = true;
+        currentBoss = boss;
+        bossHP = boss.hp;
+        bossMaxHP = boss.hp;
+
+        // 보스는 화면 중앙 상단에서 천천히 내려옴
+        const gameArea = document.getElementById('gameArea');
+        const gameAreaRect = gameArea.getBoundingClientRect();
+        const startX = (gameAreaRect.width / 2) - 100; // 중앙에 위치
+        const startY = -50;
+
+        const bossElement = document.createElement('div');
+        bossElement.textContent = `👹 ${boss.word} 👹`;
+        bossElement.classList.add('boss-word');
+
+        // 보스 스타일
+        const bossStyle = `
+                position: absolute;
+                top: ${startY}px;
+                left: ${startX}px;
+                padding: 15px 25px;
+                background: linear-gradient(45deg, #FF6B6B, #FF8E53, #FF6B6B);
+                background-size: 200% 200%;
+                animation: gradient 3s ease infinite, boss-pulse 1.5s ease-in-out infinite;
+                color: white;
+                font-size: 28px;
+                font-weight: bold;
+                border-radius: 15px;
+                box-shadow: 0 0 30px #FF6B6B, 0 0 60px #FF6B6B;
+                border: 3px solid #FFD93D;
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                z-index: 1000;
+                min-width: 200px;
+                text-align: center;
+                cursor: pointer;
+                user-select: none;
+            `;
+
+        bossElement.style.cssText = bossStyle;
+        gameArea.appendChild(bossElement);
+
+        // 보스 HP 표시
+        updateBossHPDisplay();
+
+        words.push({
+            element: bossElement,
+            text: boss.word,
+            x: startX,
+            y: startY,
+            isBoss: true,
+            swayAmount: 30, // 보스는 조금만 흔들림
+            swaySpeed: 0.01,
+            swayOffset: 0,
+            bobAmount: 5,
+            bobSpeed: 0.015,
+            baseX: startX
+        });
+
+        console.log('보스 등장:', boss.word, 'HP:', bossHP);
+
+        // 보스 등장 알림
+        showBossAlert(boss.word);
+    }
+
+    // 보스 HP 표시
+    function updateBossHPDisplay() {
+        if (!bossActive) return;
+
+        const hpDisplay = document.getElementById('boss-hp-display') || createBossHPDisplay();
+        hpDisplay.innerHTML = `
+                <div style="color: #FF6B6B; font-weight: bold; font-size: 18px;">
+                    👹 BOSS: ${currentBoss.word} 👹
+                </div>
+                <div style="background: #333; border-radius: 10px; padding: 5px; margin: 5px 0;">
+                    <div style="background: linear-gradient(90deg, #FF6B6B, #FF8E53);
+                               width: ${(bossHP / bossMaxHP) * 100}%;
+                               height: 20px;
+                               border-radius: 5px;
+                               transition: width 0.5s ease;">
+                    </div>
+                </div>
+                <div style="color: white; font-size: 14px;">
+                    HP: ${bossHP} / ${bossMaxHP}
+                </div>
+            `;
+        hpDisplay.style.display = 'block';
+    }
+
+    // 보스 HP 표시 생성
+    function createBossHPDisplay() {
+        const hpDisplay = document.createElement('div');
+        hpDisplay.id = 'boss-hp-display';
+        hpDisplay.style.cssText = `
+                position: absolute;
+                bottom: 20px;
+                right: 20px;
+                background: rgba(0,0,0,0.8);
+                border-radius: 10px;
+                padding: 12px;
+                border: 2px solid #FF6B6B;
+                z-index: 1001;
+                min-width: 180px;
+                text-align: center;
+                display: none;
+            `;
+        document.getElementById('gameArea').appendChild(hpDisplay);
+        return hpDisplay;
+    }
+
+    // 보스 등장 알림
+    function showBossAlert(bossName) {
+        const alert = document.createElement('div');
+        alert.innerHTML = `
+                <div style="font-size: 36px; color: #FF6B6B; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">
+                    ⚠️ 보스 등장! ⚠️
+                </div>
+                <div style="font-size: 24px; color: white; margin-top: 10px;">
+                    ${bossName}
+                </div>
+            `;
+        alert.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(0,0,0,0.9);
+                padding: 30px;
+                border-radius: 20px;
+                text-align: center;
+                z-index: 1002;
+                border: 3px solid #FF6B6B;
+                animation: boss-alert 3s ease-in-out forwards;
+            `;
+
+        document.getElementById('gameArea').appendChild(alert);
+
+        setTimeout(() => {
+            alert.remove();
+        }, 3000);
+    }
+
+    // 폭탄 획득
+    function gainBomb() {
+        if (bombCount >= maxBombs) {
+            // 이미 최대 개수
+            return;
+        }
+
+        bombCount++;
+        updateBombDisplay();
+        showBombGainEffect();
+        console.log('폭탄 획득! 현재:', bombCount, '/', maxBombs);
+    }
+
+    // 폭탄 사용
+    function useBomb() {
+        if (bombCount <= 0 || bombCooldown) return false;
+
+        bombCount--;
+        updateBombDisplay();
+
+        // 화면의 모든 단어 제거
+        const wordsToRemove = [...words]; // 배열 복사
+        wordsToRemove.forEach((word, index) => {
+            // 폭발 효과
+            createParticles(word.element);
+            word.element.classList.add('correct');
+
+            setTimeout(() => {
+                word.element.remove();
+            }, 100 + index * 50); // 연쇄 폭발 효과
+        });
+
+        // words 배열 비우기
+        words = [];
+
+        // 보스도 제거
+        if (bossActive) {
+            bossActive = false;
+            currentBoss = null;
+            bossHP = 0;
+            bossMaxHP = 0;
+            const hpDisplay = document.getElementById('boss-hp-display');
+            if (hpDisplay) hpDisplay.style.display = 'none';
+        }
+
+        // 폭탄 사용 효과
+        showBombEffect();
+
+        // 점수 보너스 (화면의 단어 개수 × 50점)
+        const bonusScore = wordsToRemove.length * 50;
+        score += bonusScore;
+        updateDisplay();
+
+        // 재사용 대기시간 시작
+        bombCooldown = true;
+        setTimeout(() => {
+            bombCooldown = false;
+            updateBombDisplay(); // 대기시간 종료 후 UI 업데이트
+        }, bombCooldownTime);
+
+        console.log('폭탄 사용! 제거된 단어:', wordsToRemove.length, '보너스:', bonusScore);
+        return true;
+    }
+
+    // 폭탄 표시 업데이트
+    function updateBombDisplay() {
+        let bombDisplay = document.getElementById('bomb-display');
+        if (!bombDisplay) {
+            bombDisplay = createBombDisplay();
+        }
+
+        // 폭탄 아이콘들 생성
+        let bombIcons = '';
+        for (let i = 0; i < maxBombs; i++) {
+            if (i < bombCount) {
+                bombIcons += '<span style="font-size: 24px; margin: 0 2px; filter: drop-shadow(0 0 8px #FF6B6B);">💣</span>';
+            } else {
+                bombIcons += '<span style="font-size: 24px; margin: 0 2px; opacity: 0.3;">💣</span>';
+            }
+        }
+
+        let statusText = '';
+        if (bombCooldown) {
+            statusText = '<div style="color: #FF9999; font-size: 11px; margin-top: 3px;">재사용 대기중...</div>';
+        } else if (bombCount > 0) {
+            statusText = '<div style="color: #99FF99; font-size: 11px; margin-top: 3px;">사용 가능!</div>';
+        } else {
+            statusText = '<div style="color: #CCCCCC; font-size: 11px; margin-top: 3px;">폭탄 없음</div>';
+        }
+
+        bombDisplay.innerHTML = `
+                <div style="color: #FF6B6B; font-weight: bold; font-size: 14px; margin-bottom: 5px;">
+                    폭탄 (SPACE)
+                </div>
+                <div>${bombIcons}</div>
+                <div style="color: white; font-size: 11px; margin-top: 5px;">
+                    ${bombCount} / ${maxBombs}
+                </div>
+                ${statusText}
+            `;
+    }
+
+    // 폭탄 표시 생성
+    function createBombDisplay() {
+        const bombDisplay = document.createElement('div');
+        bombDisplay.id = 'bomb-display';
+        bombDisplay.style.cssText = `
+                position: absolute;
+                bottom: 20px;
+                left: 20px;
+                background: rgba(0,0,0,0.8);
+                border-radius: 10px;
+                padding: 12px;
+                border: 2px solid #FF6B6B;
+                z-index: 1001;
+                min-width: 100px;
+                text-align: center;
+            `;
+        document.getElementById('gameArea').appendChild(bombDisplay);
+        return bombDisplay;
+    }
+
+    // 폭탄 획득 효과
+    function showBombGainEffect() {
+        const effect = document.createElement('div');
+        effect.innerHTML = `
+                <div style="font-size: 36px; margin-bottom: 10px;">💣</div>
+                <div style="font-size: 20px; color: #FF6B6B; font-weight: bold;">폭탄 획득!</div>
+                <div style="font-size: 14px; color: white; margin-top: 5px;">SPACE키로 사용</div>
+            `;
+        effect.style.cssText = `
+                position: absolute;
+                top: 30%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(0,0,0,0.9);
+                padding: 20px;
+                border-radius: 15px;
+                text-align: center;
+                z-index: 1002;
+                border: 2px solid #FF6B6B;
+                animation: bomb-gain 2s ease-in-out forwards;
+            `;
+
+        document.getElementById('gameArea').appendChild(effect);
+
+        setTimeout(() => {
+            effect.remove();
+        }, 2000);
+    }
+
+    // 폭탄 사용 효과
+    function showBombEffect() {
+        const effect = document.createElement('div');
+        effect.innerHTML = '💥';
+        effect.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-size: 200px;
+                z-index: 1002;
+                animation: bomb-explosion 1s ease-out forwards;
+                pointer-events: none;
+            `;
+
+        document.getElementById('gameArea').appendChild(effect);
+
+        // 화면 흔들림 효과
+        const gameArea = document.getElementById('gameArea');
+        gameArea.style.animation = 'screen-shake 0.5s ease-in-out';
+
+        setTimeout(() => {
+            effect.remove();
+            gameArea.style.animation = '';
+        }, 1000);
+    }
+
+    // 보스 처치 메시지
+    function showBossDefeatMessage() {
+        const message = document.createElement('div');
+        message.innerHTML = `
+                <div style="font-size: 48px; color: #FFD93D; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">
+                    🎉 보스 처치! 🎉
+                </div>
+                <div style="font-size: 24px; color: #FF6B6B; margin-top: 10px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">
+                    ${currentBoss.word} 완전 정복!
+                </div>
+                <div style="font-size: 20px; color: white; margin-top: 10px;">
+                    보상: ${currentBoss.reward}점 + 100코인!
+                </div>
+            `;
+        message.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(0,0,0,0.9);
+                padding: 40px;
+                border-radius: 20px;
+                text-align: center;
+                z-index: 1002;
+                border: 3px solid #FFD93D;
+                animation: boss-alert 4s ease-in-out forwards;
+            `;
+
+        document.getElementById('gameArea').appendChild(message);
+
+        setTimeout(() => {
+            message.remove();
+        }, 4000);
+    }
+
+    // 게임 루프
+    function startGameLoop() {
+        if (gameLoop) cancelAnimationFrame(gameLoop);
+
+        function loop() {
+            if (!gameRunning) return;
+            if (gamePaused) {
+                gameLoop = requestAnimationFrame(loop);
+                return;
+            }
+
+            // 파워업 업데이트
+            updatePowerUps();
+
+            // 단어 이동 (지그재그로 나플거리며 떨어지게 - 땅에 가까워질수록 느려짐)
+            words.forEach((word, index) => {
+                // 시간 정지 파워업 체크
+                if (activePowerUps.timeFreeze.active) {
+                    return; // 시간이 정지된 상태에서는 단어가 움직이지 않음
+                }
+
+                // 땅에 가까워질수록 속도 감소 (Y 위치에 따른 속도 조절)
+                const maxY = 280; // 바닥 위치
+                const slowdownFactor = Math.max(0.3, 1 - (word.y / maxY) * 0.7); // 30%까지 느려짐
+                let currentSpeed = wordSpeed * slowdownFactor;
+
+                // 슬로우 모션 파워업 적용
+                if (activePowerUps.slowMotion.active) {
+                    currentSpeed *= 0.3; // 30% 속도로 감소
+                }
+
+                // Y 위치 업데이트 (아래로 떨어짐)
+                word.y += currentSpeed;
+
+                // 지그재그 움직임 계산 (사인파를 이용한 좌우 흔들림 + 상하 미세 움직임)
+                const swayX = Math.sin(word.y * word.swaySpeed + word.swayOffset) * word.swayAmount;
+                const bobY = Math.sin(word.y * word.bobSpeed + word.swayOffset * 1.3) * word.bobAmount;
+                let newX = word.baseX + swayX;
+
+                // 화면 경계 체크 (단어가 게임 영역을 벗어나지 않도록) - 훨씬 큰 움직임에 맞춰 여백 대폭 조정
+                const gameArea = document.getElementById('gameArea');
+                const gameAreaWidth = gameArea.getBoundingClientRect().width || 600;
+                newX = Math.max(30, Math.min(newX, gameAreaWidth - 280)); // 좌우 여백을 훨씬 더 크게 (200px 움직임 대응)
+
+                word.x = newX;
+
+                // DOM 요소 위치 업데이트 (상하 미세 움직임 포함)
+                word.element.style.top = (word.y + bobY) + 'px';
+                word.element.style.left = word.x + 'px';
+
+                // 바닥에 닿았는지 체크 (게임 영역 높이 500px - 70px 바닥 = 430px)
+                if (word.y > 430) {
+                    word.element.remove();
+                    words.splice(index, 1);
+                    loseLife();
+                }
+            });
+
+            gameLoop = requestAnimationFrame(loop);
+        }
+
+        loop();
+    }
+
+    // 단어 체크
+    function checkWord() {
+        const input = document.getElementById('gameInput');
+        const typedWord = input.value.trim();
+
+        if (!typedWord) return;
+
+        // 파워업 단어의 경우 이모지 제거해서 비교
+        let wordIndex = -1;
+        let targetWord = null;
+
+        for (let i = 0; i < words.length; i++) {
+            const word = words[i];
+            // 일반 단어 비교
+            if (word.text === typedWord) {
+                wordIndex = i;
+                targetWord = word;
+                break;
+            }
+            // 파워업 단어의 경우 이모지 제거 후 비교
+            if (word.element.dataset.powerUp) {
+                const wordWithoutEmoji = word.text; // 실제 단어는 이미 이모지 없이 저장됨
+                if (wordWithoutEmoji === typedWord) {
+                    wordIndex = i;
+                    targetWord = word;
+                    break;
+                }
+            }
+        }
+
+        if (wordIndex !== -1 && targetWord) {
+            // 보스 단어인지 확인
+            if (targetWord.isBoss && bossActive) {
+                bossHP--;
+                console.log('보스 공격! 남은 HP:', bossHP);
+
+                // 보스 HP 업데이트
+                updateBossHPDisplay();
+
+                // 보스가 죽었는지 확인
+                if (bossHP <= 0) {
+                    // 보스 처치!
+                    targetWord.element.classList.add('correct');
+                    createParticles(targetWord.element);
+
+                    setTimeout(() => {
+                        targetWord.element.remove();
+                        // 보스 HP 표시 숨기기
+                        const hpDisplay = document.getElementById('boss-hp-display');
+                        if (hpDisplay) hpDisplay.style.display = 'none';
+                    }, 500);
+
+                    words.splice(wordIndex, 1);
+
+                    // 보스 처치 보상
+                    score += currentBoss.reward;
+                    coins += 100;
+
+                    // 보스 처치 시 폭탄 획득 (100% 확률)
+                    gainBomb();
+
+                    // 보스 처치 메시지
+                    showBossDefeatMessage();
+
+                    // 보스 상태 리셋
+                    bossActive = false;
+                    currentBoss = null;
+                    bossHP = 0;
+                    bossMaxHP = 0;
+
+                    playCorrectSound();
+                    updateDisplay();
+                } else {
+                    // 보스 공격 성공하지만 아직 살아있음
+                    createParticles(targetWord.element);
+                    playCorrectSound();
+                }
+
+                // 입력창 초기화
+                input.value = '';
+                input.blur();
+                setTimeout(() => input.focus(), 100);
+                return;
+            }
+
+            // 파워업 단어인지 확인
+            if (targetWord.element.dataset.powerUp) {
+                const powerUpType = targetWord.element.dataset.powerUp;
+                const powerUpName = targetWord.element.dataset.powerUpName;
+
+                // 파워업 활성화
+                activatePowerUp(powerUpType);
+
+                // 파워업 획득 메시지
+                showPowerUpMessage(powerUpName);
+            }
+
+            // 정답 효과
+            targetWord.element.classList.add('correct');
+            createParticles(targetWord.element);
+
+            setTimeout(() => {
+                targetWord.element.remove();
+            }, 500);
+
+            words.splice(wordIndex, 1);
+
+            // 점수 계산 (더블 스코어 파워업 적용)
+            let baseScore = 100 * level;
+            if (activePowerUps.doubleScore.active) {
+                baseScore *= 2;
+            }
+            score += baseScore;
+            coins += 10;
+            combo++;
+
+            if (combo > maxCombo) {
+                maxCombo = combo;
+            }
+
+            // 점수에 따른 속도 증가를 완만하게 조정
+            wordSpeed = (baseWordSpeed + (score / 2000 * 0.2)) * speedMultiplier;
+
+            // 콤보 표시
+            if (combo >= 3) {
+                showCombo();
+            }
+
+            // 랜덤 폭탄 획득 (10% 확률)
+            if (Math.random() < 0.1) {
+                gainBomb();
+            }
+
+            // 레벨업 체크 - 각 레벨마다 5분 정도 소요되도록 대폭 증가
+            const levelUpScore = level * 5000; // 5배 증가
+            if (score >= levelUpScore) {
+                levelUp();
+            }
+
+            playCorrectSound();
+            updateDisplay();
+
+            // 입력창 완전히 비우기
+            input.value = '';
+            input.blur();
+            setTimeout(() => {
+                input.focus();
+            }, 100);
+        } else {
+            // 틀렸을 때
+            combo = 0;
+            playWrongSound();
+            input.style.animation = 'shake 0.5s';
+            setTimeout(() => {
+                input.style.animation = '';
+            }, 500);
+
+            // 틀려도 입력창 비우기
+            input.value = '';
+        }
+    }
+
+    // 파티클 효과
+    function createParticles(element) {
+        const rect = element.getBoundingClientRect();
+        const gameArea = document.getElementById('gameArea');
+        const emojis = ['✨', '⭐', '💫', '🎉', '🎊', '👏', '💯'];
+
+        for (let i = 0; i < 10; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            particle.style.left = rect.left + rect.width / 2 + 'px';
+            particle.style.top = rect.top + rect.height / 2 + 'px';
+            particle.style.fontSize = '20px';
+            document.body.appendChild(particle);
+
+            setTimeout(() => particle.remove(), 1000);
+        }
+    }
+
+    // 콤보 표시
+    function showCombo() {
+        const comboDisplay = document.getElementById('comboDisplay');
+        comboDisplay.textContent = `${combo} COMBO! 🔥`;
+        comboDisplay.classList.add('show');
+
+        setTimeout(() => {
+            comboDisplay.classList.remove('show');
+        }, 2000);
+    }
+
+    // 레벨업
+    function levelUp() {
+        level++;
+        // 레벨업 시 추가 속도 증가를 완만하게 조정
+        wordSpeed += 0.05;
+        lives = Math.min(lives + 1, 9); // 최대 생명을 9개로 변경
+
+        playLevelUpSound();
+
+        // 보스 소환 (5초 후)
+        setTimeout(() => {
+            createBoss(level);
+        }, 5000);
+
+        // 레벨업 메시지
+        const message = document.createElement('div');
+        message.style.position = 'fixed';
+        message.style.top = '50%';
+        message.style.left = '50%';
+        message.style.transform = 'translate(-50%, -50%)';
+        message.style.fontSize = '48px';
+        message.style.color = '#FFD700';
+        message.style.fontWeight = 'bold';
+        message.style.zIndex = '1000';
+        message.textContent = `LEVEL UP! 🎉`;
+        document.body.appendChild(message);
+
+        setTimeout(() => message.remove(), 2000);
+
+        // 캐릭터 언락
+        if (level === 3) {
+            unlockCharacter(2);
+        } else if (level === 5) {
+            unlockCharacter(3);
+        }
+    }
+
+    // 캐릭터 언락
+    function unlockCharacter(index) {
+        const characters = document.querySelectorAll('.character');
+        if (characters[index]) {
+            characters[index].classList.remove('locked');
+
+            // 언락 메시지
+            const message = document.createElement('div');
+            message.style.position = 'fixed';
+            message.style.top = '30%';
+            message.style.left = '50%';
+            message.style.transform = 'translate(-50%, -50%)';
+            message.style.fontSize = '36px';
+            message.style.color = '#4ECDC4';
+            message.style.fontWeight = 'bold';
+            message.style.zIndex = '1000';
+            message.textContent = `새 캐릭터 언락! ${characters[index].dataset.char}`;
+            document.body.appendChild(message);
+
+            setTimeout(() => message.remove(), 3000);
+        }
+    }
+
+    // 캐릭터 선택
+    function selectCharacter(e) {
+        if (e.target.classList.contains('locked')) return;
+
+        document.querySelectorAll('.character').forEach(c => c.classList.remove('selected'));
+        e.target.classList.add('selected');
+        selectedCharacter = e.target.dataset.char;
+    }
+
+    // 생명 잃기
+    function loseLife() {
+        // 실드 파워업 체크
+        if (activePowerUps.shield.active && activePowerUps.shield.uses > 0) {
+            activePowerUps.shield.uses--;
+            if (activePowerUps.shield.uses <= 0) {
+                activePowerUps.shield.active = false;
+            }
+            updatePowerUpUI();
+
+            // 실드 효과음
+            playShieldSound();
+            return; // 생명을 잃지 않음
+        }
+
+        lives--;
+        combo = 0;
+        playWrongSound();
+
+        // 화면 흔들기 효과
+        document.querySelector('.game-container').style.animation = 'shake 0.5s';
+        setTimeout(() => {
+            document.querySelector('.game-container').style.animation = '';
+        }, 500);
+
+        // 성 상태 업데이트
+        updateCastleState();
+
+        updateDisplay();
+
+        if (lives <= 0) {
+            gameOver();
+        }
+    }
+
+    // 성 상태 업데이트 함수
+    function updateCastleState() {
+        const castle = document.querySelector('.castle');
+        if (!castle) return;
+
+        // 기존 클래스 제거
+        castle.classList.remove('damaged-1', 'damaged-2', 'damaged-3');
+
+        // 목숨에 따라 성 상태 변경
+        if (lives === 2) {
+            castle.classList.add('damaged-1'); // 첫 번째 피해
+            createCastleDamageEffect(castle, 'light');
+        } else if (lives === 1) {
+            castle.classList.add('damaged-2'); // 두 번째 피해
+            createCastleDamageEffect(castle, 'medium');
+        } else if (lives === 0) {
+            castle.classList.add('damaged-3'); // 세 번째 피해 (게임 오버)
+            createCastleDamageEffect(castle, 'heavy');
+        }
+    }
+
+    // 성 파괴 파티클 효과
+    function createCastleDamageEffect(castle, damageLevel) {
+        const rect = castle.getBoundingClientRect();
+        const gameArea = document.getElementById('gameArea');
+        const gameAreaRect = gameArea.getBoundingClientRect();
+
+        let particles = [];
+        let particleCount = 0;
+        let emojis = [];
+
+        switch(damageLevel) {
+            case 'light':
+                particles = ['💨', '🪨', '🧱'];
+                particleCount = 8;
+                break;
+            case 'medium':
+                particles = ['💥', '🔥', '🪨', '💨', '⚡'];
+                particleCount = 12;
+                break;
+            case 'heavy':
+                particles = ['🔥', '💀', '💥', '⚡', '💨', '🪨'];
+                particleCount = 15;
+                break;
+        }
+
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'castle-damage-particle';
+            particle.textContent = particles[Math.floor(Math.random() * particles.length)];
+
+            // 성 위치를 기준으로 파티클 위치 설정
+            const startX = rect.left - gameAreaRect.left + rect.width / 2 - 30 + Math.random() * 60;
+            const startY = rect.top - gameAreaRect.top + rect.height / 2 - 20 + Math.random() * 40;
+
+            particle.style.cssText = `
+                    position: absolute;
+                    left: ${startX}px;
+                    top: ${startY}px;
+                    font-size: ${15 + Math.random() * 10}px;
+                    z-index: 1000;
+                    pointer-events: none;
+                    animation: castle-particle-${damageLevel} ${1.5 + Math.random() * 1}s ease-out forwards;
+                `;
+
+            gameArea.appendChild(particle);
+
+            // 파티클 제거
+            setTimeout(() => {
+                if (particle.parentNode) {
+                    particle.remove();
+                }
+            }, 2500);
+        }
+    }
+
+    // 게임 오버
+    function gameOver() {
+        gameRunning = false;
+        clearInterval(spawnInterval);
+        cancelAnimationFrame(gameLoop);
+
+        playGameOverSound();
+
+        document.getElementById('gameInput').disabled = true;
+        document.getElementById('finalScore').textContent = score;
+        document.getElementById('finalCoins').textContent = coins;
+        document.getElementById('maxCombo').textContent = maxCombo;
+
+        saveHighScore();
+        displayLeaderboard();
+
+        document.getElementById('gameOverModal').style.display = 'flex';
+    }
+
+    // 일시정지 토글
+    function togglePause() {
+        if (!gameRunning) return;
+
+        gamePaused = !gamePaused;
+
+        if (gamePaused) {
+            document.getElementById('pauseModal').style.display = 'flex';
+            document.getElementById('pauseBtn').textContent = '▶️ 계속하기';
+        } else {
+            document.getElementById('pauseModal').style.display = 'none';
+            document.getElementById('pauseBtn').textContent = '⏸️ 일시정지';
+            document.getElementById('gameInput').focus();
+        }
+    }
+
+    // 게임 재개
+    function resumeGame() {
+        gamePaused = false;
+        document.getElementById('pauseModal').style.display = 'none';
+        document.getElementById('pauseBtn').textContent = '⏸️ 일시정지';
+        document.getElementById('gameInput').focus();
+    }
+
+    // 사운드 토글
+    function toggleSound() {
+        soundEnabled = !soundEnabled;
+        const btn = document.getElementById('soundBtn');
+        btn.textContent = soundEnabled ? '🔊 소리 ON' : '🔇 소리 OFF';
+
+        // 버튼 클릭 후 입력창으로 포커스 다시 이동
+        if (gameRunning && !gamePaused) {
+            setTimeout(() => {
+                document.getElementById('gameInput').focus();
+            }, 100);
+        }
+
+        if (soundEnabled && !audioContext) {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+                console.log('Web Audio API not supported');
+            }
+        }
+    }
+
+    // 속도 증가
+    function increaseSpeed() {
+        speedMultiplier = Math.min(speedMultiplier + 0.2, 3.0);
+        updateSpeedDisplay();
+        if (gameRunning) {
+            wordSpeed = (baseWordSpeed + (score / 1000 * 0.5)) * speedMultiplier;
+        }
+
+        // 버튼 클릭 후 입력창으로 포커스 다시 이동
+        if (gameRunning && !gamePaused) {
+            setTimeout(() => {
+                document.getElementById('gameInput').focus();
+            }, 100);
+        }
+    }
+
+    // 속도 감소
+    function decreaseSpeed() {
+        speedMultiplier = Math.max(speedMultiplier - 0.2, 0.4);
+        updateSpeedDisplay();
+        if (gameRunning) {
+            wordSpeed = (baseWordSpeed + (score / 1000 * 0.5)) * speedMultiplier;
+        }
+
+        // 버튼 클릭 후 입력창으로 포커스 다시 이동
+        if (gameRunning && !gamePaused) {
+            setTimeout(() => {
+                document.getElementById('gameInput').focus();
+            }, 100);
+        }
+    }
+
+    // 속도 표시 업데이트
+    function updateSpeedDisplay() {
+        document.getElementById('speedDisplay').textContent = speedMultiplier.toFixed(1) + 'x';
+    }
+
+    // 디스플레이 업데이트
+    function updateDisplay() {
+        document.getElementById('score').textContent = score;
+        document.getElementById('level').textContent = level;
+        document.getElementById('lives').textContent = '❤️'.repeat(lives);
+        document.getElementById('coins').textContent = coins;
+        document.getElementById('combo').textContent = combo;
+
+        // 속도 표시 (기본 속도 대비 배수로 표시)
+        const speedMultiplier = (wordSpeed / baseWordSpeed).toFixed(1);
+        document.getElementById('speed').textContent = speedMultiplier + 'x';
+    }
+
+    // 최고 점수 저장
+    function saveHighScore() {
+        const highScores = JSON.parse(localStorage.getItem('typingHighScores') || '[]');
+        const playerName = prompt('이름을 입력하세요!') || '익명';
+
+        highScores.push({
+            name: playerName,
+            score: score,
+            level: level,
+            date: new Date().toLocaleDateString()
+        });
+
+        highScores.sort((a, b) => b.score - a.score);
+        highScores.splice(10); // 상위 10개만 저장
+
+        localStorage.setItem('typingHighScores', JSON.stringify(highScores));
+    }
+
+    // 최고 점수 불러오기
+    function loadHighScores() {
+        const highScores = JSON.parse(localStorage.getItem('typingHighScores') || '[]');
+        return highScores;
+    }
+
+    // 리더보드 표시
+    function displayLeaderboard() {
+        const highScores = loadHighScores();
+        const leaderboardList = document.getElementById('leaderboardList');
+        leaderboardList.innerHTML = '';
+
+        highScores.slice(0, 5).forEach((score, index) => {
+            const item = document.createElement('div');
+            item.className = 'leaderboard-item';
+
+            const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '🏅';
+
+            item.innerHTML = `
+                    <span>${medal} ${score.name}</span>
+                    <span>${score.score}점</span>
+                `;
+
+            leaderboardList.appendChild(item);
+        });
+    }
+
+    // 단어/문장 선택 이벤트 리스너 추가
+    function setupWordTypeSelection() {
+        const wordTypeRadios = document.querySelectorAll('input[name="wordType"]');
+        wordTypeRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                // 게임이 실행 중이면 입력창으로 포커스 다시 이동
+                if (gameRunning && !gamePaused) {
+                    setTimeout(() => {
+                        document.getElementById('gameInput').focus();
+                    }, 100);
+                }
+            });
+        });
+    }
+
+    // 현재 선택된 모드에 따라 단어 배열 반환
+    function getWordsByMode(targetLevel) {
+        const selectedMode = document.querySelector('input[name="wordType"]:checked').value;
+
+        if (selectedMode === 'sentences') {
+            // 문장 위주: 레벨 4-5의 긴 문장들만 사용
+            return [...(wordLists[4] || []), ...(wordLists[5] || [])];
+        } else {
+            // 단어 위주: 해당 레벨의 단어들 사용 (레벨 1-3)
+            const level = Math.min(targetLevel, 3); // 최대 레벨 3까지만
+            return wordLists[level] || wordLists[1]; // wordLists는 1부터 시작
+        }
+    }
+
+    // 흔들기 애니메이션
+    const style = document.createElement('style');
+    style.textContent = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-10px); }
+                75% { transform: translateX(10px); }
+            }
+
+            @keyframes boss-pulse {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+            }
+
+            @keyframes boss-alert {
+                0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
+                20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+                80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            }
+
+            @keyframes bomb-gain {
+                0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+                20% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+                80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            }
+
+            @keyframes bomb-explosion {
+                0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5) rotate(0deg); }
+                50% { opacity: 1; transform: translate(-50%, -50%) scale(1.5) rotate(180deg); }
+                100% { opacity: 0; transform: translate(-50%, -50%) scale(2) rotate(360deg); }
+            }
+
+            @keyframes screen-shake {
+                0%, 100% { transform: translateX(0) translateY(0); }
+                10% { transform: translateX(-10px) translateY(-5px); }
+                20% { transform: translateX(10px) translateY(5px); }
+                30% { transform: translateX(-8px) translateY(-3px); }
+                40% { transform: translateX(8px) translateY(3px); }
+                50% { transform: translateX(-6px) translateY(-2px); }
+                60% { transform: translateX(6px) translateY(2px); }
+                70% { transform: translateX(-4px) translateY(-1px); }
+                80% { transform: translateX(4px) translateY(1px); }
+                90% { transform: translateX(-2px) translateY(0px); }
+            }
+        `;
+    document.head.appendChild(style);
+
+    // 파워업 생성
+    function createPowerUp() {
+        if (powerUps.length >= 3) return; // 최대 3개까지만
+
+        const gameArea = document.getElementById('gameArea');
+        const rect = gameArea.getBoundingClientRect();
+
+        const types = [
+            { type: 'time-freeze', emoji: '⏰', name: '시간정지' },
+            { type: 'slow-motion', emoji: '🐌', name: '슬로우모션' },
+            { type: 'double-score', emoji: '💎', name: '더블스코어' },
+            { type: 'shield', emoji: '🛡️', name: '실드' }
+        ];
+
+        const powerUpType = types[Math.floor(Math.random() * types.length)];
+
+        const powerUp = document.createElement('div');
+        powerUp.className = `powerup ${powerUpType.type}`;
+        powerUp.textContent = powerUpType.emoji;
+        powerUp.dataset.type = powerUpType.type;
+        powerUp.dataset.name = powerUpType.name;
+
+        // 랜덤 위치에 생성
+        const x = 50 + Math.random() * (rect.width - 100);
+        const y = 50 + Math.random() * (rect.height - 150);
+
+        powerUp.style.left = x + 'px';
+        powerUp.style.top = y + 'px';
+
+        powerUp.addEventListener('click', () => {
+            activatePowerUp(powerUpType.type);
+            powerUp.remove();
+            powerUps = powerUps.filter(p => p !== powerUp);
+        });
+
+        gameArea.appendChild(powerUp);
+        powerUps.push(powerUp);
+
+        // 10초 후 자동 제거
+        setTimeout(() => {
+            if (powerUp.parentNode) {
+                powerUp.remove();
+                powerUps = powerUps.filter(p => p !== powerUp);
+            }
+        }, 10000);
+    }
+
+    // 파워업 활성화
+    function activatePowerUp(type) {
+        playPowerUpSound();
+
+        switch(type) {
+            case 'time-freeze':
+                activePowerUps.timeFreeze.active = true;
+                activePowerUps.timeFreeze.duration = 6000; // 6초로 2배 증가
+                createScreenEffect('time-freeze');
+                break;
+            case 'slow-motion':
+                activePowerUps.slowMotion.active = true;
+                activePowerUps.slowMotion.duration = 20000; // 20초로 4배 증가
+                createScreenEffect('slow-motion');
+                break;
+            case 'double-score':
+                activePowerUps.doubleScore.active = true;
+                activePowerUps.doubleScore.duration = 10000; // 10초
+                createScreenEffect('double-score');
+                break;
+            case 'shield':
+                activePowerUps.shield.active = true;
+                activePowerUps.shield.uses = 1;
+                break;
+        }
+
+        updatePowerUpUI();
+    }
+
+    // 화면 효과 생성
+    function createScreenEffect(type) {
+        const effect = document.createElement('div');
+        effect.className = `screen-effect ${type}`;
+        document.body.appendChild(effect);
+
+        const duration = type === 'time-freeze' ? 6000 : type === 'slow-motion' ? 20000 : 10000;
+
+        setTimeout(() => {
+            if (effect.parentNode) {
+                effect.remove();
+            }
+        }, duration);
+    }
+
+    // 파워업 UI 업데이트
+    function updatePowerUpUI() {
+        const container = document.getElementById('activePowerUps');
+        container.innerHTML = '';
+
+        if (activePowerUps.timeFreeze.active) {
+            const ui = document.createElement('div');
+            ui.className = 'active-powerup';
+            ui.innerHTML = `⏰ 시간정지 ${(activePowerUps.timeFreeze.duration / 1000).toFixed(1)}초`;
+            container.appendChild(ui);
+        }
+
+        if (activePowerUps.slowMotion.active) {
+            const ui = document.createElement('div');
+            ui.className = 'active-powerup';
+            ui.innerHTML = `🐌 슬로우 ${(activePowerUps.slowMotion.duration / 1000).toFixed(1)}초`;
+            container.appendChild(ui);
+        }
+
+        if (activePowerUps.doubleScore.active) {
+            const ui = document.createElement('div');
+            ui.className = 'active-powerup';
+            ui.innerHTML = `💎 더블스코어 ${(activePowerUps.doubleScore.duration / 1000).toFixed(1)}초`;
+            container.appendChild(ui);
+        }
+
+        if (activePowerUps.shield.active) {
+            const ui = document.createElement('div');
+            ui.className = 'active-powerup';
+            ui.innerHTML = `🛡️ 실드 ${activePowerUps.shield.uses}회`;
+            container.appendChild(ui);
+        }
+    }
+
+    // 파워업 업데이트 (게임 루프에서 호출)
+    function updatePowerUps() {
+        let needsUpdate = false;
+
+        if (activePowerUps.timeFreeze.active) {
+            activePowerUps.timeFreeze.duration -= 16; // ~60fps 기준
+            if (activePowerUps.timeFreeze.duration <= 0) {
+                activePowerUps.timeFreeze.active = false;
+                needsUpdate = true;
+            }
+        }
+
+        if (activePowerUps.slowMotion.active) {
+            activePowerUps.slowMotion.duration -= 16;
+            if (activePowerUps.slowMotion.duration <= 0) {
+                activePowerUps.slowMotion.active = false;
+                needsUpdate = true;
+            }
+        }
+
+        if (activePowerUps.doubleScore.active) {
+            activePowerUps.doubleScore.duration -= 16;
+            if (activePowerUps.doubleScore.duration <= 0) {
+                activePowerUps.doubleScore.active = false;
+                needsUpdate = true;
+            }
+        }
+
+        if (needsUpdate) {
+            updatePowerUpUI();
+        }
+    }
+
+    // 파워업 사운드
+    function playPowerUpSound() {
+        if (!soundEnabled || !audioContext) return;
+
+        // 파워업 획득 사운드 (상승하는 트릴)
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5-E5-G5-C6
+        notes.forEach((freq, index) => {
+            setTimeout(() => {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
+                oscillator.type = 'triangle';
+
+                gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.2);
+            }, index * 50);
+        });
+    }
+
+    // 실드 사운드
+    function playShieldSound() {
+        if (!soundEnabled || !audioContext) return;
+
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+        oscillator.type = 'triangle';
+
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.4, audioContext.currentTime + 0.05);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+    }
+
+    // 파워업 획득 메시지 표시
+    function showPowerUpMessage(powerUpName) {
+        const message = document.createElement('div');
+        message.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: linear-gradient(135deg, #4CAF50, #45a049);
+                color: white;
+                padding: 20px 30px;
+                border-radius: 15px;
+                font-size: 24px;
+                font-weight: bold;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                z-index: 10000;
+                animation: powerup-message 2s ease-out forwards;
+                text-align: center;
+                border: 3px solid #fff;
+            `;
+        message.innerHTML = `🎉 ${powerUpName} 획득! 🎉`;
+
+        document.body.appendChild(message);
+
+        setTimeout(() => {
+            if (message.parentNode) {
+                message.remove();
+            }
+        }, 2000);
+    }
+
+    // 게임 초기화
+    init();
+    updateSpeedDisplay();
+    setupWordTypeSelection();
+</script>
+</body>
+</html>
