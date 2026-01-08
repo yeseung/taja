@@ -1,0 +1,774 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>우주 타자 - 시간 도전</title>
+
+    <style>
+        :root{
+            --bg:#f6f7fb;
+            --panel:#ffffff;
+            --text:#111827;
+            --muted:#6b7280;
+            --border:#e5e7eb;
+            --shadow: 0 16px 50px rgba(17,24,39,.10);
+            --radius:18px;
+
+            --brand:#2563eb;
+            --brand2:#60a5fa;
+            --good:#16a34a;
+            --bad:#ef4444;
+            --warn:#f59e0b;
+
+            --chip:#f3f4f6;
+        }
+
+        *{ box-sizing:border-box; }
+        html,body{ height:100%; }
+        body{
+            margin:0;
+            font-family: ui-sans-serif, system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", Segoe UI, Roboto, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow-x:hidden;
+        }
+
+        /* ===== Background: subtle “space” but still white ===== */
+        .starfield,
+        .gradient-bg{
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .gradient-bg{
+            background:
+                    radial-gradient(900px 520px at 15% 15%, rgba(37,99,235,.12), transparent 60%),
+                    radial-gradient(900px 520px at 85% 25%, rgba(96,165,250,.10), transparent 60%),
+                    radial-gradient(900px 520px at 40% 90%, rgba(245,158,11,.10), transparent 60%);
+            opacity: .9;
+        }
+
+        .starfield{
+            background:
+                    radial-gradient(circle at 10% 20%, rgba(17,24,39,.10) 0 1.5px, transparent 2px) 0 0/160px 160px,
+                    radial-gradient(circle at 70% 30%, rgba(37,99,235,.12) 0 1.5px, transparent 2px) 0 0/220px 220px,
+                    radial-gradient(circle at 40% 80%, rgba(17,24,39,.08) 0 1.5px, transparent 2px) 0 0/260px 260px;
+            opacity: .8;
+            filter: blur(.1px);
+        }
+
+        /* ===== Layout helpers ===== */
+        .container{
+            position: relative;
+            z-index: 1;
+            width: min(820px, 100%);
+            margin: 0 auto;
+            padding: 18px 16px 28px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .text-center{ text-align:center; }
+        .my-md{ margin: 6px 0 8px; }
+
+        /* ===== Nav ===== */
+        .nav-buttons{
+            display:flex;
+            justify-content:flex-start;
+        }
+        .back-btn{
+            border: 1px solid var(--border);
+            background: #fff;
+            color: var(--text);
+            border-radius: 999px;
+            padding: 10px 12px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 10px 26px rgba(17,24,39,.06);
+            transition: background .15s ease, transform .05s ease;
+        }
+        .back-btn:hover{ background:#f9fafb; }
+        .back-btn:active{ transform: translateY(1px); }
+
+        /* ===== Header ===== */
+        .logo{
+            margin: 6px 0 4px;
+            font-size: 22px;
+            letter-spacing: 1.6px;
+            font-weight: 900;
+        }
+        .tagline{
+            margin:0;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        /* ===== Timer ===== */
+        .timer-container{
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 14px;
+            display:flex;
+            align-items:center;
+            gap: 12px;
+        }
+        .timer-bar{
+            flex: 1;
+            height: 12px;
+            border-radius: 999px;
+            background: #eef2ff;
+            border: 1px solid rgba(37,99,235,.18);
+            overflow:hidden;
+        }
+        .timer-progress{
+            height:100%;
+            width:100%;
+            background: linear-gradient(90deg, var(--brand), var(--brand2));
+            border-radius: 999px;
+            transition: width .25s linear;
+        }
+        .timer-value{
+            min-width: 52px;
+            text-align:right;
+            font-weight: 900;
+            letter-spacing: -0.3px;
+        }
+        .timer-warning .timer-progress{
+            background: linear-gradient(90deg, var(--warn), #fb7185);
+        }
+        .timer-warning .timer-value{
+            color: var(--bad);
+        }
+
+        /* ===== Stats ===== */
+        .stats-bar{
+            display:grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        .stat-box{
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: 0 12px 34px rgba(17,24,39,.06);
+            padding: 12px;
+        }
+        .stat-value{
+            font-weight: 900;
+            font-size: 18px;
+            letter-spacing: -0.4px;
+        }
+        .stat-label{
+            margin-top: 4px;
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        /* ===== Typing card ===== */
+        .typing-container{
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 16px;
+            display:flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .typing-display{
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: #fbfbfd;
+            padding: 14px;
+        }
+
+        .current-word{
+            font-size: 20px;
+            font-weight: 900;
+            letter-spacing: -0.3px;
+            min-height: 26px;
+        }
+
+        .feedback-area{
+            margin-top: 10px;
+            min-height: 30px;
+            display:flex;
+            flex-wrap:wrap;
+            gap: 2px;
+            font-size: 20px;
+            font-weight: 900;
+        }
+
+        .typing-character{ display:inline-block; }
+        .typing-untyped{ color:#cbd5e1; }
+        .typing-correct{ color: var(--good); }
+        .typing-incorrect{
+            color: var(--bad);
+            text-decoration: underline;
+            text-decoration-thickness: 2px;
+            text-underline-offset: 4px;
+        }
+
+        .instructions{
+            margin:0;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 700;
+            text-align:center;
+        }
+
+        .input-container{
+            display:flex;
+            gap:10px;
+        }
+        .typing-input{
+            width:100%;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 14px;
+            font-size: 16px;
+            outline:none;
+            transition: box-shadow .15s ease, border-color .15s ease;
+            background:#fff;
+        }
+        .typing-input:focus{
+            border-color: rgba(37,99,235,.55);
+            box-shadow: 0 0 0 4px rgba(37,99,235,.12);
+        }
+        .typing-input:disabled{
+            background:#f3f4f6;
+            color:#9ca3af;
+            cursor:not-allowed;
+        }
+
+        /* ===== Timer selector ===== */
+        .timer-selector{
+            display:flex;
+            gap: 10px;
+            justify-content:center;
+            flex-wrap:wrap;
+        }
+        .timer-btn{
+            border: 1px solid var(--border);
+            background: #fff;
+            color: var(--text);
+            border-radius: 999px;
+            padding: 10px 12px;
+            font-weight: 900;
+            cursor:pointer;
+            transition: background .15s ease, transform .05s ease, border-color .15s ease;
+        }
+        .timer-btn:hover{ background:#f9fafb; }
+        .timer-btn:active{ transform: translateY(1px); }
+        .timer-btn.active{
+            border-color: rgba(37,99,235,.35);
+            background: rgba(37,99,235,.08);
+            color: #1d4ed8;
+        }
+
+        /* ===== Controls ===== */
+        .controls{
+            display:flex;
+            gap: 10px;
+            justify-content:center;
+            flex-wrap:wrap;
+            margin-top: 4px;
+        }
+
+        .btn{
+            border: 1px solid transparent;
+            border-radius: 14px;
+            padding: 12px 14px;
+            font-weight: 900;
+            cursor:pointer;
+            font-size: 14px;
+            min-width: 120px;
+            transition: transform .05s ease, box-shadow .15s ease, background .15s ease, border-color .15s ease;
+            user-select:none;
+        }
+        .btn:active{ transform: translateY(1px); }
+        .btn:disabled{
+            opacity:.55;
+            cursor:not-allowed;
+            box-shadow:none !important;
+        }
+
+        .btn-primary{
+            background: var(--brand);
+            color:#fff;
+            box-shadow: 0 12px 28px rgba(37,99,235,.22);
+        }
+        .btn-primary:hover{ background:#1d4ed8; }
+
+        .btn-outline{
+            background:#fff;
+            color: var(--text);
+            border-color: var(--border);
+        }
+        .btn-outline:hover{ background:#f9fafb; }
+
+        /* ===== Result modal ===== */
+        .result-modal{
+            position: fixed;
+            inset: 0;
+            background: rgba(17,24,39,.42);
+            display:none;
+            align-items:center;
+            justify-content:center;
+            padding: 18px;
+            z-index: 50;
+            backdrop-filter: blur(6px);
+        }
+        .result-modal.active{ display:flex; }
+
+        .result-content{
+            width: min(720px, 100%);
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            box-shadow: 0 22px 70px rgba(17,24,39,.24);
+            padding: 18px;
+        }
+        .result-title{
+            margin: 2px 0 12px;
+            font-size: 18px;
+            font-weight: 900;
+            text-align:center;
+        }
+        .result-stats{
+            display:grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 10px 0 14px;
+        }
+        .result-stat{
+            background: #fbfbfd;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 12px;
+            text-align:center;
+        }
+        .result-stat-value{
+            font-weight: 900;
+            font-size: 18px;
+            letter-spacing: -0.4px;
+        }
+        .result-stat-label{
+            margin-top: 4px;
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 700;
+        }
+        .result-buttons{
+            display:flex;
+            gap: 10px;
+            justify-content:center;
+            flex-wrap:wrap;
+            margin-top: 6px;
+        }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 520px){
+            .stats-bar{ grid-template-columns: 1fr; }
+            .result-stats{ grid-template-columns: 1fr; }
+            .btn{ width: 100%; min-width: 0; }
+            .timer-container{ padding: 12px; }
+            .feedback-area{ font-size: 18px; }
+            .current-word{ font-size: 18px; }
+        }
+    </style>
+</head>
+
+<body>
+<!-- 별 배경 -->
+<div class="starfield"></div>
+<div class="gradient-bg"></div>
+
+<!-- 앱 컨테이너 -->
+<div class="container" style="min-height: 100vh;">
+    <!-- 네비게이션 버튼 -->
+    <div class="nav-buttons">
+        <button class="back-btn" onclick="window.location.href='index.html'">← 메인으로</button>
+    </div>
+
+    <!-- 페이지 헤더 -->
+    <div class="text-center my-md">
+        <h1 class="logo">TIME CHALLENGE</h1>
+        <p class="tagline">시간 도전 모드</p>
+    </div>
+
+    <!-- 타이머 바 -->
+    <div class="timer-container">
+        <div class="timer-bar">
+            <div class="timer-progress" id="timer-progress" style="width: 100%;"></div>
+        </div>
+        <div class="timer-value" id="timer-value">60s</div>
+    </div>
+
+    <!-- 통계 바 -->
+    <div class="stats-bar">
+        <div class="stat-box">
+            <div class="stat-value" id="accuracy">100<span style="font-size: 1rem;">%</span></div>
+            <div class="stat-label">정확도</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value" id="cpm">0</div>
+            <div class="stat-label">CPM</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value" id="words">0</div>
+            <div class="stat-label">단어</div>
+        </div>
+    </div>
+
+    <!-- 타이핑 영역 -->
+    <div class="typing-container">
+        <div class="typing-display">
+            <div class="current-word" id="target-word">시작 버튼을 눌러 도전을 시작하세요</div>
+            <div class="feedback-area" id="feedback-area"></div>
+        </div>
+
+        <p class="instructions">제한 시간 안에 최대한 많은 단어를 입력하세요!</p>
+
+        <!-- 입력 필드 -->
+        <div class="input-container">
+            <input
+                    type="text"
+                    id="typing-input"
+                    class="typing-input"
+                    placeholder="여기에 타이핑하세요"
+                    disabled
+                    autocomplete="off"
+                    autocorrect="off"
+                    autocapitalize="off"
+                    spellcheck="false"
+            />
+        </div>
+
+        <!-- 타이머 선택 -->
+        <div class="timer-selector">
+            <button class="timer-btn" data-timer="30">30초</button>
+            <button class="timer-btn active" data-timer="60">60초</button>
+            <button class="timer-btn" data-timer="120">120초</button>
+        </div>
+
+        <!-- 컨트롤 버튼 -->
+        <div class="controls">
+            <button class="btn btn-primary" id="start-btn">시작</button>
+            <button class="btn btn-outline" id="reset-btn" disabled>초기화</button>
+        </div>
+    </div>
+</div>
+
+<!-- 결과 모달 -->
+<div class="result-modal" id="result-modal" aria-hidden="true">
+    <div class="result-content" role="dialog" aria-modal="true" aria-labelledby="result-title">
+        <h2 class="result-title" id="result-title">도전 완료!</h2>
+
+        <div class="result-stats">
+            <div class="result-stat">
+                <div class="result-stat-value" id="result-words">0</div>
+                <div class="result-stat-label">완료한 단어</div>
+            </div>
+            <div class="result-stat">
+                <div class="result-stat-value" id="result-accuracy">0%</div>
+                <div class="result-stat-label">정확도</div>
+            </div>
+            <div class="result-stat">
+                <div class="result-stat-value" id="result-cpm">0</div>
+                <div class="result-stat-label">CPM</div>
+            </div>
+            <div class="result-stat">
+                <div class="result-stat-value" id="result-time">60s</div>
+                <div class="result-stat-label">소요 시간</div>
+            </div>
+        </div>
+
+        <div class="result-buttons">
+            <button class="btn btn-primary" id="try-again-btn">다시 도전</button>
+            <button class="btn btn-outline" onclick="window.location.href='index.html'">메인으로</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // DOM 요소
+    const targetWordElement = document.getElementById('target-word');
+    const feedbackArea = document.getElementById('feedback-area');
+    const typingInput = document.getElementById('typing-input');
+    const accuracyElement = document.getElementById('accuracy');
+    const cpmElement = document.getElementById('cpm');
+    const wordsElement = document.getElementById('words');
+    const startButton = document.getElementById('start-btn');
+    const resetButton = document.getElementById('reset-btn');
+    const timerButtons = document.querySelectorAll('.timer-btn');
+    const timerProgress = document.getElementById('timer-progress');
+    const timerValue = document.getElementById('timer-value');
+    const timerContainer = document.querySelector('.timer-container');
+    const resultModal = document.getElementById('result-modal');
+    const resultWordsElement = document.getElementById('result-words');
+    const resultAccuracyElement = document.getElementById('result-accuracy');
+    const resultCpmElement = document.getElementById('result-cpm');
+    const resultTimeElement = document.getElementById('result-time');
+    const tryAgainButton = document.getElementById('try-again-btn');
+
+    // 게임 상태 변수
+    let isPlaying = false;
+    let currentWord = '';
+    let wordCount = 0;
+    let correctChars = 0;
+    let totalChars = 0;
+    let startTime = null;
+    let endTime = null;
+    let timerDuration = 60; // 기본값: 60초
+    let remainingTime = timerDuration;
+    let timerInterval = null;
+
+    // 단어 목록
+    const words = [
+        '우주', '별', '행성', '달', '지구', '태양', '빛', '밤', '낮', '하늘',
+        '별자리', '은하', '무중력', '로켓', '탐사', '발사', '궤도', '착륙',
+        '기지', '우주인', '신호', '탐험', '관측', '망원경', '별똥별', '혜성',
+        '유성', '항해', '성운', '중력', '우주복', '위성', '발견', '연구',
+        '우주선', '천문학', '블랙홀', '인공위성', '우주정거장', '초신성', '외계인',
+        '소행성', '왜성', '중성자별', '퀘이사', '초기우주', '빅뱅', '암흑물질',
+        '암흑에너지', '성간물질', '엑소플래닛', '행성간', '적색거성', '백색왜성',
+        '은하단', '은하군', '천체물리', '광년', '우주망원경', '중력파', '성단',
+        '성운형성', '태양풍', '태양계', '케플러', '우주비행사', '착륙선'
+    ];
+
+    // 이벤트 리스너
+    startButton.addEventListener('click', startGame);
+    resetButton.addEventListener('click', resetGame);
+    typingInput.addEventListener('input', handleInput);
+    tryAgainButton.addEventListener('click', () => {
+        closeModal();
+        resetGame();
+        startGame();
+    });
+
+    // Enter 방지(원치 않는 제출/줄바꿈 방지)
+    typingInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') e.preventDefault();
+        if (e.key === 'Escape' && resultModal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    // 모달 바깥 클릭 시 닫기(원치 않으면 제거)
+    resultModal.addEventListener('click', (e) => {
+        if (e.target === resultModal) closeModal();
+    });
+
+    // 타이머 버튼 이벤트 리스너
+    timerButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            if (this.classList.contains('active')) return;
+
+            timerButtons.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+
+            timerDuration = parseInt(this.dataset.timer, 10);
+            remainingTime = timerDuration;
+            updateTimerDisplay();
+
+            if (isPlaying) resetGame();
+        });
+    });
+
+    // 타이머 디스플레이 업데이트
+    function updateTimerDisplay() {
+        const progressPercentage = (remainingTime / timerDuration) * 100;
+        timerProgress.style.width = `${progressPercentage}%`;
+        timerValue.textContent = `${remainingTime}s`;
+
+        if (remainingTime <= 10) timerContainer.classList.add('timer-warning');
+        else timerContainer.classList.remove('timer-warning');
+    }
+
+    // 타이머 시작
+    function startTimer() {
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            remainingTime--;
+            updateTimerDisplay();
+            if (remainingTime <= 0) endGame();
+        }, 1000);
+    }
+
+    // 게임 시작
+    function startGame() {
+        if (isPlaying) return;
+
+        isPlaying = true;
+        wordCount = 0;
+        correctChars = 0;
+        totalChars = 0;
+
+        startTime = Date.now();
+        remainingTime = timerDuration;
+
+        updateTimerDisplay();
+        setAccuracy(100);
+        cpmElement.textContent = '0';
+        wordsElement.textContent = '0';
+
+        startButton.disabled = true;
+        resetButton.disabled = false;
+        typingInput.disabled = false;
+        typingInput.value = '';
+        typingInput.focus();
+
+        showNewWord();
+        startTimer();
+    }
+
+    // 단어 표시
+    function showNewWord() {
+        const randomIndex = Math.floor(Math.random() * words.length);
+        currentWord = words[randomIndex];
+
+        targetWordElement.textContent = currentWord;
+        feedbackArea.innerHTML = '';
+
+        currentWord.split('').forEach(char => {
+            const span = document.createElement('span');
+            span.textContent = char;
+            span.className = 'typing-character typing-untyped';
+            feedbackArea.appendChild(span);
+        });
+
+        typingInput.value = '';
+        typingInput.setAttribute('maxlength', String(currentWord.length));
+        typingInput.focus();
+    }
+
+    // 입력 처리
+    function handleInput() {
+        if (!isPlaying) return;
+
+        const typedValue = typingInput.value;
+        const feedbackChars = feedbackArea.querySelectorAll('.typing-character');
+
+        // 문자별 피드백
+        for (let i = 0; i < currentWord.length; i++) {
+            if (i < typedValue.length) {
+                feedbackChars[i].className =
+                    (typedValue[i] === currentWord[i])
+                        ? 'typing-character typing-correct'
+                        : 'typing-character typing-incorrect';
+            } else {
+                feedbackChars[i].className = 'typing-character typing-untyped';
+            }
+        }
+
+        // 길이가 같아졌을 때만 판정
+        if (typedValue.length === currentWord.length) {
+            if (typedValue === currentWord) {
+                wordCount++;
+                correctChars += currentWord.length;
+                totalChars += currentWord.length;
+
+                wordsElement.textContent = String(wordCount);
+                updateStats();
+
+                setTimeout(() => { if (isPlaying) showNewWord(); }, 220);
+            } else {
+                // 오타: 맞춘 글자만 부분 반영
+                let correctCount = 0;
+                for (let i = 0; i < currentWord.length; i++) {
+                    if (typedValue[i] === currentWord[i]) correctCount++;
+                }
+                correctChars += correctCount;
+                totalChars += currentWord.length;
+                updateStats();
+                // 입력을 비우지 않음(사용자가 수정 가능)
+            }
+        }
+    }
+
+    function setAccuracy(value){
+        accuracyElement.innerHTML = `${value}<span style="font-size: 1rem;">%</span>`;
+    }
+
+    // 통계 업데이트
+    function updateStats() {
+        const accuracy = totalChars > 0 ? Math.round((correctChars / totalChars) * 100) : 100;
+        setAccuracy(accuracy);
+
+        const elapsedMinutes = (Date.now() - startTime) / 1000 / 60;
+        if (elapsedMinutes > 0) {
+            const cpm = Math.round(correctChars / elapsedMinutes);
+            cpmElement.textContent = String(cpm);
+        }
+    }
+
+    // 게임 종료
+    function endGame() {
+        isPlaying = false;
+        endTime = Date.now();
+        clearInterval(timerInterval);
+
+        // 최종 통계
+        const elapsedMinutes = (endTime - startTime) / 1000 / 60;
+        const finalCpm = elapsedMinutes > 0 ? Math.round(correctChars / elapsedMinutes) : 0;
+        const finalAccuracy = totalChars > 0 ? Math.round((correctChars / totalChars) * 100) : 100;
+
+        // 모달 업데이트
+        resultWordsElement.textContent = String(wordCount);
+        resultAccuracyElement.textContent = `${finalAccuracy}%`;
+        resultCpmElement.textContent = String(finalCpm);
+        resultTimeElement.textContent = `${timerDuration}s`;
+
+        // 입력 비활성화
+        typingInput.disabled = true;
+
+        openModal();
+    }
+
+    function openModal(){
+        resultModal.classList.add('active');
+        resultModal.setAttribute('aria-hidden', 'false');
+    }
+    function closeModal(){
+        resultModal.classList.remove('active');
+        resultModal.setAttribute('aria-hidden', 'true');
+    }
+
+    // 게임 초기화
+    function resetGame() {
+        isPlaying = false;
+        clearInterval(timerInterval);
+
+        targetWordElement.textContent = '시작 버튼을 눌러 도전을 시작하세요';
+        feedbackArea.innerHTML = '';
+        typingInput.value = '';
+        typingInput.disabled = true;
+
+        startButton.disabled = false;
+        resetButton.disabled = true;
+
+        setAccuracy(100);
+        cpmElement.textContent = '0';
+        wordsElement.textContent = '0';
+
+        remainingTime = timerDuration;
+        updateTimerDisplay();
+
+        closeModal();
+    }
+
+    // 초기 화면 타이머 표시
+    updateTimerDisplay();
+</script>
+</body>
+</html>

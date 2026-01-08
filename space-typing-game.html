@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>타자 연습 게임 - 우주 테마</title>
+
+    <style>
+        :root{
+            --bg:#f6f7fb;
+            --panel:#ffffff;
+            --text:#111827;
+            --muted:#6b7280;
+            --border:#e5e7eb;
+            --shadow: 0 14px 40px rgba(17,24,39,.08);
+            --radius:18px;
+
+            --brand:#2563eb;      /* blue */
+            --good:#16a34a;       /* green */
+            --bad:#ef4444;        /* red */
+            --warn:#f59e0b;       /* amber */
+        }
+
+        *{ box-sizing:border-box; }
+        html,body{ height:100%; }
+        body{
+            margin:0;
+            font-family: ui-sans-serif, system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", Segoe UI, Roboto, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding: 18px;
+        }
+
+        /* subtle “space-ish” dots, still white theme */
+        body::before{
+            content:"";
+            position:fixed; inset:0;
+            background:
+                    radial-gradient(circle at 10% 20%, rgba(37,99,235,.10) 0 2px, transparent 3px) 0 0/140px 140px,
+                    radial-gradient(circle at 75% 35%, rgba(17,24,39,.07) 0 2px, transparent 3px) 0 0/180px 180px,
+                    radial-gradient(circle at 40% 80%, rgba(245,158,11,.10) 0 2px, transparent 3px) 0 0/220px 220px;
+            pointer-events:none;
+            opacity:.9;
+        }
+
+        .game-container{
+            width:min(720px, 100%);
+            background: var(--panel);
+            border:1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            position:relative;
+            z-index:1;
+        }
+
+        .header{
+            display:flex;
+            align-items:flex-start;
+            justify-content:space-between;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .title-wrap h1{
+            font-size: 18px;
+            line-height: 1.2;
+            margin:0;
+            letter-spacing: -0.2px;
+        }
+        .title-wrap p{
+            margin: 6px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .stats-container{
+            display:grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 12px 0 14px;
+        }
+
+        .stat-item{
+            margin:0;
+            padding: 12px 12px;
+            border:1px solid var(--border);
+            border-radius: 14px;
+            background: #fbfbfd;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .stat-item b,
+        .stat-item .value{
+            color: var(--text);
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: -0.2px;
+        }
+
+        .word-display-area{
+            border:1px solid var(--border);
+            border-radius: 16px;
+            background: #ffffff;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .word-display{
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: -0.3px;
+            margin: 0 0 10px;
+            min-height: 28px;
+        }
+
+        .feedback-display{
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 0.2px;
+            min-height: 30px;
+            display:flex;
+            flex-wrap:wrap;
+            gap: 2px;
+        }
+
+        .untyped-char{ color:#cbd5e1; }
+        .correct-char{ color: var(--good); }
+        .incorrect-char{
+            color: var(--bad);
+            text-decoration: underline;
+            text-decoration-thickness: 2px;
+            text-underline-offset: 4px;
+        }
+
+        .message-box{
+            min-height: 22px;
+            margin: 8px 2px 14px;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--warn);
+        }
+
+        .input-area{
+            margin-bottom: 12px;
+        }
+
+        .input-field{
+            width:100%;
+            padding: 14px 14px;
+            border-radius: 14px;
+            border:1px solid var(--border);
+            outline: none;
+            font-size: 16px;
+            background: #ffffff;
+            transition: box-shadow .15s ease, border-color .15s ease;
+        }
+        .input-field:focus{
+            border-color: rgba(37,99,235,.55);
+            box-shadow: 0 0 0 4px rgba(37,99,235,.12);
+        }
+        .input-field:disabled{
+            background: #f3f4f6;
+            color:#9ca3af;
+            cursor:not-allowed;
+        }
+
+        .button-container{
+            display:flex;
+            gap: 10px;
+            justify-content:flex-end;
+            margin-top: 6px;
+        }
+
+        .btn{
+            border:1px solid transparent;
+            border-radius: 14px;
+            padding: 12px 14px;
+            font-weight: 800;
+            cursor:pointer;
+            font-size: 14px;
+            transition: transform .05s ease, box-shadow .15s ease, background .15s ease;
+            user-select:none;
+        }
+        .btn:active{ transform: translateY(1px); }
+
+        .btn-primary{
+            background: var(--brand);
+            color:#fff;
+            box-shadow: 0 10px 24px rgba(37,99,235,.22);
+        }
+        .btn-primary:hover{ background:#1d4ed8; }
+
+        .btn-ghost{
+            background:#ffffff;
+            color: var(--text);
+            border-color: var(--border);
+        }
+        .btn-ghost:hover{ background:#f9fafb; }
+
+        .hidden{ display:none !important; }
+
+        .footer-hint{
+            margin-top: 12px;
+            color: var(--muted);
+            font-size: 12px;
+            text-align:left;
+        }
+
+        @media (max-width: 520px){
+            .stats-container{ grid-template-columns: 1fr; }
+            .button-container{ justify-content:stretch; }
+            .btn{ width:100%; }
+            .word-display{ font-size: 20px; }
+            .feedback-display{ font-size: 18px; }
+        }
+    </style>
+</head>
+
+<body>
+<div class="game-container">
+    <div class="header">
+        <div class="title-wrap">
+            <h1>타자 연습 게임</h1>
+            <p>정확하게 입력하면 다음 단어로 넘어갑니다. (Enter는 사용하지 않아요)</p>
+        </div>
+    </div>
+
+    <div class="stats-container">
+        <p class="stat-item">점수 <span id="score" class="value">0</span></p>
+        <p class="stat-item">시간 <span><span id="time" class="value">60</span>초</span></p>
+        <p class="stat-item">타수(CPM) <span id="cpm" class="value">0</span></p>
+    </div>
+
+    <div class="word-display-area">
+        <div id="word-display" class="word-display">시작 버튼을 누르세요!</div>
+        <div id="feedback-display" class="feedback-display"></div>
+    </div>
+
+    <div id="message-box" class="message-box"></div>
+
+    <div class="input-area">
+        <input
+                type="text"
+                id="word-input"
+                class="input-field"
+                placeholder="단어를 입력하세요!"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                disabled
+        />
+    </div>
+
+    <div class="button-container">
+        <button id="start-button" class="btn btn-primary">시작!</button>
+        <button id="restart-button" class="btn btn-ghost hidden">다시 시작</button>
+    </div>
+
+    <div class="footer-hint">
+        팁: 모바일에서는 자동완성/자동수정이 입력을 방해할 수 있어요. (이미 최대한 꺼두었습니다)
+    </div>
+</div>
+
+<script>
+    // DOM Elements
+    const wordDisplay = document.getElementById('word-display');
+    const feedbackDisplay = document.getElementById('feedback-display');
+    const wordInput = document.getElementById('word-input');
+    const scoreDisplay = document.getElementById('score');
+    const timeDisplay = document.getElementById('time');
+    const cpmDisplay = document.getElementById('cpm');
+    const messageBox = document.getElementById('message-box');
+    const startButton = document.getElementById('start-button');
+    const restartButton = document.getElementById('restart-button');
+
+    // Word List (Space Theme)
+    const words = [
+        '우주', '행성', '은하', '별똥별', '블랙홀', '외계인', '우주선', '레이저',
+        '워프', '궤도', '방어막', '에너지', '함선', '침략', '방어', '요격',
+        '좌표', '항해', '탐사', '미지', '신호', '교신', '중력', '무중력',
+        '발사', '명중', '파괴', '생존', '탈출', '귀환', '임무', '성공',
+        '네뷸라', '성단', '퀘이사', '펄서', '초신성', '왜소행성', '혜성', '유성'
+    ];
+
+    // Game State Variables
+    const GAME_TIME = 60;
+    let score = 0;
+    let time = GAME_TIME;
+    let isPlaying = false;
+    let timeInterval;
+    let currentWord = '';
+    let correctCharsTyped = 0;
+
+    // --- Event Listeners ---
+    startButton.addEventListener('click', startGame);
+    restartButton.addEventListener('click', restartGame);
+
+    wordInput.addEventListener('input', handleInput);
+    wordInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') e.preventDefault();
+    });
+
+    // --- Game Logic Functions ---
+
+    function startGame() {
+        if (isPlaying) return;
+
+        isPlaying = true;
+        score = 0;
+        time = GAME_TIME;
+        correctCharsTyped = 0;
+
+        scoreDisplay.textContent = score;
+        timeDisplay.textContent = time;
+        cpmDisplay.textContent = 0;
+
+        messageBox.textContent = '';
+        messageBox.style.color = getComputedStyle(document.documentElement).getPropertyValue('--warn');
+
+        wordInput.disabled = false;
+        wordInput.value = '';
+
+        feedbackDisplay.innerHTML = '';
+        wordDisplay.textContent = '';
+
+        startButton.classList.add('hidden');
+        restartButton.classList.add('hidden');
+
+        showWord();
+        timeInterval = setInterval(updateTimer, 1000);
+
+        setTimeout(() => wordInput.focus(), 50);
+    }
+
+    function showWord() {
+        if (!isPlaying) return;
+
+        wordInput.value = '';
+
+        const randomIndex = Math.floor(Math.random() * words.length);
+        currentWord = words[randomIndex];
+
+        wordDisplay.textContent = currentWord;
+        wordInput.setAttribute('maxlength', String(currentWord.length));
+
+        feedbackDisplay.innerHTML = currentWord
+        .split('')
+        .map(char => `<span class="untyped-char">${escapeHtml(char)}</span>`)
+        .join('');
+
+        setTimeout(() => { if (isPlaying) wordInput.focus(); }, 50);
+    }
+
+    function handleInput() {
+        if (!isPlaying) return;
+
+        const typedValue = wordInput.value;
+        let feedbackHTML = '';
+
+        for (let i = 0; i < currentWord.length; i++) {
+            const targetChar = currentWord[i];
+
+            if (i < typedValue.length) {
+                if (typedValue[i] === targetChar) {
+                    feedbackHTML += `<span class="correct-char">${escapeHtml(targetChar)}</span>`;
+                } else {
+                    feedbackHTML += `<span class="incorrect-char">${escapeHtml(targetChar)}</span>`;
+                }
+            } else {
+                feedbackHTML += `<span class="untyped-char">${escapeHtml(targetChar)}</span>`;
+            }
+        }
+
+        feedbackDisplay.innerHTML = feedbackHTML;
+
+        if (typedValue === currentWord) {
+            checkWord();
+        }
+    }
+
+    function checkWord() {
+        if (!isPlaying) return;
+
+        score++;
+        correctCharsTyped += currentWord.length;
+
+        scoreDisplay.textContent = score;
+
+        messageBox.textContent = '정확!';
+        messageBox.style.color = getComputedStyle(document.documentElement).getPropertyValue('--good');
+
+        wordInput.value = '';
+        feedbackDisplay.innerHTML = '';
+
+        cpmDisplay.textContent = calculateCPM();
+
+        setTimeout(() => {
+            if (!isPlaying) return;
+            messageBox.textContent = '';
+            messageBox.style.color = getComputedStyle(document.documentElement).getPropertyValue('--warn');
+        }, 800);
+
+        setTimeout(() => {
+            if (isPlaying) showWord();
+        }, 150);
+    }
+
+    function calculateCPM() {
+        // NOTE: 게임 종료 시점에도 CPM이 0이 되지 않도록 isPlaying 체크를 뺐습니다.
+        if (time === GAME_TIME) return 0;
+
+        const elapsedSeconds = GAME_TIME - time;
+        return elapsedSeconds > 0
+            ? Math.round((correctCharsTyped / elapsedSeconds) * 60)
+            : 0;
+    }
+
+    function updateTimer() {
+        if (time > 0) {
+            time--;
+            timeDisplay.textContent = time;
+            cpmDisplay.textContent = calculateCPM();
+        } else {
+            endGame();
+        }
+    }
+
+    function endGame() {
+        isPlaying = false;
+        clearInterval(timeInterval);
+
+        wordInput.disabled = true;
+        wordInput.value = '';
+
+        wordDisplay.textContent = '게임 종료!';
+        feedbackDisplay.innerHTML = '';
+
+        const finalCPM = calculateCPM();
+        cpmDisplay.textContent = finalCPM;
+
+        messageBox.textContent = `최종 점수: ${score} | 평균 타수: ${finalCPM}`;
+        messageBox.style.color = getComputedStyle(document.documentElement).getPropertyValue('--bad');
+
+        restartButton.classList.remove('hidden');
+    }
+
+    function restartGame() {
+        wordInput.value = '';
+        wordInput.disabled = true;
+
+        wordDisplay.textContent = '시작 버튼을 누르세요!';
+        feedbackDisplay.innerHTML = '';
+
+        messageBox.textContent = '';
+        messageBox.style.color = getComputedStyle(document.documentElement).getPropertyValue('--warn');
+
+        restartButton.classList.add('hidden');
+        startButton.classList.remove('hidden');
+
+        timeDisplay.textContent = GAME_TIME;
+        scoreDisplay.textContent = 0;
+        cpmDisplay.textContent = 0;
+
+        correctCharsTyped = 0;
+        score = 0;
+        time = GAME_TIME;
+        currentWord = '';
+        clearInterval(timeInterval);
+    }
+
+    function escapeHtml(str){
+        return String(str)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+</script>
+</body>
+</html>
