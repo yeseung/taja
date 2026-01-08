@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>Typing Practice</title>
+    <style>
+        :root{
+            --bg:#ffffff;
+            --panel:#ffffffcc;
+            --text:#0f172a;
+            --muted:#64748b;
+            --line:#e5e7eb;
+            --shadow: 0 18px 60px rgba(2,6,23,.10);
+            --radius: 18px;
+
+            --ok-bg: rgba(22,163,74,.12);
+            --ok-line: rgba(22,163,74,.30);
+            --bad-bg: rgba(239,68,68,.12);
+            --bad-line: rgba(239,68,68,.30);
+            --focus: rgba(37,99,235,.14);
+            --accent:#2563eb;
+        }
+
+        *{box-sizing:border-box}
+        html,body{height:100%}
+        body{
+            margin:0;
+            font-family: ui-sans-serif, system-ui, -apple-system, "Apple SD Gothic Neo","Malgun Gothic", sans-serif;
+            background:
+                    radial-gradient(1100px 700px at 18% 0%, #f3f6ff, #ffffff 55%) fixed;
+            color:var(--text);
+            overflow-x:hidden;
+        }
+
+        .entire{
+            min-height:100%;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:20px;
+        }
+
+        .wrapper{
+            width:min(980px, 100%);
+            background:var(--panel);
+            backdrop-filter: blur(10px);
+            border:1px solid var(--line);
+            border-radius:var(--radius);
+            box-shadow:var(--shadow);
+            padding:18px;
+        }
+
+        .menubar{
+            display:flex;
+            gap:12px;
+            align-items:center;
+            justify-content:space-between;
+            flex-wrap:wrap;
+            padding-bottom:14px;
+            border-bottom:1px solid var(--line);
+            margin-bottom:14px;
+        }
+
+        .texts-list select{
+            height:42px;
+            padding:0 12px;
+            border-radius:14px;
+            border:1px solid var(--line);
+            background:#fff;
+            color:var(--text);
+            outline:none;
+            min-width:220px;
+        }
+        .texts-list select:focus{
+            border-color:#bfdbfe;
+            box-shadow:0 0 0 5px var(--focus);
+        }
+
+        .introduce{
+            display:flex;
+            gap:10px;
+            align-items:center;
+            flex-wrap:wrap;
+            justify-content:flex-end;
+        }
+
+        .pill{
+            background:#fff;
+            border:1px solid var(--line);
+            border-radius:999px;
+            padding:8px 12px;
+            font-size:13px;
+            color:var(--muted);
+            display:flex;
+            gap:8px;
+            align-items:center;
+            white-space:nowrap;
+        }
+        .pill b{color:var(--text)}
+
+        .clear-best-rate{
+            height:38px;
+            padding:0 12px;
+            border-radius:12px;
+            border:1px solid var(--line);
+            background:#fff;
+            cursor:pointer;
+            font-weight:700;
+            color:var(--text);
+        }
+        .clear-best-rate:active{transform:translateY(1px)}
+        .clear-best-rate:hover{border-color:#cbd5e1}
+
+        .typing{
+            display:grid;
+            grid-template-columns: 1fr;
+            gap:12px;
+        }
+
+        .set{
+            display:grid;
+            grid-template-columns: 1fr;
+            gap:8px;
+            padding:12px;
+            background:#fff;
+            border:1px solid var(--line);
+            border-radius:16px;
+        }
+
+        .text-display{
+            font-size:16px;
+            line-height:1.55;
+            padding:10px 12px;
+            border-radius:14px;
+            border:1px dashed var(--line);
+            color:var(--text);
+            background: #fafafa;
+            word-break:keep-all;
+        }
+
+        .typing-input{
+            height:44px;
+            padding:0 12px;
+            border-radius:14px;
+            border:1px solid var(--line);
+            outline:none;
+            font-size:16px;
+            transition: box-shadow .15s, border-color .15s, background .15s;
+            background:#fff;
+        }
+        .typing-input:focus{
+            border-color:#bfdbfe;
+            box-shadow:0 0 0 5px var(--focus);
+        }
+
+        .typing-input.state-ok{
+            background:var(--ok-bg);
+            border-color:var(--ok-line);
+        }
+        .typing-input.state-bad{
+            background:var(--bad-bg);
+            border-color:var(--bad-line);
+        }
+
+        .footer-hint{
+            margin-top:12px;
+            font-size:12px;
+            color:var(--muted);
+            line-height:1.45;
+            display:flex;
+            gap:10px;
+            flex-wrap:wrap;
+            align-items:center;
+            justify-content:space-between;
+        }
+        .footer-hint .dot{
+            width:8px;height:8px;border-radius:50%;
+            display:inline-block;
+            background:var(--accent);
+            margin-right:6px;
+        }
+
+        @media (min-width: 860px){
+            .typing{
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="entire">
+    <div class="wrapper">
+        <div class="menubar">
+            <div class="texts-list">
+                <select id="text-selection">
+                    <option value="" hidden>글목록 선택</option>
+                </select>
+            </div>
+
+            <div class="introduce">
+                <div class="pill rate">⏱️ 현재: <b>00:00</b></div>
+                <div class="pill best-rate">🏆 최고 기록: <b>--:--</b></div>
+                <button class="clear-best-rate" type="button">기록 초기화</button>
+            </div>
+        </div>
+
+        <div class="typing">
+            <div class="set" id="set1">
+                <div class="text-display" id="text-display-1">글목록을 선택하세요.</div>
+                <input type="text" class="typing-input" id="typing-input-1" autocomplete="off" />
+            </div>
+            <div class="set" id="set2">
+                <div class="text-display" id="text-display-2"></div>
+                <input type="text" class="typing-input" id="typing-input-2" autocomplete="off" />
+            </div>
+            <div class="set" id="set3">
+                <div class="text-display" id="text-display-3"></div>
+                <input type="text" class="typing-input" id="typing-input-3" autocomplete="off" />
+            </div>
+            <div class="set" id="set4">
+                <div class="text-display" id="text-display-4"></div>
+                <input type="text" class="typing-input" id="typing-input-4" autocomplete="off" />
+            </div>
+        </div>
+
+        <div class="footer-hint">
+            <div><span class="dot"></span>Enter로 다음 줄 이동 / 4줄 완료 시 다음 4문장 로드</div>
+            <div>정답: 초록 / 오답: 빨강 (완전 일치 기준)</div>
+        </div>
+    </div>
+</div>
+
+<!-- ✅ texts.json을 외부파일 없이 HTML에 포함 -->
+<script id="texts-data" type="application/json">
+    {
+        "texts": [
+            {
+                "title": "애국가",
+                "sentences": [
+                    "1. 동해 물과 백두산이 마르고 닳도록",
+                    "하느님이 보우하사 우리나라 만세",
+                    "무궁화 삼천리 화려 강산",
+                    "대한 사람 대한으로 길이 보전하세",
+                    "2. 남산 위에 저 소나무 철갑을 두른 듯",
+                    "바람 서리 불변함은 우리 기상일세",
+                    "3. 가을 하늘 공활한데 높고 구름 없이",
+                    "밝은 달은 우리 가슴 일편단심일세",
+                    "4. 이 기상과 이 맘으로 충성을 다하여",
+                    "괴로우나 즐거우나 나라 사랑하세",
+                    "무궁화 삼천리 화려 강산",
+                    "대한 사람 대한으로 길이 보전하세"
+                ]
+            },
+            {
+                "title": "운수 좋은 날(일부)",
+                "sentences": [
+                    "새침하게 흐린 품이 눈이 올 듯하더니,",
+                    "눈은 아니 오고 얼다가 만 비가 추적추적 내리었다.",
+                    "이날이야말로 동소문 안에서 인력거꾼 노릇을 하는",
+                    "김첨지에게는 오래간만에도 닥친 운수 좋은 날이었다.",
+                    "문 안에(거기도 문밖은 아니지만) 들어간답시는 앞집 마나님을",
+                    "전찻길까지 모셔다 드린 것을 비롯하여",
+                    "행여나 손님이 있을까 하고 정류장에서 어정어정하며",
+                    "내리는 사람 하나하나에게 거의 비는 듯한 눈길을 보내고 있다가,",
+                    "마침내 교원인 듯한 양복장이를 동광학교까지 태워다 주기로 되었다.",
+                    "첫 번에 삼십 전, 둘째 번에 오십 전 ---",
+                    "아침 댓바람에 그리 흉하지 않은 일이었다.",
+                    "그야말로 재수가 옴붙어서 근 열흘 동안 돈 구경도 못한 김첨지는",
+                    "십전짜리 백통화 서 푼, 또는 다섯 푼이 찰깍하고",
+                    "손바닥에 떨어질 제 거의 눈물을 흘릴 만큼 기뻤었다.",
+                    "더구나 이날 이때에 이 팔십 전이라는 돈이 그에게 얼마나 유용한지 몰랐다.",
+                    "컬컬한 목에 모주 한 잔도 적실 수 있거니와,",
+                    "그보다도 앓는 아내에게 설렁탕 한 그릇도 사다줄 수 있음이다."
+                ]
+            },
+            {
+                "title": "추가 준비 중",
+                "sentences": [
+                    "추가 준비 중에 있습니다.",
+                    "추가 준비 중에 있습니다.",
+                    "추가 준비 중에 있습니다."
+                ]
+            }
+        ]
+    }
+</script>
+
+<!-- ✅ script.js를 외부파일 없이 HTML에 포함 -->
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const textSelection = document.getElementById("text-selection");
+        const textDisplays = Array.from(document.getElementsByClassName("text-display"));
+        const typingInputs = Array.from(document.getElementsByClassName("typing-input"));
+        const ratePill = document.querySelector(".rate b");
+        const bestPill = document.querySelector(".best-rate b");
+        const clearBestRateBtn = document.querySelector(".clear-best-rate");
+
+        // 내부 JSON 로드
+        const dataEl = document.getElementById("texts-data");
+        const texts = JSON.parse(dataEl.textContent).texts;
+
+        let currentSentences = [];
+        let currentIndex = 0; // 4줄 단위 시작 인덱스
+        let timer = null;
+        let startTime = null;
+
+        const LS_KEY = "bestTimes";
+        let bestTimes = JSON.parse(localStorage.getItem(LS_KEY)) || {};
+
+        // 옵션 채우기
+        texts.forEach((t, idx) => {
+            const opt = document.createElement("option");
+            opt.value = String(idx);
+            opt.textContent = t.title;
+            textSelection.appendChild(opt);
+        });
+
+        // ===== helpers =====
+        function resetInputStates(){
+            typingInputs.forEach(inp=>{
+                inp.value = "";
+                inp.classList.remove("state-ok","state-bad");
+            });
+        }
+
+        function displaySentences(){
+            textDisplays.forEach((el, i) => {
+                el.textContent = currentSentences[currentIndex + i] || "";
+            });
+            resetInputStates();
+        }
+
+        function resetTimer(){
+            clearInterval(timer);
+            timer = null;
+            startTime = null;
+            ratePill.textContent = "00:00";
+        }
+
+        function formatTime(seconds){
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${String(mins).padStart(2,"0")}:${String(secs).padStart(2,"0")}`;
+        }
+
+        function startTimer(){
+            startTime = Date.now();
+            timer = setInterval(() => {
+                const elapsed = (Date.now() - startTime) / 1000;
+                ratePill.textContent = formatTime(elapsed);
+            }, 100);
+        }
+
+        function displayBestTime(title){
+            if (bestTimes[title] != null){
+                bestPill.textContent = formatTime(bestTimes[title]);
+            } else {
+                bestPill.textContent = "--:--";
+            }
+        }
+
+        function selectedTitle(){
+            const idx = textSelection.selectedIndex;
+            if (idx < 0) return "";
+            return textSelection.options[idx].text || "";
+        }
+
+        function guardSelected(){
+            return textSelection.value !== "";
+        }
+
+        // ===== selection change =====
+        textSelection.addEventListener("change", () => {
+            const selectedIndex = textSelection.value;
+            if (selectedIndex === "") return;
+
+            currentSentences = texts[Number(selectedIndex)].sentences || [];
+            currentIndex = 0;
+            displaySentences();
+            resetTimer();
+            displayBestTime(texts[Number(selectedIndex)].title);
+
+            // 첫 번째 줄에 포커스
+            typingInputs[0].focus();
+        });
+
+        // ===== best reset =====
+        clearBestRateBtn.addEventListener("click", () => {
+            if(!guardSelected()) return;
+
+            const title = selectedTitle();
+            delete bestTimes[title];
+            localStorage.setItem(LS_KEY, JSON.stringify(bestTimes));
+            displayBestTime(title);
+            alert("선택한 글의 최고 기록을 초기화했습니다.");
+        });
+
+        // ===== input logic =====
+        typingInputs.forEach((input, index) => {
+            input.setAttribute("autocomplete", "off");
+
+            input.addEventListener("input", () => {
+                if (!guardSelected()) return;
+
+                if (!startTime) startTimer();
+
+                const expected = textDisplays[index].textContent || "";
+                const v = input.value;
+
+                // 빈 줄(문장 없음)이면 상태 표시 안 함
+                if (!expected){
+                    input.classList.remove("state-ok","state-bad");
+                    return;
+                }
+
+                if (v === expected){
+                    input.classList.add("state-ok");
+                    input.classList.remove("state-bad");
+                } else {
+                    input.classList.add("state-bad");
+                    input.classList.remove("state-ok");
+                }
+            });
+
+            input.addEventListener("keydown", (e) => {
+                if (e.key !== "Enter") return;
+                e.preventDefault();
+                if (!guardSelected()) return;
+                if (!startTime) startTimer();
+
+                const expected = textDisplays[index].textContent || "";
+                const v = input.value;
+
+                // 문장이 없는 줄이면 그냥 다음으로 이동
+                if (!expected){
+                    if (index < typingInputs.length - 1) typingInputs[index + 1].focus();
+                    else {
+                        currentIndex += typingInputs.length;
+                        displaySentences();
+                        typingInputs[0].focus();
+                    }
+                    return;
+                }
+
+                // Enter는 "완전 일치"가 아니면 다음으로 안 넘어가게(원본 로직 유지)
+                if (v !== expected){
+                    // 살짝 흔들림 느낌(간단)
+                    input.animate(
+                        [{transform:"translateX(0)"},{transform:"translateX(-6px)"},{transform:"translateX(6px)"},{transform:"translateX(0)"}],
+                        {duration:180}
+                    );
+                    return;
+                }
+
+                // 마지막 문장인지 체크
+                const isLastSentence = (currentIndex + index + 1) >= currentSentences.length;
+
+                if (isLastSentence){
+                    clearInterval(timer);
+                    timer = null;
+
+                    const elapsed = (Date.now() - startTime) / 1000;
+                    const title = selectedTitle();
+
+                    if (bestTimes[title] == null || elapsed < bestTimes[title]){
+                        bestTimes[title] = elapsed;
+                        localStorage.setItem(LS_KEY, JSON.stringify(bestTimes));
+                        displayBestTime(title);
+                    }
+
+                    alert("수고하셨습니다!");
+                    // 완료 후 입력 비우고 타이머 리셋(원하면 유지로 바꿀 수 있음)
+                    resetTimer();
+                    resetInputStates();
+                    typingInputs[0].blur();
+                    return;
+                }
+
+                // 다음 입력칸 포커스 or 다음 4문장 로드
+                if (index < typingInputs.length - 1){
+                    typingInputs[index + 1].focus();
+                } else {
+                    currentIndex += typingInputs.length;
+                    displaySentences();
+                    typingInputs[0].focus();
+                }
+            });
+        });
+
+        // 초기 상태: 입력 비활성은 아니지만, 선택 전에는 의미가 없으니 안내용으로 blur
+        typingInputs.forEach(i => i.value = "");
+    });
+</script>
+</body>
+</html>
