@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>판교비 타자 게임</title>
+
+    <!-- ✅ 외부 광고/부트스트랩 없음 -->
+    <!-- ✅ GRG SDK는 광고가 아니라 외부 게임 플랫폼용 점수 SDK일 수 있음
+         필요 없으면 아래 줄 삭제해도 게임은 정상 동작 -->
+    <!-- <script src="https://grggames.com/grg-games-sdk.min.js"></script> -->
+
+    <style>
+        :root{
+            --bg:#ffffff;
+            --panel:#ffffff;
+            --text:#0f172a;
+            --muted:#64748b;
+            --line:#e5e7eb;
+            --shadow:0 20px 60px rgba(2,6,23,.10);
+            --radius:18px;
+
+            --primary:#2563eb;
+            --danger:#ef4444;
+            --ok:#22c55e;
+            --chip:#f1f5f9;
+        }
+        *{ box-sizing:border-box; }
+        html,body{ height:100%; }
+        body{
+            margin:0;
+            font-family: ui-sans-serif, system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+            background:
+                    radial-gradient(1200px 800px at 20% 10%, #f3f6ff, #ffffff 60%) fixed;
+            color:var(--text);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:16px;
+        }
+
+        .app{
+            width:min(980px, 100%);
+            display:grid;
+            gap:14px;
+        }
+
+        .topbar{
+            display:flex;
+            align-items:flex-end;
+            justify-content:space-between;
+            gap:12px;
+            flex-wrap:wrap;
+        }
+        .brand h1{
+            margin:0;
+            font-size:18px;
+            font-weight:1000;
+            letter-spacing:-0.02em;
+        }
+        .brand p{
+            margin:6px 0 0;
+            color:var(--muted);
+            font-size:12px;
+            line-height:1.4;
+        }
+
+        .hud{
+            display:flex;
+            gap:8px;
+            flex-wrap:wrap;
+        }
+        .chip{
+            background:var(--chip);
+            border:1px solid var(--line);
+            border-radius:999px;
+            padding:8px 10px;
+            font-size:12px;
+            color:#334155;
+            user-select:none;
+            white-space:nowrap;
+        }
+
+        #gameContainer{
+            position:relative;
+            border-radius:var(--radius);
+            overflow:hidden;
+            border:1px solid var(--line);
+            background:#fff;
+            box-shadow:var(--shadow);
+        }
+
+        canvas{
+            display:block;
+            width:100%;
+            height:auto;
+            aspect-ratio: 4 / 3;
+            background:#0b1020;
+        }
+
+        .bottom{
+            display:flex;
+            gap:10px;
+            align-items:center;
+            justify-content:space-between;
+            flex-wrap:wrap;
+            padding:12px;
+            border-top:1px solid var(--line);
+            background:rgba(255,255,255,.92);
+            backdrop-filter: blur(8px);
+        }
+
+        #info{
+            font-size:13px;
+            color:#334155;
+            user-select:none;
+            white-space:nowrap;
+        }
+
+        .inputWrap{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            flex:1;
+            justify-content:flex-end;
+            min-width:260px;
+        }
+
+        #input{
+            width:min(520px, 100%);
+            height:44px;
+            padding:0 14px;
+            border-radius:14px;
+            border:1px solid var(--line);
+            background:#fff;
+            outline:none;
+            font-size:15px;
+            box-shadow: inset 0 1px 0 rgba(2,6,23,.03);
+        }
+        #input:focus{
+            border-color:#bfdbfe;
+            box-shadow:0 0 0 6px rgba(37,99,235,.15);
+        }
+        #input:disabled{
+            background:#f8fafc;
+            color:#94a3b8;
+        }
+
+        .hint{
+            font-size:12px;
+            color:var(--muted);
+            user-select:none;
+        }
+
+        /* Overlay */
+        .overlay{
+            position:absolute;
+            inset:0;
+            display:none;
+            align-items:center;
+            justify-content:center;
+            background:rgba(2,6,23,.55);
+            padding:18px;
+        }
+        .overlayCard{
+            width:min(720px, 100%);
+            background:#fff;
+            border-radius:22px;
+            border:1px solid var(--line);
+            box-shadow:var(--shadow);
+            overflow:hidden;
+        }
+        .overlayTop{
+            padding:14px 16px;
+            border-bottom:1px solid var(--line);
+            background:#f8fafc;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:10px;
+            flex-wrap:wrap;
+        }
+        .overlayTop h2{
+            margin:0;
+            font-size:18px;
+            font-weight:1000;
+            letter-spacing:-0.02em;
+        }
+        .overlayBody{
+            padding:16px;
+            display:grid;
+            gap:12px;
+        }
+        .heroImg{
+            width:100%;
+            border-radius:16px;
+            border:1px solid var(--line);
+            background:#f1f5f9;
+            overflow:hidden;
+            max-height:260px;
+            object-fit:cover;
+        }
+
+        .rules{
+            margin:0;
+            padding-left:18px;
+            color:#334155;
+            font-size:13px;
+            line-height:1.6;
+        }
+
+        .actions{
+            display:flex;
+            gap:10px;
+            justify-content:flex-end;
+            flex-wrap:wrap;
+            margin-top:4px;
+        }
+        .gameBtn{
+            height:44px;
+            padding:0 14px;
+            border-radius:14px;
+            border:1px solid var(--line);
+            background:#fff;
+            font-weight:900;
+            cursor:pointer;
+            transition: transform .05s, filter .15s, background .15s;
+        }
+        .gameBtn:hover{ background:#f8fafc; }
+        .gameBtn:active{ transform: translateY(1px); }
+        .gameBtn.primary{
+            background:var(--primary);
+            color:#fff;
+            border-color:transparent;
+        }
+        .gameBtn.primary:hover{ filter: brightness(1.03); }
+
+        .statGrid{
+            display:grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap:10px;
+        }
+        .stat{
+            border:1px solid var(--line);
+            border-radius:16px;
+            padding:12px;
+            background:#fff;
+        }
+        .stat .label{
+            font-size:12px;
+            color:var(--muted);
+        }
+        .stat .value{
+            margin-top:6px;
+            font-size:20px;
+            font-weight:1000;
+            letter-spacing:-0.02em;
+        }
+
+        @media (max-width: 640px){
+            .inputWrap{ justify-content:stretch; min-width:100%; }
+            #info{ white-space:normal; }
+            .statGrid{ grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+
+<body>
+<div class="app">
+    <div class="topbar">
+        <div class="brand">
+            <h1>🌧️ 판교비 타자 게임</h1>
+            <p>떨어지는 단어를 입력하고 <b>Enter</b>로 격파하세요. (순수 CSS + 바닐라 JS)</p>
+        </div>
+        <div class="hud">
+            <div class="chip">Enter로 제출</div>
+            <div class="chip">최대 레벨 10</div>
+            <div class="chip">목숨 3</div>
+        </div>
+    </div>
+
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+        <div class="bottom">
+            <div id="info">점수: 0 | 목숨: ❤️❤️❤️ | 레벨: 1</div>
+            <div class="inputWrap">
+                <div class="hint">정확히 입력 후 Enter</div>
+                <input
+                        type="text"
+                        id="input"
+                        placeholder="여기에 입력하세요"
+                        autocomplete="off"
+                        autocorrect="off"
+                        autocapitalize="off"
+                        spellcheck="false"
+                        oncopy="return false"
+                        onpaste="return false"
+                        oncut="return false"
+                        disabled
+                />
+            </div>
+        </div>
+
+        <!-- Start Overlay -->
+        <div id="startScreen" class="overlay" style="display:flex;">
+            <div class="overlayCard">
+                <div class="overlayTop">
+                    <h2>게임 안내</h2>
+                    <div class="chip">Ready?</div>
+                </div>
+                <div class="overlayBody">
+                    <ul class="rules">
+                        <li>💧 하늘에서 떨어지는 단어를 입력하세요</li>
+                        <li>⌨️ 입력 후 <b>엔터</b>를 눌러 제출!</li>
+                        <li>❤️ 목숨은 3개, 단어가 바닥에 닿으면 -1</li>
+                        <li>📈 점수에 따라 레벨 업 (최대 10)</li>
+                        <li>⚡ 레벨이 오를수록 속도/간격이 달라집니다</li>
+                    </ul>
+
+                    <div class="actions">
+                        <button class="gameBtn primary" id="startBtn">게임 시작</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Over Overlay -->
+        <div id="gameOver" class="overlay">
+            <div class="overlayCard">
+                <div class="overlayTop">
+                    <h2>게임 오버</h2>
+                    <div class="chip" style="color:#b91c1c;background:#fef2f2;border-color:#fecaca;">Try Again</div>
+                </div>
+                <div class="overlayBody">
+                    <div class="statGrid">
+                        <div class="stat">
+                            <div class="label">최종 점수</div>
+                            <div class="value" id="finalScore">0</div>
+                        </div>
+                        <div class="stat">
+                            <div class="label">최종 레벨</div>
+                            <div class="value" id="finalLevel">1</div>
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <button class="gameBtn" id="restartBtn">다시 하기</button>
+                        <button class="gameBtn primary" id="restartBtn2">바로 재시작</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // ===== Canvas & DOM =====
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const input = document.getElementById('input');
+    const infoDiv = document.getElementById('info');
+
+    const startScreen = document.getElementById('startScreen');
+    const gameOverDiv = document.getElementById('gameOver');
+    const startBtn = document.getElementById('startBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const restartBtn2 = document.getElementById('restartBtn2');
+
+    // ===== Word Data =====
+    const WORDS_BY_LEVEL = {
+        1: ['이슈', '콜백', '소켓', '니즈', '슬랙', '디코', '멘션', '롤백', '장애', '아삽'],
+        2: ['킥오프', '디폴트', '얼라인', '워킹데이', '트래킹', '피드백', '팔로업'],
+        3: ['리소스', '마일스톤', '배포', '깃헙', '커밋', '컴', '디벨롭', '와우팩터'],
+        4: ['모니터링', '빌드', '로드맵', '풀스택', '지라', '어사인', 'API', '스크럼', '에자일'],
+        5: ['프론트', '백엔드', 'SDK', 'ISMS', '마크업', 'ESG'],
+        6: ['ITGC', '리붓', '리전', 'AWS', 'IDC', '타임아웃', '이직의다리'],
+        7: ['노운이슈', '엣지케이스', '스펙아웃', '데드라인', '코드프리즈'],
+        8: [
+            '러프하게 일정 주세요',
+            '멘션 추가해 주세요',
+            '이슈업 부탁드립니다',
+            '인증서 싱글로 발급해도 될까요?',
+            '호스트 넣으셨어요?',
+            '워킹데이로 3일 입니다',
+            '코드 프리즈 중입니다',
+            '이슈 팔로업 필요합니다',
+        ],
+        9: [
+            '캐시 날리고 확인 부탁드려요',
+            '이슈가 있어 롤백 하겠습니다',
+            'QA 사인오프 되었습니다',
+            '화이트리스트 적용 하였습니다',
+            '그라파나 대시보드 추가 하였습니다',
+            '오늘 안건 얼라인 필요합니다',
+            '금주 스프린트 범위 컨펌 부탁',
+            '데드라인 임박, 리소스 체크',
+            '이슈는 노션에 업로드 완료',
+            '슬랙 쓰레드로 팔로업 해주세요',
+            '핫픽스 배포라 롤백 대비하세요',
+            '다음 스텝은 킥오프 미팅에서',
+            '데이터 드리븐으로 결정합시다',
+            '이번 주말엔 코드 프리즈 들어갑니다',
+            '핵심 KPI는 다음 위클리 때 공유',
+        ],
+        10: [
+            '하이퍼바이저에서 리시브패킷 에러가 발생하고 있습니다',
+            '구 버전의 클라이언트를 가진 유저는 diff 발생 분 부터 받게 됩니다',
+            '간헐적으로 504 게이트웨이 타임아웃 메시지가 확인되고 있습니다',
+            '금일 AWS DX 구간의 네트워크 순단이 발생하였습니다',
+            '일부 노드에서 디스크 I/O 지연 현상이 관찰되고 있습니다',
+            'DB 커넥션 풀 고갈로 인해 간헐적 요청 실패가 발생하고 있습니다',
+            '특정 리전의 캐시 서버 응답 속도가 평소 대비 저하되고 있습니다',
+            '웹소켓 연결이 불안정하게 끊기는 현상이 보고되고 있습니다',
+            '서비스 내부 API 호출 시 타임아웃 빈도가 증가하고 있습니다',
+            '일부 사용자의 로그인 요청에서 인증 지연이 확인되고 있습니다',
+            '배치 작업 실행 중 예외 발생으로 처리 지연이 발생하였습니다',
+            '트래픽 급증으로 인해 로드밸런서 레이턴시가 상승하고 있습니다',
+            '메시지 큐 적체로 인한 이벤트 처리 지연이 확인되고 있습니다',
+            '파일 업로드 시점에 네트워크 오류로 전송 실패 증가',
+        ]
+    };
+
+    // ===== Visual =====
+    const colors = [
+        'rgba(0, 255, 255, 0.85)',
+        'rgba(255, 0, 255, 0.85)',
+        'rgba(0, 255, 127, 0.85)',
+        'rgba(255, 20, 147, 0.85)',
+        'rgba(57, 255, 20, 0.85)',
+        'rgba(255, 165, 0, 0.85)',
+        'rgba(138, 43, 226, 0.85)',
+        'rgba(255, 255, 0, 0.85)',
+        'rgba(0, 191, 255, 0.85)',
+        'rgba(255, 105, 180, 0.85)'
+    ];
+
+    // ===== Background Image (optional) =====
+    const backgroundImage = new Image();
+    backgroundImage.src = 'img/pangyo.png';
+    let backgroundReady = false;
+    backgroundImage.onload = () => backgroundReady = true;
+
+    // ===== Game State =====
+    const MAX_LIVES = 3;
+
+    let gameState = {
+        score: 0,
+        lives: MAX_LIVES,
+        level: 1,
+        drops: [],
+        isGameOver: false,
+        isPlaying: false,
+        lastDropTime: 0,
+        dropInterval: 2000,
+        baseSpeed: 0.5,
+        levelSpeed: [0, 1, 2, 3, 4, 5, 6, 6, 0.5, 0.5, 0.5],
+        levelInterval: [0, 2000, 2000, 1900, 1900, 1800, 1800, 1700, 1700, 4000, 4000, 4000]
+    };
+
+    // ===== Drop Class =====
+    class Drop {
+        constructor(level){
+            const pool = WORDS_BY_LEVEL[level] || WORDS_BY_LEVEL[10];
+            this.char = pool[Math.floor(Math.random() * pool.length)];
+
+            this.fontSize =
+                this.char.length > 18 ? 16 :
+                    this.char.length > 10 ? 18 :
+                        this.char.length > 6  ? 22 :
+                            this.char.length > 4  ? 26 : 36;
+
+            // 텍스트 폭 고려해 화면 밖으로 나가지 않게
+            const approxWidth = Math.max(60, this.char.length * (this.fontSize * 0.62));
+            this.x = Math.random() * Math.max(10, (canvas.width - approxWidth - 10)) + 5;
+
+            this.y = -30;
+            this.speed = gameState.baseSpeed + (gameState.levelSpeed[gameState.level] * 0.5);
+            this.color = colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        update(){
+            this.y += this.speed;
+        }
+
+        draw(){
+            ctx.save();
+            ctx.fillStyle = this.color;
+            ctx.font = `900 ${this.fontSize}px "Malgun Gothic", system-ui, sans-serif`;
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+
+            // 글자 외곽선(가독성)
+            ctx.lineWidth = 6;
+            ctx.strokeStyle = 'rgba(2,6,23,.35)';
+            ctx.strokeText(this.char, this.x, this.y);
+
+            ctx.fillText(this.char, this.x, this.y);
+            ctx.restore();
+        }
+
+        isOnGround(){
+            return this.y >= canvas.height - 34;
+        }
+    }
+
+    // ===== Helpers =====
+    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+
+    function drawBackground(){
+        if (backgroundReady){
+            ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+        } else {
+            // 이미지 없을 때 기본 배경
+            const g = ctx.createLinearGradient(0,0,0,canvas.height);
+            g.addColorStop(0, '#0b1020');
+            g.addColorStop(1, '#0f1b3d');
+            ctx.fillStyle = g;
+            ctx.fillRect(0,0,canvas.width,canvas.height);
+        }
+
+        // 반투명 오버레이
+        ctx.fillStyle = 'rgba(10, 17, 40, 0.35)';
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+    }
+
+    function drawDrops(){
+        gameState.drops.forEach(d => d.draw());
+    }
+
+    function updateDrops(){
+        for (let i = gameState.drops.length - 1; i >= 0; i--){
+            const d = gameState.drops[i];
+            d.update();
+            if (d.isOnGround()){
+                gameState.drops.splice(i, 1);
+                gameState.lives--;
+
+                if (gameState.lives <= 0){
+                    endGame();
+                }
+            }
+        }
+    }
+
+    function addDrop(currentTime){
+        if (currentTime - gameState.lastDropTime > gameState.dropInterval){
+            gameState.drops.push(new Drop(gameState.level));
+            gameState.lastDropTime = currentTime;
+        }
+    }
+
+    function updateLevel(){
+        // 원본 로직: 점수 10점당 레벨업(최대 10)
+        const newLevel = Math.min(10, Math.floor(gameState.score / 10) + 1);
+        if (newLevel !== gameState.level){
+            gameState.level = newLevel;
+            gameState.dropInterval = gameState.levelInterval[gameState.level] ?? 2000;
+        }
+    }
+
+    function updateInfo(){
+        const hearts = '❤️'.repeat(clamp(gameState.lives, 0, 99));
+        infoDiv.textContent = `점수: ${gameState.score} | 목숨: ${hearts} | 레벨: ${gameState.level}`;
+    }
+
+    function checkInput(){
+        const userInput = input.value.trim();
+        if (!userInput) return;
+
+        for (let i = 0; i < gameState.drops.length; i++){
+            if (gameState.drops[i].char === userInput){
+                gameState.drops.splice(i, 1);
+                gameState.score += Math.min(6, userInput.length);
+                updateLevel();
+                break;
+            }
+        }
+        input.value = '';
+    }
+
+    function endGame(){
+        gameState.isGameOver = true;
+        gameState.isPlaying = false;
+
+        input.disabled = true;
+
+        // 모달 표시
+        gameOverDiv.style.display = 'flex';
+        document.getElementById('finalScore').textContent = String(gameState.score);
+        document.getElementById('finalLevel').textContent = String(gameState.level);
+
+        // 외부 SDK가 있으면 점수 전송 (없어도 안전)
+        try{
+            if (window.GRGScore && typeof GRGScore.onGameEnd === 'function'){
+                GRGScore.onGameEnd(gameState.score);
+            }
+        }catch(e){}
+    }
+
+    function gameLoop(currentTime){
+        if (!gameState.isPlaying || gameState.isGameOver) return;
+
+        drawBackground();
+        addDrop(currentTime);
+        updateDrops();
+        drawDrops();
+        updateInfo();
+
+        requestAnimationFrame(gameLoop);
+    }
+
+    function init(){
+        gameState = {
+            score: 0,
+            lives: MAX_LIVES,
+            level: 1,
+            drops: [],
+            isGameOver: false,
+            isPlaying: false,
+            lastDropTime: 0,
+            dropInterval: 2000,
+            baseSpeed: 0.5,
+            levelSpeed: [0, 1, 2, 3, 4, 5, 5, 5, 0.5, 0.5, 0.5],
+            levelInterval: [0, 2000, 2000, 1900, 1900, 1800, 1800, 1700, 1700, 4000, 4000, 4000]
+        };
+
+        input.value = '';
+        input.disabled = true;
+
+        startScreen.style.display = 'flex';
+        gameOverDiv.style.display = 'none';
+
+        drawBackground();
+        updateInfo();
+    }
+
+    function startGame(){
+        startScreen.style.display = 'none';
+        gameOverDiv.style.display = 'none';
+
+        gameState.isPlaying = true;
+        gameState.isGameOver = false;
+
+        input.disabled = false;
+        input.value = '';
+        input.focus();
+
+        requestAnimationFrame(gameLoop);
+    }
+
+    // ===== Events =====
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter'){
+            e.preventDefault();
+            checkInput();
+        }
+    });
+
+    startBtn.addEventListener('click', () => startGame());
+
+    restartBtn.addEventListener('click', () => {
+        init();
+        startGame();
+    });
+    restartBtn2.addEventListener('click', () => {
+        init();
+        startGame();
+    });
+
+    // ===== Boot =====
+    init();
+</script>
+</body>
+</html>
