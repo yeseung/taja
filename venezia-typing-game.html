@@ -1,0 +1,683 @@
+<!-- 파일명(영어) 예시: venezia-typing-game.html -->
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>베네치아 타자게임 Venezia Typing Game</title>
+    <style>
+        :root{
+            --bg:#f6f7fb;
+            --card:#ffffff;
+            --text:#111827;
+            --muted:#6b7280;
+            --border:#e5e7eb;
+            --shadow: 0 10px 30px rgba(0,0,0,.06);
+            --primary:#2563eb;
+            --primary-hover:#1d4ed8;
+            --danger:#ef4444;
+            --radius:18px;
+        }
+
+        *{ box-sizing:border-box; }
+        body{
+            margin:0;
+            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Apple SD Gothic Neo", "Noto Sans KR", Arial, sans-serif;
+            color:var(--text);
+            background:var(--bg);
+        }
+
+        .wrap{
+            max-width: 1200px;
+            margin: 24px auto;
+            padding: 0 16px;
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 16px;
+            align-items: stretch;
+        }
+
+        @media (max-width: 980px){
+            .wrap{ grid-template-columns: 1fr; }
+        }
+
+        .panel, .stageCard{
+            background:var(--card);
+            border:1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow:hidden;
+        }
+
+        .panel{
+            padding: 16px;
+            display:flex;
+            flex-direction: column;
+            gap: 12px;
+            min-height: 720px;
+        }
+
+        .title{
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -0.2px;
+            margin: 2px 0 0;
+        }
+
+        .sub{
+            margin: 0;
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        .row{
+            display:flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .field{
+            display:flex;
+            flex-direction: column;
+            gap: 6px;
+            width: 100%;
+        }
+
+        label{
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        input[type="file"]{
+            width: 100%;
+            border:1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px 12px;
+            background:#fff;
+        }
+
+        input[type="text"]{
+            width: 100%;
+            border:1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 12px;
+            font-size: 15px;
+            outline:none;
+        }
+        input[type="text"]:focus{
+            border-color: rgba(37,99,235,.5);
+            box-shadow: 0 0 0 4px rgba(37,99,235,.12);
+        }
+
+        button{
+            width: 100%;
+            border:0;
+            border-radius: 12px;
+            padding: 12px 14px;
+            font-size: 15px;
+            font-weight: 800;
+            cursor:pointer;
+            background: var(--primary);
+            color:#fff;
+        }
+        button:hover{ background: var(--primary-hover); }
+        button:disabled{
+            background:#9ca3af;
+            cursor:not-allowed;
+        }
+
+        .statBox{
+            display:grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 6px;
+        }
+        .stat{
+            border:1px solid var(--border);
+            border-radius: 14px;
+            padding: 12px;
+            background:#fff;
+        }
+        .stat .k{
+            font-size:12px;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+        .stat .v{
+            font-size: 18px;
+            font-weight: 900;
+        }
+
+        .hpWrap{
+            border:1px dashed var(--border);
+            border-radius: 14px;
+            padding: 12px;
+            background:#fff;
+        }
+        #hpGrid{
+            width: 154px;
+            height: 154px;
+            position: relative;
+            margin-top: 6px;
+            background: #fafafa;
+            border:1px solid var(--border);
+            border-radius: 12px;
+            overflow:hidden;
+        }
+
+        .hint{
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.6;
+            padding: 10px 12px;
+            border-radius: 14px;
+            background: #f9fafb;
+            border: 1px solid var(--border);
+        }
+
+        .stageCard{
+            min-height: 720px;
+            position: relative;
+            display:flex;
+            flex-direction: column;
+        }
+
+        .stageHeader{
+            padding: 12px 14px;
+            border-bottom:1px solid var(--border);
+            display:flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+        .stageHeader .left{
+            display:flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .stageHeader .h1{
+            font-weight: 900;
+            letter-spacing: -0.3px;
+        }
+        .stageHeader .h2{
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        #content{
+            position: relative;
+            flex: 1;
+            overflow: hidden;
+            background: linear-gradient(180deg, #eef2ff, #ffffff 50%, #f8fafc);
+        }
+
+        /* 단어 스타일 */
+        .fall-word{
+            position:absolute;
+            display:inline-block;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-weight: 900;
+            font-size: 18px;
+            border: 1px solid rgba(239,68,68,.25);
+            background: rgba(239,68,68,.10);
+            color: #b91c1c;
+            text-shadow: 0 1px 0 rgba(255,255,255,.6);
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        /* 바닥선 */
+        .ground{
+            position:absolute;
+            left:0; right:0;
+            bottom:0;
+            height: 70px;
+            background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.06));
+            border-top: 1px solid rgba(229,231,235,.9);
+            pointer-events:none;
+        }
+
+        .toast{
+            position:absolute;
+            right: 12px;
+            top: 12px;
+            background:#111827;
+            color:#fff;
+            padding: 10px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            opacity: 0;
+            transform: translateY(-6px);
+            transition: .2s ease;
+            pointer-events:none;
+        }
+        .toast.show{
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+<div class="wrap">
+    <!-- 왼쪽 패널 -->
+    <aside class="panel">
+        <div>
+            <div class="title">베네치아 타자게임</div>
+            <p class="sub">JSON 파일을 업로드하면 레벨별 단어가 떨어집니다. Enter로 입력!</p>
+        </div>
+
+        <div class="field">
+            <label>단어 JSON 업로드 (예: wordlist.json)</label>
+            <input id="fileInput" type="file" accept=".json,application/json" />
+        </div>
+
+        <div class="field">
+            <button id="btnStart" disabled>Start</button>
+        </div>
+
+        <div class="field">
+            <label>단어 입력 (Enter)</label>
+            <input id="textInput" type="text" placeholder="여기에 단어를 입력하세요" autocomplete="off" />
+        </div>
+
+        <div class="statBox">
+            <div class="stat">
+                <div class="k">레벨</div>
+                <div class="v" id="uiLevel">-</div>
+            </div>
+            <div class="stat">
+                <div class="k">속도(틱 간격 ms)</div>
+                <div class="v" id="uiSpeed">-</div>
+            </div>
+        </div>
+
+        <div class="hpWrap">
+            <div style="font-weight:900;">HP</div>
+            <div class="sub" style="margin-top:4px;">틀리면 1칸 감소 (총 9칸)</div>
+            <div id="hpGrid" aria-label="HP Grid"></div>
+        </div>
+
+        <div class="hint">
+            <b>JSON 형식 예시</b><br/>
+            아래처럼 레벨별 배열을 넣어주세요.
+            <pre style="margin:8px 0 0; padding:10px; background:#fff; border:1px solid var(--border); border-radius:12px; overflow:auto; font-size:12px;">
+{
+  "wordList": [
+    ["apple","banana","orange"],
+    ["javascript","variable","function"],
+    ["venezia","typing","challenge"]
+  ]
+}
+        </pre>
+        </div>
+    </aside>
+
+    <!-- 오른쪽 스테이지 -->
+    <section class="stageCard">
+        <div class="stageHeader">
+            <div class="left">
+                <div class="h1">Stage</div>
+                <div class="h2">단어가 바닥에 닿기 전에 입력하세요</div>
+            </div>
+            <div class="sub" id="uiStatus">대기 중</div>
+        </div>
+
+        <div id="content">
+            <div class="toast" id="toast"></div>
+            <div class="ground"></div>
+        </div>
+    </section>
+</div>
+
+<script>
+    /***********************
+     * 유틸
+     ***********************/
+    function getRandomByRange(min, max){
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function clamp(n, min, max){
+        return Math.max(min, Math.min(max, n));
+    }
+
+    function showToast(msg){
+        const t = document.getElementById("toast");
+        t.textContent = msg;
+        t.classList.add("show");
+        clearTimeout(showToast._tt);
+        showToast._tt = setTimeout(()=> t.classList.remove("show"), 1200);
+    }
+
+    /***********************
+     * Word 클래스
+     * - tick(): 위치값 업데이트
+     * - render(): DOM에 적용
+     ***********************/
+    class Word{
+        constructor(container, x, y, text){
+            this.container = container;
+            this.x = x;
+            this.y = y;
+            this.text = text;
+
+            this.vy = 2.4; // 낙하 속도(픽셀/틱) - 필요하면 조절
+
+            this.span = document.createElement("span");
+            this.span.className = "fall-word";
+            this.span.textContent = text;
+
+            this.container.appendChild(this.span);
+            this.render();
+        }
+
+        tick(){
+            this.y += this.vy;
+        }
+
+        render(){
+            this.span.style.left = this.x + "px";
+            this.span.style.top  = this.y + "px";
+        }
+
+        destroy(){
+            if (this.span && this.span.parentNode){
+                this.span.parentNode.removeChild(this.span);
+            }
+        }
+    }
+
+    /***********************
+     * HP 클래스 (3x3)
+     ***********************/
+    class HP{
+        constructor(container, x, y, w=47, h=47){
+            this.container = container;
+            this.div = document.createElement("div");
+            this.div.style.position = "absolute";
+            this.div.style.left = x + "px";
+            this.div.style.top  = y + "px";
+            this.div.style.width = w + "px";
+            this.div.style.height = h + "px";
+            this.div.style.borderRadius = "10px";
+            this.div.style.border = "1px solid rgba(239,68,68,.35)";
+            this.div.style.background = "rgba(239,68,68,.12)";
+            this.div.style.boxShadow = "inset 0 0 0 2px rgba(255,255,255,.55)";
+            container.appendChild(this.div);
+        }
+
+        destroy(){
+            if (this.div && this.div.parentNode){
+                this.div.parentNode.removeChild(this.div);
+            }
+        }
+    }
+
+    /***********************
+     * 게임 상태
+     ***********************/
+    let wordArray = null;   // { wordList: [ [...], [...], ... ] }
+    let st = undefined;     // setInterval ID
+    let wordList = [];      // Word instances
+    let hpArray = [];       // HP instances
+
+    let level = 0;
+    let speed = 180;        // ms (작을수록 빠름)
+    const SPEED_MIN = 40;   // 너무 빨라지지 않게
+
+    const content = document.getElementById("content");
+    const fileInput = document.getElementById("fileInput");
+    const btnStart = document.getElementById("btnStart");
+    const textInput = document.getElementById("textInput");
+
+    const uiLevel  = document.getElementById("uiLevel");
+    const uiSpeed  = document.getElementById("uiSpeed");
+    const uiStatus = document.getElementById("uiStatus");
+
+    function setUI(){
+        uiLevel.textContent = (wordArray ? (level + 1) : "-");
+        uiSpeed.textContent = (wordArray ? speed : "-");
+    }
+
+    function setStatus(msg){
+        uiStatus.textContent = msg;
+    }
+
+    /***********************
+     * 파일 로드
+     ***********************/
+    function loadData(e){
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(ev){
+            try{
+                const jsonString = ev.target.result;
+                const obj = JSON.parse(jsonString);
+
+                if (!obj || !Array.isArray(obj.wordList)){
+                    alert("JSON 형식 오류: { \"wordList\": [ [...], ... ] } 형태여야 합니다.");
+                    return;
+                }
+
+                wordArray = obj.wordList;
+                level = 0;
+                speed = 180;
+
+                resetGameVisual();
+                createHP();
+                createWord();
+
+                btnStart.disabled = false;
+                btnStart.textContent = "Start";
+                setStatus("준비 완료 (Start 클릭)");
+                setUI();
+                showToast("단어 로드 완료!");
+
+                textInput.focus();
+            }catch(err){
+                console.error(err);
+                alert("JSON 파싱 실패: 파일 내용을 확인해주세요.");
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    /***********************
+     * 게임 생성/진행
+     ***********************/
+    function resetGameVisual(){
+        // 단어 제거
+        for (const w of wordList) w.destroy();
+        wordList = [];
+
+        // HP 제거
+        for (const h of hpArray) h.destroy();
+        hpArray = [];
+
+        // 타이머 정지
+        stopLoop();
+    }
+
+    function createWord(){
+        if (!wordArray || !wordArray[level]) return;
+
+        const stageW = content.clientWidth;
+        const padding = 20;
+
+        const words = wordArray[level];
+        const gap = Math.max(90, Math.floor((stageW - padding*2) / Math.max(words.length, 1)));
+
+        for (let i=0; i<words.length; i++){
+            const x = clamp(padding + i*gap, padding, stageW - 160);
+            const y = getRandomByRange(-320, -40);
+            const w = new Word(content, x, y, String(words[i]));
+            wordList.push(w);
+        }
+    }
+
+    function createHP(){
+        const grid = document.getElementById("hpGrid");
+        // 혹시 남아있으면 제거
+        hpArray.forEach(h => h.destroy());
+        hpArray = [];
+
+        for (let i=0; i<3; i++){
+            for (let j=0; j<3; j++){
+                hpArray.push(new HP(grid, 50*j + 4, 50*i + 4, 46, 46));
+            }
+        }
+    }
+
+    function nextStep(){
+        const stageH = content.clientHeight;
+        const groundY = stageH - 70; // 바닥 영역 시작선
+
+        for (let i=wordList.length-1; i>=0; i--){
+            const w = wordList[i];
+            w.tick();
+            w.render();
+
+            // 단어가 바닥에 닿으면 HP 감소 + 단어 제거
+            if (w.y >= groundY - 20){
+                w.destroy();
+                wordList.splice(i, 1);
+                loseHP();
+                checkLevel();
+            }
+        }
+    }
+
+    function checkLevel(){
+        if (!wordArray) return;
+
+        if (wordList.length === 0){
+            // 다음 레벨이 있으면 레벨업, 없으면 클리어
+            if (level + 1 < wordArray.length){
+                alert(`레벨 ${level + 1} 단계 통과! 🎉`);
+                level++;
+
+                speed = clamp(speed - 20, SPEED_MIN, 9999);
+                setUI();
+
+                createWord();
+                showToast(`레벨 ${level + 1}`);
+
+                // ✅ 핵심: 진행 중이면 새 speed로 인터벌 재시작
+                if (st !== undefined){
+                    startLoop(); // 내부에서 기존 stop 후 재시작
+                }
+            }else{
+                stopLoop();
+                alert("모든 레벨 클리어! 🏆");
+                setStatus("클리어!");
+                btnStart.textContent = "Start";
+                st = undefined;
+            }
+        }
+    }
+
+    function checkText(inputEl){
+        const val = inputEl.value.trim();
+        if (!val) return;
+
+        for (let i=0; i<wordList.length; i++){
+            if (wordList[i].text === val){
+                wordList[i].destroy();
+                wordList.splice(i, 1);
+                inputEl.value = "";
+                showToast("정답!");
+                checkLevel();
+                return;
+            }
+        }
+
+        // 틀림
+        inputEl.value = "";
+        showToast("틀림!");
+        loseHP();
+
+        // HP 0이면 게임오버
+        if (hpArray.length === 0){
+            stopLoop();
+            alert("Game Over 😢 다시 시작하려면 JSON을 다시 업로드하거나 새로고침하세요.");
+            setStatus("게임 오버");
+            btnStart.textContent = "Start";
+            st = undefined;
+        }
+    }
+
+    function loseHP(){
+        if (hpArray.length > 0){
+            const h = hpArray.shift();
+            h.destroy();
+        }
+    }
+
+    /***********************
+     * 루프 제어
+     ***********************/
+    function gameLoop(){
+        nextStep();
+    }
+
+    function startLoop(){
+        stopLoop();
+        st = setInterval(gameLoop, speed);
+        setStatus("진행 중");
+        btnStart.textContent = "Pause";
+    }
+
+    function stopLoop(){
+        if (st !== undefined){
+            clearInterval(st);
+            st = undefined;
+        }
+    }
+
+    function toggleLoop(){
+        if (!wordArray){
+            alert("먼저 JSON 파일을 업로드해주세요.");
+            return;
+        }
+        if (st === undefined){
+            startLoop();
+        }else{
+            stopLoop();
+            setStatus("일시정지");
+            btnStart.textContent = "Start";
+        }
+    }
+
+    /***********************
+     * 이벤트 바인딩
+     ***********************/
+    function init(){
+        setUI();
+        setStatus("대기 중 (JSON 업로드 필요)");
+
+        fileInput.addEventListener("change", loadData);
+
+        btnStart.addEventListener("click", function(){
+            toggleLoop();
+            textInput.focus();
+        });
+
+        textInput.addEventListener("keyup", function(e){
+            if (e.key === "Enter"){
+                checkText(this);
+            }
+        });
+
+        // 첫 진입 시 HP만 미리 만들어두고 싶으면 아래 켜도 됨
+        // createHP();
+    }
+
+    window.addEventListener("load", init);
+</script>
+</body>
+</html>
