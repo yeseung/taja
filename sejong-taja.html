@@ -1,0 +1,823 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Sejong Taja - Typing Practice (Vanilla)</title>
+    <meta name="description" content="바닐라 자바스크립트 + 순수 CSS로 만든 깔끔한 타자 연습(광고/부트스트랩 없음)" />
+
+    <style>
+        :root{
+            --bg:#f6f7fb;
+            --card:#ffffff;
+            --text:#111827;
+            --muted:#6b7280;
+            --border:#e5e7eb;
+            --shadow:0 14px 40px rgba(17,24,39,.08);
+            --radius:18px;
+
+            --primary:#2563eb;
+            --primary2:#1d4ed8;
+
+            --good:#16a34a;
+            --bad:#ef4444;
+            --warn:#f59e0b;
+
+            --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            --sans: system-ui, -apple-system, Segoe UI, Roboto, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+        }
+
+        *{ box-sizing:border-box; }
+        html,body{ height:100%; }
+        body{
+            margin:0;
+            background: radial-gradient(1200px 600px at 15% 0%, #eef2ff 0%, transparent 60%),
+            radial-gradient(1000px 700px at 90% 10%, #ecfeff 0%, transparent 55%),
+            var(--bg);
+            color:var(--text);
+            font-family:var(--sans);
+            line-height:1.4;
+        }
+
+        .wrap{
+            width:min(980px, 100%);
+            margin:0 auto;
+            padding:22px 16px 38px;
+        }
+
+        header{
+            display:flex;
+            align-items:flex-start;
+            justify-content:space-between;
+            gap:14px;
+            margin-bottom:14px;
+        }
+
+        .brand{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            min-width: 260px;
+        }
+
+        .logo{
+            width:44px;height:44px;
+            border-radius:14px;
+            background:linear-gradient(135deg, #2563eb, #7c3aed);
+            box-shadow:0 14px 30px rgba(37,99,235,.25);
+            display:grid;
+            place-items:center;
+            color:#fff;
+            font-weight:800;
+            letter-spacing:-.5px;
+            user-select:none;
+        }
+
+        h1{
+            margin:0;
+            font-size:18px;
+            letter-spacing:-.2px;
+        }
+        .sub{
+            margin:2px 0 0;
+            color:var(--muted);
+            font-size:12.5px;
+        }
+
+        .card{
+            background:var(--card);
+            border:1px solid var(--border);
+            border-radius:var(--radius);
+            box-shadow:var(--shadow);
+            overflow:hidden;
+        }
+
+        .grid{
+            display:grid;
+            grid-template-columns: 1fr;
+            gap:12px;
+        }
+
+        @media (min-width: 860px){
+            .grid{
+                grid-template-columns: 1.25fr .75fr;
+                align-items:start;
+            }
+        }
+
+        .panel{
+            padding:16px;
+        }
+
+        .row{
+            display:flex;
+            flex-wrap:wrap;
+            gap:10px;
+            align-items:center;
+            justify-content:space-between;
+        }
+
+        .controls{
+            display:flex;
+            flex-wrap:wrap;
+            gap:8px;
+            align-items:center;
+        }
+
+        select, button, input[type="text"]{
+            font:inherit;
+        }
+
+        .select{
+            appearance:none;
+            background:#fff;
+            border:1px solid var(--border);
+            border-radius:12px;
+            padding:10px 12px;
+            min-height:40px;
+            color:var(--text);
+            outline:none;
+            box-shadow: 0 8px 16px rgba(17,24,39,.06);
+        }
+
+        .btn{
+            border:1px solid var(--border);
+            background:#fff;
+            border-radius:12px;
+            padding:10px 12px;
+            min-height:40px;
+            cursor:pointer;
+            color:var(--text);
+            box-shadow: 0 8px 16px rgba(17,24,39,.06);
+            transition: transform .08s ease, box-shadow .18s ease, border-color .18s ease;
+            user-select:none;
+        }
+        .btn:hover{
+            border-color:#d1d5db;
+            box-shadow: 0 12px 22px rgba(17,24,39,.08);
+        }
+        .btn:active{ transform: translateY(1px); }
+
+        .btn.primary{
+            border-color: transparent;
+            background: linear-gradient(135deg, var(--primary), #4f46e5);
+            color:#fff;
+            box-shadow: 0 14px 28px rgba(37,99,235,.22);
+        }
+        .btn.primary:hover{ background: linear-gradient(135deg, var(--primary2), #4338ca); }
+
+        .btn.ghost{
+            background:transparent;
+            box-shadow:none;
+        }
+
+        .kbd{
+            font-family:var(--mono);
+            font-size:12px;
+            border:1px solid var(--border);
+            background:#f8fafc;
+            border-bottom-width:2px;
+            border-radius:8px;
+            padding:2px 6px;
+            color:#334155;
+        }
+
+        .stats{
+            display:grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap:10px;
+            margin-top:12px;
+        }
+        .stat{
+            border:1px solid var(--border);
+            border-radius:14px;
+            padding:12px;
+            background: linear-gradient(180deg, #fff, #fbfdff);
+        }
+        .stat .k{
+            font-size:12px;
+            color:var(--muted);
+        }
+        .stat .v{
+            margin-top:6px;
+            font-weight:800;
+            letter-spacing:-.3px;
+            font-size:20px;
+        }
+        .badge{
+            display:inline-flex;
+            align-items:center;
+            gap:6px;
+            border-radius:999px;
+            padding:6px 10px;
+            font-size:12px;
+            border:1px solid var(--border);
+            background:#fff;
+            color:var(--muted);
+        }
+        .dot{
+            width:8px;height:8px;border-radius:999px;background:var(--warn);
+        }
+        .dot.good{ background:var(--good); }
+        .dot.bad{ background:var(--bad); }
+
+        .prompt{
+            padding:14px 16px;
+            border:1px dashed #dbeafe;
+            background:linear-gradient(180deg, #eff6ff, #ffffff);
+            border-radius:16px;
+            margin-top:12px;
+        }
+
+        .target{
+            font-family:var(--mono);
+            font-size:16px;
+            line-height:1.9;
+            word-break:keep-all;
+            overflow-wrap:anywhere;
+            margin:0;
+        }
+
+        .target .ch{
+            padding:2px 0;
+            border-radius:6px;
+        }
+        .target .ok{
+            color:var(--good);
+            background: rgba(22,163,74,.08);
+        }
+        .target .ng{
+            color:var(--bad);
+            background: rgba(239,68,68,.10);
+        }
+        .target .cur{
+            outline:2px solid rgba(37,99,235,.35);
+            background: rgba(37,99,235,.08);
+        }
+
+        .inputBox{
+            margin-top:12px;
+            display:flex;
+            gap:10px;
+            align-items:center;
+        }
+
+        .input{
+            flex:1;
+            border:1px solid var(--border);
+            border-radius:14px;
+            padding:12px 14px;
+            min-height:46px;
+            outline:none;
+            background:#fff;
+            box-shadow: 0 12px 22px rgba(17,24,39,.06);
+        }
+        .input:focus{
+            border-color: rgba(37,99,235,.45);
+            box-shadow: 0 18px 32px rgba(37,99,235,.12);
+        }
+
+        .hint{
+            margin-top:10px;
+            color:var(--muted);
+            font-size:12.5px;
+            display:flex;
+            flex-wrap:wrap;
+            gap:10px;
+            align-items:center;
+            justify-content:space-between;
+        }
+
+        .rightCol .panel{
+            padding:14px;
+        }
+
+        .list{
+            margin:10px 0 0;
+            padding:0;
+            list-style:none;
+            display:grid;
+            gap:8px;
+        }
+        .list li{
+            border:1px solid var(--border);
+            border-radius:14px;
+            padding:12px;
+            background:#fff;
+        }
+        .list .t{
+            font-weight:700;
+            font-size:13px;
+        }
+        .list .d{
+            margin-top:4px;
+            color:var(--muted);
+            font-size:12.5px;
+        }
+
+        footer{
+            margin-top:14px;
+            color:var(--muted);
+            font-size:12px;
+            display:flex;
+            justify-content:space-between;
+            flex-wrap:wrap;
+            gap:8px;
+            padding: 0 4px;
+        }
+
+        .toast{
+            position:fixed;
+            bottom:18px;
+            left:50%;
+            transform:translateX(-50%);
+            background:#111827;
+            color:#fff;
+            padding:10px 12px;
+            border-radius:12px;
+            font-size:13px;
+            opacity:0;
+            pointer-events:none;
+            transition: opacity .18s ease, transform .18s ease;
+            box-shadow:0 18px 40px rgba(0,0,0,.25);
+        }
+        .toast.show{
+            opacity:1;
+            transform:translateX(-50%) translateY(-4px);
+        }
+    </style>
+</head>
+
+<body>
+<div class="wrap">
+    <header>
+        <div class="brand">
+            <div class="logo">SJ</div>
+            <div>
+                <h1>Sejong Taja <span style="color:var(--muted);font-weight:700;">(Vanilla)</span></h1>
+                <p class="sub">부트스트랩/광고 없이 — 순수 HTML + CSS + JS로 만든 타자 연습</p>
+            </div>
+        </div>
+
+        <div class="controls">
+            <span class="badge" id="statusBadge"><span class="dot" id="statusDot"></span><span id="statusText">대기</span></span>
+
+            <select class="select" id="mode">
+                <option value="sentence">문장 연습</option>
+                <option value="word">단어 연습</option>
+            </select>
+
+            <select class="select" id="level">
+                <option value="easy">쉬움</option>
+                <option value="normal" selected>보통</option>
+                <option value="hard">어려움</option>
+            </select>
+
+            <button class="btn ghost" id="btnNew">새 문장</button>
+            <button class="btn primary" id="btnStart">시작</button>
+        </div>
+    </header>
+
+    <div class="grid">
+        <!-- left -->
+        <div class="card">
+            <div class="panel">
+                <div class="row">
+                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                        <span class="badge"><span class="dot good"></span>정확</span>
+                        <span class="badge"><span class="dot bad"></span>오타</span>
+                        <span class="badge"><span class="dot"></span>진행</span>
+                    </div>
+
+                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;color:var(--muted);font-size:12px;">
+                        <span>단축키</span>
+                        <span class="kbd">Enter</span><span>시작/다음</span>
+                        <span class="kbd">Esc</span><span>초기화</span>
+                    </div>
+                </div>
+
+                <div class="prompt" aria-live="polite">
+                    <p class="target" id="target"></p>
+
+                    <div class="inputBox">
+                        <input class="input" id="input" type="text" placeholder="여기에 입력하세요…" autocomplete="off" spellcheck="false" />
+                        <button class="btn" id="btnReset" title="초기화 (Esc)">초기화</button>
+                    </div>
+
+                    <div class="hint">
+                        <div id="hintLeft">시작 버튼을 누르면 측정이 시작됩니다.</div>
+                        <div id="hintRight">완료 후 <span class="kbd">Enter</span>로 다음</div>
+                    </div>
+                </div>
+
+                <div class="stats">
+                    <div class="stat">
+                        <div class="k">속도 (WPM)</div>
+                        <div class="v" id="wpm">0</div>
+                    </div>
+                    <div class="stat">
+                        <div class="k">정확도</div>
+                        <div class="v" id="acc">100%</div>
+                    </div>
+                    <div class="stat">
+                        <div class="k">타수</div>
+                        <div class="v" id="chars">0</div>
+                    </div>
+                    <div class="stat">
+                        <div class="k">경과 시간</div>
+                        <div class="v" id="time">0.0s</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- right -->
+        <div class="card rightCol">
+            <div class="panel">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                    <div style="font-weight:800;letter-spacing:-.2px;">설정 / 안내</div>
+                    <button class="btn" id="btnCopy">기록 복사</button>
+                </div>
+
+                <ul class="list">
+                    <li>
+                        <div class="t">연습 모드</div>
+                        <div class="d">문장/단어를 선택하고, 난이도에 따라 길이/구성이 바뀝니다.</div>
+                    </li>
+                    <li>
+                        <div class="t">측정 방식</div>
+                        <div class="d">WPM = (정확 입력 문자수 / 5) / 분(60초 기준)</div>
+                    </li>
+                    <li>
+                        <div class="t">오타 처리</div>
+                        <div class="d">현재 위치에서 틀리면 빨간 표시, 맞으면 초록 표시됩니다.</div>
+                    </li>
+                    <li>
+                        <div class="t">원하는 문장 넣기</div>
+                        <div class="d">JS 배열 <span class="kbd">SENTENCES</span>, <span class="kbd">WORDS</span>에 추가하면 됩니다.</div>
+                    </li>
+                </ul>
+
+                <div style="margin-top:12px;color:var(--muted);font-size:12.5px;">
+                    ※ 광고 스크립트/외부 프레임워크 없음 (순수 코드)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div>© Sejong Taja (Vanilla) — No Bootstrap / No Adsense</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <span>Tip: 입력창 포커스는 자동 유지</span>
+            <span>•</span>
+            <span id="seedInfo">seed: -</span>
+        </div>
+    </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+    // ---------------------------
+    // 데이터(원하는 대로 교체/추가)
+    // ---------------------------
+    const SENTENCES = [
+        "세종대왕은 백성을 사랑하여 훈민정음을 만들었습니다.",
+        "오늘도 천천히, 정확하게 한 글자씩 입력해 봅시다.",
+        "빠른 속도보다 중요한 것은 정확한 습관입니다.",
+        "짧게 쉬고 다시 시작하면 집중력이 더 좋아집니다.",
+        "자주 쓰는 문장을 반복하면 자연스럽게 속도가 오릅니다.",
+        "틀려도 괜찮아요. 오타를 줄이는 연습이 핵심입니다.",
+        "눈은 문장에, 손은 키보드에 익숙해지도록 반복하세요.",
+        "정확도 95% 이상을 목표로 꾸준히 해보세요."
+    ];
+
+    const WORDS = [
+        "세종", "훈민정음", "정확도", "타자", "연습", "속도", "집중", "기록",
+        "키보드", "문장", "단어", "타수", "오타", "리듬", "반복", "성장"
+    ];
+
+    // 난이도별: 문장 길이 컷 / 단어 개수
+    const LEVEL = {
+        easy:   { minLen: 10, maxLen: 35, wordCount: 6 },
+        normal: { minLen: 20, maxLen: 60, wordCount: 10 },
+        hard:   { minLen: 35, maxLen: 120, wordCount: 14 }
+    };
+
+    // ---------------------------
+    // 유틸
+    // ---------------------------
+    const $ = (sel) => document.querySelector(sel);
+
+    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+
+    function nowMs(){ return performance.now(); }
+
+    function toast(msg){
+        const el = $("#toast");
+        el.textContent = msg;
+        el.classList.add("show");
+        clearTimeout(toast._t);
+        toast._t = setTimeout(()=> el.classList.remove("show"), 1100);
+    }
+
+    // 간단한 seed 랜덤(재현성 있는 셔플 느낌)
+    let seed = Math.floor(Math.random() * 1e9);
+    $("#seedInfo").textContent = "seed: " + seed;
+
+    function rand(){
+        // xorshift32
+        seed ^= seed << 13; seed ^= seed >>> 17; seed ^= seed << 5;
+        return ((seed >>> 0) / 4294967296);
+    }
+
+    function pick(arr){
+        return arr[Math.floor(rand() * arr.length)];
+    }
+
+    function buildWordLine(count){
+        const bag = [];
+        const used = new Set();
+        while(bag.length < count){
+            const w = pick(WORDS);
+            // 너무 중복되면 보기 안 좋아서 약하게 방지
+            if(used.has(w) && rand() < 0.75) continue;
+            used.add(w);
+            bag.push(w);
+        }
+        return bag.join(" ");
+    }
+
+    function pickSentenceByLevel(levelKey){
+        const { minLen, maxLen } = LEVEL[levelKey];
+        // 길이 맞는 후보를 최대한 찾아보고, 없으면 그냥 하나
+        const candidates = SENTENCES.filter(s => s.length >= minLen && s.length <= maxLen);
+        return (candidates.length ? pick(candidates) : pick(SENTENCES));
+    }
+
+    // ---------------------------
+    // 상태
+    // ---------------------------
+    const state = {
+        started: false,
+        finished: false,
+        target: "",
+        startAt: 0,
+        lastTickAt: 0,
+        totalTyped: 0,
+        correctTyped: 0,
+        errors: 0
+    };
+
+    let rafId = 0;
+
+    // ---------------------------
+    // 렌더
+    // ---------------------------
+    function setStatus(type, text){
+        const dot = $("#statusDot");
+        const st = $("#statusText");
+        dot.classList.remove("good","bad");
+        if(type === "good") dot.classList.add("good");
+        else if(type === "bad") dot.classList.add("bad");
+        st.textContent = text;
+    }
+
+    function renderTarget(){
+        const input = $("#input").value;
+        const t = state.target;
+
+        let html = "";
+        const n = t.length;
+        const m = input.length;
+
+        for(let i=0; i<n; i++){
+            const ch = t[i];
+            const typed = input[i];
+
+            let cls = "ch";
+            if(i < m){
+                if(typed === ch) cls += " ok";
+                else cls += " ng";
+            }
+            if(i === m && !state.finished) cls += " cur";
+            // 공백 표시도 눈에 띄게
+            const show = (ch === " ") ? "&nbsp;" : escapeHtml(ch);
+            html += `<span class="${cls}">${show}</span>`;
+        }
+
+        $("#target").innerHTML = html;
+    }
+
+    function escapeHtml(s){
+        return s.replace(/[&<>"']/g, (c) => ({
+            "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+        }[c]));
+    }
+
+    function calcStats(){
+        const elapsed = state.started ? (nowMs() - state.startAt) / 1000 : 0;
+        const elapsedMin = elapsed / 60;
+
+        // "정확 입력 문자수" 기준(Backspace 포함 입력은 따로 카운트하지 않음)
+        const correct = state.correctTyped;
+        const wpm = (elapsedMin > 0) ? (correct / 5) / elapsedMin : 0;
+
+        const total = state.totalTyped;
+        const acc = (total > 0) ? (correct / total) * 100 : 100;
+
+        return {
+            elapsed,
+            wpm: Math.round(wpm),
+            acc: Math.round(acc),
+            total,
+            correct
+        };
+    }
+
+    function renderStats(){
+        const s = calcStats();
+        $("#wpm").textContent = String(s.wpm);
+        $("#acc").textContent = `${s.acc}%`;
+        $("#chars").textContent = String(s.correct);
+        $("#time").textContent = `${s.elapsed.toFixed(1)}s`;
+
+        if(!state.started) $("#hintLeft").textContent = "시작 버튼을 누르면 측정이 시작됩니다.";
+        else if(state.finished) $("#hintLeft").textContent = "완료! Enter로 다음 문장(또는 새 문장 버튼).";
+        else $("#hintLeft").textContent = "입력 중… 정확도를 유지해 보세요.";
+    }
+
+    function tick(){
+        renderStats();
+        rafId = requestAnimationFrame(tick);
+    }
+
+    // ---------------------------
+    // 로직
+    // ---------------------------
+    function newTarget(){
+        const mode = $("#mode").value;
+        const level = $("#level").value;
+
+        if(mode === "word"){
+            state.target = buildWordLine(LEVEL[level].wordCount);
+        }else{
+            state.target = pickSentenceByLevel(level);
+        }
+
+        state.started = false;
+        state.finished = false;
+        state.startAt = 0;
+        state.totalTyped = 0;
+        state.correctTyped = 0;
+        state.errors = 0;
+
+        $("#input").value = "";
+        setStatus("", "대기");
+        renderTarget();
+        renderStats();
+        focusInput();
+    }
+
+    function start(){
+        if(state.started) return;
+        state.started = true;
+        state.finished = false;
+        state.startAt = nowMs();
+        setStatus("good", "진행 중");
+        focusInput();
+
+        cancelAnimationFrame(rafId);
+        tick();
+    }
+
+    function finish(){
+        state.finished = true;
+        setStatus("good", "완료");
+        renderTarget();
+        renderStats();
+        toast("완료!");
+    }
+
+    function resetAll(){
+        state.started = false;
+        state.finished = false;
+        state.startAt = 0;
+        state.totalTyped = 0;
+        state.correctTyped = 0;
+        state.errors = 0;
+        $("#input").value = "";
+        setStatus("", "대기");
+        renderTarget();
+        renderStats();
+        focusInput();
+        toast("초기화");
+    }
+
+    function focusInput(){
+        // 모바일에서도 포커스 유지가 너무 공격적이면 주석 처리 가능
+        $("#input").focus({ preventScroll:true });
+    }
+
+    function onType(){
+        const input = $("#input").value;
+        const t = state.target;
+
+        // 시작 전 입력 시도하면 자동 시작
+        if(!state.started && input.length > 0){
+            start();
+        }
+
+        // 통계 업데이트 (현재 문자열 기준으로 재계산)
+        const len = input.length;
+        let correct = 0;
+        let total = len;
+
+        for(let i=0; i<len; i++){
+            if(input[i] === t[i]) correct++;
+        }
+
+        state.totalTyped = total;
+        state.correctTyped = correct;
+        state.errors = total - correct;
+
+        renderTarget();
+        renderStats();
+
+        // 완료 판정: 길이 동일 + 전부 일치
+        if(len === t.length && state.errors === 0){
+            finish();
+        }else{
+            if(state.started && !state.finished){
+                if(state.errors > 0) setStatus("bad", "오타 있음");
+                else setStatus("good", "진행 중");
+            }
+        }
+    }
+
+    function copyRecord(){
+        const s = calcStats();
+        const mode = $("#mode").value;
+        const level = $("#level").value;
+        const txt =
+                  `[Sejong Taja 기록]
+- mode: ${mode}
+- level: ${level}
+- WPM: ${s.wpm}
+- accuracy: ${s.acc}%
+- correct chars: ${s.correct}
+- time: ${s.elapsed.toFixed(1)}s
+- target: ${state.target}`;
+
+        navigator.clipboard?.writeText(txt).then(()=>{
+            toast("기록 복사됨");
+        }).catch(()=>{
+            // fallback
+            const ta = document.createElement("textarea");
+            ta.value = txt;
+            document.body.appendChild(ta);
+            ta.select();
+            try{ document.execCommand("copy"); toast("기록 복사됨"); }
+            catch(e){ toast("복사 실패"); }
+            finally{ ta.remove(); }
+        });
+    }
+
+    // ---------------------------
+    // 이벤트 바인딩
+    // ---------------------------
+    $("#btnNew").addEventListener("click", newTarget);
+    $("#btnStart").addEventListener("click", start);
+    $("#btnReset").addEventListener("click", resetAll);
+    $("#btnCopy").addEventListener("click", copyRecord);
+
+    $("#mode").addEventListener("change", newTarget);
+    $("#level").addEventListener("change", newTarget);
+
+    $("#input").addEventListener("input", onType);
+    $("#input").addEventListener("blur", () => {
+        // 입력이 끝난 상태면 굳이 다시 포커스 강제 X
+        if(!state.finished) setTimeout(focusInput, 0);
+    });
+
+    window.addEventListener("keydown", (e) => {
+        if(e.key === "Escape"){
+            e.preventDefault();
+            resetAll();
+            return;
+        }
+
+        if(e.key === "Enter"){
+            // 완료 상태면 다음 문장, 아니면 시작
+            e.preventDefault();
+            if(state.finished) newTarget();
+            else start();
+            return;
+        }
+    });
+
+    // 초기
+    newTarget();
+</script>
+</body>
+</html>

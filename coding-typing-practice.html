@@ -1,0 +1,948 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Typing Practice (White) - Vanilla</title>
+
+    <style>
+        :root{
+            --bg:#f6f7fb;
+            --card:#ffffff;
+            --card2:#fbfcff;
+            --text:#101828;
+            --muted:#667085;
+            --border:#e5e7eb;
+            --shadow:0 14px 40px rgba(16,24,40,.08);
+            --radius:18px;
+
+            --primary:#2563eb;
+            --primary2:#1d4ed8;
+            --good:#16a34a;
+            --warn:#f59e0b;
+            --bad:#ef4444;
+
+            --chip:#f1f5f9;
+            --chip2:#eff6ff;
+
+            --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+            --sans: system-ui, -apple-system, Segoe UI, Roboto, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+        }
+
+        *{ box-sizing:border-box; }
+        html,body{ height:100%; }
+        body{
+            margin:0;
+            font-family:var(--sans);
+            color:var(--text);
+            background:
+                    radial-gradient(900px 520px at 18% 0%, #eef2ff 0%, transparent 55%),
+                    radial-gradient(900px 560px at 90% 10%, #ecfeff 0%, transparent 50%),
+                    var(--bg);
+        }
+
+        .wrap{
+            width:min(1100px, 100%);
+            margin:0 auto;
+            padding:22px 16px 40px;
+        }
+
+        /* ---------- Top bar ---------- */
+        .topbar{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:12px;
+            margin-bottom:14px;
+        }
+        .brand{
+            display:flex;
+            align-items:center;
+            gap:12px;
+            min-width:220px;
+        }
+        .logo{
+            width:46px;height:46px;border-radius:16px;
+            background:linear-gradient(135deg,#2563eb,#7c3aed);
+            box-shadow:0 14px 30px rgba(37,99,235,.22);
+            display:grid;place-items:center;
+            color:#fff;font-weight:900;letter-spacing:-.6px;
+            user-select:none;
+        }
+        .brand h1{
+            margin:0;
+            font-size:18px;
+            letter-spacing:-.3px;
+        }
+        .brand .sub{
+            margin:2px 0 0;
+            font-size:12.5px;
+            color:var(--muted);
+        }
+
+        .tabs{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            flex-wrap:wrap;
+            justify-content:flex-end;
+        }
+
+        .pill{
+            display:flex;
+            padding:6px;
+            border-radius:999px;
+            border:1px solid var(--border);
+            background:rgba(255,255,255,.75);
+            box-shadow:0 12px 26px rgba(16,24,40,.06);
+            backdrop-filter: blur(8px);
+        }
+        .tab{
+            border:0;
+            background:transparent;
+            padding:10px 14px;
+            border-radius:999px;
+            font-weight:800;
+            color:var(--muted);
+            cursor:pointer;
+            letter-spacing:-.2px;
+            white-space:nowrap;
+        }
+        .tab.active{
+            color:#fff;
+            background:linear-gradient(135deg,var(--primary),#4f46e5);
+            box-shadow:0 14px 28px rgba(37,99,235,.22);
+        }
+        .iconBtn{
+            width:44px;height:44px;
+            border-radius:14px;
+            border:1px solid var(--border);
+            background:rgba(255,255,255,.75);
+            box-shadow:0 12px 26px rgba(16,24,40,.06);
+            cursor:pointer;
+        }
+
+        /* ---------- Shell card ---------- */
+        .shell{
+            margin-top:10px;
+            border:1px solid var(--border);
+            background:linear-gradient(180deg,#ffffff, #fbfcff);
+            box-shadow:var(--shadow);
+            border-radius:22px;
+            overflow:hidden;
+        }
+        .shellHead{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            padding:12px 14px;
+            border-bottom:1px solid var(--border);
+            background:linear-gradient(180deg,#ffffff,#f8fafc);
+        }
+        .windowDots{
+            display:flex; gap:8px; align-items:center;
+        }
+        .dot{ width:12px;height:12px;border-radius:999px; }
+        .dot.r{ background:#ef4444; }
+        .dot.y{ background:#f59e0b; }
+        .dot.g{ background:#22c55e; }
+
+        .shellTitle{
+            font-family:var(--mono);
+            font-size:12.5px;
+            letter-spacing:.8px;
+            color:var(--muted);
+        }
+
+        /* ---------- Category row ---------- */
+        .categoryWrap{
+            padding:14px;
+        }
+        .cats{
+            display:grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap:12px;
+        }
+        @media (max-width: 980px){
+            .cats{ grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (max-width: 620px){
+            .cats{ grid-template-columns: repeat(2, 1fr); }
+        }
+
+        .cat{
+            border:1px solid var(--border);
+            background:#fff;
+            border-radius:18px;
+            padding:14px 14px 12px;
+            min-height:94px;
+            cursor:pointer;
+            box-shadow:0 10px 22px rgba(16,24,40,.06);
+            transition: transform .08s ease, box-shadow .18s ease, border-color .18s ease;
+            position:relative;
+        }
+        .cat:hover{
+            border-color:#d1d5db;
+            box-shadow:0 14px 30px rgba(16,24,40,.08);
+        }
+        .cat:active{ transform: translateY(1px); }
+        .cat.active{
+            border-color: rgba(37,99,235,.45);
+            box-shadow:0 0 0 4px rgba(37,99,235,.12), 0 14px 30px rgba(16,24,40,.08);
+            background:linear-gradient(180deg, #ffffff, #f7fbff);
+        }
+
+        .catIcon{
+            width:38px;height:38px;border-radius:14px;
+            background:var(--chip2);
+            border:1px solid #dbeafe;
+            display:grid;place-items:center;
+            font-size:18px;
+            margin-bottom:10px;
+        }
+        .catName{
+            font-weight:900;
+            letter-spacing:-.3px;
+            margin:0;
+        }
+        .catDesc{
+            margin:6px 0 0;
+            color:var(--muted);
+            font-size:12.5px;
+        }
+
+        /* ---------- Stats bar ---------- */
+        .statsBar{
+            padding:14px 14px 8px;
+            display:flex;
+            justify-content:center;
+        }
+        .stats{
+            width:min(620px,100%);
+            display:grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap:10px;
+            border:1px solid var(--border);
+            background:rgba(255,255,255,.75);
+            border-radius:999px;
+            padding:10px;
+            box-shadow:0 14px 34px rgba(16,24,40,.06);
+            backdrop-filter: blur(8px);
+        }
+        .stat{
+            border-radius:16px;
+            padding:10px 10px;
+            text-align:center;
+        }
+        .stat .v{
+            font-family:var(--mono);
+            font-weight:900;
+            font-size:20px;
+            letter-spacing:-.4px;
+            margin:0;
+        }
+        .stat .k{
+            margin:4px 0 0;
+            font-size:12px;
+            color:var(--muted);
+            letter-spacing:-.1px;
+        }
+        .stat.good .v{ color:var(--good); }
+        .stat.warn .v{ color:var(--warn); }
+        .stat.bad .v{ color:var(--bad); }
+
+        /* ---------- Typing area ---------- */
+        .typingWrap{
+            padding:14px;
+        }
+        .terminal{
+            border:1px solid var(--border);
+            border-radius:20px;
+            background:#ffffff;
+            box-shadow:0 14px 34px rgba(16,24,40,.08);
+            overflow:hidden;
+        }
+        .terminalHead{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:10px;
+            padding:12px 14px;
+            border-bottom:1px solid var(--border);
+            background:linear-gradient(180deg,#fff,#f8fafc);
+        }
+        .terminalHead .left{
+            display:flex; align-items:center; gap:10px;
+        }
+        .chip{
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+            padding:8px 12px;
+            border-radius:999px;
+            border:1px solid var(--border);
+            background:#fff;
+            color:var(--muted);
+            font-size:12.5px;
+            font-weight:700;
+        }
+        .chip b{ color:var(--text); }
+        .terminalHead .right{
+            display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end;
+        }
+
+        .btn{
+            border:1px solid var(--border);
+            background:#fff;
+            color:var(--text);
+            border-radius:14px;
+            padding:10px 12px;
+            cursor:pointer;
+            font-weight:800;
+            box-shadow:0 10px 22px rgba(16,24,40,.06);
+            transition: transform .08s ease, box-shadow .18s ease, border-color .18s ease;
+            white-space:nowrap;
+        }
+        .btn:hover{
+            border-color:#d1d5db;
+            box-shadow:0 14px 30px rgba(16,24,40,.08);
+        }
+        .btn:active{ transform: translateY(1px); }
+        .btn.primary{
+            border-color:transparent;
+            color:#fff;
+            background:linear-gradient(135deg,var(--primary),#4f46e5);
+            box-shadow:0 14px 28px rgba(37,99,235,.22);
+        }
+        .btn.ghost{
+            background:transparent;
+            box-shadow:none;
+        }
+
+        /* "pill select" */
+        .selectWrap{
+            position:relative;
+            display:inline-block;
+        }
+        .select{
+            appearance:none; -webkit-appearance:none; -moz-appearance:none;
+            height:44px;
+            padding:0 46px 0 16px;
+            border-radius:999px;
+            border:1px solid var(--border);
+            background:#fff;
+            box-shadow:0 10px 22px rgba(16,24,40,.06);
+            font-weight:900;
+            letter-spacing:-.2px;
+            cursor:pointer;
+            outline:none;
+        }
+        .selectWrap::after{
+            content:"▼";
+            position:absolute;
+            right:16px;
+            top:50%;
+            transform:translateY(-50%);
+            font-size:11px;
+            color:var(--muted);
+            pointer-events:none;
+        }
+        .select:focus{
+            border-color: rgba(37,99,235,.35);
+            box-shadow: 0 0 0 4px rgba(37,99,235,.14), 0 10px 22px rgba(16,24,40,.06);
+        }
+
+        .terminalBody{
+            padding:16px;
+        }
+
+        .codeBox{
+            border:1px solid var(--border);
+            border-radius:18px;
+            background:linear-gradient(180deg,#ffffff,#fbfcff);
+            padding:14px 14px 12px;
+        }
+
+        .codeLine{
+            font-family:var(--mono);
+            font-size:18px;
+            line-height:1.95;
+            letter-spacing:.2px;
+            word-break:break-word;
+            overflow-wrap:anywhere;
+            margin:0;
+        }
+
+        .ch{
+            padding:2px 0;
+            border-radius:6px;
+        }
+        .ok{
+            color:var(--good);
+            background: rgba(22,163,74,.10);
+        }
+        .ng{
+            color:var(--bad);
+            background: rgba(239,68,68,.12);
+        }
+        .cur{
+            outline:2px solid rgba(37,99,235,.35);
+            background: rgba(37,99,235,.10);
+        }
+
+        .inputRow{
+            margin-top:12px;
+            display:flex;
+            gap:10px;
+            align-items:center;
+        }
+        .input{
+            flex:1;
+            height:48px;
+            border-radius:14px;
+            border:1px solid var(--border);
+            padding:0 14px;
+            font-size:16px;
+            outline:none;
+            box-shadow:0 12px 22px rgba(16,24,40,.06);
+        }
+        .input:focus{
+            border-color: rgba(37,99,235,.35);
+            box-shadow: 0 0 0 4px rgba(37,99,235,.14), 0 12px 22px rgba(16,24,40,.06);
+        }
+
+        .hint{
+            margin-top:10px;
+            color:var(--muted);
+            font-size:12.5px;
+            display:flex;
+            flex-wrap:wrap;
+            gap:10px;
+            justify-content:space-between;
+            align-items:center;
+        }
+        .kbd{
+            font-family:var(--mono);
+            font-size:12px;
+            border:1px solid var(--border);
+            background:#f8fafc;
+            border-bottom-width:2px;
+            border-radius:8px;
+            padding:2px 6px;
+            color:#334155;
+        }
+
+        .bottom{
+            padding:14px 14px 18px;
+            display:flex;
+            justify-content:center;
+        }
+
+        footer{
+            margin-top:14px;
+            padding:0 4px;
+            color:var(--muted);
+            font-size:12px;
+            display:flex;
+            justify-content:space-between;
+            flex-wrap:wrap;
+            gap:8px;
+        }
+
+        .toast{
+            position:fixed;
+            left:50%;
+            bottom:18px;
+            transform:translateX(-50%);
+            background:#101828;
+            color:#fff;
+            padding:10px 12px;
+            border-radius:12px;
+            font-size:13px;
+            opacity:0;
+            pointer-events:none;
+            transition: opacity .18s ease, transform .18s ease;
+            box-shadow:0 18px 40px rgba(0,0,0,.22);
+        }
+        .toast.show{
+            opacity:1;
+            transform:translateX(-50%) translateY(-4px);
+        }
+    </style>
+</head>
+
+<body>
+<div class="wrap">
+    <!-- TOP -->
+    <div class="topbar">
+        <div class="brand">
+            <div class="logo">TP</div>
+            <div>
+                <h1>Typing Practice <span style="color:var(--muted);font-weight:800;">(White)</span></h1>
+                <p class="sub">Vanilla JS + Pure CSS · No Bootstrap · No Ads</p>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="iconBtn" id="btnSound" title="소리(예시) 토글">🔈</button>
+            <div class="pill" role="tablist" aria-label="연습 탭">
+                <button class="tab" data-tab="ko" role="tab" aria-selected="false">한글타자</button>
+                <button class="tab" data-tab="en" role="tab" aria-selected="false">영문타자</button>
+                <button class="tab active" data-tab="code" role="tab" aria-selected="true">코딩연습</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN SHELL -->
+    <div class="shell">
+        <div class="shellHead">
+            <div class="windowDots" aria-hidden="true">
+                <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+            </div>
+            <div class="shellTitle">SELECT_CATEGORY</div>
+        </div>
+
+        <!-- Categories -->
+        <div class="categoryWrap">
+            <div class="cats" id="cats">
+                <!-- filled by JS -->
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="statsBar">
+            <div class="stats" aria-label="통계">
+                <div class="stat">
+                    <p class="v" id="statChars">0</p>
+                    <p class="k">코드</p>
+                </div>
+                <div class="stat">
+                    <p class="v" id="statCpm">0</p>
+                    <p class="k">타/분</p>
+                </div>
+                <div class="stat">
+                    <p class="v" id="statWpm">0</p>
+                    <p class="k">WPM</p>
+                </div>
+                <div class="stat good">
+                    <p class="v" id="statAcc">100%</p>
+                    <p class="k">정확도</p>
+                </div>
+                <div class="stat warn">
+                    <p class="v" id="statErr">0%</p>
+                    <p class="k">오타율</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Typing -->
+        <div class="typingWrap">
+            <div class="terminal">
+                <div class="terminalHead">
+                    <div class="left">
+                        <span class="chip">카테고리: <b id="chipCat">MariaDB</b></span>
+                        <span class="chip">난이도: <b id="chipLevel">보통</b></span>
+                    </div>
+
+                    <div class="right">
+                        <div class="selectWrap">
+                            <select class="select" id="selLevel">
+                                <option value="easy">쉬움</option>
+                                <option value="normal" selected>보통</option>
+                                <option value="hard">어려움</option>
+                            </select>
+                        </div>
+                        <button class="btn" id="btnNew">새 문제</button>
+                        <button class="btn primary" id="btnStart">시작</button>
+                        <button class="btn ghost" id="btnReset" title="Esc">초기화</button>
+                    </div>
+                </div>
+
+                <div class="terminalBody">
+                    <div class="codeBox">
+                        <p class="codeLine" id="targetLine"></p>
+
+                        <div class="inputRow">
+                            <input class="input" id="input" type="text" placeholder="여기에 입력하세요…" autocomplete="off" spellcheck="false" />
+                        </div>
+
+                        <div class="hint">
+                            <div id="hintLeft">타이핑을 시작하면 측정이 시작됩니다.</div>
+                            <div>
+                                <span class="kbd">Enter</span> 시작/다음
+                                <span style="margin:0 8px;">·</span>
+                                <span class="kbd">Esc</span> 초기화
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bottom">
+                    <button class="btn" id="btnRestart">다시 시작</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div>© Typing Practice (White) — Pure CSS & Vanilla JS</div>
+        <div id="seedInfo">seed: -</div>
+    </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+    /* ---------------------------
+       데이터 (원하면 자유롭게 교체)
+    ---------------------------- */
+    const BANK = {
+        "종합연습": [
+            "The quick brown fox jumps over the lazy dog.",
+            "오늘도 천천히, 정확하게 한 글자씩 입력해 봅시다.",
+            "정확도 95% 이상을 목표로 꾸준히 해보세요."
+        ],
+        "웹개발": [
+            "const app = document.querySelector('#app');",
+            "fetch('/api/users').then(r => r.json()).then(console.log);",
+            "<div class=\"container\">Hello</div>"
+        ],
+        "Java": [
+            "public static void main(String[] args) { System.out.println(\"Hello\"); }",
+            "List<String> list = new ArrayList<>();",
+            "try { doWork(); } catch (Exception e) { e.printStackTrace(); }"
+        ],
+        "MariaDB": [
+            "DELETE FROM users WHERE id IN (SELECT user_id FROM banned_users);",
+            "SELECT name, email FROM users WHERE created_at >= '2025-01-01' ORDER BY id DESC;",
+            "UPDATE products SET stock = stock - 1 WHERE id = 42 AND stock > 0;"
+        ],
+        "리눅스": [
+            "grep -R \"TODO\" -n ./src | head",
+            "tar -czf backup.tar.gz ./data && echo \"done\"",
+            "chmod +x deploy.sh && ./deploy.sh --prod"
+        ]
+    };
+
+    const CATEGORIES = [
+        { key:"종합연습", icon:"🔥", desc:"전체 랜덤 조합" },
+        { key:"웹개발", icon:"🌐", desc:"HTML, CSS, JS" },
+        { key:"Java", icon:"☕", desc:"Spring, OOP" },
+        { key:"MariaDB", icon:"🗄️", desc:"SQL, Query" },
+        { key:"리눅스", icon:"🐧", desc:"CLI, Shell" }
+    ];
+
+    const LEVEL = {
+        easy:   { minLen: 12, maxLen: 60 },
+        normal: { minLen: 25, maxLen: 110 },
+        hard:   { minLen: 50, maxLen: 220 }
+    };
+
+    /* ---------------------------
+       간단 seed 랜덤 (재현성)
+    ---------------------------- */
+    let seed = Math.floor(Math.random()*1e9);
+    document.getElementById("seedInfo").textContent = "seed: " + seed;
+
+    function rand(){
+        seed ^= seed << 13; seed ^= seed >>> 17; seed ^= seed << 5;
+        return ((seed >>> 0) / 4294967296);
+    }
+    function pick(arr){ return arr[Math.floor(rand() * arr.length)]; }
+
+    /* ---------------------------
+       상태
+    ---------------------------- */
+    const state = {
+        activeTab: "code",
+        activeCat: "MariaDB",
+        started: false,
+        finished: false,
+        startAt: 0,
+        target: "",
+        totalTyped: 0,
+        correctTyped: 0,
+        errors: 0
+    };
+
+    let rafId = 0;
+
+    /* ---------------------------
+       DOM
+    ---------------------------- */
+    const $ = (s) => document.querySelector(s);
+
+    const catsEl = $("#cats");
+    const targetLine = $("#targetLine");
+    const input = $("#input");
+
+    const chipCat = $("#chipCat");
+    const chipLevel = $("#chipLevel");
+    const selLevel = $("#selLevel");
+
+    const statChars = $("#statChars");
+    const statCpm = $("#statCpm");
+    const statWpm = $("#statWpm");
+    const statAcc = $("#statAcc");
+    const statErr = $("#statErr");
+
+    const hintLeft = $("#hintLeft");
+
+    function toast(msg){
+        const t = $("#toast");
+        t.textContent = msg;
+        t.classList.add("show");
+        clearTimeout(toast._t);
+        toast._t = setTimeout(()=>t.classList.remove("show"), 1100);
+    }
+
+    /* ---------------------------
+       렌더
+    ---------------------------- */
+    function renderCats(){
+        catsEl.innerHTML = CATEGORIES.map(c => {
+            const active = c.key === state.activeCat ? "active" : "";
+            return `
+      <button class="cat ${active}" data-cat="${c.key}" type="button">
+        <div class="catIcon">${c.icon}</div>
+        <p class="catName">${c.key}</p>
+        <p class="catDesc">${c.desc}</p>
+      </button>
+    `;
+        }).join("");
+
+        catsEl.querySelectorAll(".cat").forEach(btn=>{
+            btn.addEventListener("click", ()=>{
+                state.activeCat = btn.dataset.cat;
+                chipCat.textContent = state.activeCat;
+                newProblem(true);
+                renderCats();
+            });
+        });
+    }
+
+    function escapeHtml(s){
+        return s.replace(/[&<>"']/g, (c)=>({
+            "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+        }[c]));
+    }
+
+    function renderTarget(){
+        const typed = input.value;
+        const t = state.target;
+
+        let html = "";
+        const n = t.length;
+        const m = typed.length;
+
+        for(let i=0;i<n;i++){
+            const ch = t[i];
+            const v = typed[i];
+
+            let cls = "ch";
+            if(i < m){
+                cls += (v === ch) ? " ok" : " ng";
+            }
+            if(i === m && !state.finished) cls += " cur";
+
+            const show = (ch === " ") ? "&nbsp;" : escapeHtml(ch);
+            html += `<span class="${cls}">${show}</span>`;
+        }
+        targetLine.innerHTML = html;
+    }
+
+    function calcStats(){
+        const elapsed = state.started ? (performance.now() - state.startAt) / 1000 : 0;
+        const min = elapsed / 60;
+
+        const correct = state.correctTyped;
+        const total = state.totalTyped;
+
+        const wpm = (min > 0) ? (correct / 5) / min : 0;
+        const cpm = (min > 0) ? (correct / min) : 0;
+
+        const acc = (total > 0) ? (correct / total) * 100 : 100;
+        const err = 100 - acc;
+
+        return {
+            elapsed,
+            wpm: Math.round(wpm),
+            cpm: Math.round(cpm),
+            correct,
+            acc: Math.round(acc),
+            err: Math.round(err)
+        };
+    }
+
+    function renderStats(){
+        const s = calcStats();
+        statChars.textContent = String(s.correct);
+        statCpm.textContent = String(s.cpm);
+        statWpm.textContent = String(s.wpm);
+        statAcc.textContent = `${s.acc}%`;
+        statErr.textContent = `${s.err}%`;
+
+        if(!state.started) hintLeft.textContent = "타이핑을 시작하면 측정이 시작됩니다.";
+        else if(state.finished) hintLeft.textContent = "완료! Enter로 다음 문제(또는 새 문제 버튼).";
+        else hintLeft.textContent = "입력 중… 정확도를 유지해 보세요.";
+    }
+
+    function tick(){
+        renderStats();
+        rafId = requestAnimationFrame(tick);
+    }
+
+    /* ---------------------------
+       문제 생성
+    ---------------------------- */
+    function pickByLevel(list, levelKey){
+        const {minLen,maxLen} = LEVEL[levelKey];
+        const cand = list.filter(x => x.length >= minLen && x.length <= maxLen);
+        return cand.length ? pick(cand) : pick(list);
+    }
+
+    function newProblem(keepLevel=false){
+        const levelKey = selLevel.value;
+        chipLevel.textContent = levelLabel(levelKey);
+
+        const list = BANK[state.activeCat] || BANK["종합연습"];
+        state.target = pickByLevel(list, levelKey);
+
+        state.started = false;
+        state.finished = false;
+        state.startAt = 0;
+        state.totalTyped = 0;
+        state.correctTyped = 0;
+        state.errors = 0;
+
+        input.value = "";
+        renderTarget();
+        renderStats();
+        input.focus({preventScroll:true});
+    }
+
+    function levelLabel(key){
+        return key === "easy" ? "쉬움" : key === "hard" ? "어려움" : "보통";
+    }
+
+    /* ---------------------------
+       시작/완료/리셋
+    ---------------------------- */
+    function start(){
+        if(state.started) return;
+        state.started = true;
+        state.finished = false;
+        state.startAt = performance.now();
+        cancelAnimationFrame(rafId);
+        tick();
+        input.focus({preventScroll:true});
+    }
+
+    function finish(){
+        state.finished = true;
+        renderTarget();
+        renderStats();
+        toast("완료!");
+    }
+
+    function resetAll(){
+        state.started = false;
+        state.finished = false;
+        state.startAt = 0;
+        state.totalTyped = 0;
+        state.correctTyped = 0;
+        state.errors = 0;
+        input.value = "";
+        renderTarget();
+        renderStats();
+        input.focus({preventScroll:true});
+        toast("초기화");
+    }
+
+    /* ---------------------------
+       입력 처리
+    ---------------------------- */
+    function onType(){
+        const typed = input.value;
+        const t = state.target;
+
+        // 자동 시작
+        if(!state.started && typed.length > 0) start();
+
+        // 통계 재계산
+        let correct = 0;
+        for(let i=0;i<typed.length;i++){
+            if(typed[i] === t[i]) correct++;
+        }
+        state.totalTyped = typed.length;
+        state.correctTyped = correct;
+        state.errors = state.totalTyped - state.correctTyped;
+
+        renderTarget();
+        renderStats();
+
+        // 완료 조건: 길이 동일 + 오타 0
+        if(typed.length === t.length && state.errors === 0){
+            finish();
+        }
+    }
+
+    /* ---------------------------
+       탭 UI(상단)
+    ---------------------------- */
+    function initTabs(){
+        document.querySelectorAll(".tab").forEach(btn=>{
+            btn.addEventListener("click", ()=>{
+                document.querySelectorAll(".tab").forEach(b=>{
+                    b.classList.remove("active");
+                    b.setAttribute("aria-selected","false");
+                });
+                btn.classList.add("active");
+                btn.setAttribute("aria-selected","true");
+                state.activeTab = btn.dataset.tab;
+
+                // 예시: code 탭만 사용(원하면 여기서 데이터/카테고리 바꾸면 됨)
+                toast("탭 전환: " + (state.activeTab === "code" ? "코딩연습" : state.activeTab));
+                input.focus({preventScroll:true});
+            });
+        });
+    }
+
+    /* ---------------------------
+       바인딩
+    ---------------------------- */
+    $("#btnNew").addEventListener("click", ()=> newProblem(true));
+    $("#btnStart").addEventListener("click", start);
+    $("#btnReset").addEventListener("click", resetAll);
+    $("#btnRestart").addEventListener("click", ()=> { resetAll(); start(); });
+
+    selLevel.addEventListener("change", ()=>{
+        chipLevel.textContent = levelLabel(selLevel.value);
+        newProblem(true);
+    });
+
+    input.addEventListener("input", onType);
+
+    window.addEventListener("keydown", (e)=>{
+        if(e.key === "Escape"){
+            e.preventDefault();
+            resetAll();
+            return;
+        }
+        if(e.key === "Enter"){
+            e.preventDefault();
+            if(state.finished) newProblem(true);
+            else start();
+            return;
+        }
+    });
+
+    /* ---------------------------
+       초기화
+    ---------------------------- */
+    renderCats();
+    initTabs();
+    newProblem();
+</script>
+</body>
+</html>
