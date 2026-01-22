@@ -1,0 +1,651 @@
+<!--
+파일명(영어) 예시:
+- alphabet-fall-game-level-combo-wpm-multi.html (단일 파일)
+-->
+
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Alphabet Falling Game - Level/Combo/WPM/Multi</title>
+
+    <!-- https://m.blog.naver.com/kelly010/224105055330 -->
+
+    <style>
+        :root{
+            --bg:#f6f7fb;
+            --card:#ffffff;
+            --text:#101828;
+            --muted:#667085;
+            --border:#e5e7eb;
+            --shadow:0 10px 30px rgba(16,24,40,.08);
+            --radius:16px;
+
+            --btn:#f8fafc;
+            --btn-hover:#eef2f7;
+
+            --danger:#ef4444;
+            --ok:#16a34a;
+            --line:#d0d5dd;
+
+            --hint:#96dc96;
+            --hint-border:#009600;
+        }
+
+        *{ box-sizing:border-box; }
+        html,body{ height:100%; }
+        body{
+            margin:0;
+            background:var(--bg);
+            color:var(--text);
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:flex-start;
+            padding:20px;
+        }
+
+        .wrap{ width:min(980px, 100%); }
+
+        header{
+            display:flex;
+            flex-direction:column;
+            gap:6px;
+            margin-bottom:12px;
+        }
+        h1{ margin:0; font-size:22px; letter-spacing:-0.2px; }
+        .sub{ margin:0; color:var(--muted); font-size:13px; line-height:1.4; }
+
+        .card{
+            background:var(--card);
+            border:1px solid var(--border);
+            border-radius:var(--radius);
+            box-shadow:var(--shadow);
+            padding:12px;
+        }
+
+        .canvas-wrap{
+            border:1px solid var(--border);
+            border-radius:14px;
+            overflow:hidden;
+            background:#fff;
+        }
+        canvas{ display:block; width:100%; height:auto; background:#fff; }
+
+        .controls{
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            justify-content:space-between;
+            gap:10px;
+            margin-top:10px;
+            padding:6px 2px 0;
+        }
+
+        .btns{ display:flex; gap:10px; align-items:center; }
+        button{
+            font:inherit;
+            font-size:14px;
+            padding:9px 16px;
+            border-radius:12px;
+            border:1px solid var(--border);
+            background:var(--btn);
+            color:var(--text);
+            cursor:pointer;
+            transition: background .15s ease, transform .05s ease;
+        }
+        button:hover{ background:var(--btn-hover); }
+        button:active{ transform: translateY(1px); }
+
+        #message{
+            flex:1;
+            min-width:240px;
+            font-size:13px;
+            color:var(--danger);
+            text-align:left;
+        }
+
+        .hint{
+            width:100%;
+            font-size:12px;
+            color:var(--muted);
+            margin-top:4px;
+        }
+
+        .kbd{
+            display:inline-block;
+            padding:2px 8px;
+            border:1px solid var(--border);
+            border-bottom-width:2px;
+            border-radius:8px;
+            background:#fff;
+            font-size:12px;
+            color:#111;
+            margin:0 2px;
+        }
+
+        @media (max-width: 540px){
+            .controls{ flex-direction:column; align-items:stretch; }
+            #message{ min-width:unset; }
+            .btns{ justify-content:flex-start; }
+        }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <header>
+        <h1>알파벳 떨어뜨리기 게임 (레벨/콤보/WPM/멀티)</h1>
+        <p class="sub">
+            <span class="kbd">A</span>~<span class="kbd">Z</span>를 눌러 떨어지는 글자를 맞추세요.
+            레벨이 오를수록 <b>더 자주</b>, <b>더 빨리</b>, <b>더 많이</b> 떨어집니다.
+        </p>
+    </header>
+
+    <section class="card">
+        <div class="canvas-wrap">
+            <canvas id="gameCanvas" width="800" height="600"></canvas>
+        </div>
+
+        <div class="controls">
+            <div class="btns">
+                <button id="restartBtn" type="button" style="display:none;">다시하기</button>
+                <button id="quitBtn" type="button" style="display:none;">종료</button>
+            </div>
+            <div id="message"></div>
+        </div>
+
+        <div class="hint">
+            표기: WPM은 “정답 타수 기준”으로 계산됩니다(가벼운 연습용). 정확도는 정답/총 입력입니다.
+        </div>
+    </section>
+</div>
+
+<script>
+    /* =========================
+       기본 설정
+    ========================= */
+    const WIDTH = 800;
+    const HEIGHT = 600;
+
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const restartBtn = document.getElementById("restartBtn");
+    const quitBtn = document.getElementById("quitBtn");
+    const messageEl = document.getElementById("message");
+
+    /* =========================
+       손가락 / 키 매핑(기존 유지)
+    ========================= */
+    const FINGERS = [
+        "L_PINKY", "L_RING", "L_MIDDLE", "L_INDEX",
+        "R_INDEX", "R_MIDDLE", "R_RING", "R_PINKY",
+    ];
+
+    const LETTER_TO_FINGER = {
+        Q:"L_PINKY", A:"L_PINKY", Z:"L_PINKY",
+        W:"L_RING",  S:"L_RING",  X:"L_RING",
+        E:"L_MIDDLE",D:"L_MIDDLE",C:"L_MIDDLE",
+        R:"L_INDEX", F:"L_INDEX", V:"L_INDEX",
+        T:"L_INDEX", G:"L_INDEX", B:"L_INDEX",
+
+        Y:"R_INDEX", H:"R_INDEX", N:"R_INDEX",
+        U:"R_INDEX", J:"R_INDEX", M:"R_INDEX",
+        I:"R_MIDDLE",K:"R_MIDDLE",
+        O:"R_RING",  L:"R_RING",
+        P:"R_PINKY",
+    };
+
+    const LETTER_TO_ROW = {};
+    "QWERTYUIOP".split("").forEach(ch => LETTER_TO_ROW[ch] = "상");
+    "ASDFGHJKL".split("").forEach(ch => LETTER_TO_ROW[ch] = "중");
+    "ZXCVBNM".split("").forEach(ch => LETTER_TO_ROW[ch] = "하");
+
+    function getFingerForChar(ch){
+        return LETTER_TO_FINGER[String(ch).toUpperCase()] || null;
+    }
+    function getRowLabel(ch){
+        return LETTER_TO_ROW[String(ch).toUpperCase()] || "";
+    }
+
+    /* =========================
+       난이도(레벨) 시스템
+       - score 기반 자동 레벨업
+       - 레벨에 따라 스폰 간격, 속도, 최대 동시 글자 수 변화
+    ========================= */
+    function getLevelFromScore(score){
+        // 0~9:1, 10~19:2, 20~29:3 ... (원하면 여기만 바꾸면 됨)
+        return Math.min(20, Math.floor(score / 10) + 1);
+    }
+
+    function getDifficulty(level){
+        // 스폰 간격(ms): 레벨 오를수록 짧아짐 (바닥 380ms)
+        const spawnIntervalMs = Math.max(380, 1100 - (level - 1) * 70);
+
+        // 속도 범위(px/frame): 레벨 오를수록 빨라짐
+        const minSpeed = Math.min(12, 2 + Math.floor((level - 1) * 0.35));
+        const maxSpeed = Math.min(18, 5 + Math.floor((level - 1) * 0.45));
+
+        // 동시 글자 수: 레벨 오를수록 증가 (최대 8)
+        const maxActive = Math.min(8, 3 + Math.floor((level - 1) / 2));
+
+        return { spawnIntervalMs, minSpeed, maxSpeed, maxActive };
+    }
+
+    /* =========================
+       게임 상태
+    ========================= */
+    let score = 0;
+    let misses = 0;
+    const maxMisses = 5;
+
+    let level = 1;
+
+    // 멀티 오브젝트: letters[]
+    let letters = [];
+
+    let gameOver = false;
+    let quit = false;
+
+    // 통계
+    let combo = 0;
+    let bestCombo = 0;
+
+    let totalKeyPress = 0;   // 총 입력(알파벳만)
+    let correctKeyPress = 0; // 정답 입력(맞춘 횟수)
+
+    // 정답 입력 타임스탬프(최근 60초로 WPM)
+    let correctTimestamps = [];
+
+    // 스폰 타이머
+    let lastSpawnAt = performance.now();
+
+    /* =========================
+       유틸
+    ========================= */
+    function randInt(min, maxInclusive){
+        return Math.floor(Math.random() * (maxInclusive - min + 1)) + min;
+    }
+
+    function createNewLetter(currentLevel){
+        const lettersStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const ch = lettersStr[randInt(0, lettersStr.length - 1)];
+
+        const diff = getDifficulty(currentLevel);
+
+        // 너무 겹치지 않게 랜덤
+        const x = randInt(60, WIDTH - 60);
+        const y = 0;
+
+        const speed = randInt(diff.minSpeed, diff.maxSpeed);
+
+        // id는 제거용
+        return { id: cryptoRandomId(), char: ch, x, y, speed };
+    }
+
+    function cryptoRandomId(){
+        // 간단한 id
+        return Math.random().toString(16).slice(2) + "-" + Date.now().toString(16);
+    }
+
+    function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+
+    function formatPct(v){
+        return (Math.round(v * 10) / 10).toFixed(1);
+    }
+
+    function calcAccuracy(){
+        if (totalKeyPress <= 0) return 100.0;
+        return (correctKeyPress / totalKeyPress) * 100;
+    }
+
+    function calcWpm(nowMs){
+        // 최근 60초(correctTimestamps) 기준
+        const windowMs = 60_000;
+        correctTimestamps = correctTimestamps.filter(t => nowMs - t <= windowMs);
+
+        const correctCount = correctTimestamps.length;
+        // 1분 동안 정답 몇 개 -> 단어(5타) 환산
+        return (correctCount / 5);
+    }
+
+    /* =========================
+       둥근 사각형 헬퍼
+    ========================= */
+    function roundRect(ctx, x, y, w, h, r){
+        const radius = typeof r === "number" ? {tl:r,tr:r,br:r,bl:r} : r;
+        ctx.beginPath();
+        ctx.moveTo(x + radius.tl, y);
+        ctx.lineTo(x + w - radius.tr, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + radius.tr);
+        ctx.lineTo(x + w, y + h - radius.br);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - radius.br, y + h);
+        ctx.lineTo(x + radius.bl, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - radius.bl);
+        ctx.lineTo(x, y + radius.tl);
+        ctx.quadraticCurveTo(x, y, x + radius.tl, y);
+        ctx.closePath();
+    }
+
+    /* =========================
+       손가락 힌트 (현재 "목표 글자" 기준)
+       - 멀티라서 목표를 하나 정해야 함
+       - 여기서는 "가장 아래에 가까운(위험한) 글자"를 목표로
+    ========================= */
+    function getTargetLetter(){
+        if (!letters.length) return null;
+        // ground에 가장 가까운 y 큰 것
+        let t = letters[0];
+        for (const it of letters){
+            if (it.y > t.y) t = it;
+        }
+        return t;
+    }
+
+    function drawFingerHints(currentChar){
+        if (!currentChar) return;
+
+        const currentFinger = getFingerForChar(currentChar);
+        const rowLabel = getRowLabel(currentChar);
+
+        const fingerWidth = 40;
+        const fingerHeight = 110;
+        const gap = 10;
+        const groupGap = 80;
+        const marginY = HEIGHT - fingerHeight - 20;
+
+        const groupWidth = 4 * fingerWidth + 3 * gap;
+        const totalWidth = 2 * groupWidth + groupGap;
+        const startX = (WIDTH - totalWidth) / 2;
+
+        let arrowText = "";
+        const ch = String(currentChar).toUpperCase();
+        if (["T","G","B"].includes(ch)) arrowText = "→";
+        else if (["Y","H","N"].includes(ch)) arrowText = "←";
+
+        ctx.save();
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = "20px system-ui, 'Malgun Gothic', '맑은 고딕'";
+
+        for (let idx = 0; idx < FINGERS.length; idx++){
+            const fingerId = FINGERS[idx];
+            const groupIndex = idx < 4 ? 0 : 1;
+            const indexInGroup = idx < 4 ? idx : (idx - 4);
+
+            const x = startX + groupIndex * (groupWidth + groupGap) + indexInGroup * (fingerWidth + gap);
+            const y = marginY;
+
+            let baseColor = idx < 4 ? "#d2d2d2" : "#f5f5f5";
+            let nailBaseColor = idx < 4 ? "#ebebeb" : "#ffffff";
+            let borderColor = idx < 4 ? "#969696" : "#b4b4b4";
+
+            let bodyColor = baseColor;
+            let nailColor = nailBaseColor;
+
+            if (fingerId === currentFinger){
+                bodyColor = "#96dc96";
+                nailColor = "#bef5be";
+                borderColor = "#009600";
+            }
+
+            ctx.fillStyle = bodyColor;
+            ctx.strokeStyle = borderColor;
+            ctx.lineWidth = 2;
+            roundRect(ctx, x, y, fingerWidth, fingerHeight, 16);
+            ctx.fill();
+            ctx.stroke();
+
+            const nailHeight = Math.floor(fingerHeight * 0.4);
+            const nailX = x + 4;
+            const nailY = y + 4;
+            const nailW = fingerWidth - 8;
+            const nailH = nailHeight;
+
+            ctx.fillStyle = nailColor;
+            ctx.strokeStyle = borderColor;
+            ctx.lineWidth = 1;
+            roundRect(ctx, nailX, nailY, nailW, nailH, 10);
+            ctx.fill();
+            ctx.stroke();
+
+            if (fingerId === currentFinger && rowLabel){
+                ctx.fillStyle = "#111";
+                ctx.fillText(rowLabel, nailX + nailW/2, nailY + nailH/2);
+
+                if (arrowText){
+                    const arrowY = nailY + nailH/2;
+                    const arrowX = (arrowText === "→") ? (nailX + nailW + 14) : (nailX - 14);
+                    ctx.fillText(arrowText, arrowX, arrowY);
+                }
+            }
+        }
+
+        ctx.restore();
+    }
+
+    /* =========================
+       게임 제어
+    ========================= */
+    function resetGame(){
+        score = 0;
+        misses = 0;
+        level = 1;
+
+        letters = [];
+        spawnUpToMax(performance.now()); // 시작 시 채우기
+
+        gameOver = false;
+        quit = false;
+
+        combo = 0;
+        bestCombo = 0;
+        totalKeyPress = 0;
+        correctKeyPress = 0;
+        correctTimestamps = [];
+
+        lastSpawnAt = performance.now();
+
+        restartBtn.style.display = "none";
+        quitBtn.style.display = "none";
+        messageEl.textContent = "";
+    }
+
+    function setGameOver(){
+        gameOver = true;
+        restartBtn.style.display = "inline-block";
+        quitBtn.style.display = "inline-block";
+        messageEl.textContent = "";
+    }
+
+    function quitGame(){
+        quit = true;
+        restartBtn.style.display = "inline-block";
+        quitBtn.style.display = "none";
+        messageEl.textContent = "게임을 종료했습니다. 이 탭(창)을 닫아도 됩니다.";
+    }
+
+    restartBtn.addEventListener("click", resetGame);
+    quitBtn.addEventListener("click", quitGame);
+
+    /* =========================
+       멀티 스폰/관리
+    ========================= */
+    function spawnUpToMax(nowMs){
+        const diff = getDifficulty(level);
+        while (letters.length < diff.maxActive){
+            letters.push(createNewLetter(level));
+        }
+        lastSpawnAt = nowMs;
+    }
+
+    function canSpawn(nowMs){
+        const diff = getDifficulty(level);
+        return (nowMs - lastSpawnAt) >= diff.spawnIntervalMs;
+    }
+
+    /* =========================
+       입력 처리 (멀티)
+       - 해당 글자가 여러 개면: "가장 아래(위험한) 것"을 우선 제거
+       - 틀리면: 콤보 리셋 + (선택) 패널티는 miss 증가 X (원하면 가능)
+    ========================= */
+    window.addEventListener("keydown", (e) => {
+        if (quit || gameOver) return;
+
+        const key = e.key;
+        if (!key || key.length !== 1) return;
+        if (!/^[a-zA-Z]$/.test(key)) return;
+
+        totalKeyPress += 1;
+
+        const ch = key.toUpperCase();
+        const matches = letters.filter(it => it.char === ch);
+
+        if (matches.length){
+            // 가장 아래에 가까운(큰 y) 것 제거
+            let target = matches[0];
+            for (const it of matches){
+                if (it.y > target.y) target = it;
+            }
+
+            letters = letters.filter(it => it.id !== target.id);
+
+            score += 1;
+            correctKeyPress += 1;
+
+            combo += 1;
+            bestCombo = Math.max(bestCombo, combo);
+
+            correctTimestamps.push(performance.now());
+
+            // 레벨 갱신
+            level = getLevelFromScore(score);
+
+            // 레벨 변화로 maxActive가 늘었을 수 있으니 즉시 채움
+            spawnUpToMax(performance.now());
+        } else {
+            // 오답
+            combo = 0;
+
+            // (옵션) 오답도 미스로 치고 싶으면 아래 주석 해제
+            // misses += 1;
+            // if (misses >= maxMisses) setGameOver();
+        }
+    });
+
+    /* =========================
+       렌더링/루프
+    ========================= */
+    resetGame();
+
+    function gameLoop(nowMs){
+        ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+        const groundY = HEIGHT - 140;
+
+        // 바닥 선
+        ctx.strokeStyle = "#d0d5dd";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(0, groundY);
+        ctx.lineTo(WIDTH, groundY);
+        ctx.stroke();
+
+        if (!gameOver && !quit){
+            // 시간이 되었으면 스폰(단, maxActive는 유지)
+            if (canSpawn(nowMs)){
+                spawnUpToMax(nowMs);
+            }
+
+            // 이동 + 바닥 체크
+            for (const it of letters){
+                it.y += it.speed;
+            }
+
+            // 바닥 닿은 것 처리
+            const still = [];
+            for (const it of letters){
+                if (it.y > groundY){
+                    misses += 1;
+                    combo = 0; // 놓치면 콤보 끊김
+                    if (misses >= maxMisses){
+                        setGameOver();
+                        break;
+                    }
+                } else {
+                    still.push(it);
+                }
+            }
+            letters = still;
+
+            // 부족하면 채우기
+            spawnUpToMax(nowMs);
+        }
+
+        // 글자 그리기
+        if (!quit){
+            for (const it of letters){
+                // 아래로 갈수록 살짝 작아지는 느낌(가독성 유지)
+                const size = clamp(120 - Math.floor(it.y / 20), 68, 120);
+
+                ctx.font = `${size}px system-ui, 'Malgun Gothic', '맑은 고딕'`;
+                ctx.fillStyle = "#111";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(it.char, it.x, it.y);
+            }
+        }
+
+        // HUD
+        const acc = calcAccuracy();
+        const wpm = calcWpm(nowMs);
+
+        ctx.textAlign = "left";
+        ctx.textBaseline = "top";
+        ctx.fillStyle = "#111";
+        ctx.font = "24px system-ui, 'Malgun Gothic', '맑은 고딕'";
+
+        ctx.fillText(`점수: ${score}`, 12, 12);
+        ctx.fillText(`레벨: ${level}`, 12, 44);
+        ctx.fillText(`남은 기회: ${maxMisses - misses}`, 12, 76);
+
+        ctx.fillText(`콤보: ${combo} (최고 ${bestCombo})`, 260, 12);
+        ctx.fillText(`정확도: ${formatPct(acc)}%`, 260, 44);
+        ctx.fillText(`WPM: ${formatPct(wpm)}`, 260, 76);
+
+        // 현재 목표 글자(가장 위험한 글자) 표시 + 손가락 힌트
+        const target = getTargetLetter();
+        if (target && !quit){
+            ctx.font = "14px system-ui, 'Malgun Gothic', '맑은 고딕'";
+            ctx.fillStyle = "#667085";
+            ctx.fillText(`목표: ${target.char}`, 12, 112);
+            drawFingerHints(target.char);
+        }
+
+        // 게임 오버 화면
+        if (gameOver){
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+
+            ctx.font = "40px system-ui, 'Malgun Gothic', '맑은 고딕'";
+            ctx.fillStyle = "#ef4444";
+            ctx.fillText("게임 끝!", WIDTH/2, HEIGHT/2 - 50);
+
+            ctx.font = "18px system-ui, 'Malgun Gothic', '맑은 고딕'";
+            ctx.fillStyle = "#111";
+            ctx.fillText("아래 버튼을 선택하세요.", WIDTH/2, HEIGHT/2 - 12);
+
+            ctx.font = "16px system-ui, 'Malgun Gothic', '맑은 고딕'";
+            ctx.fillStyle = "#667085";
+            ctx.fillText(`최종 점수 ${score} · 최고 콤보 ${bestCombo} · 정확도 ${formatPct(acc)}% · WPM ${formatPct(wpm)}`, WIDTH/2, HEIGHT/2 + 22);
+        }
+
+        if (!quit) requestAnimationFrame(gameLoop);
+    }
+
+    requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>
