@@ -1,0 +1,298 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>LOVE FACTORY - Combo Edition</title>
+
+    <!-- https://html.kioskadmin.co.kr -->
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Noto+Sans+KR:wght@700&display=swap');
+
+        body {
+            margin: 0; height: 100vh; display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            background-color: #050505; overflow: hidden; perspective: 1000px;
+            font-family: 'Montserrat', 'Noto Sans KR', sans-serif; color: white;
+            cursor: pointer;
+        }
+
+        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+        .logo-container {
+            position: absolute; z-index: 5;
+            width: 300px; height: 300px;
+            transition: transform 0.2s ease-out, opacity 0.5s;
+            transform-style: preserve-3d;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+        .logo-container img {
+            width: 100%; height: 100%; object-fit: contain;
+            filter: drop-shadow(0 0 40px rgba(255, 77, 109, 0.4));
+        }
+
+        #game-ui {
+            position: absolute; top: 40px; width: 85%;
+            display: flex; justify-content: space-between;
+            font-size: 22px; z-index: 100; letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(0,0,0,0.5);
+            pointer-events: none;
+        }
+        .timer { color: #ff4d6d; font-weight: bold; border-bottom: 2px solid #ff4d6d; }
+        .score { font-weight: bold; }
+
+        /* 콤보 UI */
+        #combo-ui {
+            position: absolute; top: 100px; color: #ffeb3b;
+            font-size: 30px; font-weight: bold; z-index: 100;
+            text-shadow: 0 0 15px rgba(255, 235, 59, 0.8);
+            display: none; transition: transform 0.1s;
+        }
+
+        .input-area {
+            position: absolute; bottom: 60px; z-index: 100;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        input {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 30px; padding: 15px 30px; color: white; font-size: 20px;
+            text-align: center; outline: none; transition: 0.3s; width: 220px;
+            backdrop-filter: blur(8px);
+        }
+        input:focus { width: 320px; border-color: #ff4d6d; box-shadow: 0 0 20px rgba(255, 77, 109, 0.3); }
+
+        #result-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); display: none; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 200; backdrop-filter: blur(10px);
+        }
+        #result-overlay img { width: 150px; margin-bottom: 20px; }
+        h1 { font-size: 2.5rem; margin: 0; color: #ff4d6d; }
+        p { font-size: 1.2rem; margin: 20px 0 30px; }
+
+        button {
+            padding: 12px 40px; font-size: 18px; font-weight: bold; background: #ff4d6d;
+            border: none; border-radius: 50px; color: white; cursor: pointer; transition: 0.3s;
+        }
+        button:hover { transform: scale(1.1); }
+    </style>
+</head>
+<body onclick="initAudio()">
+<canvas id="mainCanvas"></canvas>
+
+<div class="logo-container" id="main-logo">
+    <img src="LOGO_500.png" alt="Logo">
+</div>
+
+<div id="game-ui">
+    <div class="timer">TIME: <span id="time-left">60</span>s</div>
+    <div class="score">SCORE: <span id="current-score">0</span></div>
+</div>
+
+<div id="combo-ui">0 COMBO!</div>
+
+<div class="input-area">
+    <input type="text" id="wordInput" placeholder="TYPE & ENTER" autofocus autocomplete="off">
+</div>
+
+<div id="result-overlay">
+    <img src="LOGO_500.png" alt="Logo">
+    <h1>PRODUCTION END</h1>
+    <p id="final-score">최종 생산량: 0 점</p>
+    <button onclick="location.reload()">RESTART</button>
+</div>
+
+<script>
+    const bgm = new Audio('audio/shutterstock_1221305.wav');
+    bgm.loop = true; bgm.volume = 0.5;
+
+    let audioCtx;
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (bgm.paused) bgm.play();
+        }
+    }
+
+    const canvas = document.getElementById('mainCanvas');
+    const ctx = canvas.getContext('2d');
+    const wordInput = document.getElementById('wordInput');
+    const comboUI = document.getElementById('combo-ui');
+
+    let timeLeft = 60;
+    let score = 0;
+    let combo = 0; // 콤보 카운트
+    let isEnded = false;
+
+    let keywords = ["무지개", "해님", "달님", "별자리", "구름", "바다", "숲속", "꽃다발", "단풍", "눈사람", "강아지", "고양이", "코끼리", "기린", "토끼", "다람쥐", "사자", "호랑이", "개구리", "병아리", "사과", "바나나", "포도", "딸기", "수박", "복숭아", "떡볶이", "피자", "우유", "푸딩", "자전거", "비행기", "자동차", "기차", "가방", "연필", "지우개", "공책", "안경", "시계", "사랑", "행복", "우정", "미소", "마음", "기쁨", "친절", "용기", "감사", "희망"];
+    let fallingTexts = [], bgParticles = [], explodeParticles = [];
+
+    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    window.addEventListener('resize', resize);
+    resize();
+
+    class Dust {
+        constructor() { this.init(); }
+        init() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5;
+            this.speedX = (Math.random() - 0.5) * 0.4;
+            this.speedY = (Math.random() - 0.5) * 0.4;
+            this.opacity = Math.random() * 0.5;
+        }
+        update() {
+            this.x += this.speedX; this.y += this.speedY;
+            if(this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) this.init();
+        }
+        draw() { ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); }
+    }
+
+    class FallingText {
+        constructor() { this.init(); }
+        init() {
+            this.text = keywords[Math.floor(Math.random() * keywords.length)];
+            this.x = Math.random() * (canvas.width - 240) + 120;
+            this.y = -Math.random() * 500 - 50;
+            this.speed = Math.random() * 0.5 + 0.7;
+            this.fontSize = 24;
+        }
+        update() {
+            this.y += this.speed;
+            if (this.y > canvas.height + 50) {
+                combo = 0; // 바닥에 닿으면 콤보 깨짐
+                updateComboUI();
+                this.init();
+                this.y = -50;
+            }
+        }
+        draw() {
+            ctx.save();
+            ctx.shadowColor = "rgba(255, 77, 109, 0.8)";
+            ctx.shadowBlur = 15; ctx.shadowOffsetX = 5; ctx.shadowOffsetY = 5;
+            ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
+            ctx.font = `bold ${this.fontSize}px 'Noto Sans KR'`;
+            ctx.textAlign = "center";
+            ctx.fillText(this.text, this.x, this.y);
+            ctx.restore();
+        }
+    }
+
+    class Explosion {
+        constructor(x, y) { this.x = x; this.y = y; this.size = Math.random() * 4 + 1; this.speedX = (Math.random() - 0.5) * 15; this.speedY = (Math.random() - 0.5) * 15; this.life = 1.0; }
+        update() { this.x += this.speedX; this.y += this.speedY; this.life -= 0.03; }
+        draw() { ctx.fillStyle = `rgba(255, 77, 109, ${this.life})`; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); }
+    }
+
+    function updateComboUI() {
+        if (combo > 1) {
+            comboUI.innerText = `${combo} COMBO!`;
+            comboUI.style.display = 'block';
+            comboUI.style.transform = 'scale(1.2)';
+            setTimeout(() => { comboUI.style.transform = 'scale(1)'; }, 100);
+        } else {
+            comboUI.style.display = 'none';
+        }
+    }
+
+    function initGame() {
+        for (let i = 0; i < 80; i++) bgParticles.push(new Dust());
+        for (let i = 0; i < 8; i++) fallingTexts.push(new FallingText());
+    }
+
+    function animate() {
+        ctx.fillStyle = 'rgba(5, 5, 5, 0.4)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        bgParticles.forEach(p => { p.update(); p.draw(); });
+        if(!isEnded) {
+            if (fallingTexts.length < 12) fallingTexts.push(new FallingText());
+            fallingTexts.forEach(t => { t.update(); t.draw(); });
+            explodeParticles.forEach((p, idx) => {
+                p.update(); p.draw();
+                if (p.life <= 0) explodeParticles.splice(idx, 1);
+            });
+        }
+        requestAnimationFrame(animate);
+    }
+
+    const timerInterval = setInterval(() => {
+        if(!isEnded) {
+            timeLeft--;
+            document.getElementById('time-left').innerText = timeLeft;
+            if(timeLeft <= 0) endGame();
+        }
+    }, 1000);
+
+    function endGame() {
+        isEnded = true; bgm.pause(); playFinishSound();
+        clearInterval(timerInterval);
+        document.getElementById('result-overlay').style.display = 'flex';
+        document.getElementById('final-score').innerText = `최종 생산량: ${Math.floor(score)} 점`;
+    }
+
+    function playHitSound() {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880 + (combo * 20), audioCtx.currentTime); // 콤보마다 소리 높아짐
+        osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+    }
+
+    function playFinishSound() {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.5);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+    }
+
+    wordInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            const val = wordInput.value.toUpperCase().trim();
+            const targetIdx = fallingTexts.findIndex(t => t.text.toUpperCase() === val);
+            if (targetIdx !== -1) {
+                combo++; // 콤보 증가
+                playHitSound();
+
+                // 점수 계산: 기본 10점 + (콤보 * 0.2배 가산)
+                // 예: 1콤보=10점, 2콤보=12점, 3콤보=14점...
+                const comboBonus = 1 + (combo - 1) * 0.2;
+                score += 10 * comboBonus;
+
+                const target = fallingTexts[targetIdx];
+                for (let i = 0; i < 30; i++) explodeParticles.push(new Explosion(target.x, target.y));
+                fallingTexts.splice(targetIdx, 1);
+
+                document.getElementById('current-score').innerText = Math.floor(score);
+                updateComboUI();
+            } else {
+                combo = 0; // 틀리면 콤보 리셋
+                updateComboUI();
+            }
+            wordInput.value = '';
+        }
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        const xPercent = (e.clientX / window.innerWidth) - 0.5;
+        const yPercent = (e.clientY / window.innerHeight) - 0.5;
+        document.getElementById('main-logo').style.transform = `rotateX(${yPercent * -30}deg) rotateY(${xPercent * 30}deg)`;
+    });
+
+    initGame();
+    animate();
+</script>
+</body>
+</html>
