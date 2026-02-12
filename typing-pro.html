@@ -1,0 +1,436 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>한글 타자 연습 Pro</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & Babel -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Hangul.js -->
+    <script src="https://unpkg.com/hangul-js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap');
+        body { font-family: 'Noto+Sans+KR', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+<div id="root"></div>
+
+<script type="text/babel">
+    const { useState, useEffect, useCallback, useMemo, useRef } = React;
+
+    // --- 아이콘 컴포넌트 (SVG 직접 구현) ---
+    const Icon = ({ name, size = 20, className = "" }) => {
+        const icons = {
+            keyboard: <path d="M10 8h.01M14 8h.01M18 8h.01M22 8h.01M7 12h.01M11 12h.01M15 12h.01M19 12h.01M23 12h.01M9 16h10M4 4h24v16H4z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>,
+            book: <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5v-15z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>,
+            type: <path d="M4 7V4h16v3M9 20h6M12 4v16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>,
+            alignLeft: <path d="M21 6H3M15 12H3M17 18H3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>,
+            fileText: <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>,
+            refresh: <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        };
+        return (
+            <svg width={size} height={size} viewBox="0 0 24 24" className={className}>
+                {icons[name] || null}
+            </svg>
+        );
+    };
+
+    // --- 데이터 구성 ---
+    const POSITION_BASE = ["ㅁ", "ㄴ", "ㅇ", "ㄹ", "ㅎ", "ㅗ", "ㅓ", "ㅏ", "ㅣ"];
+    const POSITION_TOP = ["ㅂ", "ㅈ", "ㄷ", "ㄱ", "ㅅ", "ㅛ", "ㅕ", "ㅑ", "ㅐ", "ㅔ"];
+    const POSITION_BOTTOM = ["ㅋ", "ㅌ", "ㅊ", "ㅍ", "ㅠ", "ㅜ", "ㅡ"];
+    const POSITION_DOUBLE = ["ㅃ", "ㅉ", "ㄸ", "ㄲ", "ㅆ", "ㅒ", "ㅖ", "ㄳ", "ㄵ", "ㄶ", "ㄺ", "ㄻ", "ㄼ", "ㄽ", "ㄾ", "ㄿ", "ㅀ", "ㅄ"];
+
+    const generateLargeSet = (baseArray, count = 100) => {
+        let result = [];
+        while (result.length < count) {
+            result = [...result, ...[...baseArray].sort(() => Math.random() - 0.5)];
+        }
+        return result.slice(0, count);
+    };
+
+    const RAW_DATA = {
+        position: {
+            base: generateLargeSet(POSITION_BASE, 100),
+            top: generateLargeSet(POSITION_TOP, 100),
+            bottom: generateLargeSet(POSITION_BOTTOM, 100),
+            double: generateLargeSet(POSITION_DOUBLE, 100),
+            all: generateLargeSet([...POSITION_BASE, ...POSITION_TOP, ...POSITION_BOTTOM, ...POSITION_DOUBLE], 150)
+        },
+        words: {
+            base: generateLargeSet(["어머니", "아니오", "하나", "어디", "나라", "우리", "노래", "모래", "하마", "나비", "미소", "하늘", "바다", "나무", "구름", "햇살", "산책", "미래", "사랑", "우정", "지혜", "용기", "배움"], 100),
+            top: generateLargeSet(["가지", "도시", "기차", "보리", "포도", "수박", "딸기", "거울", "구두", "계란", "돼지", "토끼", "사자", "기린", "감자", "고구마", "양파", "마늘", "배추", "고추", "수첩", "안경", "시계", "사진", "음악"], 100),
+            bottom: generateLargeSet(["치마", "타조", "커피", "쿠키", "파리", "표범", "코끼리", "튜브", "우유", "유리", "추억", "트럭", "축구", "농구", "야구", "스키", "썰매", "낚시", "우산", "모자", "장갑", "양말", "신발", "비누", "치약", "수건"], 100),
+            mixed: generateLargeSet(["컴퓨터", "인터넷", "키보드", "마우스", "모니터", "가방", "지갑", "정장", "대한민국", "서울", "부산", "열정", "희망", "행복", "성장", "도전", "기쁨", "약속", "별빛", "우주", "지구", "닭고기", "앉다", "많다", "읽다", "삶다", "넓다"], 100)
+        },
+        shortSentences: [
+            "가는 말이 고와야 오는 말이 곱다.", "세 살 버릇 여든까지 간다.", "실패는 성공의 어머니이다.", "시작이 반이다.", "티끌 모아 태산이다.",
+            "아는 것이 힘이다.", "공든 탑이 무너지랴.", "백지장도 맞들면 낮다.", "소 잃고 외양간 고친다.", "천 리 길도 한 걸음부터.",
+            "호랑이에게 물려가도 정신만 차리면 산다.", "등잔 밑이 어둡다.", "웃는 얼굴에 침 못 뱉는다.",
+            "다람쥐 헌 쳇바퀴에 타고파.",
+            "가을바람이 솔솔 불어오는 저녁입니다.",
+            "오늘은 어제보다 더 나은 하루가 될 거예요.",
+            "시작이 반이라는 말을 잊지 마세요.",
+            "높은 하늘 아래 구름이 흘러갑니다.",
+            "꾸준한 연습만이 최고의 비결입니다.",
+            "따뜻한 차 한 잔의 여유를 즐겨보세요.",
+            "길가에 핀 꽃들이 참 아름답습니다.",
+            "당신의 꿈을 향해 힘차게 나아가세요.",
+            "정직한 마음은 언제나 통하는 법입니다.",
+            "웃음은 만병통치약이라는 말이 있습니다.",
+            "비 온 뒤에 땅이 굳어진다는 속담이 있죠.",
+            "새로운 시작은 언제나 설레는 일입니다.",
+            "책 속에 길이 있다는 말처럼 독서를 합시다.",
+            "작은 노력이 모여 큰 변화를 만듭니다.",
+            "산 너머 산이라도 포기하지 마세요.",
+            "밤하늘의 별들이 반짝이며 빛납니다.",
+            "시간을 소중히 여기는 사람이 됩시다.",
+            "건강한 신체에 건강한 정신이 깃듭니다.",
+            "오늘도 수고한 당신에게 박수를 보냅니다."
+        ],
+        longSentences: [
+            "별 헤는 밤 - 윤동주 계절이 지나가는 하늘에는 가을로 가득 차 있습니다. 나는 아무 걱정도 없이 가을 속의 별들을 다 헤일 듯합니다.  가슴속에 하나둘 새겨지는 별을 이제 다 못 헤는 것은 쉬이 아침이 오는 까닭이요, 내일 밤이 남은 까닭이요, 아직 나의 청춘이 다하지 않은 까닭입니다. 별 하나에 추억과 별 하나에 사랑과 별 하나에 쓸쓸함과 별 하나에 동경과 별 하나에 시와 별 하나에 어머니, 어머니",
+            "애국가 전구절 동해물과 백두산이 마르고 닳도록 하느님이 보우하사 우리나라 만세. 무궁화 삼천리 화려 강산 대한 사람 대한으로 길이 보전하세. 남산 위에 저 소나무 철갑을 두른 듯 바람 서리 불변함은 우리 기상일세. 가을 하늘 공활한데 높고 구름 없이 밝은 달은 우리 가슴 일편단심일세. 이 기상과 이 맘으로 충성을 다하여 괴로우나 즐거우나 나라 사랑하세.",
+            "진달래꽃 - 김소월 나 보기가 역겨워 가실 때에는 말없이 고이 보내 드리오리다. 영변에 약산 진달래꽃 아름 따다 가실 길에 뿌리오리다.",
+            "훈민정음 서문 나랏말싸미 듕귁에 달아 문자와로 서르 사맛디 아니할쎄 이런 젼차로 어린 백셩이 니르고져 홇베 이셔도 마참내 제 뜨들 시러 펴디 몯핧 노미 하니라.",
+            "메밀꽃 필 무렵 - 이효석 달은 지금 긴 산허리에 걸려 있다. 밤중을 지난 한참 객주집 토방이란 데서 소리를 들으니, 산허리는 온통 메밀밭이어서 피기 시작한 꽃이 소금을 뿌린 듯이 흐뭇한 달빛에 숨이 막힐 지경이다. 붉은 대궁이 향기같이 애잔하고 나귀들의 발굽 소리도 시원하다.",
+            "청춘! 이는 듣기만 하여도 가슴이 설레는 말이다. 청춘! 너의 두 손을 가슴에 대고 물방아 같은 심장의 고동을 들어 보라. 청춘의 피는 끓는다. 끓는 피에 뛰노는 심장은 거선(巨船)의 기관과 같이 힘있다. 이것이다. 인류의 역사를 꾸며 내려온 동력은 바로 이것이다.",
+            "소년은 개울가에서 양평당 손을 씻고 있었다. 그런데 어제까지 보이지 않던 소녀가 개울가에 앉아 물장난을 하고 있는 것이다. 서울서 왔다는 윤 초시네 증손녀딸이라 했다. 소녀는 소년이 개울가에 나타나자, 곧 물장난을 멈추고 일어섰다. 분홍 스웨터 소매를 걷어올린 채 소년 쪽을 물끄러미 바라보다가 한 움큼의 조약돌을 집어 들었다.",
+            "우주라는 거대한 바다에서 우리 지구가 차지하는 영역은 지극히 좁다. 인류는 이제 막 그 바닷가에 발을 들여놓았으며, 언젠가는 그 광활한 심연으로 나아갈 꿈을 꾸고 있다. 우리는 먼지보다 작은 존재일지 모르나, 그 작은 머리로 우주의 기원과 끝을 사유할 수 있는 위대한 존재이기도 하다. 별에서 온 우리는 결국 다시 별로 돌아갈 것이다.",
+            "새는 알에서 나오기 위해 투쟁한다. 알은 세계이다. 태어나려고 하는 자는 하나의 세계를 파괴해야만 한다. 새는 신에게로 날아간다. 그 신의 이름은 아브락사스다. 모든 인간의 삶은 자기 자신에게로 이르는 길이다. 그 누구도 온전한 자기 자신이 되어 본 적은 없지만, 누구나 그 상태를 향해 나아가려 노력한다.",
+            "가는 말이 고와야 오는 말이 곱다. 누워서 침 뱉기는 결국 자신에게 돌아온다는 말이다. 세 살 버릇 여든까지 간다는 말처럼 좋은 습관을 들이는 것이 중요하다. 시작이 반이라는 마음가짐으로 무엇이든 도전해 보자. 실패는 성공의 어머니이며, 고생 끝에 낙이 온다는 사실을 잊지 말아야 한다."
+        ]
+    };
+
+    const HANGUL_MAP = {
+        'q': 'ㅂ', 'w': 'ㅈ', 'e': 'ㄷ', 'r': 'ㄱ', 't': 'ㅅ', 'y': 'ㅛ', 'u': 'ㅕ', 'i': 'ㅑ', 'o': 'ㅐ', 'p': 'ㅔ',
+        'a': 'ㅁ', 's': 'ㄴ', 'd': 'ㅇ', 'f': 'ㄹ', 'g': 'ㅎ', 'h': 'ㅗ', 'j': 'ㅓ', 'k': 'ㅏ', 'l': 'ㅣ',
+        'z': 'ㅋ', 'x': 'ㅌ', 'c': 'ㅊ', 'v': 'ㅍ', 'b': 'ㅠ', 'n': 'ㅜ', 'm': 'ㅡ',
+        'Q': 'ㅃ', 'W': 'ㅉ', 'E': 'ㄸ', 'R': 'ㄲ', 'T': 'ㅆ', 'O': 'ㅒ', 'P': 'ㅖ'
+    };
+
+    const DOUBLE_HANGUL_MAP = {
+        'ㅃ': 'ㅂ', 'ㅉ': 'ㅈ', 'ㄸ': 'ㄷ', 'ㄲ': 'ㄱ', 'ㅆ': 'ㅅ', 'ㅒ': 'ㅐ', 'ㅖ': 'ㅔ'
+    };
+
+    const MAIN_KEYS = [
+        [{ main: 'Esc', code: 'Escape' }, { main: 'F1' }, { main: 'F2' }, { main: 'F3' }, { main: 'F4' }, { main: 'F5', ml: 'ml-4' }, { main: 'F6' }, { main: 'F7' }, { main: 'F8' }, { main: 'F9', ml: 'ml-4' }, { main: 'F10' }, { main: 'F11' }, { main: 'F12' }],
+        [{ main: '~', sub: '`', code: '`' }, { main: '1' }, { main: '2' }, { main: '3' }, { main: '4' }, { main: '5' }, { main: '6' }, { main: '7' }, { main: '8' }, { main: '9' }, { main: '0' }, { main: '-', sub: '_' }, { main: '=', sub: '+' }, { main: 'Backspace', width: 'w-20', code: 'Backspace' }],
+        [{ main: 'Tab', width: 'w-14', code: 'Tab' }, { main: 'ㅂ', sub: 'Q', code: 'q' }, { main: 'ㅈ', sub: 'W', code: 'w' }, { main: 'ㄷ', sub: 'E', code: 'e' }, { main: 'ㄱ', sub: 'R', code: 'r' }, { main: 'ㅅ', sub: 'T', code: 't' }, { main: 'ㅛ', sub: 'Y', code: 'y' }, { main: 'ㅕ', sub: 'U', code: 'u' }, { main: 'ㅑ', sub: 'I', code: 'i' }, { main: 'ㅐ', sub: 'O', code: 'o' }, { main: 'ㅔ', sub: 'P', code: 'p' }, { main: '[', sub: '{' }, { main: ']', sub: '}' }, { main: '\\', sub: '|', width: 'w-14' }],
+        [{ main: 'Caps', width: 'w-16', code: 'CapsLock' }, { main: 'ㅁ', sub: 'A', code: 'a' }, { main: 'ㄴ', sub: 'S', code: 's' }, { main: 'ㅇ', sub: 'D', code: 'd' }, { main: 'ㄹ', sub: 'F', code: 'f' }, { main: 'ㅎ', sub: 'G', code: 'g' }, { main: 'ㅗ', sub: 'H', code: 'h' }, { main: 'ㅓ', sub: 'J', code: 'j' }, { main: 'ㅏ', sub: 'K', code: 'k' }, { main: 'ㅣ', sub: 'L', code: 'l' }, { main: ';', sub: ':' }, { main: "'", sub: '"' }, { main: 'Enter', width: 'w-20', code: 'Enter' }],
+        [{ main: 'Shift', width: 'w-24', code: 'Shift' }, { main: 'ㅋ', sub: 'Z', code: 'z' }, { main: 'ㅌ', sub: 'X', code: 'x' }, { main: 'ㅊ', sub: 'C', code: 'c' }, { main: 'ㅍ', sub: 'V', code: 'v' }, { main: 'ㅠ', sub: 'B', code: 'b' }, { main: 'ㅜ', sub: 'N', code: 'n' }, { main: 'ㅡ', sub: 'M', code: 'm' }, { main: ',', sub: '<' }, { main: '.', sub: '>' }, { main: '/', sub: '?' }, { main: 'Shift', width: 'w-24', code: 'Shift' }],
+        [{ main: 'Ctrl', code: 'Control' }, { main: 'Win', code: 'Meta' }, { main: 'Alt', code: 'Alt' }, { main: 'Space', width: 'w-64', code: ' ' }, { main: '한/영', code: 'HangulMode' }, { main: '한자', code: 'HanjaMode' }, { main: 'Ctrl', code: 'Control' }]
+    ];
+
+    const NAV_KEYS = [
+        [{ main: 'Prt', code: 'PrintScreen' }, { main: 'Scl', code: 'ScrollLock' }, { main: 'Pau', code: 'Pause' }],
+        [{ main: 'Ins', code: 'Insert' }, { main: 'Hom', code: 'Home' }, { main: 'PgU', code: 'PageUp' }],
+        [{ main: 'Del', code: 'Delete' }, { main: 'End', code: 'End' }, { main: 'PgD', code: 'PageDown' }],
+        [],
+        [{ main: '', width: 'w-10 invisible' }, { main: '↑', code: 'ArrowUp' }, { main: '', width: 'w-10 invisible' }],
+        [{ main: '←', code: 'ArrowLeft' }, { main: '↓', code: 'ArrowDown' }, { main: '→', code: 'ArrowRight' }]
+    ];
+
+    const NUMPAD_LAYOUT = [
+        { main: 'Num', code: 'NumLock' }, { main: '/' }, { main: '*' }, { main: '-' },
+        { main: '7' }, { main: '8' }, { main: '9' }, { main: '+', rowSpan: 2 },
+        { main: '4' }, { main: '5' }, { main: '6' },
+        { main: '1' }, { main: '2' }, { main: '3' }, { main: 'Ent', code: 'Enter', rowSpan: 2 },
+        { main: '0', colSpan: 2 }, { main: '.' }
+    ];
+
+    function App() {
+        const [mode, setMode] = useState('position');
+        const [subMode, setSubMode] = useState('base');
+        const [targetList, setTargetList] = useState([]);
+        const [currentIndex, setCurrentIndex] = useState(0);
+        const [inputText, setInputText] = useState('');
+        const [pressedKey, setPressedKey] = useState(null);
+        const [stats, setStats] = useState({ wpm: 0, accuracy: 100, startTime: null, correctCount: 0, totalCount: 0 });
+        const [flushKey, setFlushKey] = useState(0);
+        const inputRef = useRef(null);
+
+        const getSourceData = useCallback(() => {
+            if (mode === 'position') return RAW_DATA.position[subMode] || [];
+            if (mode === 'words') return RAW_DATA.words[subMode] || [];
+            const sourceKey = mode === 'short' ? 'shortSentences' : mode === 'long' ? 'longSentences' : mode;
+            return RAW_DATA[sourceKey] || [];
+        }, [mode, subMode]);
+
+        useEffect(() => {
+            const source = getSourceData();
+            setTargetList([...source]);
+            setCurrentIndex(0);
+            setInputText('');
+            setStats({ wpm: 0, accuracy: 100, startTime: null, correctCount: 0, totalCount: 0 });
+            setFlushKey(prev => prev + 1);
+        }, [mode, subMode, getSourceData]);
+
+        const currentTarget = useMemo(() => targetList[currentIndex] || "", [targetList, currentIndex]);
+
+        const nextKeyToPress = useMemo(() => {
+            if (!window.Hangul || !currentTarget) return null;
+            const targetDis = window.Hangul.disassemble(currentTarget);
+            const inputDis = window.Hangul.disassemble(inputText);
+            let key = targetDis[inputDis.length];
+            if (!key) return null;
+            return DOUBLE_HANGUL_MAP[key] || key;
+        }, [currentTarget, inputText]);
+
+        useEffect(() => {
+            const handleKeyDownGlobal = (e) => {
+                let key = e.key;
+                if (HANGUL_MAP[key]) key = HANGUL_MAP[key];
+                setPressedKey(key ? key.toLowerCase() : null);
+                if (inputRef.current && document.activeElement !== inputRef.current) {
+                    inputRef.current.focus();
+                }
+            };
+            const handleKeyUpGlobal = () => setPressedKey(null);
+            window.addEventListener('keydown', handleKeyDownGlobal);
+            window.addEventListener('keyup', handleKeyUpGlobal);
+            return () => {
+                window.removeEventListener('keydown', handleKeyDownGlobal);
+                window.removeEventListener('keyup', handleKeyUpGlobal);
+            };
+        }, []);
+
+        const nextStep = useCallback((correct) => {
+            const now = Date.now();
+            const timeSpent = (now - (stats.startTime || now)) / 1000 / 60;
+            const chars = (mode === 'position' ? 1 : inputText.length) || 1;
+            const newWpm = timeSpent > 0 ? Math.floor(chars / 5 / timeSpent) : 0;
+
+            setStats(prev => ({
+                ...prev,
+                wpm: newWpm || prev.wpm,
+                totalCount: prev.totalCount + 1,
+                correctCount: prev.correctCount + (correct ? 1 : 0),
+                accuracy: Math.floor(((prev.correctCount + (correct ? 1 : 0)) / (prev.totalCount + 1)) * 100),
+                startTime: null
+            }));
+
+            setInputText('');
+            setFlushKey(prev => prev + 1);
+            setCurrentIndex(prev => (prev + 1 >= targetList.length ? 0 : prev + 1));
+        }, [mode, inputText, stats.startTime, targetList.length]);
+
+        const handleInputChange = (e) => {
+            const val = e.target.value;
+            if (!stats.startTime && val.length > 0) {
+                setStats(prev => ({ ...prev, startTime: Date.now() }));
+            }
+
+            if (mode === 'position') {
+                if (window.Hangul) {
+                    const disassembledVal = window.Hangul.disassemble(val);
+                    const lastAssembled = window.Hangul.assemble(disassembledVal);
+                    if (lastAssembled.includes(currentTarget) || disassembledVal.includes(currentTarget)) {
+                        e.target.value = "";
+                        setInputText("");
+                        nextStep(true);
+                        return;
+                    }
+                }
+            } else if (mode === 'words') {
+                if (val === currentTarget) {
+                    e.target.value = "";
+                    setInputText("");
+                    nextStep(true);
+                    return;
+                }
+            }
+            setInputText(val);
+        };
+
+        const handleKeyDown = (e) => {
+            if (e.key === 'Backspace' && window.Hangul) {
+                const disassembled = window.Hangul.disassemble(inputText);
+                if (disassembled.length > 0) {
+                    e.preventDefault();
+                    disassembled.pop();
+                    setInputText(window.Hangul.assemble(disassembled));
+                }
+            }
+            if (e.key === 'Enter') {
+                const cleanInput = inputText.trim();
+                const cleanTarget = currentTarget.trim().replace(/\n/g, ' ');
+                if (cleanInput === cleanTarget || ((mode === 'long' || mode === 'short') && cleanInput.length >= cleanTarget.length * 0.9)) {
+                    nextStep(true);
+                }
+            }
+        };
+
+        const renderKey = (keyObj, idx) => {
+            if (!keyObj) return null;
+            const keyMainStr = String(keyObj.main || "");
+            const keyCodeStr = String(keyObj.code || keyMainStr);
+            const keySubStr = String(keyObj.sub || "");
+
+            const isPressed = pressedKey && (
+                pressedKey === keyCodeStr.toLowerCase() ||
+                pressedKey === keyMainStr.toLowerCase() ||
+                (keySubStr && pressedKey === keySubStr.toLowerCase())
+            );
+
+            const isNextKey = nextKeyToPress && (
+                nextKeyToPress === keyMainStr || (keySubStr && nextKeyToPress === keySubStr)
+            );
+
+            let layoutStyle = `relative flex flex-col items-center justify-center rounded-lg text-[11px] font-bold transition-all border-b-4 select-none `;
+            if (keyObj.width) layoutStyle += keyObj.width + " "; else layoutStyle += "w-10 ";
+            if (keyObj.height) layoutStyle += keyObj.height + " "; else layoutStyle += "h-10 ";
+            if (keyObj.ml) layoutStyle += keyObj.ml + " ";
+
+            return (
+                <div key={idx} className={`${layoutStyle} ${isPressed ? 'bg-blue-600 text-white border-blue-800 translate-y-0.5 border-b-0' : isNextKey ? 'bg-amber-400 text-slate-900 border-amber-600 animate-pulse ring-1 ring-amber-200' : 'bg-slate-800 text-slate-400 border-slate-950 hover:bg-slate-700'}`}>
+                    <span className="text-[13px]">{keyObj.main}</span>
+                    {keyObj.sub && <span className="text-[9px] opacity-40">{keyObj.sub}</span>}
+                </div>
+            );
+        };
+
+        return (
+            <div className="min-h-screen bg-slate-50 p-1 md:p-2 font-sans text-slate-800">
+                <div className="max-w-6xl mx-auto space-y-1">
+
+                    <header className="bg-white p-2 px-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col xl:flex-row items-center gap-2">
+                        <div className="flex items-center gap-3">
+                            <div className="p-1.5 bg-blue-600 rounded-xl text-white shadow-md">
+                                <Icon name="keyboard" size={22} />
+                            </div>
+                            <h1 className="text-base md:text-lg font-black text-slate-900 tracking-tighter uppercase">Typing Pro</h1>
+                        </div>
+                        <nav className="flex bg-slate-100 p-1 rounded-xl flex-wrap justify-center gap-1 xl:ml-6">
+                            {[
+                                { id: 'position', label: '자리 연습', icon: "book" },
+                                { id: 'words', label: '낱말 연습', icon: "type" },
+                                { id: 'short', label: '단문 연습', icon: "alignLeft" },
+                                { id: 'long', label: '장문 연습', icon: "fileText" }
+                            ].map((item) => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => setMode(item.id)}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm md:text-base font-black transition-all ${mode === item.id ? 'bg-white text-blue-600 shadow-sm ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-800'}`}
+                                >
+                                    <Icon name={item.icon} size={18}/> {item.label}
+                                </button>
+                            ))}
+                        </nav>
+                        <div className="xl:flex-1"></div>
+                    </header>
+
+                    {(mode === 'position' || mode === 'words') && (
+                        <div className="flex flex-col items-center animate-in fade-in slide-in-from-top-1 duration-300">
+                            <div className="bg-white px-4 py-1.5 rounded-full shadow-sm border border-slate-200 flex gap-2 items-center flex-wrap justify-center">
+                                {[
+                                    { id: 'base', label: '기본자리' }, { id: 'top', label: '윗글쇠' }, { id: 'bottom', label: '아랫글쇠' },
+                                    mode === 'position' ? { id: 'double', label: '이중받침' } : { id: 'mixed', label: '혼합' },
+                                    mode === 'position' ? { id: 'all', label: '전체' } : null
+                                ].filter(Boolean).map(sub => (
+                                    <button
+                                        key={sub.id}
+                                        onClick={() => setSubMode(sub.id)}
+                                        className={`px-4 py-1 rounded-full text-xs md:text-sm font-black transition-all ${subMode === sub.id ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                                    >
+                                        {sub.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    <main className="bg-white p-3 py-4 rounded-[2rem] shadow-sm border border-slate-200 flex flex-col items-center justify-center min-h-[220px] relative overflow-hidden">
+                        <div className="absolute top-4 left-6 px-2.5 py-1 bg-blue-50 text-blue-600 text-[8px] font-black rounded-full uppercase tracking-tighter ring-1 ring-blue-100">{mode.toUpperCase()} PRACTICE</div>
+
+                        <div className="w-full max-w-5xl space-y-4">
+                            {(mode === 'position' || mode === 'words') ? (
+                                <div className="relative w-full h-24 overflow-hidden flex items-center justify-center">
+                                    <div className="flex items-center transition-transform duration-500 ease-out"
+                                         style={{ transform: `translateX(calc(50% - ${currentIndex * 130 + 65}px))` }}>
+                                        {targetList.length > 0 ? targetList.map((item, idx) => {
+                                            const isCurrent = idx === currentIndex;
+                                            return (
+                                                <div key={idx} className={`relative w-[130px] flex-shrink-0 flex items-center justify-center transition-all duration-500 ${isCurrent ? 'scale-150 z-20' : 'opacity-70 scale-90 blur-[0.2px]'}`}>
+                                                    <div className={`font-black tracking-tighter leading-none break-keep p-2 transition-colors ${mode === 'position' ? 'text-3xl md:text-4xl' : 'text-xl md:text-2xl'} ${isCurrent ? 'text-blue-700 underline decoration-blue-200 underline-offset-8' : 'text-slate-950'}`}>
+                                                        {item.split('').map((char, i) => {
+                                                            let style = isCurrent ? "text-blue-700" : "text-slate-950";
+                                                            if (isCurrent && i < inputText.length) {
+                                                                style = char === inputText[i] ? "text-blue-900" : "text-red-500 bg-red-50 rounded px-0.5";
+                                                            }
+                                                            return <span key={i} className={`${style} transition-colors duration-100`}>{char}</span>;
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            );
+                                        }) : (
+                                            <div className="text-slate-400 font-bold animate-pulse">데이터를 불러오는 중...</div>
+                                        )}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="w-full flex flex-col items-center py-6">
+                                    <div className={`font-black text-slate-950 text-center break-keep transition-all duration-300 leading-relaxed mb-6 ${mode === 'short' ? 'text-xl md:text-2xl' : 'text-xl md:text-2xl'}`}>
+                                        {currentTarget.split('').map((char, i) => {
+                                            let style = "text-slate-950 opacity-100";
+                                            if (i < inputText.length) {
+                                                style = char === inputText[i] ? "text-blue-700" : "text-red-500 bg-red-50 rounded px-0.5";
+                                            }
+                                            return <span key={i} className={`${style} transition-colors duration-100`}>{char}</span>;
+                                        })}
+                                    </div>
+                                    <div className="text-[10px] text-slate-400 font-bold">(Enter를 눌러 다음으로 이동)</div>
+                                </div>
+                            )}
+
+                            <div className="relative max-w-sm mx-auto w-full">
+                                <input key={`input-field-${flushKey}`} ref={inputRef} type="text" value={inputText} onChange={handleInputChange} onKeyDown={handleKeyDown} placeholder="여기에 입력하세요..." autoFocus autoComplete="off" className="w-full text-base md:text-lg font-black text-center py-2.5 px-6 rounded-xl border-2 border-slate-100 bg-slate-50 focus:border-blue-600 focus:bg-white transition-all outline-none shadow-sm" />
+                            </div>
+                        </div>
+                    </main>
+
+                    <div className="flex justify-end items-center px-4">
+                        <div className="bg-white px-3 py-1 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+                            <div className="flex items-center gap-4">
+                                <div className="text-center"><p className="text-[7px] text-slate-400 font-bold uppercase tracking-widest">Speed</p><p className="text-sm font-black text-blue-600 leading-none">{stats.wpm}</p></div>
+                                <div className="text-center"><p className="text-[7px] text-slate-400 font-bold uppercase tracking-widest">Accuracy</p><p className="text-sm font-black text-emerald-600 leading-none">{stats.accuracy}%</p></div>
+                            </div>
+                            <button onClick={() => { const source = getSourceData(); setTargetList([...source].sort(() => Math.random() - 0.5)); setCurrentIndex(0); setInputText(''); setFlushKey(k => k + 1); }} className="p-1 hover:bg-slate-100 rounded-full text-slate-400" title="재시작">
+                                <Icon name="refresh" size={14} />
+                            </button>
+                        </div>
+                    </div>
+
+                    <section className="bg-slate-900 p-2.5 rounded-[1.5rem] shadow-2xl overflow-x-auto border-t-4 border-slate-800">
+                        <div className="flex justify-between gap-4 min-w-[1060px]">
+                            <div className="flex flex-col gap-1">{MAIN_KEYS.map((row, rIdx) => (<div key={rIdx} className="flex gap-1">{row.map((k, kIdx) => renderKey(k, kIdx))}</div>))}</div>
+                            <div className="flex flex-col gap-1 w-32">{NAV_KEYS.map((row, rIdx) => ( <div key={rIdx} className="flex gap-1">{row.map((k, kIdx) => renderKey(k, kIdx))}</div>))}</div>
+                            <div className="grid grid-cols-4 gap-1 h-fit w-48 relative">
+                                {NUMPAD_LAYOUT.map((key, idx) => {
+                                    const isPressed = pressedKey === (key.code || String(key.main || "")).toLowerCase();
+                                    const isNextKey = nextKeyToPress === String(key.main || "");
+                                    return (
+                                        <div key={idx} className={`flex items-center justify-center rounded-lg text-[9px] font-black transition-all border-b-[3px] select-none ${key.colSpan === 2 ? 'col-span-2 w-full' : 'w-10'} ${key.rowSpan === 2 ? 'row-span-2 h-[82px]' : 'h-10'} ${isPressed ? 'bg-blue-600 text-white border-blue-800 translate-y-0.5 border-b-0' : isNextKey ? 'bg-amber-400 text-slate-900 border-amber-600 animate-pulse ring-1 ring-amber-200' : 'bg-slate-800 text-slate-400 border-slate-950 hover:bg-slate-700'}`}>{key.main}</div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+</script>
+</body>
+</html>
