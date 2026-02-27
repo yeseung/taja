@@ -1,0 +1,330 @@
+<!-- filename example: typing-speed-test.html -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typing Speed Test</title>
+
+    <!-- https://www.jiraksil.com/service/typingspeed -->
+
+    <style>
+        :root{
+            --bg:#ffffff;
+            --card:#ffffff;
+            --border:#e5e7eb;
+            --text:#111827;
+            --muted:#6b7280;
+            --primary:#2563eb;
+            --green:#16a34a;
+            --red:#dc2626;
+        }
+
+        *{box-sizing:border-box;}
+        body{
+            margin:0;
+            font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR",sans-serif;
+            background:var(--bg);
+            color:var(--text);
+        }
+
+        .container{
+            max-width:900px;
+            margin:40px auto;
+            padding:20px;
+        }
+
+        .card{
+            background:var(--card);
+            border:1px solid var(--border);
+            border-radius:14px;
+            padding:20px;
+        }
+
+        h1{
+            margin:0 0 10px;
+            font-size:22px;
+        }
+
+        .description{
+            color:var(--muted);
+            margin-bottom:20px;
+        }
+
+        #stats{
+            background:#f9fafb;
+            padding:12px;
+            border-radius:10px;
+            margin-bottom:15px;
+            font-weight:600;
+        }
+
+        #sentenceDisplay{
+            font-size:20px;
+            line-height:1.6;
+            margin-bottom:15px;
+            word-break:break-word;
+        }
+
+        .correct{color:var(--green);}
+        .incorrect{color:var(--red);}
+
+        #textInput{
+            width:100%;
+            padding:12px;
+            font-size:18px;
+            border:1px solid var(--border);
+            border-radius:8px;
+        }
+
+        canvas{
+            width:100%;
+            height:200px;
+            margin-top:20px;
+            border:1px solid var(--border);
+            border-radius:8px;
+        }
+
+        .overlay{
+            position:fixed;
+            inset:0;
+            background:rgba(0,0,0,.6);
+            display:flex;
+            justify-content:center;
+            align-items:center;
+        }
+
+        .modal{
+            background:#fff;
+            padding:30px;
+            border-radius:14px;
+            width:90%;
+            max-width:420px;
+            text-align:center;
+        }
+
+        button{
+            padding:10px 20px;
+            border:none;
+            border-radius:8px;
+            cursor:pointer;
+            font-weight:600;
+        }
+
+        .primary{
+            background:var(--primary);
+            color:#fff;
+        }
+
+        .lang-btn{
+            background:#f3f4f6;
+            margin:5px;
+        }
+
+        .lang-btn.active{
+            background:var(--primary);
+            color:#fff;
+        }
+
+        .result p{
+            margin:6px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card">
+        <h1>타자 속도 테스트</h1>
+        <div class="description">
+            한글과 영문 문장을 이용해 타자 속도를 측정합니다.
+        </div>
+
+        <div id="stats">시간: 0.0초 | 타수: 0 | 정확도: 0%</div>
+
+        <div id="sentenceDisplay"></div>
+        <input id="textInput" placeholder="여기에 타이핑하세요" disabled autocomplete="off">
+
+        <canvas id="speedGraph"></canvas>
+    </div>
+</div>
+
+<div class="overlay" id="startOverlay">
+    <div class="modal">
+        <h2>언어 선택</h2>
+        <button class="lang-btn active" data-lang="korean">한국어</button>
+        <button class="lang-btn" data-lang="english">English</button>
+    </div>
+</div>
+
+<div class="overlay" id="resultOverlay" style="display:none;"></div>
+
+<script>
+    // ===== 문장 데이터 =====
+    const englishSentences = [
+        "The quick brown fox jumps over the lazy dog near the quiet river bank.",
+        "In a peaceful village surrounded by hills, children played happily."
+    ];
+
+    const koreanSentences = [
+        "분주한 도심 한복판에서 빠른 갈색 여우가 조용히 잠든 개를 뛰어넘었습니다.",
+        "따스한 여름 저녁 노을이 하늘을 붉게 물들였습니다."
+    ];
+
+    // ===== 상태 =====
+    let language="korean";
+    let targetSentence="";
+    let startTime;
+    let timerInterval;
+    let speedData=[];
+
+    // ===== DOM =====
+    const startOverlay=document.getElementById("startOverlay");
+    const resultOverlay=document.getElementById("resultOverlay");
+    const sentenceDisplay=document.getElementById("sentenceDisplay");
+    const textInput=document.getElementById("textInput");
+    const stats=document.getElementById("stats");
+    const canvas=document.getElementById("speedGraph");
+    const ctx=canvas.getContext("2d");
+
+    // 캔버스 리사이즈
+    function resizeCanvas(){
+        canvas.width=canvas.offsetWidth;
+        canvas.height=200;
+    }
+    window.addEventListener("resize",resizeCanvas);
+    resizeCanvas();
+
+    // ===== 시작 =====
+    document.querySelectorAll(".lang-btn").forEach(btn=>{
+        btn.addEventListener("click",()=>{
+            document.querySelectorAll(".lang-btn").forEach(b=>b.classList.remove("active"));
+            btn.classList.add("active");
+            language=btn.dataset.lang;
+            startGame();
+        });
+    });
+
+    function startGame(){
+        startOverlay.style.display="none";
+        textInput.disabled=false;
+        textInput.value="";
+        textInput.focus();
+        speedData=[];
+
+        const arr=language==="english"?englishSentences:koreanSentences;
+        targetSentence=arr[Math.floor(Math.random()*arr.length)];
+
+        sentenceDisplay.innerHTML="";
+        for(let char of targetSentence){
+            const span=document.createElement("span");
+            span.textContent=char;
+            sentenceDisplay.appendChild(span);
+        }
+
+        startTime=null;
+    }
+
+    // ===== 입력 처리 =====
+    textInput.addEventListener("input",()=>{
+        const input=textInput.value;
+
+        if(!startTime && input.length>0){
+            startTime=Date.now();
+            timerInterval=setInterval(updateStats,100);
+        }
+
+        updateDisplay(input);
+
+        if(input.length===targetSentence.length){
+            finishGame();
+        }
+    });
+
+    function updateDisplay(input){
+        const spans=sentenceDisplay.querySelectorAll("span");
+        spans.forEach((span,i)=>{
+            if(!input[i]){
+                span.classList.remove("correct","incorrect");
+            }else if(input[i]===targetSentence[i]){
+                span.classList.add("correct");
+                span.classList.remove("incorrect");
+            }else{
+                span.classList.add("incorrect");
+                span.classList.remove("correct");
+            }
+        });
+    }
+
+    // ===== 통계 =====
+    function updateStats(){
+        const elapsed=(Date.now()-startTime)/1000;
+        const input=textInput.value;
+
+        let correct=0;
+        for(let i=0;i<input.length;i++){
+            if(input[i]===targetSentence[i]) correct++;
+        }
+
+        const accuracy=(correct/targetSentence.length)*100;
+        const speed=Math.round(correct/(elapsed/60));
+
+        stats.textContent=`시간: ${elapsed.toFixed(1)}초 | 타수: ${speed} | 정확도: ${accuracy.toFixed(1)}%`;
+
+        speedData.push({time:elapsed,speed});
+        drawGraph();
+    }
+
+    // ===== 그래프 =====
+    function drawGraph(){
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        if(speedData.length<2) return;
+
+        const maxTime=speedData[speedData.length-1].time;
+        const maxSpeed=Math.max(...speedData.map(d=>d.speed));
+
+        ctx.beginPath();
+        speedData.forEach((p,i)=>{
+            const x=(p.time/maxTime)*canvas.width;
+            const y=canvas.height-(p.speed/maxSpeed)*canvas.height;
+            if(i===0) ctx.moveTo(x,y);
+            else ctx.lineTo(x,y);
+        });
+        ctx.strokeStyle="#2563eb";
+        ctx.lineWidth=2;
+        ctx.stroke();
+    }
+
+    // ===== 종료 =====
+    function finishGame(){
+        clearInterval(timerInterval);
+        textInput.disabled=true;
+
+        const elapsed=(Date.now()-startTime)/1000;
+        const input=textInput.value;
+        let correct=0;
+
+        for(let i=0;i<input.length;i++){
+            if(input[i]===targetSentence[i]) correct++;
+        }
+
+        const accuracy=(correct/targetSentence.length)*100;
+        const speed=Math.round(correct/(elapsed/60));
+        const finalScore=Math.round(speed*(accuracy/100));
+
+        resultOverlay.innerHTML=`
+    <div class="modal result">
+      <h2>테스트 완료</h2>
+      <p>시간: ${elapsed.toFixed(2)}초</p>
+      <p>기본 타수: ${speed}</p>
+      <p>정확도: ${accuracy.toFixed(1)}%</p>
+      <p><strong>최종 점수: ${finalScore}</strong></p>
+      <button class="primary" onclick="location.reload()">다시하기</button>
+    </div>
+  `;
+        resultOverlay.style.display="flex";
+    }
+</script>
+
+</body>
+</html>
