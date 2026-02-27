@@ -1,0 +1,694 @@
+<!-- filename example: typing-test-simple.html -->
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>온라인 타이핑 테스트 | WPM & 정확도</title>
+    <meta name="description" content="무료 온라인 타자 연습 테스트로 타자 속도(WPM)와 정확도를 측정하고 향상시키세요." />
+
+    <style>
+        :root{
+            --bg:#f6f7fb;
+            --card:#ffffff;
+            --text:#111827;
+            --muted:#6b7280;
+            --border:#e5e7eb;
+            --shadow:0 14px 36px rgba(0,0,0,.08);
+            --radius:16px;
+
+            --primary:#2563eb;
+            --primary2:#1d4ed8;
+
+            --good:#16a34a;
+            --bad:#dc2626;
+            --warn:#f59e0b;
+        }
+
+        *{ box-sizing:border-box; }
+        body{
+            margin:0;
+            font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR",sans-serif;
+            color:var(--text);
+            background:var(--bg);
+        }
+
+        a{ color:inherit; text-decoration:none; }
+
+        .wrap{
+            max-width:980px;
+            margin:38px auto;
+            padding:18px;
+        }
+
+        header{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:12px;
+            flex-wrap:wrap;
+            margin-bottom:14px;
+        }
+
+        .brand{
+            display:flex;
+            align-items:center;
+            gap:10px;
+        }
+        .logo{
+            width:42px;height:42px;
+            border-radius:12px;
+            background:linear-gradient(135deg, #dbeafe, #eef2ff);
+            border:1px solid var(--border);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            box-shadow:0 10px 28px rgba(0,0,0,.06);
+            font-weight:1000;
+            color:var(--primary);
+        }
+
+        h1{
+            margin:0;
+            font-size:20px;
+            line-height:1.2;
+            font-weight:1000;
+        }
+        .sub{
+            margin:4px 0 0;
+            color:var(--muted);
+            font-size:13px;
+            line-height:1.5;
+            max-width:70ch;
+        }
+
+        .card{
+            background:var(--card);
+            border:1px solid var(--border);
+            border-radius:var(--radius);
+            box-shadow:var(--shadow);
+            overflow:hidden;
+        }
+
+        .toolbar{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:12px;
+            flex-wrap:wrap;
+            padding:14px 16px;
+            border-bottom:1px solid var(--border);
+            background:#fff;
+        }
+
+        .leftControls{
+            display:flex;
+            gap:10px;
+            flex-wrap:wrap;
+            align-items:center;
+        }
+
+        .pill{
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+            padding:8px 12px;
+            border:1px solid var(--border);
+            border-radius:999px;
+            background:#f9fafb;
+            font-size:13px;
+            font-weight:900;
+            user-select:none;
+            white-space:nowrap;
+        }
+        .pill span{ color:var(--muted); font-weight:900; }
+
+        select, button{
+            font:inherit;
+        }
+
+        .select{
+            border:1px solid var(--border);
+            border-radius:999px;
+            padding:9px 12px;
+            background:#fff;
+            font-weight:900;
+            cursor:pointer;
+        }
+
+        .btns{ display:flex; gap:10px; flex-wrap:wrap; }
+        .btn{
+            appearance:none;
+            border:1px solid var(--border);
+            background:#fff;
+            color:var(--text);
+            border-radius:999px;
+            padding:10px 14px;
+            font-weight:1000;
+            cursor:pointer;
+            transition:transform .05s ease, border-color .2s ease, background .2s ease, opacity .2s ease;
+            user-select:none;
+            white-space:nowrap;
+        }
+        .btn:hover{ border-color:#cbd5e1; }
+        .btn:active{ transform:translateY(1px); }
+        .btn.primary{
+            background:var(--primary);
+            border-color:var(--primary);
+            color:#fff;
+        }
+        .btn.primary:hover{
+            background:var(--primary2);
+            border-color:var(--primary2);
+        }
+        .btn:disabled{ opacity:.55; cursor:not-allowed; }
+
+        .content{
+            padding:16px;
+        }
+
+        .prompt{
+            border:1px solid var(--border);
+            border-radius:14px;
+            padding:14px 16px;
+            background:#fff;
+            line-height:1.8;
+            font-size:18px;
+            user-select:none;
+            word-break:keep-all;
+        }
+        .prompt .ok{ color:var(--good); }
+        .prompt .bad{
+            color:var(--bad);
+            text-decoration:underline;
+            text-decoration-thickness:2px;
+            text-underline-offset:3px;
+        }
+        .prompt .cur{
+            background:#111827;
+            color:#fff;
+            padding:0 2px;
+            border-radius:4px;
+        }
+
+        .inputBox{
+            margin-top:12px;
+            border:1px solid var(--border);
+            border-radius:14px;
+            background:#fff;
+            padding:12px;
+        }
+
+        textarea{
+            width:100%;
+            min-height:120px;
+            resize:vertical;
+            border:1px solid var(--border);
+            border-radius:12px;
+            padding:12px 12px;
+            font-size:16px;
+            line-height:1.65;
+            outline:none;
+        }
+        textarea:focus{ border-color:#c7d2fe; box-shadow:0 0 0 4px rgba(99,102,241,.12); }
+
+        .hintRow{
+            display:flex;
+            justify-content:space-between;
+            gap:10px;
+            flex-wrap:wrap;
+            margin-top:10px;
+            color:var(--muted);
+            font-size:12.5px;
+        }
+
+        .resultRow{
+            margin-top:12px;
+            display:grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap:10px;
+        }
+
+        @media (max-width:720px){
+            .resultRow{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+
+        .stat{
+            border:1px solid var(--border);
+            border-radius:14px;
+            background:#fff;
+            padding:12px 12px;
+        }
+        .stat .label{ color:var(--muted); font-size:12px; font-weight:900; }
+        .stat .value{ margin-top:6px; font-size:22px; font-weight:1100; }
+        .stat .subvalue{ margin-top:4px; color:var(--muted); font-size:12px; }
+
+        .badgeGood{ color:var(--good); }
+        .badgeBad{ color:var(--bad); }
+        .badgeWarn{ color:var(--warn); }
+
+        .toast{
+            position:fixed;
+            left:50%;
+            bottom:22px;
+            transform:translateX(-50%);
+            background:#111827;
+            color:#fff;
+            padding:10px 14px;
+            border-radius:999px;
+            font-weight:900;
+            font-size:13px;
+            opacity:0;
+            pointer-events:none;
+            transition:opacity .2s ease, transform .2s ease;
+            z-index:10000;
+            box-shadow:0 10px 30px rgba(0,0,0,.25);
+        }
+        .toast.show{
+            opacity:1;
+            transform:translateX(-50%) translateY(-4px);
+        }
+
+        footer{
+            margin-top:14px;
+            color:var(--muted);
+            font-size:12px;
+            text-align:center;
+        }
+    </style>
+</head>
+
+<body>
+<div class="wrap">
+    <header>
+        <div class="brand">
+            <div class="logo">⌨</div>
+            <div>
+                <h1>온라인 타이핑 테스트</h1>
+                <div class="sub">Start를 누르고 문장을 그대로 입력하세요. WPM(분당 단어 수)와 정확도를 계산합니다. (순수 HTML/CSS/JS)</div>
+            </div>
+        </div>
+    </header>
+
+    <div class="card" role="main" aria-label="Typing Test">
+        <div class="toolbar">
+            <div class="leftControls">
+                <div class="pill">시간 <span id="timeLabel">60s</span></div>
+                <div class="pill">상태 <span id="statusLabel">대기</span></div>
+
+                <label class="pill" style="padding:6px 10px;">
+                    <span style="color:var(--muted); font-weight:900;">제한</span>
+                    <select id="durationSel" class="select" aria-label="테스트 시간">
+                        <option value="15">15초</option>
+                        <option value="30">30초</option>
+                        <option value="60" selected>60초</option>
+                        <option value="120">120초</option>
+                    </select>
+                </label>
+
+                <button class="btn" id="newTextBtn" type="button">새 문장</button>
+            </div>
+
+            <div class="btns">
+                <button class="btn primary" id="startBtn" type="button">Start</button>
+                <button class="btn" id="stopBtn" type="button" disabled>Stop</button>
+                <button class="btn" id="resetBtn" type="button">Reset</button>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="prompt" id="prompt" aria-label="문장">
+                <!-- JS로 렌더 -->
+            </div>
+
+            <div class="inputBox">
+                <textarea id="input" placeholder="여기에 입력하세요… (Start 후 입력)" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" disabled></textarea>
+
+                <div class="hintRow">
+                    <div>팁: 정확도 = 맞은 글자 / (맞은 글자 + 틀린 글자)</div>
+                    <div>WPM은 표준(5글자=1단어) 기준으로 계산</div>
+                </div>
+            </div>
+
+            <div class="resultRow" aria-label="결과">
+                <div class="stat">
+                    <div class="label">WPM</div>
+                    <div class="value" id="wpm">0</div>
+                    <div class="subvalue" id="wpmSub">0 chars / min</div>
+                </div>
+                <div class="stat">
+                    <div class="label">정확도</div>
+                    <div class="value" id="acc">0%</div>
+                    <div class="subvalue" id="accSub">correct 0 / wrong 0</div>
+                </div>
+                <div class="stat">
+                    <div class="label">진행</div>
+                    <div class="value" id="progress">0%</div>
+                    <div class="subvalue" id="progressSub">0 / 0 chars</div>
+                </div>
+                <div class="stat">
+                    <div class="label">오타</div>
+                    <div class="value" id="errors">0</div>
+                    <div class="subvalue" id="errorsSub">최초 오타 위치 표시</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        광고/랭킹/부트스트랩/외부라이브러리 없이 동작합니다.
+    </footer>
+</div>
+
+<div class="toast" id="toast">알림</div>
+
+<script>
+    (() => {
+        /*****************
+         * Text samples
+         *****************/
+        const samples = [
+            "오늘도 천천히, 정확하게 입력하는 연습을 해봅시다.",
+            "타자 속도는 반복 연습으로 늘고, 정확도는 의식적인 교정으로 좋아집니다.",
+            "짧은 문장부터 시작해서 긴 문장으로 확장해 보세요.",
+            "바른 자세와 일정한 호흡이 타이핑 리듬을 만듭니다.",
+            "정확도가 먼저, 그 다음이 속도입니다."
+        ];
+
+        /*****************
+         * DOM
+         *****************/
+        const durationSel = document.getElementById('durationSel');
+        const timeLabel = document.getElementById('timeLabel');
+        const statusLabel = document.getElementById('statusLabel');
+
+        const promptEl = document.getElementById('prompt');
+        const inputEl = document.getElementById('input');
+
+        const newTextBtn = document.getElementById('newTextBtn');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const resetBtn = document.getElementById('resetBtn');
+
+        const wpmEl = document.getElementById('wpm');
+        const wpmSubEl = document.getElementById('wpmSub');
+        const accEl = document.getElementById('acc');
+        const accSubEl = document.getElementById('accSub');
+        const progEl = document.getElementById('progress');
+        const progSubEl = document.getElementById('progressSub');
+        const errEl = document.getElementById('errors');
+        const errSubEl = document.getElementById('errorsSub');
+
+        const toastEl = document.getElementById('toast');
+
+        /*****************
+         * State
+         *****************/
+        let targetText = "";
+        let isRunning = false;
+
+        let startAt = 0;
+        let timerId = null;
+        let durationSec = 60;
+
+        // stats
+        let correct = 0;
+        let wrong = 0;
+        let errors = 0;
+        let firstErrorIndex = -1;
+
+        /*****************
+         * Helpers
+         *****************/
+        function toast(msg){
+            toastEl.textContent = msg;
+            toastEl.classList.add('show');
+            clearTimeout(toastEl._t);
+            toastEl._t = setTimeout(()=>toastEl.classList.remove('show'), 900);
+        }
+
+        function randSample(){
+            return samples[Math.floor(Math.random()*samples.length)];
+        }
+
+        function setStatus(txt){
+            statusLabel.textContent = txt;
+        }
+
+        function setButtons(running){
+            startBtn.disabled = running;
+            stopBtn.disabled = !running;
+            durationSel.disabled = running;
+        }
+
+        function resetStats(){
+            correct = 0;
+            wrong = 0;
+            errors = 0;
+            firstErrorIndex = -1;
+
+            wpmEl.textContent = "0";
+            wpmSubEl.textContent = "0 chars / min";
+            accEl.textContent = "0%";
+            accSubEl.textContent = "correct 0 / wrong 0";
+            progEl.textContent = "0%";
+            progSubEl.textContent = `0 / ${targetText.length} chars`;
+            errEl.textContent = "0";
+            errSubEl.textContent = "최초 오타 위치 표시";
+        }
+
+        function renderPrompt(inputValue){
+            const typed = inputValue || "";
+            const t = targetText;
+
+            let html = "";
+            const max = Math.max(t.length, typed.length);
+
+            for(let i=0;i<max;i++){
+                const tc = t[i] ?? "";
+                const ic = typed[i] ?? "";
+
+                // 아직 입력 안 했으면 원문만 표시
+                if(i >= typed.length){
+                    if(tc) html += escapeHtml(tc);
+                    continue;
+                }
+
+                // 원문이 끝났는데 더 입력한 경우(초과 입력) -> 빨간색
+                if(i >= t.length){
+                    html += `<span class="bad">${escapeHtml(ic)}</span>`;
+                    continue;
+                }
+
+                if(ic === tc){
+                    html += `<span class="ok">${escapeHtml(tc)}</span>`;
+                }else{
+                    html += `<span class="bad">${escapeHtml(tc)}</span>`;
+                }
+            }
+
+            // 커서 표시 (다음 입력 위치)
+            const cursorPos = typed.length;
+            if(cursorPos <= targetText.length){
+                // cursorPos 위치의 글자를 강조하되, 글자가 없으면 빈 커서
+                const before = html;
+                // 간단 구현: promptEl 끝에 커서가 아니라 "현재 입력 위치"가 더 명확하도록 아래에서 별도 표시
+                // 여기서는 문장 위에 커서를 얹기보단, 실사용에서 과도한 DOM 조작을 피함.
+            }
+
+            promptEl.innerHTML = html || escapeHtml(targetText);
+        }
+
+        function escapeHtml(s){
+            return String(s)
+            .replaceAll("&","&amp;")
+            .replaceAll("<","&lt;")
+            .replaceAll(">","&gt;")
+            .replaceAll('"',"&quot;")
+            .replaceAll("'","&#039;");
+        }
+
+        function calcAndRender(){
+            const typed = inputEl.value;
+            const t = targetText;
+
+            // correct/wrong 재계산(실시간 정확도 반영)
+            correct = 0;
+            wrong = 0;
+            errors = 0;
+            firstErrorIndex = -1;
+
+            const len = Math.max(typed.length, t.length);
+            for(let i=0;i<len;i++){
+                const tc = t[i];
+                const ic = typed[i];
+
+                if(ic == null) continue; // 아직 안 침
+
+                if(tc == null){
+                    // 초과 입력은 오타로 처리
+                    wrong++;
+                    errors++;
+                    if(firstErrorIndex === -1) firstErrorIndex = i;
+                    continue;
+                }
+
+                if(ic === tc){
+                    correct++;
+                }else{
+                    wrong++;
+                    errors++;
+                    if(firstErrorIndex === -1) firstErrorIndex = i;
+                }
+            }
+
+            // elapsed minutes
+            const now = performance.now();
+            const elapsedMs = isRunning ? (now - startAt) : 0;
+            const elapsedMin = Math.max(0.00001, elapsedMs / 60000);
+
+            // 표준 WPM: (정확 입력 글자수 / 5) / 분
+            const wpm = Math.floor((correct / 5) / elapsedMin);
+
+            // chars/min(참고)
+            const cpm = Math.floor(correct / elapsedMin);
+
+            const acc = (correct + wrong) === 0 ? 0 : Math.round((correct / (correct + wrong)) * 100);
+
+            const progress = t.length === 0 ? 0 : Math.min(100, Math.round((Math.min(typed.length, t.length) / t.length) * 100));
+
+            wpmEl.textContent = String(isRunning ? wpm : 0);
+            wpmSubEl.textContent = `${isRunning ? cpm : 0} chars / min`;
+
+            accEl.textContent = `${acc}%`;
+            accSubEl.textContent = `correct ${correct} / wrong ${wrong}`;
+
+            progEl.textContent = `${progress}%`;
+            progSubEl.textContent = `${Math.min(typed.length, t.length)} / ${t.length} chars`;
+
+            errEl.textContent = String(errors);
+            if(firstErrorIndex === -1){
+                errSubEl.textContent = "오타 없음";
+                errSubEl.className = "subvalue badgeGood";
+            }else{
+                errSubEl.textContent = `최초 오타 위치: ${firstErrorIndex + 1}번째`;
+                errSubEl.className = "subvalue badgeBad";
+            }
+
+            renderPrompt(typed);
+        }
+
+        function updateTime(){
+            const now = performance.now();
+            const elapsed = (now - startAt) / 1000;
+            const remain = Math.max(0, durationSec - elapsed);
+            timeLabel.textContent = `${Math.ceil(remain)}s`;
+
+            if(remain <= 0){
+                stopTest(true);
+            }
+        }
+
+        function startTest(){
+            if(isRunning) return;
+
+            durationSec = parseInt(durationSel.value, 10) || 60;
+            timeLabel.textContent = `${durationSec}s`;
+
+            isRunning = true;
+            startAt = performance.now();
+
+            setButtons(true);
+            setStatus("진행중");
+
+            inputEl.disabled = false;
+            inputEl.focus();
+
+            // 초기 렌더 1회
+            calcAndRender();
+
+            clearInterval(timerId);
+            timerId = setInterval(() => {
+                updateTime();
+                calcAndRender();
+            }, 120);
+        }
+
+        function stopTest(autoEnded){
+            if(!isRunning) return;
+            isRunning = false;
+
+            clearInterval(timerId);
+            timerId = null;
+
+            setButtons(false);
+            inputEl.disabled = true;
+
+            setStatus(autoEnded ? "종료" : "일시정지");
+            toast(autoEnded ? "시간 종료!" : "중지됨");
+            // 종료 상태에서도 마지막 결과는 유지 (WPM은 0으로 내려가지 않게)
+            // 요구사항에 따라 WPM을 종료 후에도 유지하도록 처리:
+            // 여기서는 마지막 렌더 값이 남아있게 interval만 멈춤.
+        }
+
+        function resetAll(){
+            stopTest(false);
+            inputEl.value = "";
+            setStatus("대기");
+            timeLabel.textContent = `${parseInt(durationSel.value, 10) || 60}s`;
+            resetStats();
+            renderPrompt("");
+        }
+
+        function newText(){
+            targetText = randSample();
+            promptEl.textContent = targetText;
+            inputEl.value = "";
+            resetStats();
+            renderPrompt("");
+            toast("새 문장으로 변경");
+            if(isRunning){
+                // 진행 중이면 현재 입력 초기화하고 계속(타이머 유지)
+                inputEl.focus();
+            }
+        }
+
+        /*****************
+         * Events
+         *****************/
+        newTextBtn.addEventListener('click', newText);
+        startBtn.addEventListener('click', startTest);
+        stopBtn.addEventListener('click', () => stopTest(false));
+        resetBtn.addEventListener('click', resetAll);
+
+        durationSel.addEventListener('change', () => {
+            if(!isRunning){
+                timeLabel.textContent = `${parseInt(durationSel.value, 10) || 60}s`;
+            }
+        });
+
+        inputEl.addEventListener('input', () => {
+            // 실시간 피드백
+            calcAndRender();
+        });
+
+        // Tab 키로 시작/정지
+        document.addEventListener('keydown', (e) => {
+            if(e.key === 'Escape'){
+                if(isRunning) stopTest(false);
+            }
+            if(e.key === 'Enter' && (e.ctrlKey || e.metaKey)){
+                if(!isRunning) startTest();
+                else stopTest(false);
+            }
+        });
+
+        /*****************
+         * Init
+         *****************/
+        newText();
+        resetAll();
+    })();
+</script>
+</body>
+</html>
