@@ -1,0 +1,899 @@
+<!-- file: reply-1988-typing.html -->
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>응답하라 1988 타자연습 (Vanilla)</title>
+    <meta name="description" content="삐- 삐- 💾 90년대 DOS 감성 타자 게임! 엔터로 단어를 파괴하세요." />
+    <link rel="icon" href="data:," />
+
+    <style>
+        /* =========================================
+           Reply 1988 Typing - DOS Retro (Vanilla)
+           - No Ads, No Bootstrap, No jQuery
+           ========================================= */
+
+        /* 90년대 DOS 감성 둥근모꼴 폰트 (CDN) */
+        @font-face {
+            font-family: "DungGeunMo";
+            src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/DungGeunMo.woff") format("woff");
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        :root{
+            --dos-navy-bg:#0000AA;
+            --dos-cyan:#00AAAA;
+            --dos-white:#FFFFFF;
+            --dos-yellow:#FFFF55;
+            --dos-red:#FF5555;
+            --dos-gray:#AAAAAA;
+            --dos-dark:#000000;
+            --dos-text-gray:#CFCFCF;
+
+            --wrap-max: 860px;
+        }
+
+        *{ box-sizing:border-box; }
+        html,body{ height:100%; }
+        body{
+            margin:0;
+            background:#0b0b0b;
+            color:#fff;
+            font-family: "DungGeunMo", monospace;
+        }
+
+        /* 상단 간단 헤더(사이트 공통 제거 버전) */
+        .topbar{
+            width:100%;
+            padding:14px 12px;
+            background:#111;
+            border-bottom:1px solid #222;
+            position:sticky;
+            top:0;
+            z-index:5;
+        }
+        .topbar-inner{
+            max-width: var(--wrap-max);
+            margin:0 auto;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:12px;
+        }
+        .brand{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            user-select:none;
+        }
+        .brand .logo{
+            width:34px;height:34px;
+            display:grid;place-items:center;
+            background:#222;
+            border:1px solid #333;
+            box-shadow:2px 2px 0 #000;
+            font-size:18px;
+        }
+        .brand .title{
+            font-size:18px;
+            letter-spacing:0.5px;
+            color:#e9e9e9;
+        }
+        .mini-hint{
+            font-size:12px;
+            color:#aaa;
+            white-space:nowrap;
+        }
+
+        /* 본문 래퍼 */
+        .wrap{
+            max-width: var(--wrap-max);
+            margin: 18px auto 60px;
+            padding: 0 12px;
+        }
+
+        .page-title{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:10px;
+            margin: 10px 0 8px;
+        }
+        .page-title h1{
+            margin:0;
+            font-size:22px;
+            color: var(--dos-yellow);
+            text-shadow: 0 1px 0 #000;
+        }
+        .desc{
+            margin:0 0 14px;
+            color:#cfcfcf;
+            font-size:14px;
+            line-height:1.5;
+        }
+
+        /* 게임 박스 */
+        #game-display{
+            position:relative;
+            background: var(--dos-navy-bg);
+            border:4px solid var(--dos-gray);
+            border-radius:0;
+            overflow:hidden;
+            user-select:none;
+            box-shadow: 6px 6px 0 #000;
+        }
+
+        /* 타이틀 바 */
+        #dos-title-bar{
+            background: var(--dos-gray);
+            color: var(--dos-navy-bg);
+            text-align:center;
+            font-size:20px;
+            padding:6px 0;
+            font-weight:bold;
+            border-bottom:2px solid var(--dos-white);
+            letter-spacing:0.5px;
+        }
+
+        /* 상태 바 */
+        #status-bar{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:10px;
+            background: var(--dos-cyan);
+            padding: 10px 14px;
+            font-size:18px;
+            border-bottom:2px solid var(--dos-white);
+            position:relative;
+            z-index:2;
+        }
+        #status-left{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            color: var(--dos-white);
+        }
+        #sound-icon-ingame{
+            cursor:pointer;
+            padding: 0 6px;
+            border:1px solid rgba(255,255,255,0.3);
+            background: rgba(0,0,0,0.15);
+            box-shadow:1px 1px 0 #000;
+            border-radius:2px;
+        }
+        #hp-box{ color: var(--dos-red); white-space:nowrap; }
+
+        /* 게임 영역 */
+        #gameArea{
+            position:relative;
+            width:100%;
+            height: 360px;
+            background: var(--dos-navy-bg);
+            overflow:hidden;
+        }
+
+        /* 바닥 줄 */
+        #ground-line{
+            position:absolute;
+            bottom:0;
+            width:100%;
+            height:18px;
+            background: repeating-linear-gradient(
+                    45deg,
+                    var(--dos-navy-bg),
+                    var(--dos-navy-bg) 10px,
+                    var(--dos-cyan) 10px,
+                    var(--dos-cyan) 20px
+            );
+            border-top:2px solid var(--dos-white);
+            opacity:0.9;
+        }
+
+        /* 레벨업 메시지 */
+        #level-up-msg{
+            position:absolute;
+            top:42%;
+            left:50%;
+            transform: translate(-50%,-50%);
+            font-size:44px;
+            color: var(--dos-yellow);
+            opacity:0;
+            pointer-events:none;
+            z-index:3;
+            text-shadow: 2px 2px 0 #000;
+        }
+        #level-up-msg.show{
+            opacity:1;
+            animation: blinkDos 0.2s 6;
+        }
+        @keyframes blinkDos{
+            0%,100%{ opacity:1; color: var(--dos-yellow); }
+            50%{ opacity:0; color:#fff; }
+        }
+
+        /* 떨어지는 단어 */
+        .falling-word{
+            position:absolute;
+            top:-40px;
+            font-size:22px;
+            padding:2px 5px;
+            white-space:nowrap;
+            color: var(--dos-white);
+        }
+
+        /* 블라인드 단어 */
+        .falling-word.hidden-box{
+            background: var(--dos-white) !important;
+            color: var(--dos-white) !important;
+        }
+
+        /* 폭발 */
+        .boom{ animation: explodeDos 0.18s forwards; }
+        @keyframes explodeDos{
+            0%{ transform:scale(1); background: var(--dos-red); color:#fff; }
+            100%{ transform:scale(1.25); opacity:0; letter-spacing:5px; }
+        }
+
+        /* 데미지 플래시 */
+        .damage-flash{ animation: flashDos 0.18s; }
+        @keyframes flashDos{
+            0%{ background: var(--dos-red); }
+            100%{ background: var(--dos-navy-bg); }
+        }
+
+        /* 입력 영역 */
+        #input-area{
+            position:relative;
+            background: var(--dos-navy-bg);
+            padding: 14px 16px;
+            display:flex;
+            align-items:center;
+            gap:10px;
+            border-top:2px solid var(--dos-white);
+            cursor:text;
+        }
+        .prompt-text{
+            color: var(--dos-text-gray);
+            font-size:22px;
+            user-select:none;
+        }
+        #typed-text{
+            color: var(--dos-white);
+            font-size:22px;
+            white-space:pre;
+            min-height: 24px;
+        }
+        #dos-cursor{
+            color: var(--dos-yellow);
+            font-size:22px;
+            font-weight:bold;
+            display:none;
+        }
+        #input-area.focused #dos-cursor{
+            display:inline;
+            animation: cursorBlink 0.8s step-end infinite;
+        }
+        @keyframes cursorBlink{ 0%,100%{opacity:1;} 50%{opacity:0;} }
+
+        #wordInput{
+            position:absolute;
+            inset:0;
+            opacity:0;
+            border:none;
+            outline:none;
+            background:transparent;
+            color:transparent;
+            caret-color:transparent;
+            font-size:22px;
+        }
+
+        /* 오버레이 */
+        .overlay{
+            position:absolute;
+            inset:0;
+            background: var(--dos-navy-bg);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            flex-direction:column;
+            z-index:10;
+            text-align:center;
+            padding:18px;
+        }
+        .modal{
+            width: min(420px, 92vw);
+            border:2px solid var(--dos-white);
+            padding:18px 16px;
+            background: var(--dos-navy-bg);
+            box-shadow:
+                    inset 0 0 0 2px var(--dos-navy-bg),
+                    inset 0 0 0 4px var(--dos-white);
+        }
+        .modal h3{
+            margin:0 0 12px;
+            color: var(--dos-yellow);
+            font-size:28px;
+        }
+        .modal p{
+            margin:0 0 14px;
+            font-size:14px;
+            color: var(--dos-text-gray);
+            line-height:1.6;
+        }
+
+        /* 언어 버튼 */
+        #lang-select{
+            display:flex;
+            gap:10px;
+            justify-content:center;
+            margin: 10px 0 14px;
+        }
+        .lang-btn{
+            background: var(--dos-navy-bg);
+            color: var(--dos-gray);
+            border:2px solid var(--dos-gray);
+            padding:8px 14px;
+            font-family:"DungGeunMo", monospace;
+            font-size:18px;
+            cursor:pointer;
+            box-shadow:2px 2px 0 #000;
+        }
+        .lang-btn.active{
+            background: var(--dos-gray);
+            color: var(--dos-navy-bg);
+            border-color: var(--dos-white);
+        }
+
+        /* 사운드 토글 */
+        .sound-toggle{
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            gap:8px;
+            font-size:16px;
+            color: var(--dos-yellow);
+            margin: 8px 0 16px;
+            user-select:none;
+        }
+        .sound-toggle input{ transform: translateY(1px); }
+
+        .btn{
+            background: var(--dos-gray);
+            color: var(--dos-navy-bg);
+            border:2px solid var(--dos-white);
+            padding:10px 16px;
+            font-size:20px;
+            font-family:"DungGeunMo", monospace;
+            cursor:pointer;
+            box-shadow:2px 2px 0 #000;
+            width: 100%;
+            max-width: 260px;
+        }
+        .btn:active{ transform: translate(2px,2px); box-shadow:none; }
+
+        /* 하단 안내 박스 */
+        .info-box{
+            margin-top:14px;
+            border:1px solid #222;
+            background:#0f0f0f;
+            padding:12px;
+            color:#cfcfcf;
+            font-size:13px;
+            line-height:1.5;
+        }
+        .kbd{
+            display:inline-block;
+            padding:2px 6px;
+            border:1px solid #444;
+            background:#111;
+            box-shadow:1px 1px 0 #000;
+            border-radius:3px;
+            color:#fff;
+            font-size:12px;
+            transform: translateY(-1px);
+        }
+
+        /* 반응형 */
+        @media (max-width: 600px){
+            #gameArea{ height: 310px; }
+            #status-bar{ font-size:15px; padding:10px 10px; }
+            #dos-title-bar{ font-size:18px; }
+            .falling-word{ font-size:20px; }
+            .prompt-text,#typed-text,#dos-cursor{ font-size:20px; }
+            #level-up-msg{ font-size:38px; }
+            .page-title h1{ font-size:20px; }
+        }
+    </style>
+</head>
+
+<body>
+<header class="topbar">
+    <div class="topbar-inner">
+        <div class="brand">
+            <div class="logo">💾</div>
+            <div class="title">Reply 1988 Typing</div>
+        </div>
+        <div class="mini-hint">ENTER로 발사 · LV4+ 블라인드</div>
+    </div>
+</header>
+
+<main class="wrap">
+    <div class="page-title">
+        <h1>응답하라 1988 타자연습</h1>
+    </div>
+    <p class="desc">추억의 도스 타자게임! 타이핑 후 <span class="kbd">Enter</span>를 눌러 단어를 파괴하세요.</p>
+
+    <section id="game-display" aria-label="typing game">
+        <div id="dos-title-bar">HANME TAJA - VENEZIA (1988 Ver)</div>
+
+        <!-- 시작 오버레이 -->
+        <div id="startOverlay" class="overlay">
+            <div class="modal">
+                <h3>응답하라 1988</h3>
+                <p>
+                    C:\&gt; 레벨이 오르면 블라인드 단어(흰색)가 등장합니다.<br/>
+                    C:\&gt; 동일한 단어는 <b>한 번에 파괴</b>됩니다.<br/>
+                    C:\&gt; <b>[ENTER]</b>를 눌러야 발사됩니다.
+                </p>
+
+                <div id="lang-select">
+                    <button class="lang-btn active" data-lang="ko" type="button">한글 (KOR)</button>
+                    <button class="lang-btn" data-lang="en" type="button">영문 (ENG)</button>
+                </div>
+
+                <label class="sound-toggle">
+                    <input type="checkbox" id="initSoundToggle" checked />
+                    🔊 DOS 피프음 켜기
+                </label>
+
+                <div style="display:flex; justify-content:center;">
+                    <button class="btn" id="startBtn" type="button">실행 (ENTER)</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 결과 오버레이 -->
+        <div id="resultOverlay" class="overlay" style="display:none;"></div>
+
+        <!-- 상태바 -->
+        <div id="status-bar">
+            <div id="status-left">
+                <span style="color:var(--dos-navy-bg);">LV.</span>
+                <span id="level-display">1</span>
+                <span id="sound-icon-ingame" title="소리 켜기/끄기">🔊</span>
+            </div>
+            <div>점수:<span id="score" style="margin-left:6px;">0</span></div>
+            <div id="hp-box">라이프:<span id="hp" style="margin-left:6px;">♥♥♥♥♥</span></div>
+        </div>
+
+        <!-- 게임 영역 -->
+        <div id="gameArea">
+            <div id="level-up-msg">LEVEL UP!</div>
+            <div id="ground-line"></div>
+        </div>
+
+        <!-- 입력 영역 -->
+        <div id="input-area" tabindex="0">
+            <span class="prompt-text">C:\&gt;</span>
+            <span id="typed-text"></span>
+            <span id="dos-cursor">_</span>
+            <input id="wordInput" type="text" autocomplete="off" inputmode="text"
+                   disabled onpaste="return false;" oncopy="return false;" />
+        </div>
+    </section>
+
+    <div class="info-box">
+        흰색 박스로 숨겨진 단어는 <b>1.5초</b> 뒤에 모습을 드러냅니다! (미리 맞추면 보너스!)<br/>
+        팁: 모바일은 입력창을 터치하면 키보드가 올라옵니다.
+    </div>
+</main>
+
+<script>
+    /* ==================================================
+       Reply 1988 Typing - Vanilla JS
+       ================================================== */
+
+    // ---- 사운드(WebAudio) ----
+    let audioCtx = null;
+    let isSoundOn = true;
+
+    function playBeep() {
+        if (!isSoundOn) return;
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === "suspended") audioCtx.resume();
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = "square";
+        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.10);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.10);
+    }
+
+    // ---- 단어 DB ----
+    const wordDB_KO = [
+        "서울올림픽","호돌이","굴렁쇠","손기정","현정화","탁구","금메달","응답하라","영웅본색","주윤발",
+        "소방차","어젯밤이야기","이선희","조용필","가요톱텐","유로댄스","코미디전망대","쓰리랑부부","순악질여사","회동구장",
+        "해태타이거즈","롯데자이언츠","최동원","선동열","브라보콘","죠스바","돼지바","새우깡","맛동산","쫀드기",
+        "아폴로","밭두렁","별뽀빠이","달고나","잉어엿","다이알비누","럭키치약","곤로","연탄","공중전화",
+        "토큰","회수권","카세트","마이마이","워크맨","비디오테이프","호환마마","오락실","보글보글","테트리스",
+        "스트리트파이터","갤러그","방구차","딱지치기","구슬치기","고무줄놀이","다방","쌍화차","경양식","돈까스",
+        "함박스텍","비엔나","분홍소시지","양은냄비","보온병","포니","프라이드","르망","각그랜저","육삼빌딩",
+        "남산타워","주판","주산학원","웅변학원","국민학교","바른생활","탐구생활","수련장","책받침","지우개따먹기",
+        "별이빛나는밤에","이문세","우표수집","크리스마스씰","장학퀴즈","유머일번지","쇼비디오자키","로보트태권브이","우뢰매","심형래",
+        "김형곤","맹구","배트맨","맥가이버","전격Z작전","보물섬","둘리","까치","영심이","달려라하니",
+        "한메소프트","베네치아","타자교사","컴퓨터","플로피디스크","도스","윈도우","하드디스크","모뎀","천리안",
+        "하이텔","나우누리","유니텔","삐삐","시티폰","디스켓","타자기","삼보컴퓨터","세진컴퓨터","아래아한글",
+        "디렉토리","바이러스","안철수","펜티엄","사팔육","삼팔육","엔터키","스페이스바","백스페이스",
+        "서태지와아이들","에이치오티","젝스키스","에스이에스","핑클","지오디","신화","디디알","펌프","피씨방",
+        "다마고찌","포켓몬스터","피카츄","스타크래프트","바람의나라","리니지","삐삐암호","아이러브스쿨","싸이월드","도토리",
+        "드래곤볼","슬램덩크","소년챔프","아이큐점프","마법소녀리나","세일러문","피구왕통키","축구왕슛돌이","미니카","국진이빵",
+        "초코파이","국희땅콩샌드","티코","다마스","갤로퍼","매직아이","종이학","다이어리","러브장","교환일기"
+    ];
+
+    const wordDB_EN = [
+        "DOS","WINDOWS","MAC","APPLE","IBM","FLOPPY","DISKETTE","MODEM","HACKER","CYBER",
+        "MATRIX","TERMINATOR","WALKMAN","CASSETTE","ARCADE","TETRIS","PACMAN","PENTIUM","KEYBOARD","MOUSE",
+        "MONITOR","RETRO","PIXEL","VCR","VHS","BOOMBOX","PAGER","BEEPER","DIALUP","INTERNET",
+        "CDROM","MULTIMEDIA","TERMINAL","COMMAND","SYSTEM","HALTED","ERROR","VIRUS","TROJAN","DEBUG",
+        "COMPILE","BASIC","PASCAL","COBOL","FORTRAN","ASSEMBLY","GOTO","PRINT","RETURN","HELLO",
+        "WORLD","COMPAQ","TANDY","COMMODORE","AMIGA","ATARI","NINTENDO","SEGA","SUPER","MARIO",
+        "SONIC","ZELDA","CONTRA","DOOM","QUAKE","DIABLO","STARCRAFT","WIN95","WIN98","NORTON",
+        "AUTOEXEC","CONFIG","SYS","FORMAT","CHKDSK","FDISK","QBASIC","GWBASIC","MSDOS","PROMPT",
+        "GAMEBOY","TAMAGOTCHI","GHOSTBUSTERS","BACKTOTHEFUTURE","JURASSIC","INDIANA","STARWARS","MICHAEL","MADONNA","PRINCE",
+        "BOWIE","QUEEN","NIRVANA","OASIS","BLUR","RADIOHEAD","SPICEGIRLS","BACKSTREET","NSYNC","BRITNEY",
+        "CHRISTINA","TLC","AALIYAH","TUPAC","BIGGIE","SNOOP","EMINEM","JAYZ","NAS","WUTANG",
+        "RAM","ROM","CPU","BYTE","FILE","DIR","DEL","COPY","RUN","EXIT","CD","MTV","POP","ROCK"
+    ];
+
+    // ---- DOM ----
+    const gameArea = document.getElementById("gameArea");
+    const wordInput = document.getElementById("wordInput");
+    const typedText = document.getElementById("typed-text");
+    const inputArea = document.getElementById("input-area");
+
+    const scoreDisplay = document.getElementById("score");
+    const hpDisplay = document.getElementById("hp");
+    const levelDisplay = document.getElementById("level-display");
+    const levelUpMsg = document.getElementById("level-up-msg");
+
+    const startOverlay = document.getElementById("startOverlay");
+    const resultOverlay = document.getElementById("resultOverlay");
+    const startBtn = document.getElementById("startBtn");
+
+    const initSoundToggle = document.getElementById("initSoundToggle");
+    const soundIcon = document.getElementById("sound-icon-ingame");
+
+    // ---- 게임 상태 ----
+    let currentLang = "ko";
+    let activeWordDB = wordDB_KO;
+
+    let fallingWords = [];
+    let rafId = 0;
+    let spawnTimer = 0;
+
+    let currentScore = 0;
+    const maxHp = 5;
+    let currentHp = maxHp;
+    let level = 1;
+    let totalSpawned = 0;
+    let isGameOver = false;
+
+    // 난이도
+    let baseSpeed = 0.15;
+    let spawnRate = 3500;
+
+    // ---- 언어 선택 ----
+    document.querySelectorAll(".lang-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.querySelectorAll(".lang-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            currentLang = btn.dataset.lang;
+            activeWordDB = (currentLang === "en") ? wordDB_EN : wordDB_KO;
+        });
+    });
+
+    // ---- 사운드 토글 ----
+    initSoundToggle.addEventListener("change", (e) => {
+        isSoundOn = !!e.target.checked;
+        soundIcon.textContent = isSoundOn ? "🔊" : "🔇";
+    });
+
+    soundIcon.addEventListener("click", () => {
+        isSoundOn = !isSoundOn;
+        initSoundToggle.checked = isSoundOn;
+        soundIcon.textContent = isSoundOn ? "🔊" : "🔇";
+    });
+
+    // ---- 입력 포커스 처리 ----
+    function focusInput() { wordInput.focus(); }
+    inputArea.addEventListener("click", focusInput);
+    inputArea.addEventListener("focus", focusInput);
+
+    wordInput.addEventListener("focus", () => inputArea.classList.add("focused"));
+    wordInput.addEventListener("blur", () => inputArea.classList.remove("focused"));
+
+    // 잔상 방지 클리어
+    let isClearing = false;
+    function forceClearInput() {
+        isClearing = true;
+        wordInput.value = "";
+        typedText.textContent = "";
+        setTimeout(() => {
+            isClearing = false;
+            wordInput.value = "";
+            typedText.textContent = "";
+        }, 50);
+    }
+
+    wordInput.addEventListener("input", () => {
+        if (isGameOver) return;
+        if (isClearing) {
+            wordInput.value = "";
+            typedText.textContent = "";
+            return;
+        }
+        typedText.textContent = wordInput.value;
+    });
+
+    wordInput.addEventListener("keydown", (e) => {
+        if (isGameOver) return;
+
+        if (e.key === "Enter" || e.keyCode === 13) {
+            e.preventDefault();
+            checkAndDestroyWord();
+            forceClearInput();
+        }
+    });
+
+    // ---- 시작/재시작 ----
+    function resetGameState() {
+        // 기존 단어 제거
+        fallingWords.forEach(fw => fw.element?.remove());
+        fallingWords = [];
+
+        currentScore = 0;
+        currentHp = maxHp;
+        level = 1;
+        totalSpawned = 0;
+        isGameOver = false;
+
+        baseSpeed = 0.15;
+        spawnRate = 3500;
+
+        updateUI();
+    }
+
+    function startGame() {
+        // 오디오컨텍스트는 사용자 인터랙션 후 생성/재개 가능
+        if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+
+        // 오버레이 닫기
+        startOverlay.style.display = "none";
+        resultOverlay.style.display = "none";
+        resultOverlay.innerHTML = "";
+
+        // 입력 활성화
+        wordInput.disabled = false;
+        forceClearInput();
+        focusInput();
+
+        // 상태 초기화
+        resetGameState();
+
+        // 스폰/루프 시작
+        scheduleNextSpawn();
+        rafId = requestAnimationFrame(gameLoop);
+    }
+
+    function endGame() {
+        isGameOver = true;
+        clearTimeout(spawnTimer);
+        cancelAnimationFrame(rafId);
+
+        wordInput.disabled = true;
+        wordInput.blur();
+
+        resultOverlay.innerHTML = `
+        <div class="modal">
+          <h3>☠️ SYSTEM HALTED</h3>
+          <p style="font-size:16px;color:#fff;margin:0 0 6px;">도달 레벨: <b style="color:var(--dos-yellow)">LV.${level}</b></p>
+          <p style="font-size:22px;color:var(--dos-yellow);font-weight:bold;margin:10px 0;">최종 점수: ${currentScore}</p>
+          <p style="font-size:14px;color:var(--dos-text-gray);margin:0 0 16px;">C:\\&gt; 수고하셨습니다.</p>
+          <div style="display:flex;justify-content:center;">
+            <button class="btn" id="retryBtn" type="button">다시 도전 (ENTER)</button>
+          </div>
+        </div>
+      `;
+        resultOverlay.style.display = "flex";
+
+        const retryBtn = document.getElementById("retryBtn");
+        retryBtn.addEventListener("click", startGame);
+        retryBtn.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") startGame();
+        });
+    }
+
+    // 시작 버튼 + ENTER로 시작
+    startBtn.addEventListener("click", startGame);
+    document.addEventListener("keydown", (e) => {
+        if (startOverlay.style.display !== "none") {
+            if (e.key === "Enter") startGame();
+        }
+    });
+
+    // ---- 스폰/루프 ----
+    function scheduleNextSpawn() {
+        if (isGameOver) return;
+        spawnTimer = setTimeout(spawnWord, spawnRate);
+    }
+
+    function pickWord() {
+        let available = activeWordDB;
+        const maxLen = (currentLang === "en") ? 4 : 3;
+
+        if (level <= 2) {
+            const filtered = activeWordDB.filter(w => w.length <= maxLen);
+            if (filtered.length) available = filtered;
+        } else if (level <= 4) {
+            const filtered = activeWordDB.filter(w => w.length <= maxLen + 2);
+            if (filtered.length) available = filtered;
+        }
+        return available[Math.floor(Math.random() * available.length)];
+    }
+
+    function spawnWord() {
+        if (isGameOver) return;
+
+        // 레벨에 따른 다중 스폰 (최대 4개 느낌)
+        let spawnCount = 1;
+        if (level >= 3) spawnCount = Math.floor(Math.random() * 2) + 1; // 1~2
+        if (level >= 6) spawnCount = Math.floor(Math.random() * 3) + 1; // 1~3
+        if (level >= 9) spawnCount = Math.floor(Math.random() * 3) + 2; // 2~4
+
+        for (let i = 0; i < spawnCount; i++) {
+            const wordText = pickWord();
+
+            const el = document.createElement("div");
+            el.className = "falling-word";
+            el.textContent = wordText;
+
+            // 레벨4+ 블라인드 20%
+            let isHidden = false;
+            if (level >= 4 && Math.random() < 0.20) {
+                isHidden = true;
+                el.classList.add("hidden-box");
+                setTimeout(() => {
+                    if (el && el.parentNode) el.classList.remove("hidden-box");
+                }, 1500);
+            }
+
+            // 랜덤 X (대충 글자폭 추정)
+            const charW = (currentLang === "en") ? 14 : 22;
+            const estW = Math.max(40, wordText.length * charW);
+            const maxX = Math.max(10, gameArea.clientWidth - estW - 10);
+            const x = Math.floor(Math.random() * maxX) + 10;
+
+            el.style.left = x + "px";
+            el.style.top = "-40px";
+
+            gameArea.appendChild(el);
+
+            const speedVar = 0.10 + (level * 0.05);
+            const speed = baseSpeed + (Math.random() * speedVar);
+
+            fallingWords.push({ text: wordText, element: el, y: -40, speed, hidden: isHidden });
+            totalSpawned++;
+        }
+
+        // 레벨업: 10개 스폰마다
+        if (totalSpawned % 10 === 0) {
+            level++;
+            baseSpeed += 0.05;
+            spawnRate = Math.max(1000, spawnRate - 300);
+            updateUI();
+            showLevelUpEffect();
+        }
+
+        scheduleNextSpawn();
+    }
+
+    function showLevelUpEffect() {
+        levelUpMsg.classList.add("show");
+        setTimeout(() => levelUpMsg.classList.remove("show"), 1400);
+    }
+
+    function gameLoop() {
+        if (isGameOver) return;
+
+        const groundY = gameArea.clientHeight - 10;
+
+        for (let i = fallingWords.length - 1; i >= 0; i--) {
+            const fw = fallingWords[i];
+            fw.y += fw.speed;
+            fw.element.style.top = fw.y + "px";
+
+            if (fw.y > groundY - 30) {
+                takeDamage();
+                fw.element.remove();
+                fallingWords.splice(i, 1);
+            }
+        }
+
+        if (!isGameOver) rafId = requestAnimationFrame(gameLoop);
+    }
+
+    function takeDamage() {
+        currentHp--;
+        updateUI();
+
+        gameArea.classList.add("damage-flash");
+        setTimeout(() => gameArea.classList.remove("damage-flash"), 180);
+
+        if (currentHp <= 0) endGame();
+    }
+
+    // ---- 판정/점수 ----
+    function checkAndDestroyWord() {
+        let typed = wordInput.value.trim();
+        if (!typed) return;
+
+        typed = typed.toUpperCase();
+        const matched = [];
+
+        for (let i = 0; i < fallingWords.length; i++) {
+            if (fallingWords[i].text.toUpperCase() === typed) matched.push(i);
+        }
+
+        if (matched.length === 0) return;
+
+        playBeep();
+
+        // 뒤에서부터 제거
+        for (let k = matched.length - 1; k >= 0; k--) {
+            const idx = matched[k];
+            const fw = fallingWords[idx];
+
+            fw.element.classList.remove("hidden-box");
+            fw.element.classList.add("boom");
+
+            // 점수: 글자수 + 레벨 보너스(0.5*레벨 내림)
+            const point = fw.text.length + Math.floor(level * 0.5);
+            currentScore += point;
+
+            setTimeout((el) => { if (el && el.parentNode) el.remove(); }, 180, fw.element);
+            fallingWords.splice(idx, 1);
+        }
+
+        updateUI();
+    }
+
+    function updateUI() {
+        scoreDisplay.textContent = String(currentScore);
+        levelDisplay.textContent = String(level);
+
+        let hearts = "";
+        for (let i = 0; i < maxHp; i++) hearts += (i < currentHp) ? "♥" : "♡";
+        hpDisplay.textContent = hearts;
+        hpDisplay.style.color = (currentHp <= 1) ? "#FF5555" : "#FFFF55";
+
+        soundIcon.textContent = isSoundOn ? "🔊" : "🔇";
+    }
+
+    // 초기 UI
+    updateUI();
+</script>
+</body>
+</html>
