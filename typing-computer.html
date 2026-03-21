@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💻 컴퓨터 타자연습</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Sans+KR:wght@400;700;900&family=Orbitron:wght@700;900&display=swap');
+
+        :root {
+            --bg: #020c02;
+            --panel: #030f03;
+            --green: #00ff41;
+            --green2: #00cc33;
+            --green3: #009922;
+            --dim: #005510;
+            --dimmer: #003308;
+            --text: #c8ffc8;
+            --cyan: #00ffcc;
+            --yellow: #aaff00;
+            --red: #ff3333;
+            --border: #00aa22;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Noto Sans KR', 'Share Tech Mono', monospace;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 16px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Matrix rain canvas */
+        #matrix-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            opacity: 0.08;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .wrap {
+            width: 100%;
+            max-width: 780px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── HEADER ── */
+        .header {
+            text-align: center;
+            margin-bottom: 22px;
+            padding-bottom: 18px;
+            border-bottom: 1px solid var(--border);
+            position: relative;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -1px; left: 20%; right: 20%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--green), transparent);
+            filter: blur(2px);
+        }
+
+        .logo {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.9rem;
+            font-weight: 900;
+            color: var(--green);
+            text-shadow: 0 0 20px rgba(0,255,65,0.8), 0 0 60px rgba(0,255,65,0.3);
+            letter-spacing: 4px;
+            line-height: 1.2;
+        }
+
+        .logo-sub {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--dim);
+            letter-spacing: 6px;
+            margin-top: 4px;
+            text-transform: uppercase;
+        }
+
+        /* ── STATS ROW ── */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .stat {
+            background: var(--dimmer);
+            border: 1px solid var(--dim);
+            border-radius: 6px;
+            padding: 10px 6px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--green3), transparent);
+        }
+
+        .stat-label {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.6rem;
+            color: var(--dim);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .stat-val {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--green);
+            text-shadow: 0 0 10px rgba(0,255,65,0.6);
+        }
+
+        .stat-val.cyan  { color: var(--cyan);   text-shadow: 0 0 10px rgba(0,255,204,0.6); }
+        .stat-val.red   { color: var(--red);    text-shadow: 0 0 10px rgba(255,51,51,0.6); }
+        .stat-val.yellow{ color: var(--yellow); text-shadow: 0 0 10px rgba(170,255,0,0.6); }
+
+        /* ── PROGRESS ── */
+        .progress-track {
+            height: 6px;
+            background: var(--dimmer);
+            border: 1px solid var(--dim);
+            border-radius: 3px;
+            margin-bottom: 14px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--green3), var(--green), var(--cyan));
+            border-radius: 3px;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px rgba(0,255,65,0.7);
+        }
+
+        /* ── WORD DISPLAY ── */
+        .word-display {
+            background: var(--dimmer);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 32px 20px 24px;
+            text-align: center;
+            margin-bottom: 12px;
+            position: relative;
+            overflow: hidden;
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .word-display::before {
+            content: '> TARGET_WORD';
+            position: absolute;
+            top: 10px; left: 16px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.62rem;
+            color: var(--dim);
+            letter-spacing: 2px;
+        }
+
+        .word-display::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 50%, rgba(0,255,65,0.04) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .current-word {
+            font-family: 'Orbitron', monospace;
+            font-size: 2.6rem;
+            font-weight: 900;
+            color: var(--green);
+            text-shadow: 0 0 30px rgba(0,255,65,0.7), 0 0 60px rgba(0,255,65,0.2);
+            letter-spacing: 8px;
+            transition: color 0.1s, text-shadow 0.1s;
+        }
+
+        /* 영문/숫자 포함 단어는 조금 작게 */
+        .current-word.en {
+            font-size: 2rem;
+            letter-spacing: 5px;
+        }
+
+        .current-word.shake {
+            animation: shake 0.22s;
+            color: var(--red) !important;
+            text-shadow: 0 0 20px rgba(255,51,51,0.9) !important;
+        }
+
+        .current-word.ok {
+            animation: ok-flash 0.18s;
+            color: var(--cyan) !important;
+            text-shadow: 0 0 30px rgba(0,255,204,0.9) !important;
+        }
+
+        @keyframes shake {
+            0%,100%{transform:translateX(0)}
+            20%{transform:translateX(-10px)}
+            60%{transform:translateX(10px)}
+            80%{transform:translateX(-6px)}
+        }
+
+        @keyframes ok-flash {
+            0%{transform:scale(1.2)}
+            100%{transform:scale(1)}
+        }
+
+        .typed-preview {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1.1rem;
+            color: var(--cyan);
+            letter-spacing: 5px;
+            min-height: 1.6rem;
+            margin-top: 10px;
+            text-shadow: 0 0 8px rgba(0,255,204,0.6);
+        }
+
+        .word-meta {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.68rem;
+            color: var(--dim);
+            letter-spacing: 3px;
+            margin-top: 6px;
+        }
+
+        /* ── QUEUE ── */
+        .queue-wrap {
+            background: var(--dimmer);
+            border: 1px solid var(--dim);
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-bottom: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            min-height: 46px;
+            align-items: center;
+        }
+
+        .q-label {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.6rem;
+            color: var(--dim);
+            letter-spacing: 2px;
+            margin-right: 4px;
+            white-space: nowrap;
+        }
+
+        .q-word {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.78rem;
+            color: var(--dim);
+            background: rgba(0,85,16,0.2);
+            border: 1px solid rgba(0,85,16,0.4);
+            border-radius: 3px;
+            padding: 2px 7px;
+        }
+
+        .q-word.next {
+            color: var(--yellow);
+            border-color: rgba(170,255,0,0.5);
+            background: rgba(170,255,0,0.07);
+            text-shadow: 0 0 6px rgba(170,255,0,0.5);
+        }
+
+        /* ── INPUT ── */
+        .input-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .typing-input {
+            flex: 1;
+            background: #000e00;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            color: var(--green);
+            font-family: 'Orbitron', monospace;
+            font-size: 1.3rem;
+            font-weight: 700;
+            padding: 12px 18px;
+            outline: none;
+            letter-spacing: 4px;
+            caret-color: var(--green);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .typing-input:focus {
+            border-color: var(--green);
+            box-shadow: 0 0 20px rgba(0,255,65,0.25), inset 0 0 10px rgba(0,255,65,0.04);
+        }
+
+        .typing-input::placeholder {
+            color: var(--dim);
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+        }
+
+        .btn {
+            font-family: 'Orbitron', monospace;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            border: 2px solid var(--border);
+            background: var(--dimmer);
+            color: var(--green);
+            border-radius: 8px;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            background: rgba(0,255,65,0.12);
+            box-shadow: 0 0 14px rgba(0,255,65,0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn:active { transform: scale(0.97); }
+
+        .btn.danger {
+            border-color: var(--red);
+            color: var(--red);
+        }
+
+        .btn.danger:hover {
+            background: rgba(255,51,51,0.12);
+            box-shadow: 0 0 14px rgba(255,51,51,0.3);
+        }
+
+        .btn.primary {
+            border-color: var(--cyan);
+            color: var(--cyan);
+            font-size: 1rem;
+            padding: 14px 40px;
+        }
+
+        .btn.primary:hover {
+            background: rgba(0,255,204,0.1);
+            box-shadow: 0 0 20px rgba(0,255,204,0.4);
+        }
+
+        /* ── SCREENS ── */
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        /* START */
+        .start-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 0.8rem;
+            color: var(--dim);
+            letter-spacing: 4px;
+            text-align: center;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+        }
+
+        .word-preview-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            background: var(--dimmer);
+            border: 1px solid var(--dim);
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 20px;
+            max-height: 88px;
+            overflow: hidden;
+        }
+
+        .preview-chip {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--green3);
+            background: rgba(0,153,34,0.08);
+            border: 1px solid rgba(0,153,34,0.2);
+            border-radius: 3px;
+            padding: 2px 7px;
+        }
+
+        .mode-row {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .mode-btn {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            border: 1px solid var(--dim);
+            background: var(--dimmer);
+            color: var(--dim);
+            border-radius: 6px;
+            padding: 9px 16px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .mode-btn.active, .mode-btn:hover {
+            border-color: var(--green);
+            color: var(--green);
+            background: rgba(0,255,65,0.07);
+            box-shadow: 0 0 10px rgba(0,255,65,0.2);
+        }
+
+        .start-center { text-align: center; }
+
+        /* RESULT */
+        .result-screen-inner {
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        .result-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.5rem;
+            color: var(--green);
+            letter-spacing: 4px;
+            text-shadow: 0 0 20px rgba(0,255,65,0.6);
+            margin-bottom: 14px;
+        }
+
+        .grade-big {
+            font-family: 'Orbitron', monospace;
+            font-size: 6rem;
+            font-weight: 900;
+            color: var(--green);
+            text-shadow: 0 0 40px rgba(0,255,65,0.8), 0 0 100px rgba(0,255,65,0.3);
+            line-height: 1;
+            margin: 10px 0;
+            animation: glow-pulse 1.2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow-pulse {
+            from { text-shadow: 0 0 20px rgba(0,255,65,0.5); }
+            to   { text-shadow: 0 0 60px rgba(0,255,65,1), 0 0 120px rgba(0,255,65,0.4); }
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            max-width: 420px;
+            margin: 18px auto;
+        }
+
+        .r-item {
+            background: var(--dimmer);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px;
+        }
+
+        .r-label {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.62rem;
+            color: var(--dim);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .r-val {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.8rem;
+            color: var(--green);
+            font-weight: 700;
+        }
+
+        .result-msg {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.82rem;
+            color: var(--green3);
+            line-height: 1.9;
+            margin: 12px 0 20px;
+            letter-spacing: 1px;
+        }
+
+        .result-btns {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        /* COMBO POPUP */
+        #combo-popup {
+            position: fixed;
+            top: 42%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Orbitron', monospace;
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--cyan);
+            text-shadow: 0 0 40px rgba(0,255,204,0.9);
+            pointer-events: none;
+            opacity: 0;
+            z-index: 100;
+            letter-spacing: 3px;
+            white-space: nowrap;
+        }
+
+        #combo-popup.show {
+            animation: combo-anim 0.7s ease-out forwards;
+        }
+
+        @keyframes combo-anim {
+            0%   { opacity: 1; transform: translate(-50%, -50%) scale(0.7); }
+            40%  { opacity: 1; transform: translate(-50%, -58%) scale(1.15); }
+            100% { opacity: 0; transform: translate(-50%, -80%) scale(1); }
+        }
+
+        /* SCANLINE */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(
+                    0deg,
+                    rgba(0,0,0,0.12) 0px, rgba(0,0,0,0.12) 1px,
+                    transparent 1px, transparent 3px
+            );
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* TICKER */
+        .ticker {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.68rem;
+            color: var(--dim);
+            border-top: 1px solid var(--dimmer);
+            padding-top: 12px;
+            margin-top: 6px;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .ticker-inner {
+            display: inline-block;
+            animation: scroll-ticker 40s linear infinite;
+        }
+
+        @keyframes scroll-ticker {
+            from { transform: translateX(100vw); }
+            to   { transform: translateX(-200%); }
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="matrix-canvas"></canvas>
+<div id="combo-popup"></div>
+
+<div class="wrap">
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="logo">💻 COMPUTER TYPE</div>
+        <div class="logo-sub">컴퓨터 용어 타자연습 · 500 WORDS · 3~6자</div>
+    </div>
+
+    <!-- START SCREEN -->
+    <div class="screen active" id="screen-start">
+        <div class="start-title">> WORD_DATABASE LOADED — 500 ENTRIES</div>
+        <div class="word-preview-grid" id="previewGrid"></div>
+        <div class="mode-row" id="modeRow">
+            <button class="mode-btn active" data-sec="30"  onclick="pickMode(this,30)">⏱ 30초</button>
+            <button class="mode-btn"        data-sec="60"  onclick="pickMode(this,60)">⏱ 1분</button>
+            <button class="mode-btn"        data-sec="120" onclick="pickMode(this,120)">⏱ 2분</button>
+            <button class="mode-btn"        data-sec="0"   onclick="pickMode(this,0)">🔢 50단어</button>
+        </div>
+        <div class="start-center">
+            <button class="btn primary" onclick="startGame()">▶ START</button>
+        </div>
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div class="screen" id="screen-game">
+        <div class="stats-row">
+            <div class="stat">
+                <div class="stat-label">TIME</div>
+                <div class="stat-val cyan" id="s-time">60</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">CORRECT</div>
+                <div class="stat-val" id="s-correct">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">WRONG</div>
+                <div class="stat-val red" id="s-wrong">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">COMBO</div>
+                <div class="stat-val yellow" id="s-combo">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">COUNT</div>
+                <div class="stat-val" id="s-count">0</div>
+            </div>
+        </div>
+
+        <div class="progress-track">
+            <div class="progress-fill" id="progFill" style="width:0%"></div>
+        </div>
+
+        <div class="word-display">
+            <div class="current-word" id="curWord">READY</div>
+            <div class="typed-preview" id="typedPrev"></div>
+            <div class="word-meta" id="wordMeta">글자수: —</div>
+        </div>
+
+        <div class="queue-wrap">
+            <span class="q-label">> NEXT:</span>
+            <div id="queueBox" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
+        </div>
+
+        <div class="input-row">
+            <input type="text" class="typing-input" id="typingInput"
+                   placeholder="▌ TYPE HERE..." autocomplete="off" autocorrect="off"
+                   autocapitalize="off" spellcheck="false">
+            <button class="btn danger" onclick="skipWord()">SKIP</button>
+            <button class="btn danger" onclick="endGame()">END</button>
+        </div>
+    </div>
+
+    <!-- RESULT SCREEN -->
+    <div class="screen" id="screen-result">
+        <div class="result-screen-inner">
+            <div class="result-title" id="r-title">// TASK_COMPLETE</div>
+            <div class="grade-big" id="r-grade">S</div>
+            <div class="result-grid">
+                <div class="r-item"><div class="r-label">CORRECT</div><div class="r-val" id="r-correct">0</div></div>
+                <div class="r-item"><div class="r-label">WRONG</div><div class="r-val" id="r-wrong">0</div></div>
+                <div class="r-item"><div class="r-label">WPM</div><div class="r-val" id="r-wpm">0</div></div>
+                <div class="r-item"><div class="r-label">ACCURACY</div><div class="r-val" id="r-acc">0%</div></div>
+            </div>
+            <div class="result-msg" id="r-msg"></div>
+            <div class="result-btns">
+                <button class="btn primary" onclick="restartGame()">↺ RETRY</button>
+                <button class="btn" onclick="goHome()">⌂ HOME</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="ticker">
+    <span class="ticker-inner">
+      CPU · GPU · RAM · ROM · SSD · HDD · USB · LAN · WAN · DNS · HTTP · HTTPS · FTP · SSH · TCP · UDP · IP주소 · 서브넷 · 게이트웨이 · 라우터 · 스위치 · 허브 · 모뎀 · 방화벽 · 프록시 · 바이러스 · 악성코드 · 랜섬웨어 · 피싱 · 해킹 · 암호화 · 복호화 · 알고리즘 · 데이터 · 변수 · 함수 · 클래스 · 객체 · 상속 · 컴파일 · 디버그 · 스택 · 큐 · 트리 · 그래프 · 소켓 · 쿠키 · 세션 · 토큰 · API · JSON · XML · HTML · CSS · 자바스크립트 · 파이썬 · 도커 · 쿠버네티스 · 리눅스 · 윈도우 · 맥OS
+    </span>
+    </div>
+
+</div>
+
+<script>
+    // ══════════════════════════════════════════════════
+    //  500 WORD DATABASE  (3~6자, 컴퓨터 용어)
+    // ══════════════════════════════════════════════════
+    const RAW_WORDS = [
+        // 하드웨어
+        "CPU","GPU","RAM","ROM","SSD","HDD","USB","LED","LCD","CRT",
+        "메모리","하드디스크","플로피","씨디롬","디브이디","블루레이","플래시","저장장치","외장하드","메모리카드",
+        "마더보드","그래픽카드","사운드카드","랜카드","파워서플라이","쿨러","방열판","케이스","섀시",
+        "모니터","키보드","마우스","프린터","스캐너","웹캠","마이크","스피커","헤드셋","조이스틱",
+        "터치패드","태블릿","스타일러스","트랙볼","게임패드","리모컨",
+        "메인보드","바이오스","UEFI","칩셋","소켓","슬롯","포트","커넥터","케이블","점퍼",
+        "레지스터","캐시","버스","클럭","코어","스레드","오버클럭","벤치마크",
+        "픽셀","해상도","주사율","밝기","명암비","색재현율","감마","HDR",
+        "배터리","충전기","어댑터","인버터","UPS","발전기",
+
+        // 네트워크
+        "LAN","WAN","MAN","VPN","DNS","DHCP","NAT","MAC주소","IP주소",
+        "라우터","스위치","허브","모뎀","브릿지","게이트웨이","방화벽","프록시","로드밸런서",
+        "패킷","프레임","세그먼트","데이터그램","페이로드","헤더","트레일러","MTU","TTL",
+        "HTTP","HTTPS","FTP","SFTP","SSH","TELNET","SMTP","POP3","IMAP","XMPP",
+        "TCP","UDP","ICMP","ARP","BGP","OSPF","RIP","SSL","TLS",
+        "서브넷","CIDR","포트번호","소켓","에코","핑","트레이스","네임서버","도메인","호스트",
+        "브로드캐스트","유니캐스트","멀티캐스트","전이중","반이중","대역폭","지연시간","처리량",
+        "클라우드","엣지","CDN","미러링","피어링","피어투피어","토렌트",
+
+        // 운영체제
+        "윈도우","리눅스","맥OS","유닉스","안드로이드","iOS","커널","셸","터미널",
+        "프로세스","스레드","데몬","서비스","드라이버","모듈","인터럽트","시스템콜",
+        "스케줄러","디스패처","컨텍스트","스왑","페이징","세그멘테이션","가상메모리",
+        "파일시스템","디렉토리","폴더","경로","심볼릭링크","하드링크","마운트","언마운트",
+        "권한","사용자","그룹","루트","관리자","계정","패스워드","인증","권한부여",
+        "레지스트리","환경변수","경로변수","로그","이벤트","알림","업데이트","패치","부팅","재부팅",
+        "설치","제거","포맷","파티션","백업","복원","이미지","스냅샷","클론",
+
+        // 프로그래밍
+        "변수","상수","함수","메서드","클래스","객체","인스턴스","상속","다형성","캡슐화",
+        "인터페이스","추상클래스","오버로딩","오버라이딩","제네릭","람다","클로저","재귀","반복",
+        "조건문","반복문","분기","루프","스택","큐","힙","배열","리스트","딕셔너리",
+        "세트","튜플","맵","필터","리듀스","이터레이터","제너레이터","코루틴","비동기","동기",
+        "스레드","뮤텍스","세마포어","데드락","경쟁조건","원자성","트랜잭션",
+        "컴파일","인터프리터","바이트코드","어셈블리","링킹","로딩","실행","디버그","프로파일",
+        "API","SDK","라이브러리","프레임워크","모듈","패키지","의존성","버전","릴리즈","배포",
+        "깃","깃헙","커밋","푸시","풀","머지","브랜치","리베이스","충돌","리뷰",
+        "테스트","단위테스트","통합테스트","TDD","BDD","모킹","픽스처","어설션",
+
+        // 언어
+        "자바","파이썬","C언어","C++","C#","루비","고언어","러스트","스위프트","코틀린",
+        "자바스크립트","타입스크립트","PHP","펄","R언어","스칼라","얼랭","하스켈","리스프","프롤로그",
+        "HTML","CSS","SQL","XML","JSON","YAML","TOML","마크다운","정규식","쉘스크립트",
+        "어셈블리","코볼","포트란","파스칼","델파이","비주얼베이직","배시","파워셸","루아","줄리아",
+
+        // 웹/앱
+        "웹서버","앱서버","WAS","프론트엔드","백엔드","풀스택","SPA","MPA","PWA","SSR",
+        "CSR","정적페이지","동적페이지","렌더링","라우팅","미들웨어","컨트롤러","서비스","레포지토리",
+        "REST","GraphQL","SOAP","gRPC","웹소켓","롱폴링","SSE","CORS","CSP","XSS",
+        "CSRF","인젝션","세션","쿠키","JWT","OAuth","SAML","SSO","MFA","CAPTCHA",
+        "리액트","뷰","앵귤러","스벨트","넥스트","뉴엑스트","개츠비","리믹스","애스트로",
+        "익스프레스","패스트API","장고","플라스크","레일즈","스프링","라라벨","닷넷","노드","번","덱",
+
+        // 데이터베이스
+        "데이터베이스","관계형","비관계형","NoSQL","NewSQL","인메모리","분산DB","그래프DB","시계열DB",
+        "MySQL","PostgreSQL","오라클","MSSQL","SQLite","마리아DB","MongoDB","Redis","카산드라","HBase",
+        "Elasticsearch","InfluxDB","Neo4j","DynamoDB","Firestore","Supabase",
+        "테이블","뷰","인덱스","트리거","프로시저","함수","스키마","마이그레이션","시딩","트랜잭션",
+        "정규화","비정규화","샤딩","레플리카","파티션","조인","서브쿼리","집계","그룹","정렬",
+        "ACID","CAP","BASE","일관성","가용성","파티션내성","동시성","잠금","낙관적잠금","비관적잠금",
+
+        // 보안
+        "해킹","크래킹","피싱","스미싱","파밍","스팸","악성코드","바이러스","웜","트로이목마",
+        "랜섬웨어","스파이웨어","애드웨어","루트킷","봇넷","DDoS","DoS","중간자공격","재전송공격",
+        "암호화","복호화","대칭키","비대칭키","공개키","개인키","해시","솔트","디지털서명","인증서",
+        "방화벽","침입탐지","침입방지","취약점","제로데이","CVE","패치","보안감사","펜테스트","버그바운티",
+        "AES","RSA","SHA","MD5","PBKDF2","bcrypt","HTTPS","인증기관","SSL인증서","신뢰체인",
+
+        // 클라우드/DevOps
+        "클라우드","온프레미스","하이브리드","멀티클라우드","서버리스","FaaS","BaaS","PaaS","IaaS","SaaS",
+        "AWS","Azure","GCP","알리클라우드","네이버클라우드","카카오클라우드",
+        "도커","컨테이너","이미지","레지스트리","컴포즈","쿠버네티스","파드","노드","클러스터","네임스페이스",
+        "인그레스","서비스","디플로이먼트","레플리카셋","스테이트풀셋","잡","크론잡","컨피그맵","시크릿",
+        "CI","CD","파이프라인","빌드","테스트","배포","롤링업데이트","블루그린","카나리","피쳐플래그",
+        "앤서블","테라폼","퍼핏","셰프","헬름","아르고CD","젠킨스","깃랩","깃허브액션","CircleCI",
+        "모니터링","로깅","트레이싱","관찰가능성","메트릭","알림","대시보드","그라파나","프로메테우스","집킨",
+
+        // AI/ML
+        "인공지능","머신러닝","딥러닝","강화학습","지도학습","비지도학습","반지도학습","전이학습","연합학습",
+        "신경망","퍼셉트론","레이어","가중치","편향","활성화함수","역전파","경사하강","옵티마이저","손실함수",
+        "CNN","RNN","LSTM","GRU","트랜스포머","어텐션","셀프어텐션","임베딩","토크나이징","벡터화",
+        "LLM","GPT","BERT","T5","LoRA","파인튜닝","프롬프트","RAG","에이전트","체인",
+        "데이터셋","레이블링","어노테이션","전처리","증강","배치","에포크","오버피팅","언더피팅","드롭아웃",
+        "정확도","정밀도","재현율","F1","AUC","ROC","혼동행렬","벤치마크","추론","서빙",
+        "TensorFlow","PyTorch","Keras","사이킷런","판다스","넘파이","맷플롯립","허깅페이스","랭체인",
+
+        // 기타
+        "알고리즘","자료구조","복잡도","빅오","이진탐색","정렬","버블정렬","퀵정렬","병합정렬","힙정렬",
+        "BFS","DFS","다익스트라","벨만포드","플로이드","크루스칼","프림","위상정렬","동적계획법","분할정복",
+        "디자인패턴","싱글톤","팩토리","빌더","프로토타입","어댑터","데코레이터","옵저버","전략","커맨드",
+        "마이크로서비스","모놀리식","SOA","이벤트드리븐","메시지큐","카프카","래빗MQ","레디스","서비스메시",
+        "애자일","스크럼","스프린트","칸반","회고","스탠드업","백로그","번다운","포인트","벨로시티",
+        "유저스토리","와이어프레임","프로토타입","목업","A/B테스트","사용자경험","접근성","국제화","현지화",
+        "오픈소스","라이선스","MIT","GPL","Apache","BSD","저작권","특허","상표","기여"
+    ];
+
+    // 3~6자 필터 + 중복 제거 + 500개 확보
+    function buildWordPool() {
+        let pool = [...new Set(RAW_WORDS.filter(w => w.length >= 3 && w.length <= 6))];
+        // 부족하면 반복 채우기
+        const base = [...pool];
+        while (pool.length < 500) pool = [...pool, ...base];
+        // 셔플 후 500개
+        return shuffle(pool).slice(0, 500);
+    }
+
+    function shuffle(arr) {
+        const a = [...arr];
+        for (let i = a.length-1; i > 0; i--) {
+            const j = Math.floor(Math.random()*(i+1));
+            [a[i],a[j]] = [a[j],a[i]];
+        }
+        return a;
+    }
+
+    // ── MATRIX RAIN ──────────────────────────────
+    const canvas = document.getElementById('matrix-canvas');
+    const ctx = canvas.getContext('2d');
+    let cols, drops;
+
+    function initMatrix() {
+        canvas.width  = window.innerWidth;
+        canvas.height = window.innerHeight;
+        cols  = Math.floor(canvas.width / 18);
+        drops = Array(cols).fill(1);
+    }
+
+    function drawMatrix() {
+        ctx.fillStyle = 'rgba(2,12,2,0.06)';
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+        ctx.fillStyle = '#00ff41';
+        ctx.font = '13px Share Tech Mono, monospace';
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%^&*()_+-=[]{}|;:,./<>?가나다라마바사아자차카타파하';
+        for (let i = 0; i < drops.length; i++) {
+            const c = chars[Math.floor(Math.random()*chars.length)];
+            ctx.fillText(c, i*18, drops[i]*18);
+            if (drops[i]*18 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+            drops[i]++;
+        }
+    }
+
+    initMatrix();
+    setInterval(drawMatrix, 55);
+    window.addEventListener('resize', initMatrix);
+
+    // ── PREVIEW GRID ─────────────────────────────
+    const ALL_POOL = buildWordPool();
+    const previewGrid = document.getElementById('previewGrid');
+    shuffle(ALL_POOL).slice(0,40).forEach(w => {
+        const chip = document.createElement('span');
+        chip.className = 'preview-chip';
+        chip.textContent = w;
+        previewGrid.appendChild(chip);
+    });
+
+    // ── GAME STATE ───────────────────────────────
+    let gameWords = [];
+    let idx       = 0;
+    let correct   = 0;
+    let wrong     = 0;
+    let combo     = 0;
+    let maxCombo  = 0;
+    let totalChars = 0;
+    let gameMode  = 60;   // seconds; 0 = 50-word mode
+    let timeLeft  = 60;
+    let timerID   = null;
+    let startTime = null;
+    let active    = false;
+
+    function pickMode(btn, sec) {
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        gameMode = sec;
+    }
+
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    function startGame() {
+        gameWords  = shuffle(buildWordPool());
+        idx        = 0;
+        correct    = 0;
+        wrong      = 0;
+        combo      = 0;
+        maxCombo   = 0;
+        totalChars = 0;
+        timeLeft   = gameMode > 0 ? gameMode : 9999;
+        startTime  = Date.now();
+        active     = true;
+
+        showScreen('screen-game');
+        updateStats();
+        renderWord();
+
+        const inp = document.getElementById('typingInput');
+        inp.value = '';
+        inp.oninput = onInput;
+        setTimeout(() => inp.focus(), 80);
+
+        if (gameMode > 0) {
+            document.getElementById('s-time').textContent = timeLeft;
+            timerID = setInterval(() => {
+                timeLeft--;
+                document.getElementById('s-time').textContent = timeLeft;
+                if (timeLeft <= 0) { clearInterval(timerID); endGame(); }
+            }, 1000);
+        } else {
+            document.getElementById('s-time').textContent = '∞';
+        }
+    }
+
+    function renderWord() {
+        if (gameMode === 0 && idx >= 50) { endGame(); return; }
+        if (idx >= gameWords.length)     { endGame(); return; }
+
+        const w = gameWords[idx];
+        const el = document.getElementById('curWord');
+        el.textContent = w;
+        // 영문 포함 여부로 클래스 조정
+        el.className = 'current-word' + (/[a-zA-Z0-9]/.test(w) ? ' en' : '');
+        document.getElementById('typedPrev').textContent = '';
+        document.getElementById('wordMeta').textContent = `${w.length}글자 · #${idx+1}`;
+        document.getElementById('typingInput').value = '';
+
+        const total = gameMode === 0 ? 50 : Math.max(idx, 1);
+        const pct   = gameMode === 0 ? (idx/50*100) : Math.min(idx/50*100, 100);
+        document.getElementById('progFill').style.width = pct + '%';
+        document.getElementById('s-count').textContent  = gameMode === 0
+            ? `${idx}/50` : `${idx}개`;
+
+        renderQueue();
+    }
+
+    function onInput(e) {
+        if (!active) return;
+        const val = e.target.value.trim();
+        const w   = gameWords[idx];
+        document.getElementById('typedPrev').textContent = val;
+
+        if (val === w) {
+            correct++;
+            combo++;
+            totalChars += w.length;
+            if (combo > maxCombo) maxCombo = combo;
+
+            const el = document.getElementById('curWord');
+            el.classList.add('ok');
+            setTimeout(() => el.classList.remove('ok'), 200);
+
+            if (combo >= 3) fireCombo(combo);
+
+            idx++;
+            updateStats();
+            renderWord();
+
+        } else if (val.length > w.length) {
+            wrong++;
+            combo = 0;
+            const el = document.getElementById('curWord');
+            el.classList.add('shake');
+            setTimeout(() => el.classList.remove('shake'), 230);
+            e.target.value = '';
+            document.getElementById('typedPrev').textContent = '';
+            updateStats();
+        }
+    }
+
+    function fireCombo(n) {
+        const el = document.getElementById('combo-popup');
+        const labels = ['','','','🔥 3 COMBO!','💥 4 COMBO!','⚡ 5 COMBO!','🚀 6 COMBO!','💫 7 COMBO!','🌟 8 COMBO!','👾 9 COMBO!'];
+        el.textContent = n < labels.length ? labels[n] : `🎯 ${n} COMBO!!`;
+        el.classList.remove('show');
+        void el.offsetWidth;
+        el.classList.add('show');
+    }
+
+    function skipWord() {
+        if (!active) return;
+        wrong++;
+        combo = 0;
+        idx++;
+        updateStats();
+        renderWord();
+        document.getElementById('typingInput').focus();
+    }
+
+    function updateStats() {
+        document.getElementById('s-correct').textContent = correct;
+        document.getElementById('s-wrong').textContent   = wrong;
+        document.getElementById('s-combo').textContent   = combo;
+    }
+
+    function renderQueue() {
+        const box = document.getElementById('queueBox');
+        box.innerHTML = '';
+        for (let i = idx+1; i < Math.min(idx+14, gameWords.length); i++) {
+            const span = document.createElement('span');
+            span.className = 'q-word' + (i === idx+1 ? ' next' : '');
+            span.textContent = gameWords[i];
+            box.appendChild(span);
+        }
+    }
+
+    function endGame() {
+        active = false;
+        clearInterval(timerID);
+        document.getElementById('typingInput').oninput = null;
+
+        const elapsed = Math.max((Date.now() - startTime)/1000, 1);
+        const wpm     = Math.round(totalChars / (elapsed/60));
+        const total   = correct + wrong;
+        const acc     = total > 0 ? Math.round(correct/total*100) : 0;
+
+        let grade, msg;
+        if (acc >= 95 && correct >= 45)      { grade='S'; msg='완벽한 타자 실력이다!\nkernel panic도 막을 수 있을 것 같은데?'; }
+        else if (acc >= 88 && correct >= 30) { grade='A'; msg='훌륭해! sudo 권한을 부여해도 될 것 같군.'; }
+        else if (acc >= 75 && correct >= 18) { grade='B'; msg='괜찮아. git commit -m "keep going"'; }
+        else if (acc >= 55)                  { grade='C'; msg='음... Hello World나 다시 출력해봐.'; }
+        else                                 { grade='D'; msg='Segmentation fault (core dumped)\n처음부터 다시 해봐!'; }
+
+        document.getElementById('r-grade').textContent   = grade;
+        document.getElementById('r-correct').textContent = correct;
+        document.getElementById('r-wrong').textContent   = wrong;
+        document.getElementById('r-wpm').textContent     = wpm;
+        document.getElementById('r-acc').textContent     = acc + '%';
+        document.getElementById('r-msg').textContent     = msg;
+        document.getElementById('r-title').textContent   =
+            correct >= 30 ? '// EXECUTION_SUCCESS' : '// PROCESS_TERMINATED';
+
+        showScreen('screen-result');
+    }
+
+    function restartGame() { startGame(); }
+    function goHome() { showScreen('screen-start'); }
+</script>
+</body>
+</html>
