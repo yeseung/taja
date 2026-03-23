@@ -38,6 +38,7 @@
 - https://www.jiraksil.com/service/typingspeed
 - https://www.jiraksil.com/service/htt
 - https://typing-check.web.app/song-0
+- https://www.novelgames.com/ko/cups/
 <br><br><br>
 
 
