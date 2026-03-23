@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🥤 컵 쌓기 타자 게임 | Cup Stacking Typing Game</title>
+
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <meta
+            name="description"
+            content="글자를 타자해서 종이컵을 쌓거나 무너뜨리는 캔버스 기반 타자 게임입니다. 진한 검은색 목표 글자를 입력해 컵을 쌓고, 제한 시간 안에 높은 점수를 노려보세요."
+    />
+    <meta
+            name="keywords"
+            content="컵 쌓기 타자 게임, typing game, cup stacking game, canvas typing game, 바닐라 자바스크립트 게임, 종이컵 게임, 타자 연습 게임, keyboard game"
+    />
+
+    <meta property="og:title" content="🥤 컵 쌓기 타자 게임 | Cup Stacking Typing Game" />
+    <meta
+            property="og:description"
+            content="글자를 입력해 종이컵을 쌓고 무너뜨리는 반응형 캔버스 타자 게임. 바닐라 자바스크립트와 순수 CSS로 만든 깔끔한 화이트 스타일 버전입니다."
+    />
+    <meta property="og:type" content="website" />
+
+    <style>
+        :root {
+            --bg: #ffffff;
+            --surface: #ffffff;
+            --surface-soft: #f8fafc;
+            --line: #e5e7eb;
+            --text: #111827;
+            --muted: #6b7280;
+            --point: #111827;
+            --green: #16a34a;
+            --red: #dc2626;
+            --amber: #d97706;
+            --blue: #2563eb;
+            --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+            --radius: 24px;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+            letter-spacing: -0.04em;
+        }
+
+        body {
+            min-height: 100vh;
+        }
+
+        button,
+        input,
+        select {
+            font: inherit;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        .wrap {
+            max-width: 1380px;
+            margin: 0 auto;
+            padding: 28px 18px 60px;
+        }
+
+        .page-header {
+            margin-bottom: 22px;
+        }
+
+        .page-title {
+            margin: 0 0 10px;
+            font-size: 42px;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        .page-desc {
+            margin: 0;
+            color: var(--muted);
+            font-size: 18px;
+            line-height: 1.7;
+        }
+
+        .en {
+            color: var(--muted);
+            font-weight: 700;
+            margin-left: 6px;
+        }
+
+        .hero-card,
+        .panel,
+        .info-card {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .hero-card {
+            padding: 28px;
+            margin-bottom: 24px;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 18px;
+            align-items: center;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0 0 18px;
+            font-size: 20px;
+            font-weight: 800;
+            line-height: 1.4;
+        }
+
+        .hero-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: var(--surface-soft);
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .hero-preview {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .hero-cup {
+            aspect-ratio: 0.75 / 1;
+            border-radius: 18px 18px 12px 12px;
+            background: linear-gradient(180deg, #fff7cc 0%, #ffd54f 58%, #ffb300 100%);
+            border: 2px solid #d97706;
+            position: relative;
+            transform: perspective(120px) skewX(-3deg);
+        }
+
+        .hero-cup::before {
+            content: "";
+            position: absolute;
+            left: 8%;
+            top: 8%;
+            width: 28%;
+            height: 48%;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.55);
+            filter: blur(1px);
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+            gap: 24px;
+            align-items: start;
+        }
+
+        .left-stack,
+        .right-stack {
+            display: grid;
+            gap: 24px;
+        }
+
+        .panel,
+        .info-card {
+            padding: 24px;
+        }
+
+        .toolbar-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .toolbar-box {
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            background: var(--surface-soft);
+            padding: 14px;
+        }
+
+        .toolbar-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--muted);
+        }
+
+        .toolbar-select {
+            width: 100%;
+            min-height: 48px;
+            border: 1px solid var(--line);
+            background: #ffffff;
+            border-radius: 14px;
+            padding: 0 14px;
+            color: var(--text);
+            outline: none;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .stat-card {
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            background: var(--surface-soft);
+            padding: 16px;
+        }
+
+        .stat-label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .stat-value {
+            display: block;
+            font-size: 28px;
+            line-height: 1;
+            font-weight: 800;
+        }
+
+        .control-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .app-btn {
+            border: 1px solid var(--line);
+            background: #ffffff;
+            color: var(--text);
+            border-radius: 16px;
+            min-height: 52px;
+            padding: 0 18px;
+            font-weight: 800;
+            transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+            cursor: pointer;
+        }
+
+        .app-btn:hover {
+            transform: translateY(-1px);
+            border-color: #cbd5e1;
+        }
+
+        .app-btn.primary {
+            background: #111827;
+            color: #ffffff;
+            border-color: #111827;
+        }
+
+        .app-btn.secondary {
+            background: #f8fafc;
+        }
+
+        .game-shell {
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            overflow: hidden;
+            background: linear-gradient(180deg, #f0fdfa 0%, #ecfeff 100%);
+        }
+
+        .canvas-wrap {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: linear-gradient(180deg, #99f6e4 0%, #5eead4 55%, #2dd4bf 100%);
+        }
+
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .type-box {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+            padding: 16px;
+            border-top: 1px solid var(--line);
+            background: #ffffff;
+        }
+
+        .type-input {
+            width: 100%;
+            min-height: 56px;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 0 18px;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+            outline: none;
+        }
+
+        .type-input:focus {
+            border-color: #94a3b8;
+            box-shadow: 0 0 0 4px rgba(148, 163, 184, 0.15);
+        }
+
+        .message-box {
+            min-height: 60px;
+            margin-top: 16px;
+            padding: 16px 18px;
+            border-radius: 20px;
+            border: 1px solid var(--line);
+            background: #ffffff;
+            color: var(--muted);
+            line-height: 1.7;
+            font-size: 15px;
+        }
+
+        .message-box.good {
+            color: var(--green);
+            border-color: rgba(22, 163, 74, 0.18);
+            background: rgba(22, 163, 74, 0.05);
+        }
+
+        .message-box.warn {
+            color: var(--red);
+            border-color: rgba(220, 38, 38, 0.18);
+            background: rgba(220, 38, 38, 0.05);
+        }
+
+        .message-box.info {
+            color: var(--blue);
+            border-color: rgba(37, 99, 235, 0.18);
+            background: rgba(37, 99, 235, 0.05);
+        }
+
+        .rule-list,
+        .guide-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            gap: 12px;
+        }
+
+        .rule-list li,
+        .guide-list li {
+            padding: 14px 16px;
+            border-radius: 18px;
+            background: var(--surface-soft);
+            border: 1px solid var(--line);
+            line-height: 1.7;
+        }
+
+        .tip-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .tip-card {
+            border: 1px solid var(--line);
+            background: var(--surface-soft);
+            border-radius: 20px;
+            padding: 16px;
+        }
+
+        .tip-card strong {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        .tip-card p {
+            margin: 0;
+            font-size: 14px;
+            line-height: 1.7;
+            color: var(--muted);
+        }
+
+        .footer-note {
+            margin-top: 24px;
+            padding: 18px 20px;
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            background: var(--surface-soft);
+            color: var(--muted);
+            line-height: 1.8;
+            font-size: 15px;
+        }
+
+        @media (max-width: 1199.98px) {
+            .stats-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .toolbar-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 991.98px) {
+            .hero-grid,
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .page-title {
+                font-size: 34px;
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            .wrap {
+                padding: 20px 14px 42px;
+            }
+
+            .hero-card,
+            .panel,
+            .info-card {
+                padding: 20px;
+                border-radius: 20px;
+            }
+
+            .page-title {
+                font-size: 28px;
+            }
+
+            .page-desc {
+                font-size: 16px;
+            }
+
+            .stats-grid,
+            .tip-grid,
+            .toolbar-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .type-box {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-preview {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+<main class="wrap">
+    <header class="page-header">
+        <h1 class="page-title">
+            🥤 컵 쌓기 타자 게임
+            <span class="en">Cup Stacking Typing Game</span>
+        </h1>
+        <p class="page-desc">
+            글자를 타자해서 종이컵을 쌓거나 무너뜨립니다. 타자해야 하는 글자는 진한 검은색으로
+            표시되며, 정확하게 입력할수록 더 빠르게 컵을 완성할 수 있습니다.
+            <span class="en">Type letters to stack or collapse paper cups. The current target letter appears in bold black.</span>
+        </p>
+    </header>
+
+    <section class="hero-card">
+        <div class="hero-grid">
+            <div>
+                <h2 class="section-title">
+                    <span>✨</span>
+                    <span>캔버스 기반 타자 퍼즐 <span class="en">Canvas Typing Puzzle</span></span>
+                </h2>
+                <p class="page-desc">
+                    화면에 보이는 컵 더미의 글자를 순서대로 입력하면 컵이 쌓이거나 제거됩니다.
+                    쉬움부터 어려움까지 속도를 조절할 수 있고, 순수 CSS와 바닐라 자바스크립트만으로
+                    동작합니다.
+                </p>
+                <div class="hero-badges">
+                    <div class="hero-badge">⌨️ 타자 입력</div>
+                    <div class="hero-badge">🥤 컵 쌓기 / 무너뜨리기</div>
+                    <div class="hero-badge">🖼️ Canvas 렌더링</div>
+                    <div class="hero-badge">📱 모바일 대응</div>
+                </div>
+            </div>
+            <div class="hero-preview" aria-hidden="true">
+                <div class="hero-cup"></div>
+                <div class="hero-cup"></div>
+                <div class="hero-cup"></div>
+                <div class="hero-cup"></div>
+                <div class="hero-cup"></div>
+                <div class="hero-cup"></div>
+                <div class="hero-cup"></div>
+                <div class="hero-cup"></div>
+            </div>
+        </div>
+    </section>
+
+    <div class="main-grid">
+        <section class="left-stack">
+            <section class="panel">
+                <h2 class="section-title">
+                    <span>🎮</span>
+                    <span>게임 플레이 <span class="en">Play Game</span></span>
+                </h2>
+
+                <div class="toolbar-grid">
+                    <div class="toolbar-box">
+                        <label class="toolbar-label" for="modeSelect">모드 <span class="en">Mode</span></label>
+                        <select class="toolbar-select" id="modeSelect">
+                            <option value="stack" selected>컵 쌓기</option>
+                            <option value="collapse">컵 무너뜨리기</option>
+                        </select>
+                    </div>
+                    <div class="toolbar-box">
+                        <label class="toolbar-label" for="difficultySelect">난이도 <span class="en">Difficulty</span></label>
+                        <select class="toolbar-select" id="difficultySelect">
+                            <option value="easy">쉬움</option>
+                            <option value="normal" selected>보통</option>
+                            <option value="hard">어려움</option>
+                        </select>
+                    </div>
+                    <div class="toolbar-box">
+                        <label class="toolbar-label" for="soundSelect">사운드 <span class="en">Sound</span></label>
+                        <select class="toolbar-select" id="soundSelect">
+                            <option value="on" selected>켜기</option>
+                            <option value="off">끄기</option>
+                        </select>
+                    </div>
+                    <div class="toolbar-box">
+                        <label class="toolbar-label" for="timeSelect">제한 시간 <span class="en">Time</span></label>
+                        <select class="toolbar-select" id="timeSelect">
+                            <option value="60">60초</option>
+                            <option value="90" selected>90초</option>
+                            <option value="120">120초</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-label">점수 <span class="en">Score</span></span>
+                        <strong class="stat-value" id="scoreValue">0</strong>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">시간 <span class="en">Time</span></span>
+                        <strong class="stat-value" id="timeValue">90</strong>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">정확도 <span class="en">Accuracy</span></span>
+                        <strong class="stat-value" id="accuracyValue">100%</strong>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">콤보 <span class="en">Combo</span></span>
+                        <strong class="stat-value" id="comboValue">0</strong>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">최고 점수 <span class="en">Best</span></span>
+                        <strong class="stat-value" id="bestValue">0</strong>
+                    </div>
+                </div>
+
+                <div class="control-row">
+                    <button class="app-btn primary" id="startBtn" type="button">▶ 시작</button>
+                    <button class="app-btn secondary" id="resetBtn" type="button">🔄 리셋</button>
+                    <button class="app-btn secondary" id="pauseBtn" type="button">⏸ 일시정지</button>
+                    <button class="app-btn secondary" id="focusBtn" type="button">⌨️ 입력창 포커스</button>
+                </div>
+
+                <div class="game-shell">
+                    <div class="canvas-wrap">
+                        <canvas id="gameCanvas" width="1280" height="720"></canvas>
+                    </div>
+                    <div class="type-box">
+                        <input
+                                type="text"
+                                class="type-input"
+                                id="typingInput"
+                                placeholder="여기에 글자를 입력하세요... / Type here..."
+                                autocomplete="off"
+                                autocapitalize="off"
+                                spellcheck="false"
+                                maxlength="1"
+                        />
+                        <button class="app-btn primary" id="submitBtn" type="button">입력</button>
+                    </div>
+                </div>
+
+                <div class="message-box info" id="messageBox">
+                    시작 버튼을 누른 뒤, 화면에서 진한 검은색으로 강조된 글자를 입력하세요.
+                </div>
+            </section>
+        </section>
+
+        <aside class="right-stack">
+            <section class="info-card">
+                <h2 class="section-title">
+                    <span>📘</span>
+                    <span>게임 규칙 <span class="en">Rules</span></span>
+                </h2>
+                <ul class="rule-list">
+                    <li>검은색으로 강조된 컵의 글자가 현재 입력 목표입니다.</li>
+                    <li>정답을 입력하면 컵이 쌓이거나 제거되며 점수를 얻습니다.</li>
+                    <li>오답을 입력하면 콤보가 끊기고 시간이 소폭 줄어듭니다.</li>
+                    <li>컵 쌓기 모드는 빈 자리부터 채워 올라가고, 무너뜨리기 모드는 위에서부터 제거됩니다.</li>
+                    <li>제한 시간 안에 더 많은 컵을 처리할수록 높은 점수를 얻습니다.</li>
+                </ul>
+            </section>
+
+            <section class="info-card">
+                <h2 class="section-title">
+                    <span>🧠</span>
+                    <span>플레이 팁 <span class="en">Tips</span></span>
+                </h2>
+                <div class="tip-grid">
+                    <article class="tip-card">
+                        <strong>목표 글자 집중</strong>
+                        <p>진하게 표시된 글자만 빠르게 확인하면 시선 이동이 줄어듭니다.</p>
+                    </article>
+                    <article class="tip-card">
+                        <strong>콤보 유지</strong>
+                        <p>연속 정답을 이어가면 콤보 보너스로 점수가 크게 올라갑니다.</p>
+                    </article>
+                    <article class="tip-card">
+                        <strong>오답 주의</strong>
+                        <p>틀리면 시간 손해가 있으니 빠르기보다 정확도를 먼저 유지해 보세요.</p>
+                    </article>
+                    <article class="tip-card">
+                        <strong>모드 활용</strong>
+                        <p>쌓기 모드는 확장감이 좋고, 무너뜨리기 모드는 반응 속도 연습에 좋습니다.</p>
+                    </article>
+                </div>
+            </section>
+
+            <section class="info-card">
+                <h2 class="section-title">
+                    <span>🕹️</span>
+                    <span>조작 방법 <span class="en">Controls</span></span>
+                </h2>
+                <ul class="guide-list">
+                    <li><strong>키보드</strong> : 글자 1개 입력 후 Enter 또는 입력 버튼을 누릅니다.</li>
+                    <li><strong>마우스 / 터치</strong> : 시작, 리셋, 일시정지, 입력 버튼 사용이 가능합니다.</li>
+                    <li><strong>모바일</strong> : 입력창 포커스 버튼을 눌러 키보드를 빠르게 띄울 수 있습니다.</li>
+                    <li><strong>사운드</strong> : 상단 설정에서 효과음을 켜거나 끌 수 있습니다.</li>
+                </ul>
+            </section>
+        </aside>
+    </div>
+
+    <div class="footer-note">
+        이 버전은 광고와 Bootstrap 없이 제작한 순수 CSS + 바닐라 자바스크립트 예시입니다.
+        필요하면 단어 모드, 한글 모드, 스테이지 모드, 로컬 랭킹 저장 기능까지 이어서 확장할 수 있습니다.
+    </div>
+</main>
+
+<script>
+    (function () {
+        const STORAGE_KEY = "cupStackingTypingBestScore";
+        const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        const modeSelect = document.getElementById("modeSelect");
+        const difficultySelect = document.getElementById("difficultySelect");
+        const soundSelect = document.getElementById("soundSelect");
+        const timeSelect = document.getElementById("timeSelect");
+
+        const scoreValue = document.getElementById("scoreValue");
+        const timeValue = document.getElementById("timeValue");
+        const accuracyValue = document.getElementById("accuracyValue");
+        const comboValue = document.getElementById("comboValue");
+        const bestValue = document.getElementById("bestValue");
+
+        const typingInput = document.getElementById("typingInput");
+        const startBtn = document.getElementById("startBtn");
+        const resetBtn = document.getElementById("resetBtn");
+        const pauseBtn = document.getElementById("pauseBtn");
+        const focusBtn = document.getElementById("focusBtn");
+        const submitBtn = document.getElementById("submitBtn");
+        const messageBox = document.getElementById("messageBox");
+
+        let bestScore = Number(localStorage.getItem(STORAGE_KEY) || 0);
+        let score = 0;
+        let combo = 0;
+        let timeLeft = Number(timeSelect.value);
+        let gameRunning = false;
+        let gamePaused = false;
+        let totalInputs = 0;
+        let correctInputs = 0;
+        let timerId = null;
+        let soundEnabled = true;
+        let audioCtx = null;
+        let particles = [];
+        let currentMode = "stack";
+        let difficulty = "normal";
+        let cupSlots = [];
+        let targetIndex = -1;
+        let lastTimestamp = 0;
+
+        const difficultySettings = {
+            easy: { rows: 3, cols: 4, timePenalty: 1, comboBonus: 8 },
+            normal: { rows: 4, cols: 5, timePenalty: 2, comboBonus: 12 },
+            hard: { rows: 5, cols: 6, timePenalty: 3, comboBonus: 16 }
+        };
+
+        function setMessage(text, type) {
+            messageBox.textContent = text;
+            messageBox.className = "message-box";
+            if (type) {
+                messageBox.classList.add(type);
+            }
+        }
+
+        function ensureAudio() {
+            if (!soundEnabled) return null;
+            if (!audioCtx) {
+                const Ctx = window.AudioContext || window.webkitAudioContext;
+                if (!Ctx) return null;
+                audioCtx = new Ctx();
+            }
+            return audioCtx;
+        }
+
+        function playTone(freq, duration, type, volume) {
+            const context = ensureAudio();
+            if (!context) return;
+
+            const oscillator = context.createOscillator();
+            const gainNode = context.createGain();
+
+            oscillator.type = type || "sine";
+            oscillator.frequency.value = freq;
+            gainNode.gain.value = volume || 0.03;
+
+            oscillator.connect(gainNode);
+            gainNode.connect(context.destination);
+
+            oscillator.start();
+            gainNode.gain.setValueAtTime(gainNode.gain.value, context.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + duration);
+            oscillator.stop(context.currentTime + duration);
+        }
+
+        function soundCorrect() {
+            playTone(640, 0.08, "triangle", 0.03);
+        }
+
+        function soundWrong() {
+            playTone(220, 0.14, "sawtooth", 0.02);
+        }
+
+        function soundStart() {
+            playTone(420, 0.08, "square", 0.02);
+            setTimeout(function () {
+                playTone(620, 0.1, "square", 0.02);
+            }, 60);
+        }
+
+        function soundGameOver() {
+            playTone(280, 0.18, "sawtooth", 0.02);
+            setTimeout(function () {
+                playTone(180, 0.22, "sawtooth", 0.018);
+            }, 100);
+        }
+
+        function randomLetter() {
+            return LETTERS[Math.floor(Math.random() * LETTERS.length)];
+        }
+
+        function updateStats() {
+            scoreValue.textContent = String(score);
+            timeValue.textContent = String(Math.max(0, timeLeft));
+            comboValue.textContent = String(combo);
+            bestValue.textContent = String(bestScore);
+
+            const accuracy = totalInputs === 0 ? 100 : Math.round((correctInputs / totalInputs) * 100);
+            accuracyValue.textContent = accuracy + "%";
+        }
+
+        function buildCupSlots() {
+            const config = difficultySettings[difficulty];
+            const rows = config.rows;
+            const baseCols = config.cols;
+            const slots = [];
+            const bottomY = 610;
+            const topOffset = 106;
+            const cupHeight = 110;
+            const cupTopWidth = 72;
+            const cupBottomWidth = 98;
+            const gap = 10;
+
+            const maxWidth = baseCols * cupBottomWidth + (baseCols - 1) * gap;
+            const startX = (canvas.width - maxWidth) / 2;
+
+            for (let row = 0; row < rows; row += 1) {
+                const count = baseCols - row;
+                const rowWidth = count * cupBottomWidth + (count - 1) * gap;
+                const rowX = startX + (maxWidth - rowWidth) / 2;
+                const y = bottomY - row * topOffset;
+
+                for (let col = 0; col < count; col += 1) {
+                    const x = rowX + col * (cupBottomWidth + gap);
+                    slots.push({
+                        row: row,
+                        col: col,
+                        x: x,
+                        y: y,
+                        topWidth: cupTopWidth,
+                        bottomWidth: cupBottomWidth,
+                        height: cupHeight,
+                        letter: randomLetter(),
+                        active: currentMode === "collapse",
+                        solved: currentMode === "collapse"
+                    });
+                }
+            }
+
+            cupSlots = slots;
+            updateTarget();
+        }
+
+        function getTargetCandidates() {
+            if (currentMode === "stack") {
+                const byRowAsc = cupSlots
+                .filter(function (slot) { return !slot.active; })
+                .sort(function (a, b) {
+                    if (a.row !== b.row) return a.row - b.row;
+                    return a.col - b.col;
+                });
+
+                return byRowAsc;
+            }
+
+            const byRowDesc = cupSlots
+            .filter(function (slot) { return slot.active; })
+            .sort(function (a, b) {
+                if (a.row !== b.row) return b.row - a.row;
+                return a.col - b.col;
+            });
+
+            return byRowDesc;
+        }
+
+        function updateTarget() {
+            const candidates = getTargetCandidates();
+            if (candidates.length === 0) {
+                targetIndex = -1;
+                return;
+            }
+
+            const target = candidates[0];
+            targetIndex = cupSlots.indexOf(target);
+        }
+
+        function saveBestScore() {
+            if (score > bestScore) {
+                bestScore = score;
+                localStorage.setItem(STORAGE_KEY, String(bestScore));
+            }
+        }
+
+        function resetParticles() {
+            particles = [];
+        }
+
+        function createBurst(x, y, count, color) {
+            for (let i = 0; i < count; i += 1) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 7,
+                    vy: (Math.random() - 0.5) * 7 - 1,
+                    life: 30 + Math.random() * 20,
+                    size: 4 + Math.random() * 5,
+                    color: color
+                });
+            }
+        }
+
+        function updateParticles() {
+            particles.forEach(function (p) {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.12;
+                p.life -= 1;
+                p.size *= 0.98;
+            });
+
+            particles = particles.filter(function (p) {
+                return p.life > 0 && p.size > 0.5;
+            });
+        }
+
+        function drawRoundedRect(x, y, w, h, r, fillStyle, strokeStyle, lineWidth) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + w - r, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+            ctx.lineTo(x + w, y + h - r);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            ctx.lineTo(x + r, y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.closePath();
+
+            if (fillStyle) {
+                ctx.fillStyle = fillStyle;
+                ctx.fill();
+            }
+
+            if (strokeStyle) {
+                ctx.strokeStyle = strokeStyle;
+                ctx.lineWidth = lineWidth || 1;
+                ctx.stroke();
+            }
+        }
+
+        function drawCup(slot, isTarget) {
+            const x = slot.x;
+            const y = slot.y;
+            const h = slot.height;
+            const tw = slot.topWidth;
+            const bw = slot.bottomWidth;
+
+            if (!slot.active) {
+                ctx.save();
+                ctx.setLineDash([10, 8]);
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = "rgba(255,255,255,0.7)";
+                ctx.beginPath();
+                ctx.moveTo(x + (bw - tw) / 2, y);
+                ctx.lineTo(x + bw - (bw - tw) / 2, y);
+                ctx.lineTo(x + bw, y + h);
+                ctx.lineTo(x, y + h);
+                ctx.closePath();
+                ctx.stroke();
+                ctx.restore();
+
+                if (slot === cupSlots[targetIndex]) {
+                    ctx.fillStyle = "#111827";
+                    ctx.font = "800 30px Noto Sans KR, sans-serif";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText(slot.letter, x + bw / 2, y + h * 0.56);
+                } else {
+                    ctx.fillStyle = "rgba(255,255,255,0.9)";
+                    ctx.font = "800 30px Noto Sans KR, sans-serif";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText(slot.letter, x + bw / 2, y + h * 0.56);
+                }
+                return;
+            }
+
+            const gradient = ctx.createLinearGradient(x, y, x, y + h);
+            gradient.addColorStop(0, "#fff8cc");
+            gradient.addColorStop(0.52, "#ffd54f");
+            gradient.addColorStop(1, "#ffb300");
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(x + (bw - tw) / 2, y);
+            ctx.lineTo(x + bw - (bw - tw) / 2, y);
+            ctx.lineTo(x + bw, y + h);
+            ctx.lineTo(x, y + h);
+            ctx.closePath();
+
+            ctx.fillStyle = gradient;
+            ctx.fill();
+
+            ctx.strokeStyle = "#d97706";
+            ctx.lineWidth = isTarget ? 5 : 3;
+            ctx.stroke();
+
+            const highlight = ctx.createLinearGradient(x + 10, y + 8, x + 34, y + h * 0.7);
+            highlight.addColorStop(0, "rgba(255,255,255,0.8)");
+            highlight.addColorStop(1, "rgba(255,255,255,0)");
+            ctx.fillStyle = highlight;
+            ctx.beginPath();
+            ctx.moveTo(x + 14, y + 10);
+            ctx.lineTo(x + 32, y + 10);
+            ctx.lineTo(x + 22, y + h * 0.62);
+            ctx.lineTo(x + 8, y + h * 0.62);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.strokeStyle = "#d97706";
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(x - 4, y + h);
+            ctx.lineTo(x + bw + 4, y + h);
+            ctx.stroke();
+            ctx.restore();
+
+            ctx.fillStyle = isTarget ? "#111827" : "#ffffff";
+            ctx.font = "800 30px Noto Sans KR, sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(slot.letter, x + bw / 2, y + h * 0.56);
+        }
+
+        function drawParticles() {
+            particles.forEach(function (p) {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, p.life / 50);
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+        }
+
+        function drawTopUi() {
+            ctx.fillStyle = "#111827";
+            ctx.font = "800 28px Noto Sans KR, sans-serif";
+            ctx.textAlign = "left";
+            ctx.textBaseline = "top";
+            ctx.fillText("시간: " + Math.max(0, timeLeft).toFixed(0), 36, 28);
+
+            drawRoundedRect(300, 26, 90, 64, 22, "#ffffff", "rgba(17,24,39,0.08)", 2);
+            ctx.fillStyle = "#111827";
+            ctx.font = "800 18px Noto Sans KR, sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("점수", 345, 48);
+            ctx.font = "800 22px Noto Sans KR, sans-serif";
+            ctx.fillText(String(score), 345, 72);
+
+            drawRoundedRect(420, 26, 90, 64, 22, "#ffffff", "rgba(17,24,39,0.08)", 2);
+            ctx.fillStyle = "#111827";
+            ctx.font = "800 18px Noto Sans KR, sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("콤보", 465, 48);
+            ctx.font = "800 22px Noto Sans KR, sans-serif";
+            ctx.fillText(String(combo), 465, 72);
+
+            const bannerText = !gameRunning
+                ? "시작 버튼 또는 Enter 키로 게임을 시작하세요."
+                : gamePaused
+                    ? "일시정지 상태입니다."
+                    : targetIndex >= 0
+                        ? "검은색 글자를 입력하세요."
+                        : "모든 컵을 처리했습니다.";
+
+            drawRoundedRect(290, 120, 700, 74, 24, "rgba(255,255,255,0.86)", "rgba(255,255,255,0.92)", 3);
+            ctx.fillStyle = "#111827";
+            ctx.font = "800 24px Noto Sans KR, sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(bannerText, 640, 157);
+        }
+
+        function drawBackground() {
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, "#99f6e4");
+            gradient.addColorStop(0.6, "#5eead4");
+            gradient.addColorStop(1, "#2dd4bf");
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < 12; i += 1) {
+                ctx.fillStyle = "rgba(255,255,255,0.05)";
+                ctx.fillRect(i * 110, 0, 24, canvas.height);
+            }
+
+            ctx.fillStyle = "rgba(255,255,255,0.08)";
+            for (let y = 0; y < canvas.height; y += 28) {
+                ctx.fillRect(0, y, canvas.width, 2);
+            }
+        }
+
+        function drawScene() {
+            drawBackground();
+            drawTopUi();
+
+            cupSlots.forEach(function (slot, index) {
+                drawCup(slot, index === targetIndex);
+            });
+
+            drawParticles();
+
+            if (!gameRunning) {
+                ctx.fillStyle = "rgba(255,255,255,0.18)";
+                drawRoundedRect(470, 635, 340, 44, 18, "rgba(255,255,255,0.15)", "rgba(255,255,255,0.4)", 2);
+                ctx.fillStyle = "#111827";
+                ctx.font = "700 18px Noto Sans KR, sans-serif";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText("준비되면 시작 버튼을 누르세요.", 640, 657);
+            }
+        }
+
+        function render(timestamp) {
+            if (!lastTimestamp) lastTimestamp = timestamp;
+            const delta = timestamp - lastTimestamp;
+            lastTimestamp = timestamp;
+
+            if (delta >= 0) {
+                updateParticles();
+            }
+
+            drawScene();
+            requestAnimationFrame(render);
+        }
+
+        function updateAfterSuccess(slot) {
+            const centerX = slot.x + slot.bottomWidth / 2;
+            const centerY = slot.y + slot.height * 0.55;
+
+            if (currentMode === "stack") {
+                slot.active = true;
+                slot.solved = true;
+                score += 10 + combo * difficultySettings[difficulty].comboBonus;
+                createBurst(centerX, centerY, 10, "#f59e0b");
+            } else {
+                slot.active = false;
+                slot.solved = false;
+                score += 12 + combo * difficultySettings[difficulty].comboBonus;
+                createBurst(centerX, centerY, 12, "#ffffff");
+            }
+
+            combo += 1;
+            correctInputs += 1;
+            soundCorrect();
+            saveBestScore();
+            updateTarget();
+
+            if (targetIndex === -1) {
+                setMessage("현재 더미를 모두 처리했습니다. 자동으로 새로운 컵 배열을 준비합니다.", "good");
+                setTimeout(function () {
+                    buildCupSlots();
+                }, 500);
+            } else {
+                setMessage("정답입니다. 다음 검은색 글자를 입력하세요.", "good");
+            }
+        }
+
+        function updateAfterFail() {
+            totalInputs += 1;
+            combo = 0;
+            timeLeft = Math.max(0, timeLeft - difficultySettings[difficulty].timePenalty);
+            soundWrong();
+            setMessage("오답입니다. 시간이 줄어들었습니다.", "warn");
+
+            if (timeLeft <= 0) {
+                endGame();
+            }
+        }
+
+        function submitLetter() {
+            const raw = typingInput.value.trim().toUpperCase();
+            typingInput.value = "";
+
+            if (!raw) return;
+
+            if (!gameRunning) {
+                startGame();
+            }
+
+            if (gamePaused || !gameRunning || targetIndex < 0) return;
+
+            totalInputs += 1;
+            const targetSlot = cupSlots[targetIndex];
+
+            if (raw === targetSlot.letter) {
+                updateAfterSuccess(targetSlot);
+            } else {
+                updateAfterFail();
+            }
+
+            updateStats();
+        }
+
+        function tick() {
+            if (!gameRunning || gamePaused) return;
+
+            timeLeft -= 1;
+            updateStats();
+
+            if (timeLeft <= 0) {
+                endGame();
+            }
+        }
+
+        function startTimer() {
+            stopTimer();
+            timerId = setInterval(tick, 1000);
+        }
+
+        function stopTimer() {
+            if (timerId) {
+                clearInterval(timerId);
+                timerId = null;
+            }
+        }
+
+        function startGame() {
+            currentMode = modeSelect.value;
+            difficulty = difficultySelect.value;
+            soundEnabled = soundSelect.value === "on";
+
+            if (!gameRunning) {
+                score = 0;
+                combo = 0;
+                totalInputs = 0;
+                correctInputs = 0;
+                timeLeft = Number(timeSelect.value);
+                buildCupSlots();
+                resetParticles();
+            }
+
+            gameRunning = true;
+            gamePaused = false;
+            startTimer();
+            soundStart();
+            updateStats();
+            setMessage("게임이 시작되었습니다. 검은색 글자를 입력하세요.", "info");
+            typingInput.focus();
+        }
+
+        function pauseGame() {
+            if (!gameRunning) return;
+
+            gamePaused = !gamePaused;
+            if (gamePaused) {
+                stopTimer();
+                setMessage("일시정지되었습니다.", "info");
+                pauseBtn.textContent = "▶ 재개";
+            } else {
+                startTimer();
+                setMessage("게임이 재개되었습니다.", "info");
+                pauseBtn.textContent = "⏸ 일시정지";
+                typingInput.focus();
+            }
+        }
+
+        function endGame() {
+            gameRunning = false;
+            gamePaused = false;
+            stopTimer();
+            pauseBtn.textContent = "⏸ 일시정지";
+            soundGameOver();
+            saveBestScore();
+            updateStats();
+            setMessage("게임 종료! 최종 점수를 확인하고 다시 도전해 보세요.", "warn");
+        }
+
+        function resetGame() {
+            stopTimer();
+            gameRunning = false;
+            gamePaused = false;
+            pauseBtn.textContent = "⏸ 일시정지";
+            score = 0;
+            combo = 0;
+            totalInputs = 0;
+            correctInputs = 0;
+            timeLeft = Number(timeSelect.value);
+            currentMode = modeSelect.value;
+            difficulty = difficultySelect.value;
+            soundEnabled = soundSelect.value === "on";
+            buildCupSlots();
+            resetParticles();
+            updateStats();
+            setMessage("리셋되었습니다. 시작 버튼을 눌러 새 게임을 시작하세요.", "info");
+            typingInput.value = "";
+            typingInput.focus();
+        }
+
+        function handleKeydown(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+
+                if (!gameRunning) {
+                    startGame();
+                    return;
+                }
+
+                submitLetter();
+            }
+
+            if (event.key === "Escape") {
+                pauseGame();
+            }
+        }
+
+        startBtn.addEventListener("click", startGame);
+        resetBtn.addEventListener("click", resetGame);
+        pauseBtn.addEventListener("click", pauseGame);
+        focusBtn.addEventListener("click", function () {
+            typingInput.focus();
+        });
+        submitBtn.addEventListener("click", submitLetter);
+
+        typingInput.addEventListener("keydown", handleKeydown);
+        typingInput.addEventListener("input", function () {
+            typingInput.value = typingInput.value.replace(/[^a-zA-Z]/g, "").slice(0, 1).toUpperCase();
+        });
+
+        modeSelect.addEventListener("change", resetGame);
+        difficultySelect.addEventListener("change", resetGame);
+        timeSelect.addEventListener("change", resetGame);
+        soundSelect.addEventListener("change", function () {
+            soundEnabled = soundSelect.value === "on";
+        });
+
+        bestValue.textContent = String(bestScore);
+        buildCupSlots();
+        updateStats();
+        requestAnimationFrame(render);
+    })();
+</script>
+</body>
+</html>
