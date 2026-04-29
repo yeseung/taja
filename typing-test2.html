@@ -1,0 +1,714 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>타자시험 | Typing Test</title>
+  <meta name="description" content="한글과 영어 문장으로 타자 속도, 정확도, 진행률을 연습할 수 있는 웹 타자시험입니다." />
+  <meta name="keywords" content="타자시험, 타자연습, 한글타자, 영타연습, typing test, typing practice" />
+
+  <meta property="og:title" content="타자시험 | Typing Test" />
+  <meta property="og:description" content="브라우저에서 바로 사용하는 한글·영어 타자시험 서비스입니다." />
+  <meta property="og:type" content="website" />
+
+  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --danger: #ef4444;
+      --success: #16a34a;
+      --card: #ffffff;
+      --soft: #f8fafc;
+      --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+      --radius: 24px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      letter-spacing: -0.04em;
+    }
+
+    body {
+      min-height: 100vh;
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      font-family: inherit;
+      letter-spacing: -0.04em;
+    }
+
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 28px 18px 60px;
+    }
+
+    .page-header {
+      margin-bottom: 22px;
+    }
+
+    .page-title {
+      margin: 0 0 10px;
+      font-size: 42px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .page-desc {
+      margin: 0;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.7;
+    }
+
+    .en {
+      color: var(--muted);
+      font-weight: 700;
+      margin-left: 6px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      margin-bottom: 18px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 18px;
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1.4;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .form-control {
+      width: 100%;
+      min-height: 46px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px 14px;
+      font-size: 15px;
+      outline: none;
+      background: #fff;
+      color: var(--text);
+    }
+
+    .form-control:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+    }
+
+    .btn {
+      min-height: 46px;
+      border: 0;
+      border-radius: 14px;
+      padding: 10px 18px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn-soft {
+      background: var(--soft);
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+
+    .btn-soft:hover {
+      background: #eef2ff;
+    }
+
+    .typing-box {
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 22px;
+    }
+
+    .target-text {
+      min-height: 96px;
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1.7;
+      word-break: keep-all;
+    }
+
+    .target-text span {
+      border-radius: 6px;
+      padding: 1px 2px;
+    }
+
+    .target-text .ok {
+      color: var(--success);
+      background: rgba(22, 163, 74, 0.08);
+    }
+
+    .target-text .bad {
+      color: var(--danger);
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    .target-text .current {
+      background: rgba(37, 99, 235, 0.16);
+    }
+
+    .typing-input {
+      width: 100%;
+      min-height: 120px;
+      margin-top: 16px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      font-size: 22px;
+      line-height: 1.6;
+      outline: none;
+    }
+
+    .typing-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .stat {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .stat-value {
+      margin-top: 6px;
+      font-size: 28px;
+      font-weight: 800;
+    }
+
+    .progress {
+      width: 100%;
+      height: 12px;
+      background: #e5e7eb;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 18px;
+    }
+
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      background: var(--primary);
+      transition: width 0.2s ease;
+    }
+
+    .custom-area {
+      width: 100%;
+      min-height: 120px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      font-size: 16px;
+      line-height: 1.7;
+      resize: vertical;
+      outline: none;
+    }
+
+    .custom-area:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+    }
+
+    .footer-note {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    @media (max-width: 820px) {
+      .page-title {
+        font-size: 32px;
+      }
+
+      .page-desc {
+        font-size: 16px;
+      }
+
+      .controls {
+        grid-template-columns: 1fr;
+      }
+
+      .target-text {
+        font-size: 22px;
+      }
+
+      .typing-input {
+        font-size: 18px;
+      }
+
+      .stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .wrap {
+        padding: 22px 14px 46px;
+      }
+
+      .card {
+        padding: 18px;
+        border-radius: 20px;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+<main class="wrap">
+  <header class="page-header">
+    <h1 class="page-title">⌨️ 타자시험 <span class="en">Typing Test</span></h1>
+    <p class="page-desc">
+      한글과 영어 문장을 입력하며 타수, 정확도, 진행률을 확인할 수 있는 타자 연습 서비스입니다.
+      <span class="en">Practice Korean and English typing in your browser.</span>
+    </p>
+  </header>
+
+  <section class="card">
+    <h2 class="section-title">⚙️ 연습 설정 <span class="en">Settings</span></h2>
+
+    <div class="controls">
+      <select id="languageSelect" class="form-control">
+        <option value="ko">한글 문장 Korean</option>
+        <option value="en">영어 문장 English</option>
+        <option value="custom">직접 입력 Custom</option>
+      </select>
+
+      <select id="timeSelect" class="form-control">
+        <option value="60">60초</option>
+        <option value="120">120초</option>
+        <option value="180">180초</option>
+        <option value="300">300초</option>
+      </select>
+
+      <button type="button" class="btn btn-primary" id="startBtn">시작</button>
+      <button type="button" class="btn btn-soft" id="resetBtn">초기화</button>
+    </div>
+  </section>
+
+  <section class="card" id="customCard" hidden>
+    <h2 class="section-title">📝 직접 입력 <span class="en">Custom Text</span></h2>
+    <textarea id="customText" class="custom-area" placeholder="연습할 문장을 직접 입력하세요. 줄바꿈도 가능합니다."></textarea>
+  </section>
+
+  <section class="card">
+    <h2 class="section-title">🚀 타자 연습 <span class="en">Practice</span></h2>
+
+    <div class="typing-box">
+      <div id="targetText" class="target-text"></div>
+
+      <textarea
+              id="typingInput"
+              class="typing-input"
+              placeholder="시작 버튼을 누른 뒤 여기에 입력하세요."
+              disabled
+      ></textarea>
+
+      <div class="progress">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-label">남은 시간</div>
+          <div class="stat-value"><span id="timeLeft">0</span>초</div>
+        </div>
+
+        <div class="stat">
+          <div class="stat-label">현재 타수</div>
+          <div class="stat-value"><span id="cpm">0</span></div>
+        </div>
+
+        <div class="stat">
+          <div class="stat-label">정확도</div>
+          <div class="stat-value"><span id="accuracy">100</span>%</div>
+        </div>
+
+        <div class="stat">
+          <div class="stat-label">진행률</div>
+          <div class="stat-value"><span id="progressText">0</span>%</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 class="section-title">💾 결과 저장 <span class="en">Save Result</span></h2>
+
+    <button type="button" class="btn btn-soft" id="saveTxtBtn">TXT 저장</button>
+
+    <p class="footer-note">
+      최고 기록은 브라우저 localStorage에 자동 저장됩니다.
+      <span class="en">Best record is saved locally in your browser.</span>
+    </p>
+
+    <p class="footer-note" id="bestRecord">최고 기록: 아직 없습니다.</p>
+  </section>
+</main>
+
+<script>
+  const sampleTexts = {
+    ko: [
+      "꾸준한 연습은 좋은 결과를 만든다.",
+      "천천히 정확하게 입력하는 습관이 중요하다.",
+      "오늘의 작은 노력이 내일의 실력이 된다.",
+      "바른 자세와 집중력은 타자 속도를 높여 준다.",
+      "실수해도 괜찮다. 다시 차분하게 입력하면 된다."
+    ],
+    en: [
+      "Practice makes steady progress every day.",
+      "Typing accuracy is more important than speed at first.",
+      "Small efforts can create great results over time.",
+      "Focus on the screen and keep your rhythm steady.",
+      "Every mistake is a chance to improve your skill."
+    ]
+  };
+
+  const languageSelect = document.getElementById("languageSelect");
+  const timeSelect = document.getElementById("timeSelect");
+  const startBtn = document.getElementById("startBtn");
+  const resetBtn = document.getElementById("resetBtn");
+  const saveTxtBtn = document.getElementById("saveTxtBtn");
+  const customCard = document.getElementById("customCard");
+  const customText = document.getElementById("customText");
+  const targetText = document.getElementById("targetText");
+  const typingInput = document.getElementById("typingInput");
+  const timeLeftEl = document.getElementById("timeLeft");
+  const cpmEl = document.getElementById("cpm");
+  const accuracyEl = document.getElementById("accuracy");
+  const progressText = document.getElementById("progressText");
+  const progressBar = document.getElementById("progressBar");
+  const bestRecord = document.getElementById("bestRecord");
+
+  let target = "";
+  let timer = null;
+  let startTime = null;
+  let timeLimit = 60;
+  let isRunning = false;
+  let lastResult = null;
+
+  function getRandomText(type) {
+    const list = sampleTexts[type] || sampleTexts.ko;
+    return list[Math.floor(Math.random() * list.length)];
+  }
+
+  function loadBestRecord() {
+    const saved = localStorage.getItem("typingBestRecord");
+
+    if (!saved) {
+      bestRecord.textContent = "최고 기록: 아직 없습니다.";
+      return;
+    }
+
+    const data = JSON.parse(saved);
+    bestRecord.textContent =
+            "최고 기록: " + data.cpm + "타 / 정확도 " + data.accuracy + "% / " + data.date;
+  }
+
+  function saveBestRecord(result) {
+    const saved = localStorage.getItem("typingBestRecord");
+
+    if (!saved) {
+      localStorage.setItem("typingBestRecord", JSON.stringify(result));
+      loadBestRecord();
+      return;
+    }
+
+    const old = JSON.parse(saved);
+
+    if (result.cpm > old.cpm) {
+      localStorage.setItem("typingBestRecord", JSON.stringify(result));
+      loadBestRecord();
+    }
+  }
+
+  function renderTarget() {
+    const input = typingInput.value;
+    let html = "";
+
+    for (let i = 0; i < target.length; i++) {
+      const char = target[i];
+      let className = "";
+
+      if (i < input.length) {
+        className = input[i] === char ? "ok" : "bad";
+      } else if (i === input.length) {
+        className = "current";
+      }
+
+      html += '<span class="' + className + '">' + escapeHtml(char) + "</span>";
+    }
+
+    targetText.innerHTML = html;
+  }
+
+  function escapeHtml(str) {
+    return str
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+  }
+
+  function getStats() {
+    const input = typingInput.value;
+    const typed = input.length;
+    let correct = 0;
+
+    for (let i = 0; i < typed; i++) {
+      if (input[i] === target[i]) {
+        correct++;
+      }
+    }
+
+    const elapsedMinute = Math.max((Date.now() - startTime) / 1000 / 60, 1 / 60);
+    const cpm = Math.round(correct / elapsedMinute);
+    const accuracy = typed === 0 ? 100 : Math.round((correct / typed) * 100);
+    const progress = Math.min(100, Math.round((typed / target.length) * 100));
+
+    return {
+      typed,
+      correct,
+      cpm,
+      accuracy,
+      progress
+    };
+  }
+
+  function updateStats() {
+    const stats = getStats();
+
+    cpmEl.textContent = stats.cpm;
+    accuracyEl.textContent = stats.accuracy;
+    progressText.textContent = stats.progress;
+    progressBar.style.width = stats.progress + "%";
+  }
+
+  function startTest() {
+    const mode = languageSelect.value;
+    timeLimit = Number(timeSelect.value);
+
+    if (mode === "custom") {
+      target = customText.value.trim();
+
+      if (!target) {
+        alert("직접 입력할 문장을 입력해주세요.");
+        customText.focus();
+        return;
+      }
+    } else {
+      target = getRandomText(mode);
+    }
+
+    clearInterval(timer);
+
+    isRunning = true;
+    startTime = Date.now();
+    typingInput.value = "";
+    typingInput.disabled = false;
+    typingInput.focus();
+
+    timeLeftEl.textContent = timeLimit;
+    cpmEl.textContent = "0";
+    accuracyEl.textContent = "100";
+    progressText.textContent = "0";
+    progressBar.style.width = "0%";
+
+    renderTarget();
+
+    timer = setInterval(function () {
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      const left = Math.max(timeLimit - elapsed, 0);
+
+      timeLeftEl.textContent = left;
+
+      if (left <= 0) {
+        finishTest();
+      }
+    }, 300);
+  }
+
+  function finishTest() {
+    if (!isRunning) return;
+
+    isRunning = false;
+    clearInterval(timer);
+    typingInput.disabled = true;
+
+    const stats = getStats();
+
+    lastResult = {
+      cpm: stats.cpm,
+      accuracy: stats.accuracy,
+      progress: stats.progress,
+      typed: stats.typed,
+      correct: stats.correct,
+      target: target,
+      input: typingInput.value,
+      date: new Date().toLocaleString()
+    };
+
+    saveBestRecord(lastResult);
+
+    alert(
+            "타자시험 완료!\n\n" +
+            "현재 타수: " + stats.cpm + "타\n" +
+            "정확도: " + stats.accuracy + "%\n" +
+            "진행률: " + stats.progress + "%"
+    );
+  }
+
+  function resetTest() {
+    clearInterval(timer);
+
+    isRunning = false;
+    target = "";
+    startTime = null;
+    lastResult = null;
+
+    targetText.textContent = "";
+    typingInput.value = "";
+    typingInput.disabled = true;
+    timeLeftEl.textContent = "0";
+    cpmEl.textContent = "0";
+    accuracyEl.textContent = "100";
+    progressText.textContent = "0";
+    progressBar.style.width = "0%";
+  }
+
+  function saveTxt() {
+    const result = lastResult || {
+      cpm: cpmEl.textContent,
+      accuracy: accuracyEl.textContent,
+      progress: progressText.textContent,
+      typed: typingInput.value.length,
+      correct: getStats().correct,
+      target: target,
+      input: typingInput.value,
+      date: new Date().toLocaleString()
+    };
+
+    const text =
+                  "타자시험 결과\n" +
+                  "====================\n" +
+                  "날짜: " + result.date + "\n" +
+                  "타수: " + result.cpm + "\n" +
+                  "정확도: " + result.accuracy + "%\n" +
+                  "진행률: " + result.progress + "%\n" +
+                  "입력 글자 수: " + result.typed + "\n" +
+                  "정확한 글자 수: " + result.correct + "\n\n" +
+                  "[제시문]\n" + result.target + "\n\n" +
+                  "[입력문]\n" + result.input + "\n";
+
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+
+    a.href = url;
+    a.download = "typing-test-result.txt";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    URL.revokeObjectURL(url);
+  }
+
+  languageSelect.addEventListener("change", function () {
+    customCard.hidden = languageSelect.value !== "custom";
+  });
+
+  startBtn.addEventListener("click", startTest);
+  resetBtn.addEventListener("click", resetTest);
+  saveTxtBtn.addEventListener("click", saveTxt);
+
+  typingInput.addEventListener("input", function () {
+    if (!isRunning) return;
+
+    renderTarget();
+    updateStats();
+
+    if (typingInput.value.length >= target.length) {
+      finishTest();
+    }
+  });
+
+  loadBestRecord();
+  resetTest();
+</script>
+</body>
+</html>
