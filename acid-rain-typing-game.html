@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>산성비 타자 연습 게임</title>
+    <meta name="description" content="떨어지는 단어를 입력해서 점수를 올리는 산성비 스타일 타자 연습 게임입니다." />
+    <meta name="keywords" content="산성비 게임, 타자 연습, 한글 타자, 영어 타자, typing game" />
+
+    <meta property="og:title" content="산성비 타자 연습 게임" />
+    <meta property="og:description" content="떨어지는 단어를 빠르게 입력해 점수를 올리는 순수 자바스크립트 타자 게임입니다." />
+    <meta property="og:type" content="website" />
+
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet" />
+
+    <style>
+        :root {
+            --bg: #f6f8fb;
+            --card: #ffffff;
+            --text: #20242a;
+            --muted: #6b7280;
+            --line: #e5e7eb;
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --danger: #ef4444;
+            --success: #16a34a;
+            --warning: #f59e0b;
+            --shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+            --radius: 24px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100%;
+            font-family: 'Noto Sans KR', sans-serif;
+            letter-spacing: -0.04em;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        body {
+            overflow-x: hidden;
+        }
+
+        button,
+        input {
+            font-family: inherit;
+        }
+
+        .app {
+            width: min(1100px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 24px 0;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .title-box h1 {
+            margin: 0;
+            font-size: clamp(28px, 4vw, 44px);
+            font-weight: 800;
+        }
+
+        .title-box p {
+            margin: 8px 0 0;
+            color: var(--muted);
+            font-size: 15px;
+        }
+
+        .status-panel {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(80px, 1fr));
+            gap: 10px;
+        }
+
+        .status-card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 12px 14px;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .status-card span {
+            display: block;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .status-card strong {
+            display: block;
+            margin-top: 4px;
+            font-size: 22px;
+        }
+
+        .main-card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .start-screen {
+            padding: 32px;
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 24px;
+            align-items: center;
+        }
+
+        .intro h2 {
+            margin: 0;
+            font-size: clamp(24px, 3vw, 34px);
+        }
+
+        .intro p {
+            margin: 12px 0 0;
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        .notice {
+            margin-top: 18px;
+            padding: 14px 16px;
+            border-radius: 18px;
+            background: #f8fafc;
+            border: 1px solid var(--line);
+            color: #475569;
+            line-height: 1.7;
+        }
+
+        .control-box {
+            background: #f8fafc;
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            padding: 20px;
+        }
+
+        .control-box h3 {
+            margin: 0 0 14px;
+            font-size: 20px;
+        }
+
+        .difficulty-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .difficulty-btn {
+            border: 1px solid #bfdbfe;
+            background: #fff;
+            color: var(--primary);
+            border-radius: 16px;
+            padding: 13px 14px;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .difficulty-btn:hover,
+        .difficulty-btn.active {
+            background: var(--primary);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+
+        .start-btn,
+        .restart-btn,
+        .submit-btn,
+        .exit-btn {
+            border: 0;
+            border-radius: 16px;
+            padding: 14px 18px;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .start-btn,
+        .restart-btn,
+        .submit-btn {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .start-btn:hover,
+        .restart-btn:hover,
+        .submit-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .exit-btn {
+            background: #f1f5f9;
+            color: #334155;
+        }
+
+        .start-btn {
+            width: 100%;
+            margin-top: 16px;
+        }
+
+        .game-wrap {
+            display: none;
+        }
+
+        .game-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--line);
+            background: #ffffff;
+        }
+
+        .game-message {
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .volume-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .game-area {
+            position: relative;
+            height: 520px;
+            background:
+                    radial-gradient(circle at top left, rgba(37, 99, 235, 0.08), transparent 32%),
+                    linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            overflow: hidden;
+        }
+
+        .game-area.frozen {
+            background:
+                    radial-gradient(circle at center, rgba(56, 189, 248, 0.2), transparent 40%),
+                    linear-gradient(180deg, #eff6ff 0%, #ffffff 100%);
+        }
+
+        .word {
+            position: absolute;
+            top: 40px;
+            left: 30px;
+            padding: 8px 14px;
+            background: #ffffff;
+            border: 1px solid #bfdbfe;
+            border-radius: 999px;
+            box-shadow: 0 10px 24px rgba(37, 99, 235, 0.12);
+            font-weight: 800;
+            white-space: nowrap;
+            user-select: none;
+        }
+
+        .word.special {
+            color: var(--danger);
+            border-color: #fecaca;
+            background: #fff7f7;
+        }
+
+        .input-bar {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 10px;
+            padding: 14px;
+            border-top: 1px solid var(--line);
+            background: #ffffff;
+        }
+
+        .typing-input {
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 0 16px;
+            font-size: 17px;
+            outline: none;
+        }
+
+        .typing-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.45);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 18px;
+            z-index: 100;
+        }
+
+        .modal-card {
+            width: min(420px, 100%);
+            background: #fff;
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .modal-card h2 {
+            margin: 0;
+            font-size: 26px;
+        }
+
+        .modal-card p {
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        .modal-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                display: block;
+            }
+
+            .status-panel {
+                margin-top: 16px;
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .start-screen {
+                grid-template-columns: 1fr;
+                padding: 22px;
+            }
+
+            .game-area {
+                height: 460px;
+            }
+
+            .game-top,
+            .input-bar {
+                grid-template-columns: 1fr;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .input-bar {
+                display: grid;
+            }
+
+            .typing-input {
+                height: 50px;
+            }
+
+            .exit-btn,
+            .submit-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="app">
+    <header class="header">
+        <div class="title-box">
+            <h1>☔ 산성비 타자 연습</h1>
+            <p>떨어지는 단어를 입력해 점수를 올리는 바닐라 JavaScript 게임</p>
+        </div>
+
+        <div class="status-panel">
+            <div class="status-card">
+                <span>점수</span>
+                <strong id="score">0</strong>
+            </div>
+            <div class="status-card">
+                <span>생명</span>
+                <strong id="lives">5</strong>
+            </div>
+            <div class="status-card">
+                <span>단계</span>
+                <strong id="level">1</strong>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-card">
+        <section class="start-screen" id="startScreen">
+            <div class="intro">
+                <h2>단어가 바닥에 닿기 전에 입력하세요</h2>
+                <p>
+                    난이도를 선택하고 게임을 시작하면 단어가 위에서 아래로 떨어집니다.
+                    입력창에 같은 단어를 입력하면 점수가 올라가고, 놓치면 생명이 줄어듭니다.
+                </p>
+                <div class="notice">
+                    ✅ canvas 사용 안 함<br />
+                    ✅ Bootstrap 사용 안 함<br />
+                    ✅ 광고 코드 없음<br />
+                    ✅ 순수 CSS + 바닐라 JavaScript
+                </div>
+            </div>
+
+            <div class="control-box">
+                <h3>난이도 선택</h3>
+                <div class="difficulty-list" id="difficultyList"></div>
+                <button class="start-btn" id="startBtn">게임 시작</button>
+            </div>
+        </section>
+
+        <section class="game-wrap" id="gameWrap">
+            <div class="game-top">
+                <div class="game-message" id="gameMessage">게임 진행 중입니다.</div>
+                <div class="volume-box">
+                    🔊 효과음
+                    <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.5" />
+                </div>
+            </div>
+
+            <div class="game-area" id="gameArea"></div>
+
+            <form class="input-bar" id="typingForm">
+                <button type="button" class="exit-btn" id="exitBtn">나가기</button>
+                <input
+                        type="text"
+                        class="typing-input"
+                        id="typingInput"
+                        placeholder="떨어지는 단어를 입력하세요"
+                        autocomplete="off"
+                />
+                <button type="submit" class="submit-btn">입력</button>
+            </form>
+        </section>
+    </main>
+</div>
+
+<div class="modal" id="gameOverModal">
+    <div class="modal-card">
+        <h2>게임 종료</h2>
+        <p id="finalText">최종 점수는 0점입니다.</p>
+        <div class="modal-actions">
+            <button class="exit-btn" id="closeModalBtn">닫기</button>
+            <button class="restart-btn" id="restartBtn">다시 시작</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const wordLists = {
+        1: ['사과', '바다', '하늘', '구름', '나무', '연필', '책상', '학교', '마음', '햇살'],
+        2: ['컴퓨터', '자바스크립트', '키보드', '모니터', '브라우저', '인터넷', '프로그램', '데이터'],
+        3: ['application', 'variable', 'function', 'document', 'keyboard', 'practice', 'language'],
+        4: ['developer', 'algorithm', 'interface', 'component', 'responsive', 'animation'],
+        5: ['performance', 'optimization', 'accessibility', 'asynchronous', 'documentation']
+    };
+
+    const difficultySettings = {
+        1: { label: '1단계 쉬움', speed: 2, interval: 1800 },
+        2: { label: '2단계 보통', speed: 3, interval: 1500 },
+        3: { label: '3단계 어려움', speed: 4, interval: 1200 },
+        4: { label: '4단계 매우 어려움', speed: 5, interval: 950 },
+        5: { label: '5단계 최고 난이도', speed: 6, interval: 800 }
+    };
+
+    const maxLives = 5;
+    const maxDifficulty = Object.keys(difficultySettings).length;
+
+    let difficulty = 1;
+    let score = 0;
+    let lives = maxLives;
+    let correctWordsCount = 0;
+    let words = [];
+    let gameStarted = false;
+    let wordCreateTimer = null;
+    let wordMoveTimer = null;
+    let slowMotion = false;
+    let specialWord = '';
+    let volume = 0.5;
+
+    const scoreEl = document.getElementById('score');
+    const livesEl = document.getElementById('lives');
+    const levelEl = document.getElementById('level');
+    const difficultyList = document.getElementById('difficultyList');
+    const startBtn = document.getElementById('startBtn');
+    const startScreen = document.getElementById('startScreen');
+    const gameWrap = document.getElementById('gameWrap');
+    const gameArea = document.getElementById('gameArea');
+    const typingForm = document.getElementById('typingForm');
+    const typingInput = document.getElementById('typingInput');
+    const exitBtn = document.getElementById('exitBtn');
+    const gameMessage = document.getElementById('gameMessage');
+    const volumeSlider = document.getElementById('volumeSlider');
+    const gameOverModal = document.getElementById('gameOverModal');
+    const finalText = document.getElementById('finalText');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const restartBtn = document.getElementById('restartBtn');
+
+    function renderDifficultyButtons() {
+        difficultyList.innerHTML = '';
+
+        Object.keys(difficultySettings).forEach((key) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'difficulty-btn';
+            button.textContent = difficultySettings[key].label;
+
+            if (Number(key) === difficulty) {
+                button.classList.add('active');
+            }
+
+            button.addEventListener('click', () => {
+                difficulty = Number(key);
+                renderDifficultyButtons();
+                updateStatus();
+            });
+
+            difficultyList.appendChild(button);
+        });
+    }
+
+    function updateStatus() {
+        scoreEl.textContent = score;
+        livesEl.textContent = lives;
+        levelEl.textContent = difficulty;
+    }
+
+    function playBeep(type) {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+
+        oscillator.connect(gain);
+        gain.connect(audioContext.destination);
+
+        if (type === 'success') {
+            oscillator.frequency.value = 740;
+        } else if (type === 'wrong') {
+            oscillator.frequency.value = 180;
+        } else if (type === 'level') {
+            oscillator.frequency.value = 980;
+        } else {
+            oscillator.frequency.value = 320;
+        }
+
+        gain.gain.value = volume * 0.15;
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + 0.12);
+    }
+
+    function getRandomWord() {
+        const list = wordLists[difficulty];
+        return list[Math.floor(Math.random() * list.length)];
+    }
+
+    function createWord() {
+        if (!gameStarted) return;
+
+        const text = getRandomWord();
+        const id = Date.now() + Math.random();
+        const maxLeft = Math.max(20, gameArea.clientWidth - 140);
+        const left = Math.floor(Math.random() * maxLeft);
+
+        const word = {
+            id,
+            text,
+            top: 20,
+            left,
+            special: difficulty === 5 && Math.random() < 0.18
+        };
+
+        if (word.special) {
+            specialWord = word.text;
+        }
+
+        words.push(word);
+        renderWords();
+    }
+
+    function renderWords() {
+        gameArea.innerHTML = '';
+
+        words.forEach((word) => {
+            const div = document.createElement('div');
+            div.className = word.special ? 'word special' : 'word';
+            div.textContent = word.text;
+            div.style.top = word.top + 'px';
+            div.style.left = word.left + 'px';
+            div.dataset.id = word.id;
+            gameArea.appendChild(div);
+        });
+    }
+
+    function moveWords() {
+        if (!gameStarted) return;
+
+        const speed = slowMotion ? 2 : difficultySettings[difficulty].speed;
+        const bottomLimit = gameArea.clientHeight - 45;
+
+        words = words.map((word) => ({
+            ...word,
+            top: word.top + speed
+        }));
+
+        const missedWords = words.filter((word) => word.top >= bottomLimit);
+
+        if (missedWords.length > 0) {
+            lives = Math.max(0, lives - missedWords.length);
+            words = words.filter((word) => word.top < bottomLimit);
+            playBeep('miss');
+            updateStatus();
+
+            if (lives <= 0) {
+                endGame();
+                return;
+            }
+        }
+
+        renderWords();
+    }
+
+    function checkLevelUp() {
+        if (correctWordsCount >= 20 && difficulty < maxDifficulty) {
+            difficulty += 1;
+            correctWordsCount = 0;
+            words = [];
+            lives = maxLives;
+            gameMessage.textContent = difficulty + '단계로 올라갔습니다!';
+            playBeep('level');
+            updateStatus();
+            resetTimers();
+        }
+    }
+
+    function applySpecialEffect() {
+        slowMotion = true;
+        gameArea.classList.add('frozen');
+        gameMessage.textContent = '❄ 특수 단어 효과! 5초 동안 느려집니다.';
+
+        setTimeout(() => {
+            slowMotion = false;
+            gameArea.classList.remove('frozen');
+            gameMessage.textContent = '게임 진행 중입니다.';
+        }, 5000);
+    }
+
+    function handleSubmit(event) {
+        event.preventDefault();
+
+        const input = typingInput.value.trim();
+        if (!input) return;
+
+        const index = words.findIndex((word) => word.text === input);
+
+        if (index !== -1) {
+            const matchedWord = words[index];
+
+            words.splice(index, 1);
+            score += 10;
+            correctWordsCount += 1;
+
+            if (matchedWord.special) {
+                applySpecialEffect();
+            } else {
+                gameMessage.textContent = '정답입니다!';
+            }
+
+            playBeep('success');
+            checkLevelUp();
+        } else {
+            gameMessage.textContent = '일치하는 단어가 없습니다.';
+            playBeep('wrong');
+        }
+
+        typingInput.value = '';
+        updateStatus();
+        renderWords();
+    }
+
+    function resetTimers() {
+        clearInterval(wordCreateTimer);
+        clearInterval(wordMoveTimer);
+
+        wordCreateTimer = setInterval(createWord, difficultySettings[difficulty].interval);
+        wordMoveTimer = setInterval(moveWords, 40);
+    }
+
+    function startGame() {
+        score = 0;
+        lives = maxLives;
+        correctWordsCount = 0;
+        words = [];
+        gameStarted = true;
+        slowMotion = false;
+        specialWord = '';
+
+        startScreen.style.display = 'none';
+        gameWrap.style.display = 'block';
+        gameOverModal.style.display = 'none';
+
+        gameMessage.textContent = '게임 진행 중입니다.';
+        gameArea.classList.remove('frozen');
+
+        updateStatus();
+        renderWords();
+        resetTimers();
+
+        setTimeout(() => typingInput.focus(), 100);
+    }
+
+    function endGame() {
+        gameStarted = false;
+        clearInterval(wordCreateTimer);
+        clearInterval(wordMoveTimer);
+
+        finalText.textContent = '최종 점수는 ' + score + '점입니다.';
+        gameOverModal.style.display = 'flex';
+        gameMessage.textContent = '게임이 종료되었습니다.';
+        playBeep('wrong');
+    }
+
+    function exitGame() {
+        gameStarted = false;
+        clearInterval(wordCreateTimer);
+        clearInterval(wordMoveTimer);
+
+        words = [];
+        renderWords();
+
+        gameWrap.style.display = 'none';
+        startScreen.style.display = 'grid';
+        gameMessage.textContent = '게임을 종료했습니다.';
+    }
+
+    volumeSlider.addEventListener('input', (event) => {
+        volume = Number(event.target.value);
+    });
+
+    typingForm.addEventListener('submit', handleSubmit);
+    startBtn.addEventListener('click', startGame);
+    restartBtn.addEventListener('click', startGame);
+    exitBtn.addEventListener('click', exitGame);
+
+    closeModalBtn.addEventListener('click', () => {
+        gameOverModal.style.display = 'none';
+        exitGame();
+    });
+
+    window.addEventListener('resize', renderWords);
+
+    renderDifficultyButtons();
+    updateStatus();
+</script>
+</body>
+</html>
