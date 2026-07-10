@@ -1,0 +1,221 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>월남 이상재 선생 타자 게임</title>
+    <style>
+        * { -webkit-tap-highlight-color: transparent; }
+        body { text-align: center; font-family: 'Pretendard', sans-serif; background: #fdfbf7; color: #333; margin: 0; padding: 12px; box-sizing: border-box; touch-action: manipulation; }
+        h1 { font-size: 22px; }
+        #game-container { width: 100%; max-width: 650px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; align-items: flex-start; }
+        #play-column { display: flex; flex-direction: column; align-items: center; gap: 12px; width: min(400px, 94vw); }
+        #game-area {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 4 / 5;
+            border: 3px solid #2c3e50;
+            background-color: white;
+            background-size: cover;
+            background-position: center;
+            overflow: hidden;
+            border-radius: 8px;
+            transition: background-image 0.4s ease-in-out;
+        }
+        #ranking-board { width: min(260px, 94vw); text-align: left; background: #eee; padding: 15px; border-radius: 8px; box-sizing: border-box; margin: 0 auto; }
+        .word { position: absolute; font-size: 18px; font-weight: bold; color: #2c3e50; padding: 5px; background: rgba(255,255,255,0.9); border: 1px solid #ddd; border-radius: 4px; white-space: nowrap; }
+        #stage-notice {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.55);
+            color: #fff;
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        #stage-notice.show { opacity: 1; }
+    </style>
+</head>
+<body>
+<h1>월남 이상재 선생 타자 게임</h1>
+<div id="status-bar">점수: <span id="score">0</span> | 목숨: <span id="lives">5</span> | 단계: <span id="stage-num">1</span></div>
+
+<div id="game-container">
+    <div id="play-column">
+        <div id="game-area">
+            <div id="stage-notice"></div>
+        </div>
+        <div id="input-area" style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; width: 100%;">
+            <input
+                    type="text"
+                    id="input"
+                    placeholder="단어 입력"
+                    autofocus
+                    autocomplete="off"
+                    autocorrect="off"
+                    autocapitalize="off"
+                    spellcheck="false"
+                    inputmode="text"
+                    enterkeyhint="done"
+                    lang="ko"
+                    style="font-size: 18px; padding: 12px 14px; border-radius: 8px; border: 2px solid #2c3e50; width: 60%; max-width: 280px; box-sizing: border-box;"
+            >
+            <button id="submit-btn" type="button" style="font-size: 16px; padding: 12px 18px; border-radius: 8px; border: none; background: #2c3e50; color: #fff; font-weight: bold;">입력</button>
+        </div>
+    </div>
+    <div id="ranking-board">
+        <h3>명예의 전당 (Top 10)</h3>
+        <div id="rank-list">불러오는 중...</div>
+    </div>
+</div>
+
+<script>
+    const words = ["월남", "이상재", "신간회", "YMCA", "청렴", "계몽", "서천", "독립운동", "한산면", "박정양", "조사시찰단", "주미공사관", "학무국장", "독립협회", "만민공동회", "한성감옥", "황성기독교청년회", "을사조약", "중앙기독교청년회", "헤이그밀사사건", "조선교육협회장", "조선소년척후단", "조선일보사장", "물산장려운동", "사회장", "건국훈장대통령장", "민족의등불", "교육구국"];
+
+    // 단계별 설정: 점수 구간에 따라 떨어지는 속도 · 출현 주기 · 배경 이미지가 바뀝니다.
+    // index.html과 같은 위치에 images 폴더를 만들고 stage1.jpg ~ stage5.jpg 파일을 올려주세요.
+    // (필요시 minScore, speed, spawnInterval 숫자만 조절하면 난이도/단계 구간을 바꿀 수 있습니다)
+    const stages = [
+        { minScore: 0,   speed: 0.8, spawnInterval: 2200, bg: 'images/stage1.jpg', label: '1단계 · 한산 서천 시절' },
+        { minScore: 80,  speed: 1.0, spawnInterval: 2000, bg: 'images/stage2.jpg', label: '2단계 · 주미공사관 시절' },
+        { minScore: 180, speed: 1.2, spawnInterval: 1800, bg: 'images/stage3.jpg', label: '3단계 · 독립협회 · 만민공동회' },
+        { minScore: 300, speed: 1.4, spawnInterval: 1600, bg: 'images/stage4.jpg', label: '4단계 · 황성기독교청년회(YMCA)' },
+        { minScore: 450, speed: 1.6, spawnInterval: 1450, bg: 'images/stage5.jpg', label: '5단계 · 신간회와 사회장' }
+    ];
+
+    const gameArea = document.getElementById('game-area');
+    const input = document.getElementById('input');
+    const submitBtn = document.getElementById('submit-btn');
+    const scoreEl = document.getElementById('score');
+    const livesEl = document.getElementById('lives');
+    const stageNumEl = document.getElementById('stage-num');
+    const stageNotice = document.getElementById('stage-notice');
+    const rankList = document.getElementById('rank-list');
+
+    let score = 0, lives = 5;
+    let currentStageIndex = 0;
+    let speed = stages[0].speed;
+    let spawnTimer = null;
+
+    // 서버에서 랭킹 불러오기
+    function loadRanking() {
+        fetch('server.php?action=load')
+        .then(res => res.json())
+        .then(data => {
+            rankList.innerHTML = data.map((r, i) => `${i+1}위: ${r.name} (${r.score}점)`).join('<br>');
+        });
+    }
+
+    // 서버로 점수 저장
+    function saveRanking(name, score) {
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('score', score);
+        fetch('server.php?action=save', { method: 'POST', body: formData })
+        .then(() => loadRanking());
+    }
+
+    function applyStage(index, silent) {
+        currentStageIndex = index;
+        const stage = stages[index];
+        speed = stage.speed;
+        stageNumEl.innerText = index + 1;
+        gameArea.style.backgroundImage = `url('${stage.bg}')`;
+
+        if (spawnTimer) clearInterval(spawnTimer);
+        spawnTimer = setInterval(createWord, stage.spawnInterval);
+
+        if (!silent) {
+            stageNotice.innerText = stage.label;
+            stageNotice.classList.add('show');
+            setTimeout(() => stageNotice.classList.remove('show'), 1500);
+        }
+    }
+
+    function checkStageProgress() {
+        let target = currentStageIndex;
+        for (let i = stages.length - 1; i >= 0; i--) {
+            if (score >= stages[i].minScore) { target = i; break; }
+        }
+        if (target !== currentStageIndex) applyStage(target, false);
+    }
+
+    function createWord() {
+        const wordEl = document.createElement('div');
+        wordEl.className = 'word';
+        wordEl.innerText = words[Math.floor(Math.random() * words.length)];
+        gameArea.appendChild(wordEl); // 폭 측정을 위해 먼저 추가
+
+        const areaWidth = gameArea.clientWidth;
+        const areaHeight = gameArea.clientHeight;
+        const maxLeft = Math.max(areaWidth - wordEl.offsetWidth - 8, 0);
+        wordEl.style.left = (Math.random() * maxLeft) + 'px';
+        wordEl.style.top = '0px';
+
+        let pos = 0;
+        const fallLimit = areaHeight - 50;
+        const interval = setInterval(() => {
+            pos += speed;
+            wordEl.style.top = pos + 'px';
+            if (pos > fallLimit) {
+                clearInterval(interval);
+                if (wordEl.parentNode) gameArea.removeChild(wordEl);
+                lives--;
+                livesEl.innerText = lives;
+                if (lives <= 0) {
+                    clearInterval(spawnTimer);
+                    let name = prompt("게임 종료! 순위 등록을 위해 이름을 입력하세요:");
+                    if (name) saveRanking(name, score);
+                    location.reload();
+                }
+            }
+        }, 30);
+        wordEl.dataset.interval = interval;
+    }
+
+    function tryMatch() {
+        const typed = input.value.trim();
+        if (!typed) return;
+        document.querySelectorAll('.word').forEach(w => {
+            if (w.innerText === typed) {
+                score += 10;
+                scoreEl.innerText = score;
+                clearInterval(w.dataset.interval);
+                if (w.parentNode) gameArea.removeChild(w);
+                checkStageProgress();
+                input.value = '';
+            }
+        });
+    }
+
+    // 모바일에서는 엔터 없이 입력만 해도 정답이면 즉시 처리됨
+    input.addEventListener('input', tryMatch);
+
+    // 데스크탑 엔터 키 / 모바일 가상 키보드 완료 키
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            tryMatch();
+            input.value = '';
+        }
+    });
+
+    // 모바일에서 탭으로도 확인 가능
+    submitBtn.addEventListener('click', () => {
+        tryMatch();
+        input.value = '';
+    });
+
+    applyStage(0, true); // 첫 진입은 알림 없이 조용히 1단계 배경만 적용
+    loadRanking();
+</script>
+</body>
+</html>
