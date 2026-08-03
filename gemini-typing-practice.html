@@ -1,0 +1,546 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>한글 타자 연습 마스터</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700;900&display=swap');
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f1f5f9;
+            color: #1e293b;
+            overflow-x: hidden;
+            touch-action: manipulation;
+        }
+
+        .key {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            transition: background-color 0.1s, transform 0.05s;
+            box-shadow: 0 2px 0 #cbd5e1;
+            font-weight: 600;
+            pointer-events: none;
+        }
+
+        .key.target-active {
+            background-color: #fde047 !important;
+            border-color: #eab308 !important;
+            color: #854d0e;
+            box-shadow: 0 1px 0 #eab308;
+            transform: translateY(1px);
+        }
+
+        .key.user-active {
+            background-color: #3b82f6 !important;
+            color: white !important;
+            border-color: #2563eb !important;
+            box-shadow: none;
+            transform: translateY(2px);
+        }
+
+        .key.wide-2 { width: 80px; }
+        .key.wide-3 { width: 100px; }
+        .key.space { width: 280px; }
+
+        .char-preview-box {
+            width: 55px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 0;
+            font-weight: 900;
+            color: #94a3b8;
+            transition: all 0.1s;
+            border-bottom: 5px solid #e2e8f0;
+            position: relative;
+        }
+
+        .char-preview-box.current { color: #1e3a8a; border-bottom-color: #3b82f6; }
+        .char-preview-box.wrong { color: #ef4444 !important; border-bottom-color: #ef4444 !important; }
+        .char-preview-box.correct { color: #10b981 !important; }
+
+        .input-display-main {
+            font-size: 3.5rem;
+            min-width: 280px;
+            height: 120px;
+            border: 6px solid #1e3a8a;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            color: #1e3a8a;
+            font-weight: 900;
+            transition: all 0.1s;
+        }
+
+        .input-display-main.error-flash {
+            border-color: #ef4444 !important;
+            color: #ef4444 !important;
+            background-color: #fef2f2;
+        }
+
+        .cursor-blink {
+            display: inline-block;
+            width: 3px;
+            height: 1.2em;
+            background-color: #3b82f6;
+            animation: blink 1s step-end infinite;
+            margin-left: 2px;
+            vertical-align: middle;
+        }
+
+        @keyframes blink { 50% { opacity: 0; } }
+
+        .visual-input-container {
+            background-color: #ffffff;
+            border: 4px solid #e2e8f0;
+            border-radius: 24px;
+            padding: 2rem;
+            min-height: 8rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-btn-active { background-color: #1e3a8a !important; color: white !important; }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            left: 0;
+            top: 100%;
+            background: white;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            padding: 8px;
+            z-index: 100;
+            min-width: 160px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .group:hover .dropdown-menu { display: block; }
+    </style>
+</head>
+<body class="min-h-screen">
+
+<div id="app" class="max-w-6xl mx-auto bg-white min-h-screen md:min-h-0 md:my-6 md:rounded-[40px] shadow-2xl overflow-hidden flex flex-col border border-gray-200">
+    <!-- Header -->
+    <header class="bg-slate-900 p-6 text-white flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-black tracking-tight italic">한글 타자 <span class="text-blue-500">PRO</span></h1>
+        </div>
+        <div class="flex gap-8">
+            <div class="text-right">
+                <p class="text-[10px] text-slate-500 font-black">정확도</p>
+                <p class="text-3xl font-mono text-emerald-400 leading-none"><span id="accuracy">0</span>%</p>
+            </div>
+            <div class="text-right border-l border-slate-800 pl-8">
+                <p class="text-[10px] text-slate-500 font-black">타수</p>
+                <p class="text-3xl font-mono text-blue-400 leading-none"><span id="wpm">0</span></p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Nav Menu -->
+    <nav class="bg-slate-50 p-4 flex flex-wrap gap-2 border-b border-slate-200 justify-center relative">
+        <button id="menu-home" onclick="changeMenu('home')" class="px-5 py-2 rounded-xl font-black hover:bg-slate-200 transition text-slate-600">홈</button>
+        <div class="relative group">
+            <button id="menu-position" class="px-5 py-2 rounded-xl font-black bg-slate-200 text-slate-700 hover:bg-blue-700 hover:text-white transition">자리 연습 ▾</button>
+            <div class="dropdown-menu">
+                <button onclick="startPractice('position', 'basic')" class="block w-full text-left px-4 py-3 hover:bg-blue-50 rounded-lg transition font-bold text-sm">기본자리</button>
+                <button onclick="startPractice('position', 'top')" class="block w-full text-left px-4 py-3 hover:bg-blue-50 rounded-lg transition font-bold text-sm">윗글쇠 (쌍자음 포함)</button>
+                <button onclick="startPractice('position', 'bottom')" class="block w-full text-left px-4 py-3 hover:bg-blue-50 rounded-lg transition font-bold text-sm">아랫글쇠</button>
+                <button onclick="startPractice('position', 'mixed')" class="block w-full text-left px-4 py-3 hover:bg-blue-50 rounded-lg transition font-bold text-sm">혼합</button>
+                <button onclick="startPractice('position', 'symbol')" class="block w-full text-left px-4 py-3 hover:bg-blue-50 rounded-lg transition font-bold text-sm">키보드기호</button>
+                <button onclick="startPractice('position', 'numpad')" class="block w-full text-left px-4 py-3 hover:bg-blue-50 rounded-lg transition font-bold text-sm">숫자판</button>
+            </div>
+        </div>
+        <button id="menu-word" onclick="startPractice('word')" class="px-5 py-2 rounded-xl font-black bg-white border-2 border-slate-200 hover:border-blue-700 transition">단어 연습</button>
+        <button id="menu-short" onclick="startPractice('short')" class="px-5 py-2 rounded-xl font-black bg-white border-2 border-slate-200 hover:border-blue-700 transition">단문 연습</button>
+        <button id="menu-long" onclick="startPractice('long')" class="px-5 py-2 rounded-xl font-black bg-white border-2 border-slate-200 hover:border-blue-700 transition">장문 연습</button>
+    </nav>
+
+    <!-- Main Workspace -->
+    <main class="flex-grow p-10 flex flex-col items-center justify-center min-h-[500px]">
+        <div id="welcome-screen" class="text-center">
+            <div class="text-8xl mb-6">⌨️</div>
+            <h2 class="text-4xl font-black mb-4 text-slate-800">학습을 시작하세요</h2>
+        </div>
+
+        <div id="practice-ui" class="hidden w-full max-w-4xl flex flex-col items-center">
+            <div id="display-area" class="w-full flex flex-col items-center mb-6">
+                <div id="target-items" class="flex justify-center items-center mb-4 min-h-[100px]"></div>
+                <div id="active-input-display" class="input-display-main"></div>
+            </div>
+
+            <div id="sentence-area" class="hidden w-full flex flex-col mb-6">
+                <div id="sentence-info" class="mb-2 text-sm text-slate-400 font-bold"></div>
+                <div id="target-sentence" class="text-3xl mb-6 text-left break-keep font-black text-slate-400 leading-relaxed"></div>
+                <div class="visual-input-container">
+                    <div id="visual-input" class="text-3xl text-left font-black text-blue-800 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <input type="text" id="hidden-input" autocomplete="off" spellcheck="false" class="fixed -top-full left-0 opacity-0">
+
+            <!-- Virtual Keyboard -->
+            <div id="keyboard-wrapper" class="w-full mt-6 scale-90 origin-center">
+                <div class="flex flex-col gap-1.5 p-5 bg-slate-200 rounded-[30px] border border-slate-300">
+                    <div class="flex gap-1.5 justify-center">
+                        <div class="key" id="key-~">~</div><div class="key" id="key-1">1</div><div class="key" id="key-2">2</div><div class="key" id="key-3">3</div><div class="key" id="key-4">4</div><div class="key" id="key-5">5</div><div class="key" id="key-6">6</div><div class="key" id="key-7">7</div><div class="key" id="key-8">8</div><div class="key" id="key-9">9</div><div class="key" id="key-0">0</div><div class="key" id="key--">-</div><div class="key" id="key-=">=</div><div class="key wide-2 bg-slate-300">BS</div>
+                    </div>
+                    <div class="flex gap-1.5 justify-center">
+                        <div class="key wide-1 bg-slate-300">TAB</div><div class="key" id="key-q">ㅂ</div><div class="key" id="key-w">ㅈ</div><div class="key" id="key-e">ㄷ</div><div class="key" id="key-r">ㄱ</div><div class="key" id="key-t">ㅅ</div><div class="key" id="key-y">ㅛ</div><div class="key" id="key-u">ㅕ</div><div class="key" id="key-i">ㅑ</div><div class="key" id="key-o">ㅐ</div><div class="key" id="key-p">ㅔ</div><div class="key" id="key-[">[</div><div class="key" id="key-]">]</div><div class="key" id="key-\">\</div>
+                    </div>
+                    <div class="flex gap-1.5 justify-center">
+                        <div class="key wide-2 bg-slate-300">CAPS</div><div class="key" id="key-a">ㅁ</div><div class="key" id="key-s">ㄴ</div><div class="key" id="key-d">ㅇ</div><div class="key" id="key-f">ㄹ</div><div class="key" id="key-g">ㅎ</div><div class="key" id="key-h">ㅗ</div><div class="key" id="key-j">ㅓ</div><div class="key" id="key-k">ㅏ</div><div class="key" id="key-l">ㅣ</div><div class="key" id="key-;">;</div><div class="key" id="key-'">'</div><div class="key wide-2 bg-slate-300 text-[10px]">ENTER</div>
+                    </div>
+                    <div class="flex gap-1.5 justify-center">
+                        <div class="key wide-3 bg-slate-300" id="key-shift-l">SHIFT</div><div class="key" id="key-z">ㅋ</div><div class="key" id="key-x">ㅌ</div><div class="key" id="key-c">ㅊ</div><div class="key" id="key-v">ㅍ</div><div class="key" id="key-b">ㅠ</div><div class="key" id="key-n">ㅜ</div><div class="key" id="key-m">ㅡ</div><div class="key" id="key-,">,</div><div class="key" id="key-.">.</div><div class="key" id="key-/">/</div><div class="key wide-3 bg-slate-300" id="key-shift-r">SHIFT</div>
+                    </div>
+                    <div class="flex gap-1.5 justify-center">
+                        <div class="key space" id="key-space">SPACE</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    const DATA = {
+        position: {
+            basic: "ㅁㄴㅇㄹㅎㅗㅓㅏㅣ;",
+            top: "ㅂㅈㄷㄱㅅㅛㅕㅑㅐㅔㅃㅉㄸㄲㅆ",
+            bottom: "ㅋㅌㅊㅍㅠㅜㅡ,. /",
+            mixed: "ㅁㄴㅇㄹㅎㅗㅓㅏㅣ;ㅂㅈㄷㄱㅅㅛㅕㅑㅐㅔㅋㅌㅊㅍㅠㅜㅡ,. /ㅃㅉㄸㄲㅆ",
+            symbol: "!@#$%^&*()_+{}|:\"<>?",
+            numpad: "1234567890/*-+. "
+        },
+        words: [
+            // 사회
+            "공동체", "복지국가", "지방자치", "시민단체", "사회보험", "기초수급", "다문화", "고령화", "저출산", "세대갈등", "사회구조", "인권보호", "양성평등", "빈부격차", "계층이동", "대중매체", "여론형성", "디지털격차", "사이버범죄", "비정규직",
+            // 정치
+            "민주주의", "국회의원", "삼권분립", "정당정치", "대의제", "선거운동", "투표율", "정치개혁", "지방선거", "대통령제", "내각책임제", "정치후원금", "정책공약", "국정감사", "법률안", "헌법재판소", "국무회의", "외교안보", "남북관계", "국제정치",
+            // 경제
+            "자본주의", "인플레이션", "디플레이션", "시장경제", "수요공급", "코스피", "나스닥", "주식시장", "가상화폐", "금리인상", "환율변동", "경상수지", "무역흑자", "소비자물가", "경제성장률", "재정난", "중소기업", "대기업", "소상공인", "공정거래",
+            // 문화
+            "전통문화", "대중문화", "한류열풍", "문화유산", "무형문화재", "포스트모더니즘", "아방가르드", "르네상스", "큐레이터", "전시회", "공연예술", "문화상대주의", "글로벌리즘", "예술가", "음악회", "연극영화", "예술품", "창의력", "미학", "문화체험",
+            // 소설/문학
+            "주인공", "갈등구조", "복선", "서사적", "은유법", "직유법", "상징주의", "플롯", "기승전결", "내면묘사", "전지적시점", "작가주의", "단편소설", "장편소설", "고전문학", "현대문학", "문장력", "서정성", "비극", "희극", "서사", "인물의심리",
+            // 인공지능/IT
+            "인공지능", "머신러닝", "딥러닝", "뉴럴네트워크", "알고리즘", "빅데이터", "클라우드", "블록체인", "메타버스", "사물인터넷", "스마트시티", "자율주행", "챗봇", "자연어처리", "컴퓨터비전", "프로그래밍", "소프트웨어", "하드웨어", "반도체", "데이터베이스", "파이썬", "자바스크립트", "네트워크보안"
+        ],
+        short: [
+            "가는 말이 고와야 오는 말이 곱습니다.",
+            "실패는 성공의 어머니라는 말이 있습니다.",
+            "오늘 걷지 않으면 내일은 뛰어야 합니다.",
+            "천 리 길도 한 걸음부터 시작됩니다.",
+            "세 살 버릇 여든까지 간다.",
+            "등잔 밑이 어둡다."
+        ],
+        long: [
+            {
+                title: "황순원 - 소나기",
+                content: "소년은 개울가에서 소녀를 보자 곧 윤 초시 네 증손녀딸이라는 걸 알 수 있었다. 소녀는 개울에다 손을 담그고 물장난을 하고 있었다. 서울서는 이런 개울물을 보지 못하기나 한 듯이. 벌써 며칠째 소녀는, 학교에서 돌아오는 길에 물장난이었다. 그런데 어제까지는 개울 기슭에서 하더니, 오늘은 징검다리 한가운데 앉아서 하고 있다."
+            },
+            {
+                title: "윤동주 - 별 헤는 밤",
+                content: "계절이 지나가는 하늘에는 가을로 가득 차 있습니다. 나는 아무 걱정도 없이 가을 속의 별들을 다 헤일 듯합니다. 가슴 속에 하나 둘 새겨지는 별을 이제 다 못 헤는 것은 쉬이 아침이 오는 까닭이요, 내일 밤이 남은 까닭이요, 아직 나의 청춘이 다하지 않은 까닭입니다."
+            },
+            {
+                title: "이효석 - 메밀꽃 필 무렵",
+                content: "여름 장이란 애시당초에 글러서, 해는 아직 높은데 장판은 벌써 쓸쓸하고 더운 햇발이 벌여 놓은 전시장 위에 따갑게 내리쬐는데, 반물 먹인 장수건을 머리에 두르고 등줄기에 땀을 흘리며 돌아가는 사람들의 모습이 어쩐지 서글퍼 보였다."
+            }
+        ]
+    };
+
+    const KEY_MAP = {
+        'ㅁ': 'a', 'ㄴ': 's', 'ㅇ': 'd', 'ㄹ': 'f', 'ㅎ': 'g', 'ㅗ': 'h', 'ㅓ': 'j', 'ㅏ': 'k', 'ㅣ': 'l', ';': ';',
+        'ㅂ': 'q', 'ㅈ': 'w', 'ㄷ': 'e', 'ㄱ': 'r', 'ㅅ': 't', 'ㅛ': 'y', 'ㅕ': 'u', 'ㅑ': 'i', 'ㅐ': 'o', 'ㅔ': 'p',
+        'ㅋ': 'z', 'ㅌ': 'x', 'ㅊ': 'c', 'ㅍ': 'v', 'ㅠ': 'b', 'ㅜ': 'n', 'ㅡ': 'm', ',': ',', '.': '.', '/': '/',
+        'ㅃ': 'q', 'ㅉ': 'w', 'ㄸ': 'e', 'ㄲ': 'r', 'ㅆ': 't', ' ': 'space',
+        '1': '1', '2': '2', '3': '3', '4': '4', '5': '5', '6': '6', '7': '7', '8': '8', '9': '9', '0': '0',
+        '!': '1', '@': '2', '#': '3', '$': '4', '%': '5', '^': '6', '&': '7', '*': '8', '(': '9', ')': '0',
+        '-': '-', '=': '=', '~': '~', '+': '=', '_': '-', '[': '[', ']': ']', '{': '[', '}': ']', '\\': '\\', '|': '\\',
+        ':': ';', '"': "'", '<': ',', '>': '.', '?': '/', '*': '*', '/': '/'
+    };
+
+    const SHIFT_CHARS = "!@#$%^&*()_+{}|:\"<>?ㅃㅉㄸㄲㅆㅐㅔ";
+
+    let state = {
+        mode: 'home', subMode: '', currentIndex: 0,
+        targetArray: [],
+        sentenceList: [], sentenceIndex: 0,
+        currentText: '', userInput: '',
+        startTime: null, correctHits: 0, totalHits: 0
+    };
+
+    const dom = {
+        welcome: document.getElementById('welcome-screen'),
+        practice: document.getElementById('practice-ui'),
+        displayArea: document.getElementById('display-area'),
+        targetItems: document.getElementById('target-items'),
+        sentenceArea: document.getElementById('sentence-area'),
+        sentenceInfo: document.getElementById('sentence-info'),
+        targetSentence: document.getElementById('target-sentence'),
+        visualInput: document.getElementById('visual-input'),
+        hiddenInput: document.getElementById('hidden-input'),
+        accuracy: document.getElementById('accuracy'),
+        wpm: document.getElementById('wpm'),
+        inputDisplay: document.getElementById('active-input-display')
+    };
+
+    function changeMenu(menu) {
+        state.mode = menu;
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('nav-btn-active'));
+        document.getElementById(`menu-${menu}`)?.classList.add('nav-btn-active');
+        dom.welcome.classList.remove('hidden');
+        dom.practice.classList.add('hidden');
+    }
+
+    function startPractice(mode, sub = '') {
+        state.mode = mode;
+        state.subMode = sub;
+        state.currentIndex = 0;
+        state.sentenceIndex = 0;
+        state.userInput = '';
+        state.startTime = Date.now();
+        state.correctHits = 0;
+        state.totalHits = 0;
+
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('nav-btn-active'));
+        const activeBtn = mode === 'position' ? document.getElementById('menu-position') : document.getElementById(`menu-${mode}`);
+        activeBtn?.classList.add('nav-btn-active');
+
+        dom.welcome.classList.add('hidden');
+        dom.practice.classList.remove('hidden');
+        dom.inputDisplay.innerText = '';
+        dom.inputDisplay.classList.remove('error-flash');
+        dom.hiddenInput.value = '';
+
+        if (mode === 'position' || mode === 'word') {
+            dom.displayArea.classList.remove('hidden');
+            dom.sentenceArea.classList.add('hidden');
+            mode === 'position' ? setupPosition() : setupWord();
+        } else {
+            dom.displayArea.classList.add('hidden');
+            dom.sentenceArea.classList.remove('hidden');
+            setupLongText();
+        }
+
+        setTimeout(() => dom.hiddenInput.focus(), 100);
+    }
+
+    function setupPosition() {
+        const chars = DATA.position[state.subMode];
+        state.targetArray = Array.from({length: 8}, () => chars[Math.floor(Math.random() * chars.length)]);
+        renderTargetBoxes();
+        updateTargetHighlights();
+    }
+
+    function setupWord() {
+        const word = DATA.words[Math.floor(Math.random() * DATA.words.length)];
+        state.targetArray = word.split('');
+        renderTargetBoxes();
+        clearKeyHighlights();
+    }
+
+    function setupLongText() {
+        if (state.mode === 'short') {
+            state.sentenceList = DATA.short;
+            state.sentenceIndex = Math.floor(Math.random() * state.sentenceList.length);
+            state.currentText = state.sentenceList[state.sentenceIndex];
+            dom.sentenceInfo.innerText = "단문 연습";
+        } else {
+            const book = DATA.long[Math.floor(Math.random() * DATA.long.length)];
+            state.sentenceList = book.content.match(/[^.!?]+[.!?]+/g).map(s => s.trim());
+            state.sentenceIndex = 0;
+            state.currentText = state.sentenceList[state.sentenceIndex];
+            dom.sentenceInfo.innerText = book.title;
+        }
+        dom.targetSentence.innerText = state.currentText;
+        state.userInput = '';
+        dom.hiddenInput.value = '';
+        updateSentenceVisual();
+    }
+
+    function nextSentence() {
+        state.sentenceIndex++;
+        if (state.sentenceIndex >= state.sentenceList.length) {
+            setupLongText();
+        } else {
+            state.currentText = state.sentenceList[state.sentenceIndex];
+            dom.targetSentence.innerText = state.currentText;
+            state.userInput = '';
+            dom.hiddenInput.value = '';
+            updateSentenceVisual();
+        }
+    }
+
+    function renderTargetBoxes() {
+        dom.targetItems.innerHTML = '';
+        state.targetArray.forEach((char, idx) => {
+            const box = document.createElement('div');
+            box.className = `char-preview-box ${idx === state.currentIndex ? 'current' : ''}`;
+            if (state.mode === 'word' && idx < state.currentIndex) box.classList.add('correct');
+            box.innerText = char;
+            dom.targetItems.appendChild(box);
+        });
+    }
+
+    function updateTargetHighlights() {
+        clearKeyHighlights();
+        const target = state.targetArray[state.currentIndex];
+        if (target) {
+            highlightKey(target, 'target-active');
+            if (SHIFT_CHARS.includes(target)) {
+                document.getElementById('key-shift-l').classList.add('target-active');
+                document.getElementById('key-shift-r').classList.add('target-active');
+            }
+        }
+    }
+
+    function highlightKey(char, className) {
+        const eng = KEY_MAP[char];
+        if (eng) {
+            const el = document.getElementById(`key-${eng}`);
+            if (el) {
+                el.classList.add(className);
+                if (className === 'user-active') setTimeout(() => el.classList.remove(className), 100);
+            }
+        }
+    }
+
+    function clearKeyHighlights() {
+        document.querySelectorAll('.key').forEach(k => k.classList.remove('target-active', 'user-active'));
+    }
+
+    function forceResetIME() {
+        dom.hiddenInput.blur();
+        dom.hiddenInput.value = '';
+        setTimeout(() => dom.hiddenInput.focus(), 1);
+    }
+
+    dom.hiddenInput.addEventListener('beforeinput', (e) => {
+        if (state.mode === 'position' && e.data) {
+            e.preventDefault();
+            processPositionInput(e.data.slice(-1));
+        }
+    });
+
+    dom.hiddenInput.addEventListener('input', (e) => {
+        if (state.mode === 'position') return;
+        const val = dom.hiddenInput.value;
+
+        if (state.mode === 'word') {
+            processWordInput(val);
+        } else {
+            state.userInput = val;
+            updateSentenceVisual();
+            state.totalHits++;
+            if(val.length > 0 && val[val.length-1] === state.currentText[val.length-1]) state.correctHits++;
+            if (val === state.currentText) {
+                forceResetIME();
+                nextSentence();
+            }
+        }
+        updateStats();
+    });
+
+    function processPositionInput(char) {
+        const target = state.targetArray[state.currentIndex];
+        highlightKey(char, 'user-active');
+
+        dom.inputDisplay.innerText = char;
+        state.totalHits++;
+
+        if (char === target) {
+            state.correctHits++;
+            state.currentIndex++;
+            dom.inputDisplay.classList.remove('error-flash');
+
+            if (state.currentIndex >= state.targetArray.length) {
+                state.currentIndex = 0;
+                setupPosition();
+            } else {
+                renderTargetBoxes();
+                updateTargetHighlights();
+            }
+        } else {
+            // 오답 시 빨간색 피드백
+            dom.inputDisplay.classList.add('error-flash');
+        }
+
+        setTimeout(() => {
+            dom.inputDisplay.innerText = '';
+            forceResetIME();
+        }, 100);
+
+        updateStats();
+    }
+
+    function processWordInput(val) {
+        dom.inputDisplay.innerText = val;
+        let allCorrectSoFar = true;
+        for (let i = 0; i < state.targetArray.length; i++) {
+            const box = dom.targetItems.children[i];
+            box.classList.remove('wrong', 'correct', 'current');
+            if (i < val.length) {
+                const isCorrect = val[i] === state.targetArray[i];
+                box.classList.add(isCorrect ? 'correct' : 'wrong');
+                if (!isCorrect) allCorrectSoFar = false;
+            }
+            if (i === val.length) box.classList.add('current');
+        }
+
+        // 오답 시 테두리 강조
+        if (!allCorrectSoFar) dom.inputDisplay.classList.add('error-flash');
+        else dom.inputDisplay.classList.remove('error-flash');
+
+        if (val === state.targetArray.join('')) {
+            state.correctHits += val.length;
+            state.totalHits += val.length;
+            forceResetIME();
+            dom.inputDisplay.innerText = '';
+            setupWord();
+        }
+    }
+
+    function updateSentenceVisual() {
+        let html = '';
+        for(let i=0; i < state.userInput.length; i++) {
+            const target = state.currentText[i];
+            const user = state.userInput[i];
+            html += `<span class="${user === target ? 'text-blue-800' : 'text-red-500'}">${user}</span>`;
+        }
+        html += `<span class="cursor-blink"></span>`;
+        dom.visualInput.innerHTML = html;
+    }
+
+    function updateStats() {
+        const min = (Date.now() - state.startTime) / 60000;
+        dom.accuracy.innerText = state.totalHits > 0 ? Math.floor((state.correctHits / state.totalHits) * 100) : 0;
+        dom.wpm.innerText = min > 0 ? Math.floor(state.correctHits / min) : 0;
+    }
+
+    document.addEventListener('click', () => { if(state.mode !== 'home') dom.hiddenInput.focus(); });
+    window.onload = () => changeMenu('home');
+</script>
+</body>
+</html>
