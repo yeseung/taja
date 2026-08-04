@@ -40,6 +40,7 @@
 - https://typing-check.web.app/song-0
 - https://www.novelgames.com/ko/cups/
 - https://legendary-choux-a292b9.netlify.app/
+- https://util.monster/kr/typing-practice
 
 <br><br><br>
 
@@ -103,6 +104,6 @@
 ![스크린샷 2026-03-21 오전 10 48 24](https://github.com/user-attachments/assets/fd5b2634-eb08-4cdb-bffe-87b66333c200)
 ![스크린샷 2026-03-23 오전 10 14 28](https://github.com/user-attachments/assets/49177b0e-5a47-47d0-b0f8-cd99097817e1)
 ![스린샷 2026-08-03 오후 12 27 39](https://github.com/user-attachments/assets/cfc0689b-61fa-4845-9877-60b17c12b026)
-
+![스크린샷 2026-08-04 오후 4 01 04](https://github.com/user-attachments/assets/88078d6b-94d0-4e7f-9468-71bf037e6f81)
 
 
