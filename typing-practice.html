@@ -1,0 +1,993 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="한국어, 영어, 일본어, 중국어를 지원하는 무료 온라인 타자연습입니다. 실시간 타수, 정확도, 경과 시간을 확인하며 연습할 수 있습니다.">
+    <meta name="keywords" content="타자연습, 온라인 타자연습, 한글 타자연습, 영어 타자연습, 타수 측정, CPM">
+    <meta name="theme-color" content="#ffffff">
+    <title>온라인 타자연습 | 실시간 타수·정확도 측정</title>
+
+    <style>
+        :root {
+            --bg: #f5f7fb;
+            --surface: #ffffff;
+            --surface-soft: #f8fafc;
+            --text: #172033;
+            --muted: #657087;
+            --line: #e3e8f0;
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-soft: #eff6ff;
+            --success: #15803d;
+            --success-soft: #ecfdf3;
+            --danger: #dc2626;
+            --danger-soft: #fef2f2;
+            --warning: #b45309;
+            --shadow: 0 14px 38px rgba(15, 23, 42, 0.08);
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --radius-sm: 11px;
+            --space-6: 24px;
+            --space-8: 32px;
+            --content-width: 1080px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            min-width: 320px;
+            background: var(--bg);
+            color: var(--text);
+            font-family: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", Arial, sans-serif;
+            line-height: 1.65;
+            word-break: keep-all;
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        button:focus-visible,
+        input:focus-visible,
+        summary:focus-visible {
+            outline: 3px solid rgba(37, 99, 235, 0.22);
+            outline-offset: 3px;
+        }
+
+        .page-shell {
+            width: min(calc(100% - 32px), var(--content-width));
+            margin: 0 auto;
+            padding-bottom: 72px;
+        }
+
+        .um-hero {
+            padding-block: 54px 30px;
+        }
+
+        .um-hero__title {
+            margin: 0;
+            font-size: clamp(32px, 5vw, 52px);
+            line-height: 1.18;
+            letter-spacing: -0.04em;
+        }
+
+        .um-hero__subtitle {
+            max-width: 850px;
+            margin: 18px 0 0;
+            color: var(--muted);
+            font-size: clamp(16px, 2vw, 18px);
+        }
+
+        .tp-wrap {
+            overflow: hidden;
+            border: 1px solid var(--line);
+            border-radius: var(--radius-lg);
+            background: var(--surface);
+            box-shadow: var(--shadow);
+        }
+
+        .tp-controls {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 14px 20px;
+            padding: 22px 24px;
+            border-bottom: 1px solid var(--line);
+            background: var(--surface-soft);
+        }
+
+        .tp-selector {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tp-selector-label {
+            margin-right: 2px;
+            color: #3d475b;
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .tp-btn,
+        .tp-reset {
+            min-height: 42px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: var(--surface);
+            color: #3b4659;
+            padding: 9px 15px;
+            font-size: 14px;
+            font-weight: 800;
+            transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+        }
+
+        .tp-btn:hover,
+        .tp-reset:hover {
+            border-color: #b8c5d8;
+            transform: translateY(-1px);
+        }
+
+        .tp-btn.active {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: #ffffff;
+        }
+
+        .tp-reset {
+            margin-left: auto;
+            border-color: #cbd5e1;
+        }
+
+        .tp-stats {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            padding: 24px;
+        }
+
+        .tp-stat {
+            padding: 20px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius-md);
+            background: linear-gradient(180deg, #ffffff, #f8fafc);
+            text-align: center;
+        }
+
+        .tp-stat-label {
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .tp-stat-value {
+            margin-top: 4px;
+            color: var(--text);
+            font-size: clamp(27px, 4vw, 38px);
+            font-weight: 900;
+            letter-spacing: -0.04em;
+        }
+
+        .tp-stat-unit {
+            margin-left: 3px;
+            color: var(--muted);
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .tp-practice-area {
+            padding: 0 24px 26px;
+        }
+
+        .tp-text {
+            min-height: 142px;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: center;
+            justify-content: center;
+            padding: 28px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius-md);
+            background: #fbfdff;
+            font-size: clamp(25px, 4vw, 39px);
+            font-weight: 800;
+            line-height: 1.65;
+            letter-spacing: 0.015em;
+            text-align: center;
+            overflow-wrap: anywhere;
+        }
+
+        .tp-text .char {
+            position: relative;
+            min-width: 0.25em;
+            border-radius: 5px;
+            color: #475569;
+            transition: color 0.12s ease, background 0.12s ease;
+        }
+
+        .tp-text .char.current {
+            background: var(--primary-soft);
+            color: var(--primary-dark);
+        }
+
+        .tp-text .char.current::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 2px;
+            height: 3px;
+            border-radius: 999px;
+            background: var(--primary);
+        }
+
+        .tp-text .char.correct {
+            background: var(--success-soft);
+            color: var(--success);
+        }
+
+        .tp-text .char.incorrect {
+            background: var(--danger-soft);
+            color: var(--danger);
+            text-decoration: underline wavy rgba(220, 38, 38, 0.75);
+            text-underline-offset: 5px;
+        }
+
+        .tp-input {
+            width: 100%;
+            min-height: 62px;
+            margin-top: 16px;
+            border: 2px solid #d7dee9;
+            border-radius: 14px;
+            background: var(--surface);
+            color: var(--text);
+            padding: 14px 18px;
+            font-size: 20px;
+            font-weight: 700;
+            transition: border-color 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        .tp-input::placeholder {
+            color: #9aa5b5;
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .tp-input:focus {
+            border-color: var(--primary);
+            outline: 0;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+        }
+
+        .tp-message {
+            min-height: 25px;
+            margin: 10px 3px 0;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .tp-message.complete {
+            color: var(--success);
+        }
+
+        .tp-keyboard {
+            padding: 26px 18px 30px;
+            border-top: 1px solid var(--line);
+            background: #f8fafc;
+            overflow-x: auto;
+        }
+
+        .tp-keyboard-row {
+            display: flex;
+            justify-content: center;
+            gap: 7px;
+            min-width: max-content;
+            margin: 0 auto 7px;
+        }
+
+        .tp-key {
+            display: grid;
+            place-items: center;
+            width: 48px;
+            height: 48px;
+            flex: 0 0 auto;
+            border: 1px solid #cad3df;
+            border-bottom-width: 3px;
+            border-radius: 9px;
+            background: #ffffff;
+            color: #344054;
+            font-size: 15px;
+            font-weight: 900;
+            box-shadow: 0 2px 0 rgba(15, 23, 42, 0.04);
+            transition: transform 0.08s ease, border-color 0.08s ease, background 0.08s ease, color 0.08s ease;
+            user-select: none;
+        }
+
+        .tp-key.space {
+            width: min(340px, 62vw);
+            font-size: 12px;
+            letter-spacing: 0.14em;
+        }
+
+        .tp-key.active {
+            border-color: var(--primary);
+            border-bottom-width: 1px;
+            background: var(--primary);
+            color: #ffffff;
+            transform: translateY(2px);
+        }
+
+        .um-guide,
+        .um-faq {
+            margin-top: 58px;
+        }
+
+        .um-guide__head {
+            margin-bottom: 18px;
+        }
+
+        .um-eyebrow {
+            display: inline-block;
+            color: var(--primary);
+            font-size: 13px;
+            font-weight: 900;
+            letter-spacing: 0.12em;
+        }
+
+        .um-guide__title,
+        .um-faq__title {
+            margin: 5px 0 0;
+            font-size: clamp(27px, 4vw, 38px);
+            line-height: 1.25;
+            letter-spacing: -0.035em;
+        }
+
+        .um-guide__item {
+            display: grid;
+            grid-template-columns: 62px minmax(0, 1fr);
+            gap: 20px;
+            padding: 24px 0;
+            border-top: 1px solid var(--line);
+        }
+
+        .um-guide__item:last-child {
+            border-bottom: 1px solid var(--line);
+        }
+
+        .um-guide__num {
+            color: #a3afc2;
+            font-size: 14px;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+        }
+
+        .um-guide__h {
+            margin: -2px 0 8px;
+            font-size: 20px;
+            letter-spacing: -0.025em;
+        }
+
+        .um-guide__p {
+            margin: 0;
+            color: var(--muted);
+        }
+
+        .um-faq__title {
+            margin-bottom: 20px;
+        }
+
+        .um-faq__item {
+            margin-bottom: 10px;
+            overflow: hidden;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: var(--surface);
+        }
+
+        .um-faq__q {
+            position: relative;
+            padding: 19px 54px 19px 20px;
+            font-weight: 850;
+            cursor: pointer;
+            list-style: none;
+        }
+
+        .um-faq__q::-webkit-details-marker {
+            display: none;
+        }
+
+        .um-faq__q::after {
+            content: "+";
+            position: absolute;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            color: var(--primary);
+            font-size: 25px;
+            font-weight: 500;
+        }
+
+        .um-faq__item[open] .um-faq__q::after {
+            content: "−";
+        }
+
+        .um-faq__a {
+            padding: 0 20px 20px;
+            color: var(--muted);
+        }
+
+        .noscript {
+            margin: 18px 0;
+            border: 1px solid #fed7aa;
+            border-radius: 12px;
+            background: #fff7ed;
+            color: var(--warning);
+            padding: 14px 16px;
+            font-weight: 700;
+        }
+
+        @media (max-width: 760px) {
+            .page-shell {
+                width: min(calc(100% - 22px), var(--content-width));
+                padding-bottom: 46px;
+            }
+
+            .um-hero {
+                padding-block: 36px 22px;
+            }
+
+            .tp-controls {
+                align-items: stretch;
+                padding: 18px;
+            }
+
+            .tp-selector {
+                width: 100%;
+            }
+
+            .tp-selector-label {
+                width: 100%;
+            }
+
+            .tp-reset {
+                width: 100%;
+                margin-left: 0;
+            }
+
+            .tp-stats {
+                gap: 8px;
+                padding: 16px;
+            }
+
+            .tp-stat {
+                padding: 15px 8px;
+            }
+
+            .tp-stat-label {
+                font-size: 12px;
+            }
+
+            .tp-stat-unit {
+                display: block;
+                margin: 0;
+                font-size: 12px;
+            }
+
+            .tp-practice-area {
+                padding: 0 16px 18px;
+            }
+
+            .tp-text {
+                min-height: 124px;
+                padding: 20px 14px;
+            }
+
+            .tp-input {
+                min-height: 58px;
+                font-size: 18px;
+            }
+
+            .tp-keyboard {
+                padding-inline: 10px;
+            }
+
+            .tp-key {
+                width: 39px;
+                height: 43px;
+                font-size: 13px;
+            }
+
+            .um-guide,
+            .um-faq {
+                margin-top: 44px;
+            }
+
+            .um-guide__item {
+                grid-template-columns: 42px minmax(0, 1fr);
+                gap: 10px;
+                padding: 20px 0;
+            }
+
+            .um-guide__h {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .tp-btn {
+                flex: 1 1 auto;
+                padding-inline: 11px;
+            }
+
+            .tp-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .tp-stat {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                text-align: left;
+            }
+
+            .tp-stat-value {
+                margin-top: 0;
+                font-size: 28px;
+            }
+
+            .tp-stat-unit {
+                display: inline;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                scroll-behavior: auto !important;
+                transition: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+<main class="page-shell" data-start-typing data-lang="ko">
+    <section class="um-hero" aria-labelledby="pageTitle">
+        <h1 class="um-hero__title" id="pageTitle">⌨️ 타자연습</h1>
+        <p class="um-hero__subtitle">컴퓨터를 처음 배우는 분들을 위한 타자연습 프로그램입니다. 실시간 타수와 정확도를 확인하면서 타이핑 실력을 향상시킬 수 있습니다. 키보드 자판이 시각적으로 표시되어 초보자도 쉽게 따라할 수 있습니다.</p>
+    </section>
+
+    <noscript>
+        <div class="noscript">타자연습을 사용하려면 브라우저의 자바스크립트를 활성화해 주세요.</div>
+    </noscript>
+
+    <section class="tp-wrap" aria-label="온라인 타자연습">
+        <div class="tp-controls">
+            <div class="tp-selector" aria-label="난이도 선택">
+                <span class="tp-selector-label">난이도</span>
+                <button type="button" class="tp-btn tp-level active" data-level="beginner" aria-pressed="true">초급</button>
+                <button type="button" class="tp-btn tp-level" data-level="intermediate" aria-pressed="false">중급</button>
+                <button type="button" class="tp-btn tp-level" data-level="advanced" aria-pressed="false">고급</button>
+            </div>
+
+            <div class="tp-selector" aria-label="타이핑 언어 선택">
+                <span class="tp-selector-label">타이핑 언어</span>
+                <button type="button" class="tp-btn tp-lang active" data-tlang="ko" aria-pressed="true">한국어</button>
+                <button type="button" class="tp-btn tp-lang" data-tlang="en" aria-pressed="false">영어</button>
+                <button type="button" class="tp-btn tp-lang" data-tlang="ja" aria-pressed="false">일본어</button>
+                <button type="button" class="tp-btn tp-lang" data-tlang="zh" aria-pressed="false">중국어</button>
+            </div>
+
+            <button type="button" class="tp-reset" id="resetBtn">🔄 다시하기</button>
+        </div>
+
+        <div class="tp-stats" aria-label="타자 통계">
+            <div class="tp-stat">
+                <div class="tp-stat-label">타수</div>
+                <div class="tp-stat-value"><span id="cpm">0</span><span class="tp-stat-unit">타/분</span></div>
+            </div>
+            <div class="tp-stat">
+                <div class="tp-stat-label">정확도</div>
+                <div class="tp-stat-value"><span id="accuracy">100</span><span class="tp-stat-unit">%</span></div>
+            </div>
+            <div class="tp-stat">
+                <div class="tp-stat-label">경과시간</div>
+                <div class="tp-stat-value"><span id="time">0</span><span class="tp-stat-unit">초</span></div>
+            </div>
+        </div>
+
+        <div class="tp-practice-area">
+            <div class="tp-text" id="practiceText" aria-live="polite"></div>
+            <label for="inputArea" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">연습 문장 입력</label>
+            <input type="text" class="tp-input" id="inputArea" placeholder="입력란을 클릭하고 위 문장을 그대로 입력하세요" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="done">
+            <div class="tp-message" id="practiceMessage" aria-live="polite">속도보다 정확도를 우선하여 천천히 입력해 보세요.</div>
+        </div>
+
+        <div class="tp-keyboard" id="keyboard" aria-label="가상 키보드"></div>
+    </section>
+
+    <section class="um-guide" aria-labelledby="guideTitle">
+        <header class="um-guide__head">
+            <span class="um-eyebrow">가이드</span>
+            <h2 class="um-guide__title" id="guideTitle">자세히 알아보기</h2>
+        </header>
+
+        <article class="um-guide__item">
+            <div class="um-guide__num">01</div>
+            <div>
+                <h3 class="um-guide__h">타자연습으로 키보드 타이핑 속도 향상</h3>
+                <p class="um-guide__p">체계적인 타자연습을 통해 분당 타자수(CPM)를 향상시킬 수 있습니다. 초급부터 고급까지 난이도별 연습 문장이 제공되며, 실시간으로 타수와 정확도를 확인하면서 효율적으로 학습할 수 있습니다.</p>
+            </div>
+        </article>
+
+        <article class="um-guide__item">
+            <div class="um-guide__num">02</div>
+            <div>
+                <h3 class="um-guide__h">실시간 타수 측정과 정확도 분석</h3>
+                <p class="um-guide__p">타이핑하는 동안 분당 타자수와 정확도가 실시간으로 측정됩니다. 틀린 글자는 즉시 빨간색으로 표시되어 어떤 부분을 개선해야 하는지 한눈에 파악할 수 있습니다. 경과 시간도 함께 표시되어 자신의 발전 상황을 확인할 수 있습니다.</p>
+            </div>
+        </article>
+
+        <article class="um-guide__item">
+            <div class="um-guide__num">03</div>
+            <div>
+                <h3 class="um-guide__h">다양한 난이도와 언어 지원</h3>
+                <p class="um-guide__p">초급, 중급, 고급 세 단계의 난이도로 구성되어 있어 자신의 수준에 맞춰 연습할 수 있습니다. 한국어, 영어, 일본어, 중국어를 지원하여 외국어 타이핑 연습도 가능합니다.</p>
+            </div>
+        </article>
+
+        <article class="um-guide__item">
+            <div class="um-guide__num">04</div>
+            <div>
+                <h3 class="um-guide__h">시각적 키보드 가이드</h3>
+                <p class="um-guide__p">화면에 표시되는 가상 키보드가 누른 키를 강조하여 초보자도 키의 위치를 쉽게 확인할 수 있습니다. 키보드 자판 위치를 시각적으로 익히면서 블라인드 타이핑 능력을 자연스럽게 향상시킬 수 있습니다.</p>
+            </div>
+        </article>
+
+        <article class="um-guide__item">
+            <div class="um-guide__num">05</div>
+            <div>
+                <h3 class="um-guide__h">무료로 제공되는 온라인 타자연습</h3>
+                <p class="um-guide__p">별도의 프로그램 설치 없이 웹 브라우저에서 바로 사용할 수 있는 무료 타자연습 도구입니다. PC, 노트북, 태블릿 등 다양한 기기에서 언제 어디서나 연습할 수 있습니다.</p>
+            </div>
+        </article>
+
+        <article class="um-guide__item">
+            <div class="um-guide__num">06</div>
+            <div>
+                <h3 class="um-guide__h">효과적인 타이핑 학습 방법</h3>
+                <p class="um-guide__p">매일 10~15분씩 꾸준히 연습하는 것이 효과적입니다. 정확도를 먼저 높이고 그다음 속도를 올리는 순서로 연습하세요. 문장을 완성하면 자동으로 다음 문장으로 넘어가므로 집중력을 유지하며 연습할 수 있습니다.</p>
+            </div>
+        </article>
+    </section>
+
+    <section class="um-faq" aria-labelledby="faqTitle">
+        <h2 class="um-faq__title" id="faqTitle">자주 묻는 질문</h2>
+
+        <details class="um-faq__item">
+            <summary class="um-faq__q">타자연습은 어떤 난이도로 시작해야 하나요?</summary>
+            <div class="um-faq__a">타자에 익숙하지 않다면 초급부터 시작하는 것이 좋습니다. 정확도가 90% 이상으로 안정되면 중급, 고급 순으로 난이도를 올려가며 연습하세요.</div>
+        </details>
+
+        <details class="um-faq__item">
+            <summary class="um-faq__q">CPM(분당 타자수)은 어떻게 계산되나요?</summary>
+            <div class="um-faq__a">현재 문장에서 정확히 입력한 글자 수를 경과 시간으로 환산하여 실시간으로 계산합니다. 오타는 정확도에 반영되며 빨간색으로 표시됩니다.</div>
+        </details>
+
+        <details class="um-faq__item">
+            <summary class="um-faq__q">한국어 외에 다른 언어도 연습할 수 있나요?</summary>
+            <div class="um-faq__a">네. 한국어, 영어, 일본어, 중국어 타이핑 연습을 지원합니다. 일본어와 중국어는 운영체제의 해당 언어 입력기를 활성화한 뒤 입력해 주세요.</div>
+        </details>
+
+        <details class="um-faq__item">
+            <summary class="um-faq__q">타자 실력을 빠르게 늘리려면 얼마나 연습해야 하나요?</summary>
+            <div class="um-faq__a">매일 10~15분씩 꾸준히 연습하는 것이 효과적입니다. 처음에는 속도보다 정확도를 우선하고, 정확도가 안정된 후 속도를 높이는 순서로 연습하세요.</div>
+        </details>
+    </section>
+</main>
+
+<script>
+    (function () {
+        'use strict';
+
+        var root = document.querySelector('[data-start-typing]');
+        if (!root) return;
+
+        var practiceSentences = {
+            ko: {
+                beginner: ['안녕하세요', '타자 연습', '컴퓨터 키보드', '빠르게 치기', '정확하게 입력'],
+                intermediate: ['타자연습은 컴퓨터의 기본입니다', '매일 조금씩 연습하면 실력이 늘어요', '정확도가 속도보다 중요합니다', '손가락 위치를 정확히 익히세요'],
+                advanced: ['빠르고 정확한 타자는 업무 효율을 크게 높여줍니다', '꾸준한 연습을 통해 타자 실력을 향상시킬 수 있습니다', '키보드를 보지 않고 타자를 치는 것이 목표입니다']
+            },
+            en: {
+                beginner: ['hello world', 'typing practice', 'computer keyboard', 'type faster', 'accurate typing'],
+                intermediate: ['typing practice is essential for computer use', 'practice a little every day to improve', 'accuracy is more important than speed', 'learn proper finger positioning'],
+                advanced: ['fast and accurate typing greatly improves work efficiency', 'consistent practice can improve your typing skills', 'the goal is to type without looking at the keyboard']
+            },
+            ja: {
+                beginner: ['こんにちは', 'タイピング練習', 'コンピューター', 'キーボード', '練習しましょう'],
+                intermediate: ['タイピング練習はコンピューターの基本です', '毎日少しずつ練習すれば上達します', '正確性が速度より重要です', '指の位置を正確に覚えましょう'],
+                advanced: ['速くて正確なタイピングは業務効率を大きく高めます', '継続的な練習でタイピングスキルを向上できます', 'キーボードを見ないでタイピングすることが目標です']
+            },
+            zh: {
+                beginner: ['你好', '打字练习', '计算机', '键盘', '练习吧'],
+                intermediate: ['打字练习是计算机的基础', '每天坚持练习就会进步', '准确性比速度更重要', '正确掌握手指位置'],
+                advanced: ['快速准确的打字能大幅提高工作效率', '通过持续练习可以提高打字技能', '目标是不看键盘也能打字']
+            }
+        };
+
+        var keyboardLayouts = {
+            ko: [
+                ['ㅂ', 'ㅈ', 'ㄷ', 'ㄱ', 'ㅅ', 'ㅛ', 'ㅕ', 'ㅑ', 'ㅐ', 'ㅔ'],
+                ['ㅁ', 'ㄴ', 'ㅇ', 'ㄹ', 'ㅎ', 'ㅗ', 'ㅓ', 'ㅏ', 'ㅣ'],
+                ['ㅋ', 'ㅌ', 'ㅊ', 'ㅍ', 'ㅠ', 'ㅜ', 'ㅡ'],
+                ['SPACE']
+            ],
+            en: [
+                ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+                ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+                ['Z', 'X', 'C', 'V', 'B', 'N', 'M'],
+                ['SPACE']
+            ],
+            ja: [
+                ['あ', 'か', 'さ', 'た', 'な', 'は', 'ま', 'や', 'ら', 'わ'],
+                ['い', 'き', 'し', 'ち', 'に', 'ひ', 'み', 'り'],
+                ['う', 'く', 'す', 'つ', 'ぬ', 'ふ', 'む', 'ゆ', 'る'],
+                ['え', 'け', 'せ', 'て', 'ね', 'へ', 'め', 'れ'],
+                ['お', 'こ', 'そ', 'と', 'の', 'ほ', 'も', 'よ', 'ろ', 'を', 'ん'],
+                ['SPACE']
+            ],
+            zh: [
+                ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+                ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+                ['Z', 'X', 'C', 'V', 'B', 'N', 'M'],
+                ['SPACE']
+            ]
+        };
+
+        var currentLevel = 'beginner';
+        var pageLang = root.getAttribute('data-lang');
+        var currentLang = practiceSentences[pageLang] ? pageLang : 'ko';
+        var currentSentenceIndex = 0;
+        var startTime = null;
+        var timerInterval = null;
+        var completionTimer = null;
+
+        var inputArea = document.getElementById('inputArea');
+        var practiceTextEl = document.getElementById('practiceText');
+        var keyboardEl = document.getElementById('keyboard');
+        var cpmEl = document.getElementById('cpm');
+        var accuracyEl = document.getElementById('accuracy');
+        var timeEl = document.getElementById('time');
+        var messageEl = document.getElementById('practiceMessage');
+        var resetBtn = document.getElementById('resetBtn');
+
+        function escapeHtml(value) {
+            return value
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+        }
+
+        function getCurrentSentence() {
+            var sentences = practiceSentences[currentLang][currentLevel];
+            return sentences[currentSentenceIndex % sentences.length];
+        }
+
+        function setPressedState(selector, activeButton) {
+            document.querySelectorAll(selector).forEach(function (button) {
+                var isActive = button === activeButton;
+                button.classList.toggle('active', isActive);
+                button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+            });
+        }
+
+        function renderKeyboard() {
+            var layout = keyboardLayouts[currentLang] || keyboardLayouts.en;
+            keyboardEl.innerHTML = layout.map(function (row) {
+                var keys = row.map(function (key) {
+                    if (key === 'SPACE') {
+                        return '<div class="tp-key space" data-key=" ">SPACE</div>';
+                    }
+                    return '<div class="tp-key" data-key="' + escapeHtml(key.toLowerCase()) + '">' + escapeHtml(key) + '</div>';
+                }).join('');
+                return '<div class="tp-keyboard-row">' + keys + '</div>';
+            }).join('');
+        }
+
+        function loadSentence() {
+            var sentence = getCurrentSentence();
+            practiceTextEl.innerHTML = Array.from(sentence).map(function (character, index) {
+                var className = index === 0 ? 'char current' : 'char';
+                return '<span class="' + className + '" data-index="' + index + '">' + escapeHtml(character) + '</span>';
+            }).join('');
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function clearCompletionTimer() {
+            if (completionTimer) {
+                clearTimeout(completionTimer);
+                completionTimer = null;
+            }
+        }
+
+        function getTypingStats() {
+            var input = Array.from(inputArea.value);
+            var target = Array.from(getCurrentSentence());
+            var correct = 0;
+
+            input.forEach(function (character, index) {
+                if (character === target[index]) correct++;
+            });
+
+            return {
+                inputLength: input.length,
+                correct: correct,
+                accuracy: input.length ? Math.floor((correct / input.length) * 100) : 100
+            };
+        }
+
+        function updateStats() {
+            var stats = getTypingStats();
+            var elapsedMs = startTime ? Date.now() - startTime : 0;
+            var elapsedSeconds = Math.floor(elapsedMs / 1000);
+            var cpm = elapsedMs > 0 ? Math.floor((stats.correct * 60000) / elapsedMs) : 0;
+
+            cpmEl.textContent = String(cpm);
+            accuracyEl.textContent = String(stats.accuracy);
+            timeEl.textContent = String(elapsedSeconds);
+        }
+
+        function startTimer() {
+            if (startTime) return;
+            startTime = Date.now();
+            timerInterval = setInterval(updateStats, 100);
+        }
+
+        function resetPractice(options) {
+            options = options || {};
+            stopTimer();
+            clearCompletionTimer();
+            startTime = null;
+            inputArea.disabled = false;
+            inputArea.value = '';
+            cpmEl.textContent = '0';
+            accuracyEl.textContent = '100';
+            timeEl.textContent = '0';
+            messageEl.classList.remove('complete');
+            messageEl.textContent = '속도보다 정확도를 우선하여 천천히 입력해 보세요.';
+            loadSentence();
+            if (options.focus) inputArea.focus();
+        }
+
+        function setLevel(level, button) {
+            if (!practiceSentences[currentLang][level]) return;
+            currentLevel = level;
+            currentSentenceIndex = 0;
+            setPressedState('.tp-level', button);
+            resetPractice({ focus: true });
+        }
+
+        function setTypingLang(lang, button) {
+            if (!practiceSentences[lang]) return;
+            currentLang = lang;
+            currentSentenceIndex = 0;
+            setPressedState('.tp-lang', button);
+            renderKeyboard();
+            resetPractice({ focus: true });
+        }
+
+        function renderInputState() {
+            var input = Array.from(inputArea.value);
+            var target = Array.from(getCurrentSentence());
+            var chars = practiceTextEl.querySelectorAll('.char');
+
+            chars.forEach(function (charEl, index) {
+                charEl.classList.remove('correct', 'incorrect', 'current');
+                if (index < input.length) {
+                    charEl.classList.add(input[index] === target[index] ? 'correct' : 'incorrect');
+                } else if (index === input.length) {
+                    charEl.classList.add('current');
+                }
+            });
+        }
+
+        function completeSentence() {
+            stopTimer();
+            updateStats();
+            inputArea.disabled = true;
+            messageEl.classList.add('complete');
+            messageEl.textContent = '문장을 완성했습니다. 다음 문장으로 넘어갑니다.';
+            currentSentenceIndex++;
+
+            completionTimer = setTimeout(function () {
+                resetPractice({ focus: true });
+            }, 650);
+        }
+
+        function highlightKey(keyValue) {
+            document.querySelectorAll('.tp-key.active').forEach(function (key) {
+                key.classList.remove('active');
+            });
+
+            var normalizedKey = keyValue === 'Spacebar' ? ' ' : keyValue.toLowerCase();
+            var keys = keyboardEl.querySelectorAll('.tp-key');
+            var matchedKey = null;
+
+            keys.forEach(function (key) {
+                if (key.getAttribute('data-key') === normalizedKey) matchedKey = key;
+            });
+
+            if (!matchedKey) return;
+            matchedKey.classList.add('active');
+            setTimeout(function () {
+                matchedKey.classList.remove('active');
+            }, 170);
+        }
+
+        inputArea.addEventListener('input', function () {
+            if (!startTime && inputArea.value.length > 0) startTimer();
+            renderInputState();
+            updateStats();
+
+            if (inputArea.value === getCurrentSentence()) {
+                completeSentence();
+            }
+        });
+
+        inputArea.addEventListener('keydown', function (event) {
+            highlightKey(event.key);
+        });
+
+        document.querySelectorAll('.tp-level').forEach(function (button) {
+            button.addEventListener('click', function () {
+                setLevel(button.getAttribute('data-level'), button);
+            });
+        });
+
+        document.querySelectorAll('.tp-lang').forEach(function (button) {
+            button.addEventListener('click', function () {
+                setTypingLang(button.getAttribute('data-tlang'), button);
+            });
+        });
+
+        resetBtn.addEventListener('click', function () {
+            currentSentenceIndex = 0;
+            resetPractice({ focus: true });
+        });
+
+        document.querySelectorAll('.tp-lang').forEach(function (button) {
+            var isActive = button.getAttribute('data-tlang') === currentLang;
+            button.classList.toggle('active', isActive);
+            button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
+
+        renderKeyboard();
+        resetPractice();
+    })();
+</script>
+</body>
+</html>
