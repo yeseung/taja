@@ -1,4 +1,5 @@
 
+
 * https://yeseung.github.io/taja/
 <br><br>
 
@@ -41,6 +42,7 @@
 - https://www.novelgames.com/ko/cups/
 - https://legendary-choux-a292b9.netlify.app/
 - https://util.monster/kr/typing-practice
+- https://pongvn.com/ggreflex/ko/typing-test
 
 <br><br><br>
 
@@ -113,5 +115,4 @@
 ![스크린샷 2026-08-05 오전 9 58 17](https://github.com/user-attachments/assets/8bbbf6be-805a-4746-92a1-6f3610b9b417)
 ![스린샷 2026-08-03 오후 12 27 39](https://github.com/user-attachments/assets/cfc0689b-61fa-4845-9877-60b17c12b026)
 ![스크린샷 2026-08-04 오후 4 01 04](https://github.com/user-attachments/assets/88078d6b-94d0-4e7f-9468-71bf037e6f81)
-
-
+![스크린샷 2026-08-05 오후 10 44 59](https://github.com/user-attachments/assets/71a67441-8859-43a9-b4cf-bf133eb69994)
