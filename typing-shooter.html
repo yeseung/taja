@@ -1,0 +1,895 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="닭과 물고기의 단어를 입력해 처치하는 무료 타자 슈팅 게임">
+    <title>타자 슈팅</title>
+    <style>
+        :root {
+            --bg: #f5f7fb;
+            --panel: #ffffff;
+            --line: #dfe5ee;
+            --line-strong: #cbd5e1;
+            --text: #172033;
+            --muted: #667085;
+            --primary: #2563eb;
+            --primary-soft: #eff6ff;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --shadow: 0 18px 55px rgba(15, 23, 42, .08);
+            --radius: 22px;
+        }
+
+        * { box-sizing: border-box; }
+
+        html { -webkit-text-size-adjust: 100%; }
+
+        body {
+            margin: 0;
+            min-width: 320px;
+            color: var(--text);
+            background:
+                    radial-gradient(circle at top left, rgba(37, 99, 235, .07), transparent 34%),
+                    var(--bg);
+            font-family: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", Arial, sans-serif;
+            line-height: 1.5;
+        }
+
+        button, input, select { font: inherit; }
+
+        button, select { cursor: pointer; }
+
+        .page {
+            width: min(100% - 32px, 920px);
+            margin: 0 auto;
+            padding: 48px 0 64px;
+        }
+
+        .hero { margin-bottom: 24px; }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0 0 10px;
+            padding: 7px 11px;
+            border: 1px solid #bfdbfe;
+            border-radius: 999px;
+            color: #1d4ed8;
+            background: #eff6ff;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .title {
+            margin: 0;
+            font-size: clamp(30px, 5vw, 46px);
+            line-height: 1.15;
+            letter-spacing: -.04em;
+        }
+
+        .lead {
+            max-width: 680px;
+            margin: 12px 0 0;
+            color: var(--muted);
+            font-size: clamp(15px, 2.5vw, 18px);
+        }
+
+        .game-card {
+            padding: 24px;
+            border: 1px solid rgba(203, 213, 225, .9);
+            border-radius: var(--radius);
+            background: rgba(255, 255, 255, .94);
+            box-shadow: var(--shadow);
+        }
+
+        .lb-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .ctl-label { font-weight: 800; }
+
+        .lang select {
+            min-width: 170px;
+            height: 44px;
+            padding: 0 40px 0 14px;
+            border: 1px solid var(--line-strong);
+            border-radius: 12px;
+            color: var(--text);
+            background: #fff;
+            outline: none;
+        }
+
+        .lang select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, .12);
+        }
+
+        .stage {
+            position: relative;
+            width: 100%;
+            height: 470px;
+            min-height: 360px;
+            overflow: hidden;
+            border: 1px solid #cfe0f5;
+            border-radius: 18px;
+            background:
+                    linear-gradient(to bottom, rgba(255,255,255,.7), rgba(239,246,255,.85)),
+                    repeating-linear-gradient(0deg, transparent 0 39px, rgba(37,99,235,.035) 40px),
+                    repeating-linear-gradient(90deg, transparent 0 39px, rgba(37,99,235,.035) 40px);
+            user-select: none;
+            touch-action: manipulation;
+            transition: border-color .2s, box-shadow .2s, transform .12s;
+        }
+
+        .stage:hover {
+            border-color: #93c5fd;
+            box-shadow: inset 0 0 0 1px rgba(37,99,235,.05);
+        }
+
+        .stage.hit {
+            border-color: #fca5a5;
+            box-shadow: inset 0 0 0 3px rgba(220,38,38,.15);
+            transform: translateX(2px);
+        }
+
+        .stage-inner {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            display: grid;
+            place-content: center;
+            justify-items: center;
+            padding: 28px;
+            text-align: center;
+        }
+
+        .stage-icon {
+            display: grid;
+            place-items: center;
+            width: 82px;
+            height: 82px;
+            margin-bottom: 18px;
+            border: 1px solid #bfdbfe;
+            border-radius: 24px;
+            background: #fff;
+            box-shadow: 0 14px 32px rgba(37,99,235,.13);
+            font-size: 42px;
+        }
+
+        .stage-title {
+            font-size: clamp(22px, 4vw, 30px);
+            font-weight: 900;
+            letter-spacing: -.03em;
+        }
+
+        .stage-sub {
+            max-width: 520px;
+            margin-top: 8px;
+            color: var(--muted);
+            font-size: 15px;
+        }
+
+        .hud {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            right: 14px;
+            z-index: 20;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+
+        .hud span {
+            min-width: 88px;
+            padding: 8px 12px;
+            border: 1px solid rgba(203,213,225,.9);
+            border-radius: 999px;
+            background: rgba(255,255,255,.9);
+            box-shadow: 0 8px 20px rgba(15,23,42,.08);
+            font-weight: 900;
+            text-align: center;
+            backdrop-filter: blur(8px);
+        }
+
+        #hudLives { color: var(--danger); }
+
+        .entity {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: max-content;
+            will-change: transform;
+            pointer-events: none;
+        }
+
+        .ent-sprite {
+            display: grid;
+            place-items: center;
+            width: 50px;
+            height: 50px;
+            border: 1px solid rgba(203,213,225,.95);
+            border-radius: 16px;
+            background: #fff;
+            box-shadow: 0 8px 18px rgba(15,23,42,.1);
+            font-size: 29px;
+        }
+
+        .fish .ent-sprite { background: #eff6ff; }
+        .chicken .ent-sprite { background: #fff7ed; }
+
+        .ent-word {
+            padding: 7px 10px;
+            border: 1px solid rgba(203,213,225,.95);
+            border-radius: 10px;
+            color: #111827;
+            background: rgba(255,255,255,.95);
+            box-shadow: 0 6px 16px rgba(15,23,42,.08);
+            font-size: 15px;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .wd-done { color: var(--primary); }
+
+        .type-wrap { display: none; margin-top: 14px; }
+
+        .type-box {
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            padding: 10px 14px;
+            border: 1px solid #bfdbfe;
+            border-radius: 12px;
+            color: var(--primary);
+            background: var(--primary-soft);
+            font-size: 21px;
+            font-weight: 900;
+            letter-spacing: .02em;
+            word-break: break-all;
+        }
+
+        .type-box:empty::before {
+            content: "화면의 단어를 입력하세요";
+            color: #94a3b8;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .type-box.miss {
+            border-color: #fecaca;
+            color: var(--danger);
+            background: #fff1f2;
+        }
+
+        #typeInput {
+            width: 100%;
+            height: 58px;
+            padding: 0 18px;
+            border: 2px solid #cbd5e1;
+            border-radius: 14px;
+            color: var(--text);
+            background: #fff;
+            font-size: 20px;
+            font-weight: 800;
+            text-align: center;
+            outline: none;
+        }
+
+        #typeInput:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 5px rgba(37,99,235,.12);
+        }
+
+        .summary {
+            display: none;
+            margin-top: 18px;
+            padding: 26px;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            background: #fff;
+            text-align: center;
+        }
+
+        .summary.show { display: block; }
+
+        .summary h2 { margin: 0 0 8px; font-size: 23px; }
+
+        .summary-score {
+            margin: 6px 0;
+            color: var(--primary);
+            font-size: clamp(42px, 8vw, 64px);
+            font-weight: 950;
+            letter-spacing: -.04em;
+        }
+
+        .summary-rating { margin: 0 0 6px; font-size: 18px; font-weight: 900; }
+        .summary-meta { margin: 0; color: var(--muted); }
+
+        .actions {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            min-width: 130px;
+            height: 46px;
+            padding: 0 18px;
+            border: 1px solid var(--line-strong);
+            border-radius: 12px;
+            color: var(--text);
+            background: #fff;
+            font-weight: 850;
+        }
+
+        .btn-primary { border-color: var(--primary); color: #fff; background: var(--primary); }
+        .btn:hover { transform: translateY(-1px); }
+
+        .help {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .help-item {
+            padding: 16px;
+            border: 1px solid var(--line);
+            border-radius: 15px;
+            background: #fff;
+        }
+
+        .help-item strong { display: block; margin-bottom: 4px; }
+        .help-item span { color: var(--muted); font-size: 14px; }
+
+        @media (max-width: 640px) {
+            .page { width: min(100% - 20px, 920px); padding: 24px 0 40px; }
+            .game-card { padding: 14px; border-radius: 18px; }
+            .lb-controls { align-items: stretch; flex-direction: column; }
+            .lang select { width: 100%; }
+            .stage { height: 410px; min-height: 320px; }
+            .entity { gap: 5px; }
+            .ent-sprite { width: 42px; height: 42px; font-size: 24px; }
+            .ent-word { padding: 6px 8px; font-size: 14px; }
+            .help { grid-template-columns: 1fr; }
+            .actions { flex-direction: column; }
+            .btn { width: 100%; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+        }
+    </style>
+</head>
+<body>
+<main class="page">
+    <header class="hero">
+        <p class="eyebrow">⌨️ 무료 타자게임</p>
+        <h1 class="title" data-i18n="test_typing">타자 슈팅</h1>
+        <p class="lead" data-i18n="test_typing_desc">닭과 물고기의 단어를 입력해 처치하는 무료 타이핑 연습 게임!</p>
+    </header>
+
+    <section class="game-card" aria-label="타자 슈팅 게임">
+        <div class="lb-controls">
+            <span class="ctl-label" data-i18n="typing_lang">타자 언어</span>
+            <div class="lang">
+                <select id="typeLang" aria-label="타자 언어 선택"></select>
+            </div>
+        </div>
+
+        <div id="stage" class="stage game" role="button" tabindex="0" aria-label="타자 게임 시작" style="margin-top:18px">
+            <div id="hud" class="hud"><span id="hudScore"></span><span id="hudLives"></span></div>
+            <div class="stage-inner" id="introInner">
+                <div id="stageIcon" class="stage-icon"></div>
+                <div id="stageTitle" class="stage-title"></div>
+                <div id="stageSub" class="stage-sub"></div>
+            </div>
+        </div>
+
+        <div class="type-wrap" id="typeWrap">
+            <div id="typeShow" class="type-box" aria-live="polite"></div>
+            <input id="typeInput" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="단어 입력">
+        </div>
+
+        <section id="summary" class="summary" aria-live="polite">
+            <h2 id="sumTitle">게임 결과</h2>
+            <div id="sumAvg" class="summary-score"></div>
+            <p id="sumRating" class="summary-rating"></p>
+            <p id="sumMeta" class="summary-meta"></p>
+            <div class="actions">
+                <button id="btnRetry" class="btn btn-primary" type="button">다시 시작</button>
+                <button id="btnShare" class="btn" type="button">결과 공유</button>
+            </div>
+        </section>
+    </section>
+
+    <section class="help" aria-label="게임 방법">
+        <div class="help-item"><strong>1. 게임 시작</strong><span>게임 화면을 클릭하거나 선택한 뒤 Enter 키를 누르세요.</span></div>
+        <div class="help-item"><strong>2. 단어 입력</strong><span>닭과 물고기 옆에 표시되는 단어를 정확히 입력하세요.</span></div>
+        <div class="help-item"><strong>3. 생명 지키기</strong><span>적이 화면 끝에 닿으면 생명이 줄어듭니다. 생명은 3개입니다.</span></div>
+    </section>
+</main>
+
+<script>
+    window.GG = {
+        lang: 'ko',
+        LANGS: [
+            { c: 'ko', n: '한국어' },
+            { c: 'en', n: 'English' },
+            { c: 'vi', n: 'Tiếng Việt' },
+            { c: 'es', n: 'Español' },
+            { c: 'pt-BR', n: 'Português (Brasil)' },
+            { c: 'fr', n: 'Français' },
+            { c: 'de', n: 'Deutsch' },
+            { c: 'ru', n: 'Русский' },
+            { c: 'id', n: 'Bahasa Indonesia' },
+            { c: 'it', n: 'Italiano' }
+        ]
+    };
+
+    (function () {
+        'use strict';
+
+        var messages = {
+            click_to_start: '화면을 클릭해 시작하세요',
+            typing_howto: '닭과 물고기 옆의 단어를 정확히 입력하면 처치할 수 있습니다.',
+            typing_words: '개 처치',
+            typing_cpm: '타/분',
+            typing_summary: '게임 결과',
+            rating_elite: '전설의 타자',
+            rating_pro: '프로 타자',
+            rating_sharp: '날카로운 손놀림',
+            rating_average: '안정적인 실력',
+            rating_casual: '가볍게 즐기는 중',
+            rating_sleepy: '조금 더 연습해 볼까요?'
+        };
+
+        window.ggT = function (key) { return messages[key] || key; };
+
+        window.ggIcon = function (name) {
+            var span = document.createElement('span');
+            span.setAttribute('aria-hidden', 'true');
+            span.textContent = name === 'chicken' ? '🐔' : name === 'fish' ? '🐟' : '⌨️';
+            return span;
+        };
+
+        window.ggSetIcon = function (el, name) {
+            if (!el) return;
+            while (el.firstChild) el.removeChild(el.firstChild);
+            el.appendChild(window.ggIcon(name));
+        };
+
+        window.ggSummaryMascot = function () {};
+        window.ggReport = function () {};
+
+        var stage = document.getElementById('stage');
+        stage.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                stage.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+            }
+        });
+    })();
+
+    /* GGReflex — typing word pools per language (typing shooter). Mixed lengths; word pools doubled. Fallback = English. */
+    window.GG_WORDS = {
+        en: ['the','and','you','are','for','not','but','all','can','had','was','one','out','use','day','get','new','now','old','see','two','way','who','boy','did','let','put','say','she','too','end','far','few','run','sun','top','car','cat','dog','red','sky','sea','map','cup','box','key','ice','egg','arm','leg','eye','ear','owl','fox','ant','bat','cow','hen','pig','pen','hat','bag','bed','bus','fan','net','nut','oil','pan','rat','tap','van','zip','jam','log','time','word','work','year','book','door','room','hand','head','life','line','fire','fish','bird','tree','star','moon','rain','snow','wind','gold','king','game','play','love','food','gift','hope','jump','kind','lake','land','leaf','milk','mind','name','park','part','path','rock','rose','ship','shop','show','song','team','wing','wolf','road','rich','ring','seed','seat','shoe','sock','soup','tale','tent','tube','wave','week','wood','yard','zone','about','after','again','water','world','house','music','green','light','night','paper','plant','smile','sound','space','sugar','table','tiger','train','voice','whale','zebra','apple','beach','bread','brush','chair','cloud','dance','dream','earth','field','flame','fruit','ghost','grape','heart','horse','juice','knife','lemon','money','mouse','ocean','piano','queen','river','robot','snake','stone','storm','sword','tooth','tower','truck','witch','candy','cliff','crown','eagle','frost','globe','honey','ivory','maple','noble','olive','pearl','raven','shark','swarm','torch','vault','wheat','animal','answer','basket','bottle','bridge','butter','camera','candle','castle','cherry','circle','coffee','desert','dragon','engine','flower','forest','garden','guitar','hammer','island','jungle','ladder','market','mirror','monkey','needle','orange','pencil','planet','pocket','rabbit','rocket','school','silver','spider','spring','square','statue','summer','sunset','temple','tunnel','valley','window','winter','wizard','yellow','mountain','elephant','umbrella','dinosaur','computer','keyboard','sandwich','birthday','chocolate','adventure','beautiful','butterfly','dangerous','delicious','fantastic','furniture','important','knowledge','lightning','telephone','vegetable','wonderful','raspberry','strawberry','helicopter','information','celebration','imagination','temperature','understand','playground','banana','peach','pear','plum','straw','avocado','broccoli','carrot','celery','corn','grains','peas','radish','spinach','tomato','beef','cheese','chips','cookies','crackers','eggs','flour','gravy','meat','nuts','onion','pepper','sauce','tuna','beer','wine','tea','mug','spoon','fork','plate','bowl','oven','grater','grill','mixer','blender','jar','shelf','lamp','rug','sofa','cupboard','floor','ceiling','wall','jacket','shirt','pants','socks','gloves','shoes','scarf','belt','tie','hair','eyes','nose','mouth','ears','neck','back','legs','arms','feet','father','mother','son','daughter','brother','sister','uncle','aunt','grandpa','grandma','child','parent','family','grass','hill','shadow','color','blue','purple','black','white','brown','pink','gray','teacher','doctor','nurse','farmer','engineer','artist','chef','lawyer','worker','manager','scientist','pilot','musician','writer','actor','athlete','architect','builder','gardener','library','hospital','theater','museum','office','restaurant','hotel','apartment','building','station','plane','boat','bike','subway','motor','cycle','ski','swim','walk','climb','ride','hit','make','take','have','give','do','find','come','go','move','open','close','break','fix','clean','wash','cook','eat','drink','sleep','study','learn','write','read','look','feel','happy','sad','angry','excited','tired','scared','brave','nice','quiet','loud','big','small','tall','short','fast','slow','hot','cold','strong','weak','good','bad','dirty','smooth','rough','soft','hard','dark','wide','narrow','long','round','sharp','flat'],
+        ko: ['사람','시간','사랑','하늘','바다','친구','학교','음악','영화','커피','노래','가족','행복','여행','사진','책상','의자','전화','아침','저녁','바람','구름','나무','가을','겨울','여름','도시','시골','마음','생각','그림','색깔','모양','시작','소리','노을','거리','시장','우산','강물','산길','새벽','햇살','연필','학생','선생','공부','운동','건강','날씨','주말','휴가','바닥','천장','거울','시계','지갑','열쇠','가방','모자','신발','양말','장갑','이불','베개','수건','비누','접시','냄비','청소','요리','빨래','정리','약속','회의','발표','계획','결과','성공','실패','경험','추억','미래','희망','용기','노력','도전','변화','자유','평화','동물','식물','바위','모래','파도','햇빛','온도','속도','무게','숫자','글자','단어','문장','질문','대답','수업','시험','점수','방학','컴퓨터','자전거','도서관','정류장','운동화','손수건','무지개','코끼리','강아지','고양이','호랑이','다람쥐','너구리','바닷가','시냇물','보름달','초승달','별자리','우주선','비행기','기차역','자동차','지하철','신호등','가로등','아파트','운동장','도시락','떡볶이','커피숍','책가방','색연필','지우개','음악실','미술실','체육관','운동회','노트북','태블릿','이어폰','충전기','배터리','카메라','라디오','스피커','헤드폰','마이크','냉장고','세탁기','청소기','선풍기','에어컨','프린터','경찰관','소방관','우체국','편의점','백화점','영화관','박물관','미술관','수영장','놀이터','건널목','승강장','매표소','화장실','주차장','자판기','정수기','해바라기','오토바이','횡단보도','김치찌개','된장찌개','놀이공원','전화번호','지하철역','버스정류장','도서관장','박물관장','음악시간','미술시간','과학시간','국어사전','영어단어','수학문제','받아쓰기','줄넘기','술래잡기','숨바꼭질','비빔밥','김밥집','라면집','분식집','떡갈비','삼겹살','불고기','갈비탕','된장국','미역국','김치전','계란말이','주먹밥','컵라면','아이스크림','초콜릿','사탕수수','솜사탕','팝콘통','음료수','오렌지','바나나','딸기맛','포도알','수박씨','참외밭','복숭아','자두나무','돼지','박쥐','오리','사자','기린','사슴','토끼','원숭이','호박','당근','상추','양파','고추','버섯','사과','포도','딸기','수박','자두','체리','블루베리','망고','배추','브로콜리','시금치','감자','고구마','라면','삼계탕','김치','된장','갈비','순대','계란','계란볶음','우유','녹차','홍차','주스','사이다','환타','탄산수','수프','요거트','밀크셰이크','오트밀','크림','소스','소금','설탕','후추','식용유','버터','케첩','마요네즈','소시지','치즈','파프리카','양배추','오이','통닭','통닭볶음밥','김밥','전자레인지','주전자','프라이팬','그릇','한상','주방','전기밥솥','식탁','테이블','소파','책장','옷장','서랍장','창문','전등','노트','스프레이','도장','샴푸','린스','모발','머리','손가락','다리','손목','어깨','허리','입술','눈썹','발톱','눈동자','눈가','목덜미','등나귀','허벅지','팔꿈치','무릎','손바닥','손등','발등','발가락','머리카락','눈꺼풀','이마','고래','오소리','닭고기','돼지고기','소고기','마늘','고춧가루','간장','잡곡','케이크','쿠키','버스','도보','승용차','트럭','기차','고등어'],
+        vi: ['nhà','người','thời','gian','việc','yêu','bạn','nhạc','sáng','tối','trời','biển','phố','đường','vui','vẻ','mới','đẹp','nhanh','chậm','nóng','lạnh','mưa','nắng','gió','mây','cây','hoa','lá','nước','lửa','đất','núi','sông','chợ','tiền','sách','bút','ghế','bàn','học','chơi','ngày','đêm','xanh','đỏ','vàng','trắng','đen','to','nhỏ','cao','thấp','xa','gần','ăn','uống','ngủ','chạy','nhảy','hát','múa','cười','khóc','đọc','viết','vẽ','bơi','đá','bóng','xe','tàu','thuyền','máy','bay','chim','cá','mèo','chó','gà','vịt','heo','bò','ngựa','voi','hổ','gấu','khỉ','rắn','ong','bướm','kiến','muỗi','trường','lớp','bảng','phấn','vở','cặp','thước','tẩy','màu','giấy','cửa','tường','mái','sàn','đèn','quạt','bàn','tủ','giường','gối','chăn','khăn','xà','phòng','bếp','trái','cà','chua','dứa','mận','bưởi','ổi','mít','táo','cam','chanh','ớt','khoai','sắn','rau','bắp','đậu','mướp','cải','hành','tỏi','nấm','mì','bánh','phở','bún','cháo','kẹo','sữa','trà','café','socola','thịt','trứng','nghệ','lò','nồi','thớt','tivi','lược','áo','quần','mũ','giày','dép','túi','váy','mắt','tay','chân','mũi','mông','đầu','tai','miệng','lưỡi','lông','má','cha','mẹ','con','anh','em','bác','cô','dượng','chú','thầy','cành','gỗ','nến','sắt','thiếc','lưới','cầu','cột','bục','gara','bãi','sân','võ','guitar','violin','trống','kéo','kìm','tuýp','đục','cưa','bored','buồn','sợ','lo','khó','dễ','nặng','nhẹ','đầy','rỗng','xấu','tốt','mạnh','yếu','lớn','cũ','mở','đóng','đi','đứng','ngồi','ngã','bắt','đập','lật','đốt','bỏ','rửa','cắt'],
+        es: ['casa','tiempo','persona','trabajo','amor','amigo','familia','escuela','música','mañana','noche','sol','mar','cielo','ciudad','camino','alegría','vida','mundo','agua','fuego','tierra','viento','lluvia','árbol','flor','libro','mesa','silla','color','palabra','mente','idea','historia','juego','rápido','lento','grande','pequeño','nuevo','tarde','hoy','gente','cosa','mano','parte','lugar','año','día','calle','puerta','ventana','verde','azul','rojo','blanco','negro','comer','beber','correr','perro','gato','pájaro','pez','caballo','vaca','cerdo','oveja','ratón','león','tigre','oso','mono','araña','abeja','luna','estrella','nube','playa','montaña','río','bosque','jardín','flor','fruta','pan','queso','leche','café','azúcar','huevo','carne','pollo','arroz','sopa','plato','vaso','cuchara','tenedor','cuchillo','reloj','llave','bolsa','sombrero','zapato','camisa','mochila','cuaderno','lápiz','goma','regla','tijera','pizarra','maestro','alumno','clase','examen','recreo','dibujo','cereza','limón','sandía','manzana','naranja','plátano','uva','papa','cebolla','tomate','lechuga','coliflor','apio','berenjena','aguacate','chile','ajo','zanahoria','pimiento','espinaca','guayaba','mango','kiwi','melón','fresa','albaricoque','ciruela','mazapán','canela','pimienta','perejil','chocolate','vino','jugo','té','cerveza','soda','sándwich','empanada','tortilla','ensalada','churro','helado','pastel','tarta','panini','sal','aceite','vinagre','harina','mantequilla','cama','sofá','televisor','radio','telefóno','computadora','luz','interruptor','mesita','suelo','pared','escalera','coche','bicicleta','camión','avión','barco','tren','trolley','autobús','motocicleta','tractor','triciclo','saltar','nadar','escribir','leer','cantar','dibujar','jugar','escuchar','bailar','dormir','hablar','ver','oir','tocar','estudiar','trabajar'],
+        "pt-BR": ['casa','tempo','pessoa','trabalho','amor','amigo','família','escola','música','manhã','noite','sol','mar','céu','cidade','caminho','alegria','vida','mundo','água','fogo','terra','vento','chuva','árvore','flor','livro','mesa','cadeira','cor','palavra','mente','ideia','história','jogo','rápido','lento','grande','pequeno','novo','tarde','hoje','gente','coisa','mão','parte','lugar','ano','dia','rua','porta','janela','verde','azul','vermelho','branco','preto','comer','beber','correr','cachorro','gato','pássaro','peixe','cavalo','vaca','porco','ovelha','rato','leão','tigre','urso','macaco','aranha','abelha','lua','estrela','nuvem','praia','montanha','rio','floresta','jardim','fruta','pão','queijo','leite','café','açúcar','ovo','carne','frango','arroz','sopa','prato','copo','colher','garfo','faca','relógio','chave','bolsa','chapéu','sapato','camisa','mochila','caderno','lápis','borracha','régua','tesoura','quadro','professor','aluno','aula','prova','recreio','desenho','ovos','feijão','macarrão','chocolate','suco','refrigerante','chá','vinho','cerveja','salada','pimenta','alho','cebola','tomate','abacaxi','manga','limão','abacate','uva','laranja','melancia','morango','pêssego','pera','maçã','cenoura','batata','abobrinha','alface','brocolis','espinafre','cebolinha','tomilho','orégano','canela','bolacha','biscoito','sucrilhos','aveia','farinha','trigo','milho','soja','sal','azeite','manteiga','bolo','pastel','churros','torta','sorvete','brigadeiro','pudim','mousse','cama','calça','pente','toalha','espelho','louça','guarda','jornal','caneta','relato','sala','cozinha','quarto','banheiro','escova','churrasco','salsicha','sucão','sobremesa','sanduíche','farofa','purê','molho','tempero','churrasqueira','fogão','forno','panela','fritadeira','pia','escorredor','carrinho','caminhão','ônibus','bicicleta','carro','barco','avião','navio','corredor','pista','quadra','campo','piscina','golfe','vôlei','futebol','basquete','natação','caminhada','corrida','dança','notícia','filme','televisão','sorriso','tristeza','felicidade','medo','raiva','surpresa','ansiedade','dúvida','saudade'],
+        fr: ['maison','temps','personne','travail','amour','ami','famille','école','musique','matin','soir','soleil','mer','ciel','ville','chemin','joie','vie','monde','eau','feu','terre','vent','pluie','arbre','fleur','livre','table','chaise','couleur','mot','esprit','idée','histoire','jeu','rapide','lent','grand','petit','nouveau','jour','nuit','gens','chose','main','part','lieu','année','rue','porte','fenêtre','vert','bleu','rouge','blanc','noir','manger','boire','courir','chien','chat','oiseau','poisson','cheval','vache','cochon','mouton','souris','lion','tigre','ours','singe','araignée','abeille','lune','étoile','nuage','plage','montagne','rivière','forêt','jardin','fruit','pain','fromage','lait','café','sucre','œuf','viande','poulet','riz','soupe','assiette','verre','cuillère','fourchette','couteau','montre','clé','sac','chapeau','chaussure','chemise','cartable','cahier','crayon','gomme','règle','ciseaux','tableau','maître','élève','classe','examen','canard','loup','pomme','banane','orange','kiwi','pastèque','pêche','cerise','abricot','citron','carotte','tomate','concombre','poivron','oignon','patate','aubergine','radis','chou','thé','chocolat','lampe','brosse','canapé','armoire','tablette','placard','pantalon','veste','chaussette','gants','pied','bras','tête','nez','oreille','œil','dos','col','père','mère','frère','sœur','oncle','tante','neveu','nièce','plante','herbe','feuille','bruit','neige','rose','violet','marron','gris','maçon','médecin','professeur','ingénieur','policier','boulanger','cuisinier','poète','musicien','architecte','bâtiment','usine','gare','restaurant','hôtel','magasin','bibliothèque','campagne','route','pont','bateau','vélo','voiture','train','avion','moto','ski','natation','football','basket','tennis','pétanque','danse','chanson','note','rythme','clavier','piano','guitare','violon','salle','salon','cantine','outil','marteau','scie','grande','petite','nouvelle','ancienne','lente','joyeux','triste','heureux','fatigué','content','sourire','rire'],
+        de: ['Haus','Zeit','Mensch','Arbeit','Liebe','Freund','Familie','Schule','Musik','Morgen','Abend','Sonne','Meer','Himmel','Stadt','Weg','Freude','Leben','Welt','Wasser','Feuer','Erde','Wind','Regen','Baum','Blume','Buch','Tisch','Stuhl','Farbe','Wort','Geist','Idee','Spiel','schnell','langsam','groß','klein','neu','Tag','Nacht','Leute','Sache','Hand','Teil','Ort','Jahr','Straße','Tür','Fenster','grün','blau','rot','weiß','schwarz','essen','trinken','laufen','Hund','Katze','Vogel','Fisch','Pferd','Kuh','Schwein','Schaf','Maus','Löwe','Tiger','Bär','Affe','Spinne','Biene','Mond','Stern','Wolke','Strand','Berg','Fluss','Wald','Garten','Frucht','Brot','Käse','Milch','Kaffee','Zucker','Fleisch','Reis','Suppe','Teller','Glas','Löffel','Gabel','Messer','Uhr','Schlüssel','Tasche','Hut','Schuh','Hemd','Schule','Heft','Stift','Lineal','Tafel','Lehrer','Klasse','Bier','Butter','Kuchen','Salat','Tomate','Zwiebel','Kohl','Zucchini','Apfel','Banane','Kirsche','Orange','Pflaume','Zitronen','Erdbeere','Melone','Kartoffel','Karotte','Paprika','Kürbis','Birne','Mango','Ananas','Kiwi','Beeren','Lampe','Schrank','Schublade','Bücher','Schreibblock','Schuhe','Jacke','Hose','Schal','Mantel','Schmuck','Brille','Schlaf','Wache','Schlafzimmer','Badezimmer','Küche','Bett','Licht','Schalter','Kochtopf','Schneidebrett','Kochlöffel','Tee','Soda','Joghurt','Schokolade','Kekse','Eis','Saft','Salz','Pfeffer','Ketchup','Senf','Mehl','Eier','Nudeln','Gemüse','Auto','Bahn','Boot','Flugzeug','Schiff','Keller','Dach','Gartenhaus','Schlitten','Zimmer','Bild','Boden','Balken','Becher','Bleistift','Blatt','Blick','Blickfeld','Schere','Schüssel','Kissen','Schulter','Schwester','Bruder','Schlange','Schnecke','Schnee'],
+        ru: ['дом','время','человек','работа','любовь','друг','семья','школа','музыка','утро','вечер','солнце','море','небо','город','дорога','радость','жизнь','мир','вода','огонь','земля','ветер','дождь','дерево','цветок','книга','стол','стул','цвет','слово','идея','история','игра','быстро','медленно','большой','малый','новый','день','ночь','люди','вещь','рука','часть','место','год','улица','дверь','окно','зелёный','синий','красный','белый','чёрный','есть','пить','бежать','собака','кошка','птица','рыба','лошадь','корова','свинья','овца','мышь','лев','тигр','медведь','обезьяна','паук','пчела','луна','звезда','облако','пляж','гора','река','лес','сад','фрукт','хлеб','сыр','молоко','кофе','сахар','мясо','рис','суп','тарелка','стакан','ложка','вилка','нож','часы','ключ','сумка','шляпа','обувь','рубашка','рюкзак','тетрадь','карандаш','линейка','доска','учитель','ученик','класс','урок','кот','мяч','футбол','гитара','телефон','компьютер','округлый','круглый','квадратный','книжка','шкаф','лампа','диван','стена','пол','потолок','шкафчик','кастрюля','сковорода','кран','сок','чай','соковыжималка','соль','перец','масло','пюре','пирог','торт','пирожок','булка','макароны','супчик','каша','овсянка','гречка','семечки','яблоко','груша','апельсин','мандарин','виноград','слива','киви','ананас','малина','клубника','арбуз','дыня','огурец','помидор','лук','чеснок','капуста','морковь','картофель','баклажан','репа','фасоль','горох','свёкла','лён','хлопок','шерсть','лен','шапка','шарф','перчатки','сапоги','ботинки','носки','кофта','футболка','свитер','джинсы','юбка','платье','сарафан','шорты','брюки','голова','грудь','нога','палец','нос','глаза','уша','рот','спинка','шея','пальцы','локоть','стопа','покой','сон','грусть','веселье','надежда','страх','смех','слеза','улыбка','печаль','мечта','счастье','напряжение','радостный','печальный','веселый','улыбающийся'],
+        id: ['rumah','waktu','orang','kerja','cinta','teman','keluarga','sekolah','musik','pagi','malam','matahari','laut','langit','kota','jalan','gembira','hidup','dunia','air','api','tanah','angin','hujan','pohon','bunga','buku','meja','kursi','warna','kata','pikiran','ide','cerita','main','cepat','lambat','besar','kecil','baru','hari','siang','benda','tangan','bagian','tempat','tahun','pintu','jendela','hijau','biru','merah','putih','hitam','makan','minum','lari','anjing','kucing','burung','ikan','kuda','sapi','babi','domba','tikus','singa','harimau','beruang','monyet','laba','lebah','bulan','bintang','awan','pantai','gunung','sungai','hutan','taman','buah','roti','keju','susu','kopi','gula','telur','daging','ayam','nasi','sup','piring','gelas','sendok','garpu','pisau','jam','kunci','tas','topi','sepatu','baju','ransel','pensil','penghapus','papan','guru','murid','kelas','ujian','kaki','mata','telapak','jari','lengan','leher','paha','punggung','perut','dada','kulit','rambut','telinga','hidung','mulut','kotak','kantong','lampu','televisi','kabel','telepon','komputer','printer','lantai','laci','lemari','kamar','kulkas','kompor','sikat','kain','sandal','celana','kemeja','jas','sarung','kacamata','bantal','selimut','kasur','keyboard','monitor','mouse','pakaian','kambing','semangka','wortel','sayur','sate','teh','sarden','mangkuk','kertas'],
+        it: ['casa','tempo','persona','lavoro','amore','amico','famiglia','scuola','musica','mattina','sera','sole','mare','cielo','città','strada','gioia','vita','mondo','acqua','fuoco','terra','vento','pioggia','albero','fiore','libro','tavolo','sedia','colore','parola','mente','idea','storia','gioco','veloce','lento','grande','piccolo','nuovo','giorno','notte','gente','cosa','mano','parte','luogo','anno','porta','finestra','verde','blu','rosso','bianco','nero','mangiare','bere','correre','cane','gatto','uccello','pesce','cavallo','mucca','maiale','pecora','topo','leone','tigre','orso','scimmia','ragno','ape','luna','stella','nuvola','spiaggia','montagna','fiume','foresta','giardino','frutta','pane','formaggio','latte','caffè','zucchero','uovo','carne','pollo','riso','zuppa','piatto','bicchiere','cucchiaio','forchetta','coltello','orologio','chiave','borsa','cappello','scarpa','camicia','zaino','quaderno','matita','gomma','righello','lavagna','maestro','classe','cucina','tavola','lampada','armadio','calzino','maglia','pantalone','giacca','occhio','orecchio','naso','bocca','manica','braccio','gamba','testa','piede','dito','capello','padre','madre','figlio','figlia','nonno','nonna','fratello','sorella','zio','zia','cugino','cugina','mamma','papà','lago','collina','foglia','radice','fusto','germe','fogliola','neve','temporale','fulmine','ghiaccio','fumo','oscurità','luce','calore','freddo','sapore','dolce','amaro','acido','salato','cibo','cena','colazione','spuntino','bottiglia','tazza','cannuccia','sacchetto','scontrino','carta','moneta','banco','cassiere','cancello','portone','corrimano','lavabo','lavandino','scatola','sacco','scaletta','scaffale','cassetto','muro','soffitto','pavimento','scalino','scalini','scalata','schiavitù','schiave','schermo','schiena','scelta','scena']
+    };
+
+    /* GGReflex — Typing Shooter. Chickens fall, fish swim across, each carrying a
+   word. Type a word to pop that enemy; if one reaches the wall you lose a life.
+   Score scales with word length and enemy speed. Per-language word pools.
+   XSS-safe (textContent / DOM nodes). */
+    (function () {
+        'use strict';
+        var stage = document.getElementById('stage');
+        var introInner = document.getElementById('introInner');
+        var elIcon = document.getElementById('stageIcon');
+        var elTitle = document.getElementById('stageTitle');
+        var elSub = document.getElementById('stageSub');
+        var hud = document.getElementById('hud');
+        var hudScore = document.getElementById('hudScore');
+        var hudLives = document.getElementById('hudLives');
+        var typeInput = document.getElementById('typeInput');
+        var typeShow = document.getElementById('typeShow');
+        var typeWrap = document.getElementById('typeWrap');
+        var typeLangSel = document.getElementById('typeLang');
+        var summary = document.getElementById('summary');
+        var sumTitle = document.getElementById('sumTitle');
+        var sumAvg = document.getElementById('sumAvg');
+        var sumMeta = document.getElementById('sumMeta');
+        var sumRating = document.getElementById('sumRating');
+        var btnRetry = document.getElementById('btnRetry');
+        var btnShare = document.getElementById('btnShare');
+        var T = window.ggT;
+
+        var LIVES0 = 3;
+        var state = 'idle', score = 0, lives = 0, killed = 0, chars = 0, typeStartT = 0, lastCpm = 0, lastWpm = 0, consumed = 0;
+        var entities = [], raf = null, lastT = 0, spawnAcc = 0, elapsed = 0;
+        var composing = false, compStart = '', compData = '', DEBUG = false;
+        try { DEBUG = localStorage.getItem('gg_debug') === '1'; } catch (e) {}
+        if (/[?&]debug=1/.test(location.search)) DEBUG = true; // ?debug=1 enables the on-screen log (no console needed)
+        var dbgEl = null;
+        function log() {
+            if (!DEBUG) return;
+            var args = ['[GGType]'].concat([].slice.call(arguments));
+            if (window.console && console.log) console.log.apply(console, args);
+            try { // on-screen overlay so any device (incl. iOS Safari) can just screenshot the logs
+                if (!dbgEl) { dbgEl = document.createElement('div'); dbgEl.style.cssText = 'position:fixed;left:0;right:0;bottom:0;max-height:42vh;overflow:auto;z-index:99999;background:rgba(0,0,0,.86);color:#5f6;font:11px/1.45 monospace;padding:6px;white-space:pre-wrap;word-break:break-all'; (document.body || document.documentElement).appendChild(dbgEl); }
+                var d = document.createElement('div'); d.textContent = args.join(' '); dbgEl.appendChild(d); dbgEl.scrollTop = dbgEl.scrollHeight;
+                while (dbgEl.childNodes.length > 50) dbgEl.removeChild(dbgEl.firstChild);
+            } catch (e) {}
+        }
+
+        function clear(el) { while (el.firstChild) el.removeChild(el.firstChild); }
+        function aliveList() { return entities.filter(function (e) { return e.alive; }); }
+        // cache stage size; getBoundingClientRect() forces reflow, so measure only on
+        // start + resize instead of every frame/keystroke.
+        var gameArea = { w: 360, h: 440 };
+        function measure() {
+            var r = stage.getBoundingClientRect();
+            var w = r.width || stage.clientWidth || 360, h = r.height || stage.clientHeight || 440;
+            if (w < 60) w = 360; if (h < 60) h = 440;
+            gameArea.w = w; gameArea.h = h;
+        }
+        function area() { return gameArea; }
+        // Mobile: when the on-screen keyboard opens it shrinks the viewport and the browser scrolls the (bottom)
+        // input into view, pushing the play area off-screen. Shrink the stage so the whole game + typed word stay
+        // visible above the keyboard, and scroll it to the top of the visible area.
+        var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+        function fitViewport() {
+            if (!isTouch) return;
+            var vv = window.visualViewport;
+            var kbOpen = vv ? (window.innerHeight - vv.height > 120) : false;
+            if (state === 'playing' && kbOpen && vv) {
+                var typeH = (typeWrap && typeWrap.offsetHeight) || 56;
+                var h = Math.max(150, Math.round(vv.height - typeH - 22));
+                if (stage.style.height !== h + 'px') { stage.style.height = h + 'px'; stage.style.minHeight = '0px'; measure(); }
+                var y = Math.max(0, stage.getBoundingClientRect().top + window.pageYOffset - (vv.offsetTop || 0) - 6);
+                if (Math.abs(window.pageYOffset - y) > 4) window.scrollTo(0, y);
+            } else if (stage.style.height) {
+                stage.style.height = ''; stage.style.minHeight = ''; measure();
+            }
+        }
+        if (window.visualViewport) window.visualViewport.addEventListener('resize', fitViewport);
+
+        // ---- language / word pool ----
+        function bs(l) { return l.split('-')[0]; }
+        function wordsFor(l) { var W = window.GG_WORDS || {}; return W[l] || W[bs(l)] || null; }
+        function contentLangs() {
+            var W = window.GG_WORDS || {}, all = (window.GG && window.GG.LANGS) || [], out = [];
+            all.forEach(function (l) { if (W[l.c]) out.push(l); });
+            return out;
+        }
+        function currentLang() {
+            if (typeLangSel && typeLangSel.value) return typeLangSel.value;
+            var s = null; try { s = localStorage.getItem('gg_type_lang'); } catch (e) {}
+            return s || (window.GG && window.GG.lang) || 'en';
+        }
+        function pool() { return wordsFor(currentLang()) || (window.GG_WORDS && window.GG_WORDS.en) || ['cat', 'dog', 'run', 'fast', 'word']; }
+        function populateLangSelect() {
+            if (!typeLangSel) return;
+            var langs = contentLangs(); if (!langs.length) return;
+            var saved = null; try { saved = localStorage.getItem('gg_type_lang'); } catch (e) {}
+            var pick = saved || (window.GG && window.GG.lang) || 'en';
+            if (!langs.some(function (l) { return l.c === pick; })) pick = langs[0].c;
+            clear(typeLangSel);
+            langs.forEach(function (l) { var o = document.createElement('option'); o.value = l.c; o.textContent = l.n; typeLangSel.appendChild(o); });
+            typeLangSel.value = pick;
+        }
+
+        // ---- entities ----
+        function pickWord() {
+            var p = pool(), act = aliveList().map(function (e) { return e.word; });
+            for (var i = 0; i < 24; i++) { var w = p[Math.floor(Math.random() * p.length)]; if (act.indexOf(w) < 0) return w; }
+            return p[Math.floor(Math.random() * p.length)];
+        }
+        function renderWord(e) {
+            clear(e.labelEl);
+            var done = document.createElement('span'); done.className = 'wd-done'; done.textContent = e.word.slice(0, e.typed);
+            var rest = document.createElement('span'); rest.textContent = e.word.slice(e.typed);
+            e.labelEl.appendChild(done); e.labelEl.appendChild(rest);
+        }
+        function spawn(forceWord, forceType) {
+            var A = area(), type = forceType || (Math.random() < 0.5 ? 'chicken' : 'fish'), word = forceWord || pickWord();
+            if (word && word.normalize) word = word.normalize('NFC');
+            var el = document.createElement('div'); el.className = 'entity ' + type;
+            var sp = document.createElement('div'); sp.className = 'ent-sprite';
+            var ic = window.ggIcon && window.ggIcon(type); if (ic) sp.appendChild(ic);
+            var lab = document.createElement('div'); lab.className = 'ent-word';
+            el.appendChild(sp); el.appendChild(lab);
+            // halved again on user feedback: ~+7%/min, tiny per-kill bump, capped at 1.3x
+            var diff = Math.min(1.3, 1 + (elapsed / 60000) * 0.07 + killed * 0.001);
+            var e = { el: el, labelEl: lab, word: word, typed: 0, type: type, alive: true, x: 0, y: 0, speed: 0 };
+            if (type === 'chicken') { e.x = 14 + Math.random() * (A.w - 90); e.y = -8; e.speed = (9 + Math.random() * 7) * diff; }
+            else { e.x = -8; e.y = 16 + Math.random() * (A.h - 96); e.speed = (10 + Math.random() * 8) * diff; }
+            el.style.transform = 'translate(' + e.x + 'px,' + e.y + 'px)';
+            renderWord(e); stage.appendChild(el); entities.push(e);
+        }
+        function wordScore(e) { return Math.round(e.word.length * 10 * (0.6 + e.speed / 40)); }
+        function urg(e, A) { return e.type === 'chicken' ? e.y / A.h : e.x / A.w; }
+
+        function destroy(e) {
+            e.alive = false; if (e.el.parentNode) e.el.parentNode.removeChild(e.el);
+            score += wordScore(e); killed++; chars += e.word.length; updHud();
+        }
+        function loseLife(e) {
+            log('wall', e.word);
+            e.alive = false; if (e.el.parentNode) e.el.parentNode.removeChild(e.el);
+            lives--; updHud(); stage.classList.add('hit');
+            setTimeout(function () { stage.classList.remove('hit'); }, 140);
+            if (lives <= 0) finish();
+        }
+        function updHud() { hudScore.textContent = '★ ' + score; hudLives.textContent = '❤ ' + Math.max(0, lives); }
+
+        // ---- typing ----
+        function resetHighlights() { aliveList().forEach(function (x) { if (x.typed) { x.typed = 0; renderWord(x); } }); }
+        // visible box shows the current (not-yet-cleared) buffer; clears the instant a word matches
+        function showBuf(buf, miss) { typeShow.textContent = buf || ''; typeShow.classList.toggle('miss', !!miss); }
+        function highlight(buf) {
+            if (!buf) { resetHighlights(); return false; }
+            var A = area();
+            var cands = aliveList().filter(function (x) { return x.word.indexOf(buf) === 0; }); // EXACT prefix (tones must match)
+            if (!cands.length) { resetHighlights(); return true; }
+            cands.sort(function (a, b) { return urg(b, A) - urg(a, A); });
+            var target = cands[0];
+            entities.forEach(function (x) { if (!x.alive) return; var t = (x === target) ? buf.length : 0; if (t !== x.typed) { x.typed = t; renderWord(x); } });
+            return false;
+        }
+        function nfc(s) { return (s && s.normalize) ? s.normalize('NFC') : (s || ''); }
+        // During composition, prefer compStart + compositionupdate.data: e.data carries the resolved
+        // composition (tones applied) and updates BEFORE input.value, so a correctly-toned word becomes
+        // matchable without Enter. Falls back to input.value when the IME provides no data. For Korean,
+        // compStart+compData === value, so behaviour is unchanged (no regression).
+        function effVal() { return (composing && compData) ? nfc(compStart + compData) : nfc(typeInput.value); }
+        function resetComp() {
+            // A Latin (Vietnamese) word fully matched mid-composition. macOS IME keeps the composition open so
+            // the next word mashes onto it. Force-commit via blur (DESKTOP only — blur would close a mobile
+            // keyboard), then clear, so the next word starts a FRESH composition. Latin-gated → never for Korean.
+            if (('ontouchstart' in window) || (navigator.maxTouchPoints > 0)) return;
+            consumed = 0; compStart = ''; compData = '';
+            try { typeInput.blur(); } catch (e) {}
+            try { typeInput.value = ''; } catch (e) {}
+            setTimeout(function () { if (state === 'playing') { try { typeInput.focus(); } catch (e) {} } }, 0);
+        }
+        // Minimal Telex resolver: raw telex (e.g. "mauf") -> toned NFC ("màu"). Used ONLY as a fallback
+        // when exact match fails, so the macOS IME mashing two syllables (leaving a trailing raw-telex word
+        // whose tone key the IME never applied) still matches EXACTLY (the tone the user typed is applied).
+        // Standard Vietnamese Telex resolver (raw telex keys -> toned NFC). General rules, not per-word:
+        //  modifiers aa\u2192â ee\u2192ê oo\u2192ô aw\u2192ă ow\u2192ơ uw\u2192ư w\u2192ư dd\u2192đ (uow/uwow\u2192ươ);
+        //  tone keys s/f/r/x/j (z=clear) \u2014 f/j always a tone, s/x/r a tone only AFTER the first vowel (else initial
+        //  consonant); tone placed on the main vowel (marked vowel; ươ\u2192ơ; qu/gi glide skipped; closed\u2192last
+        //  vowel; open oa/oe/uy\u21922nd else 1st). Used as a fallback so exact (IME-resolved) match wins first.
+        // Order-INDEPENDENT standard Vietnamese Telex resolver (raw telex keys -> toned NFC). General rules.
+        // Tone keys are extracted FIRST (position-independent, last-wins: f/j always a tone; s/x/r a tone only
+        // AFTER the first vowel; z clears), THEN vowel modifiers (aa/ee/oo, aw/ow/uw, uow/uwow->ươ, orphan w),
+        // THEN the tone is placed on the main vowel. So owf==ofw==ờ, goois==goosi==gối, chajy==chayj==chạy, etc.
+        function telex(raw) {
+            var s = ('' + raw).toLowerCase();
+            if (!/[a-z]/.test(s)) return ('' + raw);
+            function isV(ch) { var b; try { b = ch.normalize('NFD').charAt(0); } catch (e) { b = ch; } return 'aeiouyăâêôơư'.indexOf(b) >= 0; }
+            s = s.replace(/dd/g, 'đ');
+            var firstV = -1; for (var i = 0; i < s.length; i++) { if (isV(s.charAt(i))) { firstV = i; break; } }
+            var TT = { s: '́', f: '̀', r: '̉', x: '̃', j: '̣' }, tone = '', out = '';
+            for (var i = 0; i < s.length; i++) {
+                var ch = s.charAt(i);
+                if (ch === 'f' || ch === 'j') { tone = TT[ch]; continue; }
+                if ((ch === 's' || ch === 'x' || ch === 'r') && firstV >= 0 && i > firstV) { tone = TT[ch]; continue; }
+                if (ch === 'z' && firstV >= 0 && i > firstV) { tone = ''; continue; }
+                out += ch;
+            }
+            s = out;
+            s = s.replace(/aa/g, 'â').replace(/ee/g, 'ê').replace(/oo/g, 'ô');
+            s = s.replace(/uwow/g, 'ươ').replace(/ưow/g, 'ươ').replace(/uow/g, 'ươ');
+            s = s.replace(/aw/g, 'ă').replace(/ow/g, 'ơ').replace(/uw/g, 'ư');
+            if (s.indexOf('w') >= 0) {
+                s = s.replace(/w/g, '');
+                if (/uô/.test(s)) s = s.replace('uô', 'ươ');
+                else if (/uo/.test(s)) s = s.replace('uo', 'ươ');
+                else if (/u/.test(s)) s = s.replace('u', 'ư');
+                else if (/o/.test(s)) s = s.replace('o', 'ơ');
+                else if (/a/.test(s)) s = s.replace('a', 'ă');
+            }
+            if (tone) {
+                var vi = []; for (var i = 0; i < s.length; i++) if (isV(s.charAt(i))) vi.push(i);
+                var skip = -1;
+                if (s.slice(0, 2) === 'qu') skip = 1; else if (s.slice(0, 2) === 'gi' && vi.length > 1) skip = 1;
+                var vv = vi.filter(function (x) { return x !== skip; }); if (!vv.length) vv = vi;
+                var mod = 'ăâêôơư', mk = vv.filter(function (x) { return mod.indexOf(s.charAt(x)) >= 0; }), ti;
+                if (mk.length) ti = mk[mk.length - 1];
+                else if (vv.length === 1) ti = vv[0];
+                else { var lastV = vv[vv.length - 1]; if (lastV < s.length - 1) ti = lastV; else { var cl = vv.map(function (x) { return s.charAt(x); }).join(''); ti = (cl === 'oa' || cl === 'oe' || cl === 'uy') ? vv[vv.length - 1] : vv[0]; } }
+                s = s.slice(0, ti + 1) + tone + s.slice(ti + 1);
+            }
+            try { return s.normalize('NFC'); } catch (e) { return s; }
+        }
+        // Exact match against the not-yet-consumed tail. Never writes typeInput.value (no Hangul residue);
+        // consumed is an offset only.
+        function processBuffer(committed) {
+            if (state !== 'playing') return;
+            var v = effVal();
+            if (consumed > v.length) consumed = 0; // value shrank (telex rewrites the composition) → resync offset
+            var buf = v.slice(consumed), A = area();
+            // EXACT greedy match on EVERY event (composition included): a correctly-toned word clears the
+            // instant it appears in the input → no Enter. (If the IME applies tones only at commit, the match
+            // simply lands at compositionend.) Tones MUST match — base-only matching would defeat the point of
+            // Vietnamese typing practice.
+            var go = true, hitLatin = false;
+            while (go && buf) {
+                go = false;
+                var done = aliveList().filter(function (x) { return buf.indexOf(x.word) === 0; });
+                if (done.length) {
+                    done.sort(function (a, b) { return (b.word.length - a.word.length) || (urg(b, A) - urg(a, A)); });
+                    destroy(done[0]); if (!/[가-힣]/.test(done[0].word)) hitLatin = true; consumed += done[0].word.length; buf = v.slice(consumed); go = true;
+                } else {
+                    // telex-prefix extraction: the macOS IME mashes words it never committed ("bạnbofras").
+                    // Pull off the SHORTEST prefix whose telex resolves to an alive enemy ("bof"->"bò"), one
+                    // word at a time. EXACT (tones from the keys the user typed) — practice stays intact.
+                    for (var kk = 2; kk <= buf.length; kk++) {
+                        var pre = buf.slice(0, kk), tw = telex(pre);
+                        if (tw !== pre) { var td = aliveList().filter(function (x) { return x.word === tw; }); if (td.length) { destroy(td[0]); hitLatin = true; consumed += kk; buf = v.slice(consumed); go = true; break; } }
+                    }
+                }
+            }
+            // committed leftover that is not a prefix of any alive enemy = typo/wrong word → clear it so it
+            // can't stick at the front and block later words. Only on COMMIT (writing value mid-composition
+            // would disturb the IME / drop in-progress tone keys).
+            if (committed && buf && !aliveList().some(function (x) { return x.word.indexOf(buf) === 0; })) {
+                typeInput.value = ''; consumed = 0; buf = '';
+            }
+            if (composing && hitLatin && !buf) resetComp();
+            showBuf(buf, highlight(buf));
+            log('proc', 'buf=' + buf + ' consumed=' + consumed + ' committed=' + !!committed);
+        }
+        // drop the already-consumed prefix from the visible input — safe only when NOT composing
+        function compact() { if (consumed) { var v = typeInput.value; if (v && v.normalize) v = v.normalize('NFC'); typeInput.value = v.slice(consumed); consumed = 0; } }
+        function onInput(ev) {
+            if (state !== 'playing') return;
+            if (ev && ev.isComposing === false) composing = false; // self-heal a stuck composing flag (commit input)
+            log('input', 'isComposing=' + (ev && ev.isComposing), 'type=' + (ev && ev.inputType), 'val=' + JSON.stringify(typeInput.value));
+            if (!typeStartT && typeInput.value) typeStartT = performance.now();
+            var comp = composing || (ev && ev.isComposing);
+            processBuffer(!comp);   // committed → greedy; mid-composition → exact-only
+            if (!comp) compact();
+        }
+
+        // ---- loop ----
+        function loop(t) {
+            if (state !== 'playing') return;
+            if (!lastT) lastT = t;
+            var dt = (t - lastT) / 1000; if (dt > 0.1) dt = 0.1; lastT = t; elapsed += dt * 1000;
+            spawnAcc += dt;
+            var every = Math.max(1.9, 2.8 - (elapsed / 60000) * 0.10 - killed * 0.002);
+            if (spawnAcc >= every && aliveList().length < 6) { spawnAcc = 0; spawn(); }
+            var A = area();
+            for (var i = 0; i < entities.length; i++) {
+                var e = entities[i]; if (!e.alive) continue;
+                if (e.type === 'chicken') { e.y += e.speed * dt; e.el.style.transform = 'translate(' + e.x + 'px,' + e.y + 'px)'; if (e.y >= A.h - 36) loseLife(e); }
+                else { e.x += e.speed * dt; e.el.style.transform = 'translate(' + e.x + 'px,' + e.y + 'px)'; if (e.x >= A.w - 52) loseLife(e); }
+            }
+            if (state === 'playing') raf = requestAnimationFrame(loop);
+        }
+
+        function ratingKey(s) {
+            if (s >= 1200) return 'rating_elite'; if (s >= 800) return 'rating_pro'; if (s >= 500) return 'rating_sharp';
+            if (s >= 280) return 'rating_average'; if (s >= 120) return 'rating_casual'; return 'rating_sleepy';
+        }
+        function removeAll() { entities.forEach(function (e) { if (e.el.parentNode) e.el.parentNode.removeChild(e.el); }); entities = []; }
+
+        function start() {
+            state = 'playing'; score = 0; lives = LIVES0; killed = 0; chars = 0; typeStartT = 0; consumed = 0; elapsed = 0; spawnAcc = 0; lastT = 0;
+            removeAll();
+            introInner.style.display = 'none'; hud.style.display = 'flex';
+            typeWrap.style.display = 'block'; typeInput.value = ''; typeInput.disabled = false; showBuf('', false);
+            measure(); updHud(); spawn();
+            var f = function () { try { typeInput.focus(); } catch (e) {} }; f(); setTimeout(f, 0);
+            raf = requestAnimationFrame(loop);
+        }
+        function metaText() { return killed + ' ' + T('typing_words') + ' · ' + lastCpm + ' ' + T('typing_cpm') + ' · ' + lastWpm + ' WPM'; }
+        function finish() {
+            if (state !== 'playing') return;
+            state = 'done'; if (raf) cancelAnimationFrame(raf);
+            removeAll(); stage.style.display = 'none';
+            var rk = ratingKey(score);
+            sumTitle.textContent = T('typing_summary');
+            clear(sumAvg); var n = document.createElement('span'); n.className = 'pixel-num'; n.textContent = String(score); sumAvg.appendChild(n);
+            var mins = typeStartT ? Math.max(1 / 600, (performance.now() - typeStartT) / 60000) : 0;
+            lastCpm = mins ? Math.round(chars / mins) : 0;
+            lastWpm = mins ? Math.round((chars / 5) / mins) : 0;
+            sumRating.textContent = T(rk); sumMeta.textContent = metaText();
+            if (window.ggSummaryMascot) window.ggSummaryMascot(rk);
+            if (window.ggReport) window.ggReport({ game: 'typing', score: score, unit: '', betterIsLower: false, ratingKey: rk });
+            summary.classList.add('show');
+        }
+        function render() {
+            window.ggSetIcon(elIcon, 'keyboard');
+            elTitle.textContent = T('click_to_start'); elSub.textContent = T('typing_howto');
+            introInner.style.display = ''; hud.style.display = 'none'; typeWrap.style.display = 'none';
+        }
+        function reset() {
+            if (raf) cancelAnimationFrame(raf); state = 'idle'; removeAll();
+            summary.classList.remove('show'); stage.style.display = ''; render();
+        }
+
+        stage.addEventListener('pointerdown', function (e) {
+            if (state === 'idle') { e.preventDefault(); start(); }
+            else if (state === 'playing') { try { typeInput.focus(); } catch (e2) {} } // safety net: refocus input
+        });
+        typeInput.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+        typeInput.addEventListener('focus', function () { setTimeout(fitViewport, 300); setTimeout(fitViewport, 650); }); // keyboard opens async
+        typeInput.addEventListener('blur', function () { setTimeout(fitViewport, 150); });
+        typeInput.addEventListener('compositionstart', function () { composing = true; compStart = nfc(typeInput.value); compData = ''; log('compositionstart', 'start=' + JSON.stringify(compStart)); });
+        typeInput.addEventListener('compositionupdate', function (e) { compData = (e && e.data) || ''; log('compositionupdate', 'data=' + JSON.stringify(compData)); processBuffer(false); });
+        typeInput.addEventListener('compositionend', function (e) {
+            log('compositionend', 'data=' + JSON.stringify(e && e.data), 'val=' + JSON.stringify(typeInput.value));
+            composing = false; compData = ''; processBuffer(true); compact();
+            // NOTE: no deferred setTimeout re-match — it could fire mid-next-composition and the
+            // junk-clear would wipe the in-progress syllable (the Korean "공부" wipe bug). The trailing
+            // non-composing input event (Edge/FF) already re-runs committed matching.
+        });
+        typeInput.addEventListener('input', onInput);
+        // Enter / Esc → reset what you've typed (bail out of a wrong word)
+        typeInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === 'Escape') {
+                e.preventDefault();
+                typeInput.value = ''; consumed = 0; composing = false;
+                resetHighlights(); showBuf('', false);
+            }
+        });
+        if (typeLangSel) {
+            typeLangSel.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+            typeLangSel.addEventListener('change', function () { try { localStorage.setItem('gg_type_lang', typeLangSel.value); } catch (e) {} });
+        }
+        btnRetry.addEventListener('click', reset);
+        btnShare.addEventListener('click', function () {
+            var text = '타자 슈팅에서 ' + score + '점을 기록했습니다! ⚡ 기록에 도전해 보세요.';
+            if (navigator.share) navigator.share({ title: '타자 슈팅', text: text, url: location.href }).catch(function () {});
+            else if (navigator.clipboard) { navigator.clipboard.writeText(text + ' ' + location.href); alert(text); } else alert(text);
+        });
+        window.addEventListener('gg:lang', function () {
+            if (state === 'done') { sumTitle.textContent = T('typing_summary'); sumRating.textContent = T(ratingKey(score)); sumMeta.textContent = metaText(); }
+            else if (state === 'idle') render();
+        });
+
+        // test seam — DEBUG-only (?debug=1) so it can't be used to clear enemies / farm score in production
+        if (DEBUG) window.__ggTyping = {
+            lose: function () { var e = aliveList()[0]; if (e) { e.alive = false; if (e.el.parentNode) e.el.parentNode.removeChild(e.el); } lives--; updHud(); if (lives <= 0) finish(); },
+            info: function () { return { state: state, score: score, lives: lives, alive: aliveList().length, killed: killed, chars: chars, cpm: lastCpm, wpm: lastWpm }; },
+            spawnWord: function (w, t) { spawn(w, t); },
+            clearEntities: function () { removeAll(); },
+            words: function () { return aliveList().map(function (e) { return e.word; }); }
+        };
+
+        window.addEventListener('resize', measure);
+        document.addEventListener('DOMContentLoaded', function () { populateLangSelect(); render(); measure(); });
+    })();
+
+</script>
+
+
+</body>
+</html>
