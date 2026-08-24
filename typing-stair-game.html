@@ -1,0 +1,2265 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>타자 계단</title>
+
+    <!-- https://www.hangul-tajawang.com/game/stairs -->
+
+    <style>
+        /* =========================================================
+           RESET
+        ========================================================= */
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #f7f9fc;
+            color: #182235;
+            font-family:
+                    Pretendard,
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "Segoe UI",
+                    "Noto Sans KR",
+                    Arial,
+                    sans-serif;
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+
+        /* =========================================================
+           전체
+        ========================================================= */
+        .game-wrap {
+            width: min(1080px, calc(100% - 32px));
+            margin: 35px auto 70px;
+        }
+
+
+        /* =========================================================
+           상태판
+        ========================================================= */
+        .status-panel {
+            display: grid;
+            grid-template-columns: 130px 110px 1fr;
+            align-items: center;
+
+            gap: 25px;
+
+            min-height: 130px;
+
+            padding: 25px 48px;
+
+            background: #182235;
+
+            border-radius: 27px;
+
+            box-shadow:
+                    0 8px 25px rgba(22, 35, 55, 0.12);
+        }
+
+        .status-title {
+            margin-bottom: 8px;
+
+            color: #77849a;
+
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .status-value {
+            color: #00c792;
+
+            font-size: 37px;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        .status-value.level {
+            color: #6774ff;
+        }
+
+        .floor-arrow {
+            margin-right: 5px;
+
+            font-size: 24px;
+        }
+
+
+        /* =========================================================
+           게이지
+        ========================================================= */
+        .gauge-area {
+            min-width: 0;
+        }
+
+        .gauge-title {
+            display: flex;
+            align-items: center;
+
+            gap: 6px;
+
+            margin-bottom: 11px;
+
+            color: #00ce97;
+
+            font-size: 15px;
+            font-weight: 800;
+        }
+
+        .gauge-track {
+            width: 100%;
+            height: 27px;
+
+            overflow: hidden;
+
+            background: #303c50;
+
+            border-radius: 999px;
+        }
+
+        .gauge-bar {
+            width: 100%;
+            height: 100%;
+
+            background: #00c78f;
+
+            border-radius: inherit;
+
+            transition:
+                    width 0.12s linear,
+                    background 0.2s ease;
+        }
+
+
+        /* =========================================================
+           게임판
+        ========================================================= */
+        .game-board {
+            position: relative;
+
+            height: 850px;
+
+            margin-top: 27px;
+
+            overflow: hidden;
+
+            border: 7px solid #182235;
+            border-radius: 28px;
+
+            background:
+                    linear-gradient(
+                            180deg,
+                            #42bdf1 0%,
+                            #7bd0f3 30%,
+                            #b5e5f4 58%,
+                            #ddf8e6 100%
+                    );
+
+            box-shadow:
+                    0 8px 25px rgba(34, 60, 80, 0.08);
+        }
+
+
+        /* =========================================================
+           상단 진행선
+        ========================================================= */
+        .progress-track {
+            position: absolute;
+
+            top: 20px;
+            left: 20px;
+            right: 20px;
+
+            z-index: 50;
+
+            height: 19px;
+
+            overflow: hidden;
+
+            background: rgba(255, 255, 255, 0.4);
+
+            border-radius: 999px;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+
+            background: #00bf8a;
+
+            border-radius: inherit;
+
+            transition: width 0.2s ease;
+        }
+
+
+        /* =========================================================
+           게임판 층수
+        ========================================================= */
+        .board-floor {
+            position: absolute;
+
+            top: 55px;
+            left: 22px;
+
+            z-index: 50;
+
+            padding: 13px 19px;
+
+            color: #fff;
+
+            background:
+                    rgba(22, 81, 108, 0.72);
+
+            border-radius: 17px;
+
+            font-size: 22px;
+            font-weight: 900;
+
+            backdrop-filter: blur(4px);
+        }
+
+
+        /* =========================================================
+           단계 안내
+        ========================================================= */
+        .level-message {
+            position: absolute;
+
+            top: 60px;
+            left: 50%;
+
+            z-index: 40;
+
+            padding: 10px 20px;
+
+            transform: translateX(-50%);
+
+            color: rgba(20, 91, 117, 0.7);
+
+            background: rgba(255, 255, 255, 0.2);
+
+            border-radius: 999px;
+
+            font-size: 14px;
+            font-weight: 800;
+
+            white-space: nowrap;
+        }
+
+
+        /* =========================================================
+           계단 영역
+        ========================================================= */
+        .stairs {
+            position: absolute;
+
+            inset: 0;
+
+            overflow: hidden;
+        }
+
+
+        /* =========================================================
+           계단
+        ========================================================= */
+        .step {
+            position: absolute;
+
+            left: 50%;
+
+            width: 175px;
+            height: 25px;
+
+            transform: translateX(-50%);
+
+            background: #f6f9fc;
+
+            border-radius: 10px;
+
+            box-shadow:
+                    0 7px 0 #8298ae,
+                    0 9px 14px rgba(40, 70, 93, 0.08);
+
+            transition:
+                    top 0.28s cubic-bezier(.22,.7,.35,1),
+                    left 0.28s cubic-bezier(.22,.7,.35,1),
+                    opacity 0.25s ease,
+                    transform 0.25s ease;
+        }
+
+
+        /* 현재 계단 */
+        .step.active {
+            background: #bfffe2;
+
+            box-shadow:
+                    0 7px 0 #00bf89,
+                    0 10px 20px rgba(0, 174, 126, 0.17);
+        }
+
+
+        /* 지나간 계단 */
+        .step.completed {
+            opacity: 0.45;
+        }
+
+
+        /* =========================================================
+           계단 글자
+        ========================================================= */
+        .step-word {
+            position: absolute;
+
+            left: 50%;
+            bottom: 40px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            min-width: 55px;
+            height: 55px;
+
+            padding: 0 13px;
+
+            transform: translateX(-50%);
+
+            color: #4d8097;
+
+            background:
+                    rgba(222, 244, 252, 0.66);
+
+            border-radius: 13px;
+
+            font-size: 23px;
+            font-weight: 800;
+
+            white-space: nowrap;
+        }
+
+
+        /* 현재 입력 글자 */
+        .step.active .step-word {
+            color: #fff;
+
+            background: #00c68e;
+
+            box-shadow:
+                    0 0 0 4px rgba(255,255,255,0.32),
+                    0 7px 17px rgba(0,174,126,0.2);
+        }
+
+
+        /* 지나간 글자 */
+        .step.completed .step-word {
+            opacity: 0.35;
+        }
+
+
+        /* =========================================================
+           단계 상승 메시지
+        ========================================================= */
+        .level-up {
+            position: absolute;
+
+            top: 45%;
+            left: 50%;
+
+            z-index: 100;
+
+            display: none;
+
+            transform:
+                    translate(-50%, -50%);
+
+            padding: 25px 35px;
+
+            color: #fff;
+
+            background:
+                    rgba(18, 32, 52, 0.9);
+
+            border-radius: 20px;
+
+            font-size: 28px;
+            font-weight: 900;
+
+            box-shadow:
+                    0 15px 40px rgba(0,0,0,0.18);
+        }
+
+        .level-up.show {
+            display: block;
+
+            animation:
+                    levelUp 0.8s ease;
+        }
+
+        @keyframes levelUp {
+
+            0% {
+                opacity: 0;
+                transform:
+                        translate(-50%, -35%)
+                        scale(0.8);
+            }
+
+            30% {
+                opacity: 1;
+                transform:
+                        translate(-50%, -50%)
+                        scale(1.08);
+            }
+
+            100% {
+                opacity: 0;
+                transform:
+                        translate(-50%, -65%)
+                        scale(1);
+            }
+        }
+
+
+        /* =========================================================
+           게임 종료
+        ========================================================= */
+        .game-over {
+            position: absolute;
+
+            inset: 0;
+
+            z-index: 200;
+
+            display: none;
+            align-items: center;
+            justify-content: center;
+
+            padding: 25px;
+
+            background:
+                    rgba(15, 28, 44, 0.45);
+
+            backdrop-filter: blur(4px);
+        }
+
+        .game-over.show {
+            display: flex;
+        }
+
+        .game-over-box {
+            width: min(430px, 95%);
+
+            padding: 40px 30px;
+
+            text-align: center;
+
+            background: #fff;
+
+            border-radius: 24px;
+
+            box-shadow:
+                    0 20px 60px rgba(0,0,0,0.2);
+        }
+
+        .game-over-title {
+            margin:
+                    0 0 12px;
+
+            font-size: 31px;
+        }
+
+        .game-over-text {
+            margin:
+                    0 0 25px;
+
+            color: #788391;
+
+            font-size: 16px;
+            line-height: 1.7;
+        }
+
+        .retry-button {
+            width: 100%;
+
+            padding: 15px;
+
+            color: #fff;
+            background: #00bd88;
+
+            border: 0;
+            border-radius: 13px;
+
+            font-size: 17px;
+            font-weight: 800;
+        }
+
+
+        /* =========================================================
+           입력창
+        ========================================================= */
+        .input-area {
+            margin-top: 27px;
+        }
+
+        .typing-input {
+            width: 100%;
+            height: 120px;
+
+            padding: 0 30px;
+
+            color: #202832;
+            background: #fff;
+
+            border: 6px solid #00b982;
+            border-radius: 27px;
+
+            outline: none;
+
+            text-align: center;
+
+            font-size: 42px;
+            font-weight: 800;
+
+            box-shadow:
+                    0 7px 20px rgba(30, 70, 74, 0.05);
+
+            transition:
+                    border-color 0.15s ease,
+                    box-shadow 0.15s ease;
+        }
+
+        .typing-input::placeholder {
+            color: #aaa;
+        }
+
+        .typing-input:focus {
+            border-color: #00c68d;
+
+            box-shadow:
+                    0 0 0 5px rgba(0,198,141,0.1),
+                    0 7px 20px rgba(30,70,74,0.05);
+        }
+
+
+        /* 오답 */
+        .typing-input.error {
+            border-color: #ff5f68;
+
+            animation:
+                    inputError 0.22s ease;
+        }
+
+        @keyframes inputError {
+
+            0% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-8px);
+            }
+
+            50% {
+                transform: translateX(8px);
+            }
+
+            75% {
+                transform: translateX(-5px);
+            }
+
+            100% {
+                transform: translateX(0);
+            }
+        }
+
+
+        /* =========================================================
+           하단
+        ========================================================= */
+        .bottom-area {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 20px;
+
+            margin-top: 15px;
+        }
+
+        .help-text {
+            margin: 0;
+
+            color: #808996;
+
+            font-size: 14px;
+        }
+
+        .restart-button {
+            padding: 11px 18px;
+
+            color: #354052;
+            background: #fff;
+
+            border: 1px solid #d7dfe7;
+            border-radius: 11px;
+
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .restart-button:hover {
+            background: #f3f6f8;
+        }
+
+
+        /* =========================================================
+           MOBILE
+        ========================================================= */
+        @media (max-width: 700px) {
+
+            .game-wrap {
+                width: calc(100% - 16px);
+
+                margin-top: 10px;
+            }
+
+
+            .status-panel {
+                grid-template-columns:
+            1fr 1fr;
+
+                gap: 15px;
+
+                min-height: auto;
+
+                padding: 18px;
+
+                border-radius: 18px;
+            }
+
+
+            .gauge-area {
+                grid-column:
+                        1 / -1;
+            }
+
+
+            .status-title {
+                font-size: 11px;
+            }
+
+
+            .status-value {
+                font-size: 28px;
+            }
+
+
+            .gauge-track {
+                height: 18px;
+            }
+
+
+            .game-board {
+                height: 650px;
+
+                margin-top: 15px;
+
+                border-width: 4px;
+                border-radius: 20px;
+            }
+
+
+            .progress-track {
+                top: 14px;
+                left: 14px;
+                right: 14px;
+
+                height: 14px;
+            }
+
+
+            .board-floor {
+                top: 42px;
+                left: 13px;
+
+                padding: 9px 13px;
+
+                border-radius: 12px;
+
+                font-size: 16px;
+            }
+
+
+            .level-message {
+                top: 45px;
+
+                font-size: 11px;
+            }
+
+
+            .step {
+                width: 115px;
+                height: 18px;
+
+                border-radius: 7px;
+
+                box-shadow:
+                        0 5px 0 #8298ae;
+            }
+
+
+            .step.active {
+                box-shadow:
+                        0 5px 0 #00bf89;
+            }
+
+
+            .step-word {
+                bottom: 29px;
+
+                min-width: 42px;
+                height: 42px;
+
+                padding: 0 9px;
+
+                border-radius: 10px;
+
+                font-size: 18px;
+            }
+
+
+            .typing-input {
+                height: 88px;
+
+                padding: 0 15px;
+
+                border-width: 4px;
+                border-radius: 18px;
+
+                font-size: 27px;
+            }
+
+
+            .input-area {
+                margin-top: 14px;
+            }
+
+
+            .bottom-area {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+
+            .restart-button {
+                width: 100%;
+            }
+
+
+            .level-up {
+                font-size: 21px;
+
+                padding: 20px 27px;
+            }
+        }
+    </style>
+</head>
+
+
+<body>
+
+<main class="game-wrap">
+
+
+    <!-- =====================================================
+         상태판
+    ====================================================== -->
+    <section class="status-panel">
+
+        <div>
+
+            <div class="status-title">
+                FLOOR
+            </div>
+
+            <div class="status-value">
+
+                <span class="floor-arrow">
+                    ↗
+                </span>
+
+                <span id="floorValue">
+                    0층
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div>
+
+            <div class="status-title">
+                LEVEL
+            </div>
+
+            <div
+                    id="levelValue"
+                    class="status-value level"
+            >
+                1
+            </div>
+
+        </div>
+
+
+        <div class="gauge-area">
+
+            <div class="gauge-title">
+
+                ◔ 남은 게이지
+
+                <span id="gaugeText">
+                    100%
+                </span>
+
+            </div>
+
+
+            <div class="gauge-track">
+
+                <div
+                        id="gaugeBar"
+                        class="gauge-bar"
+                ></div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         게임판
+    ====================================================== -->
+    <section
+            id="gameBoard"
+            class="game-board"
+    >
+
+        <div class="progress-track">
+
+            <div
+                    id="progressBar"
+                    class="progress-bar"
+            ></div>
+
+        </div>
+
+
+        <div
+                id="boardFloor"
+                class="board-floor"
+        >
+            ↗ 0층
+        </div>
+
+
+        <div
+                id="levelMessage"
+                class="level-message"
+        >
+            1단계 · 자음 / 모음
+        </div>
+
+
+        <div
+                id="stairs"
+                class="stairs"
+        ></div>
+
+
+        <div
+                id="levelUp"
+                class="level-up"
+        >
+            LEVEL UP!
+        </div>
+
+
+        <div
+                id="gameOver"
+                class="game-over"
+        >
+
+            <div class="game-over-box">
+
+                <h2 class="game-over-title">
+                    GAME OVER
+                </h2>
+
+                <p
+                        id="gameOverText"
+                        class="game-over-text"
+                >
+                    0층까지 올라갔습니다.
+                </p>
+
+                <button
+                        id="retryButton"
+                        class="retry-button"
+                        type="button"
+                >
+                    다시 도전
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         입력
+    ====================================================== -->
+    <div class="input-area">
+
+        <input
+                id="typingInput"
+                class="typing-input"
+                type="text"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                placeholder="다음 계단의 글자를 입력!"
+                aria-label="타자 입력"
+        >
+
+    </div>
+
+
+    <div class="bottom-area">
+
+        <p class="help-text">
+            초록색 계단의 글자를 입력하면 다음 계단으로 올라갑니다.
+        </p>
+
+
+        <button
+                id="restartButton"
+                class="restart-button"
+                type="button"
+        >
+            처음부터
+        </button>
+
+    </div>
+
+</main>
+
+
+<script>
+    "use strict";
+
+
+    /* =========================================================
+       DOM
+    ========================================================= */
+
+    const stairs =
+              document.getElementById("stairs");
+
+    const gameBoard =
+              document.getElementById("gameBoard");
+
+    const typingInput =
+              document.getElementById("typingInput");
+
+
+    const floorValue =
+              document.getElementById("floorValue");
+
+    const boardFloor =
+              document.getElementById("boardFloor");
+
+    const levelValue =
+              document.getElementById("levelValue");
+
+    const levelMessage =
+              document.getElementById("levelMessage");
+
+
+    const gaugeBar =
+              document.getElementById("gaugeBar");
+
+    const gaugeText =
+              document.getElementById("gaugeText");
+
+    const progressBar =
+              document.getElementById("progressBar");
+
+
+    const levelUp =
+              document.getElementById("levelUp");
+
+
+    const gameOver =
+              document.getElementById("gameOver");
+
+    const gameOverText =
+              document.getElementById("gameOverText");
+
+    const retryButton =
+              document.getElementById("retryButton");
+
+    const restartButton =
+              document.getElementById("restartButton");
+
+
+    /* =========================================================
+       단계별 타자 데이터
+    ========================================================= */
+
+    const levelData = {
+
+
+        /* -----------------------------------------------------
+           1단계
+           자음 / 모음
+        ----------------------------------------------------- */
+        1: [
+
+            "ㅂ", "ㅈ", "ㄷ", "ㄱ", "ㅅ",
+
+            "ㅛ", "ㅕ", "ㅑ", "ㅐ", "ㅔ",
+
+            "ㅁ", "ㄴ", "ㅇ", "ㄹ", "ㅎ",
+
+            "ㅗ", "ㅓ", "ㅏ", "ㅣ",
+
+            "ㅋ", "ㅌ", "ㅊ", "ㅍ",
+
+            "ㅠ", "ㅜ", "ㅡ"
+        ],
+
+
+        /* -----------------------------------------------------
+           2단계
+           한 글자
+        ----------------------------------------------------- */
+        2: [
+
+            "가", "나", "다", "라", "마",
+
+            "바", "사", "아", "자", "차",
+
+            "카", "타", "파", "하",
+
+            "고", "노", "도", "로", "모",
+
+            "구", "누", "두", "루", "무",
+
+            "기", "니", "디", "리", "미"
+        ],
+
+
+        /* -----------------------------------------------------
+           3단계
+           짧은 단어
+        ----------------------------------------------------- */
+        3: [
+
+            "학교",
+            "친구",
+            "사과",
+            "우유",
+
+            "바다",
+            "하늘",
+            "구름",
+            "기차",
+
+            "나무",
+            "도로",
+            "나라",
+            "모자",
+
+            "시계",
+            "노래",
+            "여름",
+            "겨울",
+
+            "아침",
+            "저녁",
+            "공원",
+            "시간"
+        ],
+
+
+        /* -----------------------------------------------------
+           4단계
+           일반 단어
+        ----------------------------------------------------- */
+        4: [
+
+            "컴퓨터",
+            "키보드",
+            "인터넷",
+            "자동차",
+
+            "타자연습",
+            "대한민국",
+            "무지개",
+            "도서관",
+
+            "운동장",
+            "휴대전화",
+            "비밀번호",
+            "프로그램",
+
+            "게임하기",
+            "집중하기",
+            "정확하게",
+            "빠르게"
+        ],
+
+
+        /* -----------------------------------------------------
+           5단계
+           긴 단어
+        ----------------------------------------------------- */
+        5: [
+
+            "한글타자연습",
+            "컴퓨터게임",
+            "인터넷검색",
+
+            "프로그래밍",
+            "대한민국만세",
+            "아름다운하늘",
+
+            "즐거운하루",
+            "오늘도화이팅",
+
+            "정확한타자",
+            "빠른타자연습",
+
+            "키보드연습",
+            "컴퓨터연습"
+        ]
+    };
+
+
+    /* =========================================================
+       단계 이름
+    ========================================================= */
+
+    const levelNames = {
+
+        1: "자음 / 모음",
+
+        2: "한 글자",
+
+        3: "짧은 단어",
+
+        4: "일반 단어",
+
+        5: "긴 단어"
+    };
+
+
+    /* =========================================================
+       기본 게임 설정
+    ========================================================= */
+
+    const VISIBLE_STEP_COUNT = 7;
+
+    const FLOOR_PER_LEVEL = 10;
+
+
+    /*
+     * PC 계단 간격
+     */
+    const STEP_GAP_PC = 105;
+
+
+    /*
+     * 모바일 계단 간격
+     */
+    const STEP_GAP_MOBILE = 78;
+
+
+    /* =========================================================
+       게임 변수
+    ========================================================= */
+
+    let floor = 0;
+
+    let level = 1;
+
+    let gauge = 100;
+
+
+    let gameStarted = false;
+
+    let gameEnded = false;
+
+
+    let gaugeTimer = null;
+
+
+    let steps = [];
+
+
+    let lastWord = "";
+
+
+    /* =========================================================
+       계단 좌우 위치
+    ========================================================= */
+
+    const desktopXPositions = [
+
+        50,
+        63,
+        49,
+        61,
+        50,
+        71,
+        59,
+        74,
+        52,
+        65
+    ];
+
+
+    const mobileXPositions = [
+
+        50,
+        64,
+        46,
+        62,
+        48,
+        68,
+        54,
+        70,
+        45,
+        62
+    ];
+
+
+    /* =========================================================
+       현재 계단 간격
+    ========================================================= */
+
+    function getStepGap() {
+
+        if (
+            window.innerWidth <= 700
+        ) {
+
+            return STEP_GAP_MOBILE;
+        }
+
+
+        return STEP_GAP_PC;
+    }
+
+
+    /* =========================================================
+       시작 계단 위치
+    ========================================================= */
+
+    function getBaseY() {
+
+        if (
+            window.innerWidth <= 700
+        ) {
+
+            return 535;
+        }
+
+
+        return 700;
+    }
+
+
+    /* =========================================================
+       X 위치
+    ========================================================= */
+
+    function getStepX(index) {
+
+        const positions =
+                  window.innerWidth <= 700
+                      ? mobileXPositions
+                      : desktopXPositions;
+
+
+        return positions[
+        index %
+        positions.length
+            ];
+    }
+
+
+    /* =========================================================
+       현재 단계 계산
+
+       0~9층   = 1단계
+       10~19층 = 2단계
+       20~29층 = 3단계
+       ...
+    ========================================================= */
+
+    function calculateLevel() {
+
+        let newLevel =
+                Math.floor(
+                    floor /
+                    FLOOR_PER_LEVEL
+                ) + 1;
+
+
+        /*
+         * 5단계 이후에는
+         * 5단계 단어 사용
+         */
+        return newLevel;
+    }
+
+
+    /* =========================================================
+       데이터에서 사용할 실제 단계
+    ========================================================= */
+
+    function getDataLevel() {
+
+        if (level >= 5) {
+
+            return 5;
+        }
+
+
+        return level;
+    }
+
+
+    /* =========================================================
+       랜덤 글자/단어
+    ========================================================= */
+
+    function getRandomWord() {
+
+        const dataLevel =
+                  getDataLevel();
+
+
+        const list =
+                  levelData[dataLevel];
+
+
+        let word;
+
+
+        /*
+         * 바로 전 글자와
+         * 동일하지 않도록
+         */
+        do {
+
+            const random =
+                      Math.floor(
+                          Math.random() *
+                          list.length
+                      );
+
+
+            word =
+                list[random];
+
+        } while (
+            word === lastWord &&
+            list.length > 1
+            );
+
+
+        lastWord =
+            word;
+
+
+        return word;
+    }
+
+
+    /* =========================================================
+       계단 객체 생성
+    ========================================================= */
+
+    function createStepObject(index) {
+
+        return {
+
+            id:
+                Date.now() +
+                "-" +
+                Math.random(),
+
+            word:
+                getRandomWord(),
+
+            x:
+                getStepX(index),
+
+            element:
+                null
+        };
+    }
+
+
+    /* =========================================================
+       초기 계단 생성
+    ========================================================= */
+
+    function createInitialSteps() {
+
+        stairs.innerHTML = "";
+
+        steps = [];
+
+
+        for (
+            let i = 0;
+            i < VISIBLE_STEP_COUNT;
+            i++
+        ) {
+
+            steps.push(
+                createStepObject(i)
+            );
+        }
+
+
+        renderSteps();
+    }
+
+
+    /* =========================================================
+       계단 렌더링
+    ========================================================= */
+
+    function renderSteps() {
+
+        stairs.innerHTML = "";
+
+
+        const baseY =
+                  getBaseY();
+
+
+        const gap =
+                  getStepGap();
+
+
+        steps.forEach(
+            function(step, index) {
+
+                const element =
+                          document.createElement(
+                              "div"
+                          );
+
+
+                element.className =
+                    "step";
+
+
+                /*
+                 * 현재 입력해야 하는 계단
+                 *
+                 * 가장 아래가 현재 계단
+                 */
+                if (index === 0) {
+
+                    element.classList.add(
+                        "active"
+                    );
+                }
+
+
+                /*
+                 * 위치
+                 */
+                element.style.left =
+                    step.x + "%";
+
+
+                element.style.top =
+                    (
+                        baseY -
+                        index * gap
+                    ) + "px";
+
+
+                /*
+                 * 글자 박스
+                 */
+                const word =
+                          document.createElement(
+                              "div"
+                          );
+
+
+                word.className =
+                    "step-word";
+
+
+                word.textContent =
+                    step.word;
+
+
+                element.appendChild(
+                    word
+                );
+
+
+                stairs.appendChild(
+                    element
+                );
+
+
+                step.element =
+                    element;
+            }
+        );
+    }
+
+
+    /* =========================================================
+       다음 계단으로 이동
+    ========================================================= */
+
+    function moveStairs() {
+
+        /*
+         * 현재 입력한 계단 삭제
+         */
+        steps.shift();
+
+
+        /*
+         * 기존 계단의 X는 유지
+         * 새 계단만 랜덤 위치
+         */
+
+        const newIndex =
+                  floor +
+                  VISIBLE_STEP_COUNT;
+
+
+        steps.push(
+            createStepObject(
+                newIndex
+            )
+        );
+
+
+        /*
+         * 애니메이션용
+         */
+        animateStairs();
+    }
+
+
+    /* =========================================================
+       계단 움직임 애니메이션
+    ========================================================= */
+
+    function animateStairs() {
+
+        const baseY =
+                  getBaseY();
+
+
+        const gap =
+                  getStepGap();
+
+
+        /*
+         * 기존 계단을 아래로 이동
+         */
+        steps.forEach(
+            function(step, index) {
+
+                if (!step.element) {
+
+                    return;
+                }
+
+
+                step.element.style.top =
+                    (
+                        baseY -
+                        (index - 1) * gap
+                    ) + "px";
+            }
+        );
+
+
+        /*
+         * 잠시 후 전체 다시 그림
+         */
+        setTimeout(
+            function() {
+
+                renderSteps();
+
+            },
+            260
+        );
+    }
+
+
+    /* =========================================================
+       상태 업데이트
+    ========================================================= */
+
+    function updateStatus() {
+
+        floorValue.textContent =
+            floor + "층";
+
+
+        boardFloor.textContent =
+            "↗ " +
+            floor +
+            "층";
+
+
+        levelValue.textContent =
+            level;
+
+
+        /*
+         * 현재 단계 진행률
+         */
+        const levelProgress =
+                  (
+                      floor %
+                      FLOOR_PER_LEVEL
+                  ) /
+                  FLOOR_PER_LEVEL *
+                  100;
+
+
+        progressBar.style.width =
+            levelProgress + "%";
+
+
+        const displayLevel =
+                  getDataLevel();
+
+
+        levelMessage.textContent =
+            level +
+            "단계 · " +
+            levelNames[displayLevel];
+    }
+
+
+    /* =========================================================
+       게이지 표시
+    ========================================================= */
+
+    function updateGauge() {
+
+        if (gauge < 0) {
+
+            gauge = 0;
+        }
+
+
+        if (gauge > 100) {
+
+            gauge = 100;
+        }
+
+
+        gaugeBar.style.width =
+            gauge + "%";
+
+
+        gaugeText.textContent =
+            Math.round(gauge) +
+            "%";
+
+
+        /*
+         * 색상
+         */
+        if (gauge <= 30) {
+
+            gaugeBar.style.background =
+                "#ff5f68";
+
+        } else if (
+            gauge <= 60
+        ) {
+
+            gaugeBar.style.background =
+                "#ffb340";
+
+        } else {
+
+            gaugeBar.style.background =
+                "#00c78f";
+        }
+    }
+
+
+    /* =========================================================
+       게이지 타이머
+    ========================================================= */
+
+    function startGaugeTimer() {
+
+        if (
+            gaugeTimer !== null
+        ) {
+
+            return;
+        }
+
+
+        gaugeTimer =
+            setInterval(
+                function() {
+
+                    if (
+                        !gameStarted ||
+                        gameEnded
+                    ) {
+
+                        return;
+                    }
+
+
+                    /*
+                     * 단계가 올라갈수록
+                     * 조금 더 빠르게 감소
+                     */
+                    const speed =
+                              Math.min(
+                                  1.2,
+                                  0.33 +
+                                  level * 0.025
+                              );
+
+
+                    gauge -= speed;
+
+
+                    updateGauge();
+
+
+                    if (
+                        gauge <= 0
+                    ) {
+
+                        endGame();
+                    }
+
+                },
+                100
+            );
+    }
+
+
+    /* =========================================================
+       타이머 중지
+    ========================================================= */
+
+    function stopGaugeTimer() {
+
+        if (
+            gaugeTimer !== null
+        ) {
+
+            clearInterval(
+                gaugeTimer
+            );
+
+
+            gaugeTimer =
+                null;
+        }
+    }
+
+
+    /* =========================================================
+       게임 활성화
+    ========================================================= */
+
+    function activateGame() {
+
+        if (gameStarted) {
+
+            return;
+        }
+
+
+        gameStarted =
+            true;
+
+
+        startGaugeTimer();
+    }
+
+
+    /* =========================================================
+       정답 처리
+    ========================================================= */
+
+    function correctAnswer() {
+
+        /*
+         * 층 증가
+         */
+        floor++;
+
+
+        /*
+         * 게이지 회복
+         */
+        gauge =
+            Math.min(
+                100,
+                gauge + 10
+            );
+
+
+        /*
+         * 단계 확인
+         */
+        const previousLevel =
+                  level;
+
+
+        level =
+            calculateLevel();
+
+
+        /*
+         * 10층마다 LEVEL UP
+         */
+        if (
+            level > previousLevel
+        ) {
+
+            showLevelUp();
+        }
+
+
+        moveStairs();
+
+
+        updateStatus();
+
+        updateGauge();
+    }
+
+
+    /* =========================================================
+       오답
+    ========================================================= */
+
+    function wrongAnswer() {
+
+        gauge -= 5;
+
+
+        updateGauge();
+
+
+        typingInput.classList.remove(
+            "error"
+        );
+
+
+        void typingInput.offsetWidth;
+
+
+        typingInput.classList.add(
+            "error"
+        );
+
+
+        setTimeout(
+            function() {
+
+                typingInput.classList.remove(
+                    "error"
+                );
+
+            },
+            230
+        );
+
+
+        if (
+            gauge <= 0
+        ) {
+
+            endGame();
+        }
+    }
+
+
+    /* =========================================================
+       입력
+    ========================================================= */
+
+    typingInput.addEventListener(
+        "input",
+        function() {
+
+            if (gameEnded) {
+
+                return;
+            }
+
+
+            activateGame();
+
+
+            if (
+                steps.length === 0
+            ) {
+
+                return;
+            }
+
+
+            const typed =
+                      typingInput.value.trim();
+
+
+            const answer =
+                      steps[0].word;
+
+
+            /*
+             * 빈값
+             */
+            if (typed === "") {
+
+                return;
+            }
+
+
+            /*
+             * 정답
+             */
+            if (
+                typed === answer
+            ) {
+
+                typingInput.value =
+                    "";
+
+
+                correctAnswer();
+
+
+                return;
+            }
+
+
+            /*
+             * 단어 입력 중이면 기다림
+
+             * 예)
+             * 정답: 학교
+             * 입력: 학
+             */
+            if (
+                answer.startsWith(
+                    typed
+                )
+            ) {
+
+                return;
+            }
+
+
+            /*
+             * 오답
+             */
+            wrongAnswer();
+
+
+            typingInput.value =
+                "";
+        }
+    );
+
+
+    /* =========================================================
+       레벨업 표시
+    ========================================================= */
+
+    function showLevelUp() {
+
+        levelUp.textContent =
+            "LEVEL " +
+            level +
+            "!";
+
+
+        levelUp.classList.remove(
+            "show"
+        );
+
+
+        void levelUp.offsetWidth;
+
+
+        levelUp.classList.add(
+            "show"
+        );
+
+
+        setTimeout(
+            function() {
+
+                levelUp.classList.remove(
+                    "show"
+                );
+
+            },
+            800
+        );
+    }
+
+
+    /* =========================================================
+       게임 종료
+    ========================================================= */
+
+    function endGame() {
+
+        gameEnded =
+            true;
+
+
+        gameStarted =
+            false;
+
+
+        stopGaugeTimer();
+
+
+        typingInput.blur();
+
+
+        gameOverText.textContent =
+            floor +
+            "층까지 올라갔습니다. " +
+            "최종 단계는 " +
+            level +
+            "단계입니다.";
+
+
+        gameOver.classList.add(
+            "show"
+        );
+    }
+
+
+    /* =========================================================
+       게임 초기화
+    ========================================================= */
+
+    function resetGame() {
+
+        stopGaugeTimer();
+
+
+        floor =
+            0;
+
+
+        level =
+            1;
+
+
+        gauge =
+            100;
+
+
+        gameStarted =
+            false;
+
+
+        gameEnded =
+            false;
+
+
+        lastWord =
+            "";
+
+
+        typingInput.value =
+            "";
+
+
+        gameOver.classList.remove(
+            "show"
+        );
+
+
+        levelUp.classList.remove(
+            "show"
+        );
+
+
+        createInitialSteps();
+
+
+        updateStatus();
+
+
+        updateGauge();
+
+
+        setTimeout(
+            function() {
+
+                typingInput.focus();
+
+            },
+            50
+        );
+    }
+
+
+    /* =========================================================
+       다시 시작
+    ========================================================= */
+
+    restartButton.addEventListener(
+        "click",
+        resetGame
+    );
+
+
+    retryButton.addEventListener(
+        "click",
+        resetGame
+    );
+
+
+    /* =========================================================
+       게임판 클릭
+    ========================================================= */
+
+    gameBoard.addEventListener(
+        "click",
+        function(event) {
+
+            if (
+                event.target ===
+                retryButton
+            ) {
+
+                return;
+            }
+
+
+            if (!gameEnded) {
+
+                typingInput.focus();
+            }
+        }
+    );
+
+
+    /* =========================================================
+       브라우저 크기 변경
+    ========================================================= */
+
+    let resizeTimer =
+            null;
+
+
+    window.addEventListener(
+        "resize",
+        function() {
+
+            clearTimeout(
+                resizeTimer
+            );
+
+
+            resizeTimer =
+                setTimeout(
+                    function() {
+
+                        /*
+                         * 화면 크기에 따라
+                         * 계단 재배치
+                         */
+                        steps.forEach(
+                            function(step, index) {
+
+                                step.x =
+                                    getStepX(
+                                        floor +
+                                        index
+                                    );
+                            }
+                        );
+
+
+                        renderSteps();
+
+                    },
+                    120
+                );
+        }
+    );
+
+
+    /* =========================================================
+       시작
+    ========================================================= */
+
+    resetGame();
+
+</script>
+
+</body>
+</html>
