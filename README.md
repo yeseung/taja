@@ -44,6 +44,7 @@
 - https://util.monster/kr/typing-practice
 - https://pongvn.com/ggreflex/ko/typing-test
 - https://world-typing.edgeone.dev/
+- https://toolio.pongvn.com/ko/tools/typing-speed
 <br><br><br>
 
 
