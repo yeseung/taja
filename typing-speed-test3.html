@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>타자 속도 테스트</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #f6f7f9;
+            --card: #ffffff;
+            --line: #e5e7eb;
+            --text: #111827;
+            --muted: #6b7280;
+            --soft: #f9fafb;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --radius: 14px;
+            --shadow: 0 8px 30px rgba(17, 24, 39, 0.06);
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family:
+                    -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR",
+                    "Apple SD Gothic Neo", "Malgun Gothic", Arial, sans-serif;
+            line-height: 1.6;
+        }
+
+        button,
+        textarea,
+        select {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .page {
+            width: min(100% - 32px, 960px);
+            margin: 0 auto;
+            padding: 48px 0 70px;
+        }
+
+        .header {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: clamp(28px, 4vw, 40px);
+            letter-spacing: -0.04em;
+        }
+
+        .header p {
+            margin: 8px 0 0;
+            color: var(--muted);
+            font-size: 15px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 24px;
+        }
+
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .label {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .spacer {
+            flex: 1;
+        }
+
+        .lang-select,
+        .btn,
+        .textarea {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: #fff;
+            color: var(--text);
+            transition:
+                    border-color .15s ease,
+                    box-shadow .15s ease,
+                    background .15s ease;
+        }
+
+        .lang-select {
+            height: 38px;
+            padding: 0 10px;
+        }
+
+        .btn {
+            min-height: 38px;
+            padding: 8px 13px;
+            font-weight: 700;
+        }
+
+        .btn:hover {
+            background: var(--soft);
+            border-color: #d1d5db;
+        }
+
+        .btn:focus-visible,
+        .lang-select:focus-visible,
+        .textarea:focus-visible {
+            outline: 0;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .stat-card {
+            min-width: 0;
+            padding: 16px 12px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: var(--soft);
+            text-align: center;
+        }
+
+        .stat-card__val {
+            font-size: 28px;
+            line-height: 1.2;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+
+        .stat-card__label {
+            margin-top: 6px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .progress-track {
+            height: 8px;
+            margin: 18px 0;
+            overflow: hidden;
+            border-radius: 999px;
+            background: #eef0f3;
+        }
+
+        .progress-fill {
+            width: 0;
+            height: 100%;
+            border-radius: inherit;
+            background: var(--primary);
+            transition: width .08s linear;
+        }
+
+        #passage-wrap {
+            min-height: 150px;
+            padding: 22px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: #fff;
+            font-size: clamp(20px, 2.7vw, 27px);
+            font-weight: 650;
+            line-height: 1.85;
+            letter-spacing: .01em;
+            word-break: break-word;
+            white-space: pre-wrap;
+        }
+
+        .ch-pending {
+            color: #9ca3af;
+        }
+
+        .ch-done {
+            color: var(--success);
+        }
+
+        .ch-err {
+            color: #fff;
+            background: var(--danger);
+            border-radius: 3px;
+        }
+
+        .ch-cursor {
+            position: relative;
+        }
+
+        .ch-cursor::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            bottom: -4px;
+            width: 100%;
+            height: 2px;
+            border-radius: 999px;
+            background: var(--primary);
+        }
+
+        .input-wrap {
+            margin-top: 14px;
+        }
+
+        .textarea {
+            display: block;
+            width: 100%;
+            min-height: 132px;
+            resize: vertical;
+            padding: 16px;
+            font-size: 18px;
+            line-height: 1.65;
+        }
+
+        .textarea::placeholder {
+            color: #9ca3af;
+        }
+
+        .textarea:disabled {
+            background: #f9fafb;
+            color: #6b7280;
+        }
+
+        .hint {
+            margin-top: 9px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .result-banner {
+            margin-top: 18px;
+            padding: 24px;
+            border: 1px solid #bfdbfe;
+            border-radius: 12px;
+            background: #eff6ff;
+            text-align: center;
+        }
+
+        .result-wpm {
+            color: var(--primary);
+            font-size: 52px;
+            line-height: 1;
+            font-weight: 900;
+            letter-spacing: -0.05em;
+        }
+
+        .result-wpm-label {
+            margin-top: 7px;
+            color: #1e40af;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .result-detail {
+            margin: 13px 0 0;
+            color: #374151;
+        }
+
+        .result-actions {
+            margin-top: 16px;
+        }
+
+        .primary-btn {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .primary-btn:hover {
+            border-color: var(--primary-hover);
+            background: var(--primary-hover);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 700px) {
+            .page {
+                width: min(100% - 20px, 960px);
+                padding-top: 24px;
+            }
+
+            .card {
+                padding: 16px;
+            }
+
+            .toolbar {
+                flex-wrap: wrap;
+            }
+
+            .toolbar .spacer {
+                display: none;
+            }
+
+            .toolbar .label {
+                width: 100%;
+            }
+
+            .stat-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            #passage-wrap {
+                min-height: 130px;
+                padding: 16px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .stat-card__val {
+                font-size: 24px;
+            }
+
+            .btn,
+            .lang-select {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<main class="page">
+    <header class="header">
+        <h1>타자 속도 테스트</h1>
+        <p>문장을 정확하게 입력하고 WPM, 타수, 정확도를 확인해 보세요.</p>
+    </header>
+
+    <section class="card" aria-label="타자 속도 테스트">
+        <div class="toolbar">
+            <span class="label" id="random-label">매번 무작위 문장이 나옵니다.</span>
+            <div class="spacer"></div>
+
+            <select class="lang-select" id="lang-select" aria-label="언어 선택">
+                <option value="ko">한국어</option>
+                <option value="en">English</option>
+            </select>
+
+            <button type="button" class="btn" id="restart-btn">🎲 새 문장</button>
+        </div>
+
+        <div class="stat-grid" id="stat-grid">
+            <div class="stat-card">
+                <div class="stat-card__val" id="stat-wpm">--</div>
+                <div class="stat-card__label" id="label-wpm">WPM</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-card__val" id="stat-acc">--</div>
+                <div class="stat-card__label" id="label-acc">정확도</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-card__val" id="stat-time">0초</div>
+                <div class="stat-card__label" id="label-time">시간</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-card__val" id="stat-cpm">--</div>
+                <div class="stat-card__label" id="label-cpm">타/분</div>
+            </div>
+        </div>
+
+        <div class="progress-track" aria-label="진행률">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+
+        <div id="passage-wrap" aria-label="연습 문장" aria-live="off"></div>
+
+        <div class="input-wrap">
+        <textarea
+                id="type-input"
+                class="textarea"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                placeholder="위 문장을 그대로 입력하세요."
+                aria-label="타자 입력"
+        ></textarea>
+
+            <div class="hint" id="shortcut-hint">
+                Ctrl 또는 Cmd + Enter를 누르면 새 문장으로 시작합니다.
+            </div>
+        </div>
+
+        <div id="result-banner" class="result-banner hidden" aria-live="polite">
+            <div class="result-wpm" id="result-wpm"></div>
+            <div class="result-wpm-label" id="result-wpm-label">분당 단어 수</div>
+            <p class="result-detail" id="result-detail"></p>
+
+            <div class="result-actions">
+                <button type="button" class="btn primary-btn" id="result-restart-btn">
+                    다시 시작
+                </button>
+            </div>
+        </div>
+    </section>
+</main>
+
+<script>
+    "use strict";
+
+    const I18N = {
+        ko: {
+            random: "매번 무작위 문장이 나옵니다.",
+            restart: "🎲 새 문장",
+            wpm: "WPM",
+            acc: "정확도",
+            time: "시간",
+            cpm: "타/분",
+            typeHere: "위 문장을 그대로 입력하세요.",
+            secSuffix: "초",
+            wpmLabel: "분당 단어 수",
+            hint: "Ctrl 또는 Cmd + Enter를 누르면 새 문장으로 시작합니다.",
+            again: "다시 시작",
+            resultDetail: ({ cpm, acc, errs, time }) =>
+                `타수 ${cpm}타/분 · 정확도 ${acc}% · 오류 ${errs}개 · ${time}초`
+        },
+        en: {
+            random: "A random passage appears every round.",
+            restart: "🎲 New passage",
+            wpm: "WPM",
+            acc: "Accuracy",
+            time: "Time",
+            cpm: "CPM",
+            typeHere: "Type the passage exactly as shown above.",
+            secSuffix: "s",
+            wpmLabel: "Words per minute",
+            hint: "Press Ctrl/Cmd + Enter to start a new passage.",
+            again: "Try again",
+            resultDetail: ({ cpm, acc, errs, time }) =>
+                `${cpm} CPM · ${acc}% accuracy · ${errs} errors · ${time}s`
+        }
+    };
+
+    const PASSAGES = [
+        {
+            en: "The only way to do great work is to love what you do. If you haven't found it yet, keep looking, and don't settle.",
+            ko: "가장 큰 위험은 위험 없는 삶을 사는 것이다. 아무것도 시도하지 않으면 아무 일도 일어나지 않는다."
+        },
+        {
+            en: "Success is not final, failure is not fatal: it is the courage to continue that counts. Do what you can with what you have.",
+            ko: "실패는 성공의 어머니다. 넘어지는 것은 부끄러운 일이 아니며, 다시 일어서지 않는 것이 부끄러운 일이다."
+        },
+        {
+            en: "The future belongs to those who believe in the beauty of their dreams. Do not wait; the time will never be just right.",
+            ko: "천 리 길도 한 걸음부터 시작된다. 시작이 반이라는 말은 결코 헛되지 않으니, 오늘 첫걸음을 내디뎌라."
+        },
+        {
+            en: "In the middle of difficulty lies opportunity. A person who never made a mistake never tried anything new.",
+            ko: "고생 끝에 낙이 온다. 지금의 어려움은 더 큰 기쁨을 맞이하기 위한 준비 과정일 뿐이다."
+        },
+        {
+            en: "It always seems impossible until it is done. The best way to predict the future is to create it with your own hands.",
+            ko: "하늘은 스스로 돕는 자를 돕는다. 간절히 원하고 꾸준히 노력하는 사람에게 반드시 기회가 찾아온다."
+        },
+        {
+            en: "Happiness is not something ready made. It comes from your own actions and the small choices you make each day.",
+            ko: "티끌 모아 태산이라 했으니, 작은 노력이 하루하루 쌓이면 언젠가 큰 산을 이루게 된다."
+        },
+        {
+            en: "The quick brown fox jumps over the lazy dog while five wizards quickly vex a jaded, big monk near the docks.",
+            ko: "키스의 고유 조건은 입술끼리 만나야 하고 특별한 기술은 필요치 않다. 다람쥐 헌 쳇바퀴에 타고파 한다."
+        },
+        {
+            en: "Great things are never done by impulse, but by a series of small things brought together with patience and care.",
+            ko: "우물을 파도 한 우물을 파라. 한 가지 일에 정성을 다하면 반드시 좋은 결과가 뒤따르게 마련이다."
+        },
+        {
+            en: "Life is what happens when you are busy making other plans, so remember to enjoy the ordinary moments along the way.",
+            ko: "오늘 할 수 있는 일을 내일로 미루지 마라. 지금 이 순간이 남은 인생에서 가장 젊은 날이다."
+        },
+        {
+            en: "Believe you can and you are halfway there. Whether you think you can or you think you cannot, you are right.",
+            ko: "열 번 찍어 아니 넘어가는 나무 없다. 꾸준히 두드리고 노력하면 이루지 못할 일이 없다."
+        },
+        {
+            en: "The journey of a thousand miles begins with a single step. Patience turns small efforts into large results over time.",
+            ko: "가는 말이 고와야 오는 말이 곱다. 따뜻한 말 한마디가 천 냥 빚도 갚는다는 옛말이 있다."
+        },
+        {
+            en: "The more that you read, the more things you will know. The more that you learn, the more places you will go.",
+            ko: "아는 것이 힘이다. 배움에는 끝이 없으며, 하루라도 책을 읽지 않으면 입에 가시가 돋는다고 했다."
+        },
+        {
+            en: "Simplicity is the ultimate sophistication. Good design is as little design as possible: clear, honest, and useful.",
+            ko: "돌다리도 두들겨 보고 건너라. 아무리 익숙한 일이라도 신중하게 살피는 지혜가 필요한 법이다."
+        },
+        {
+            en: "Try not to become a person of success, but rather try to become a person of value. Whatever you are, be a good one.",
+            ko: "공든 탑이 무너지랴. 정성과 노력을 다해 차근차근 쌓아 올린 것은 결코 쉽게 무너지지 않는다."
+        },
+        {
+            en: "The best time to plant a tree was twenty years ago. The second best time is right now, so start today with one small task.",
+            ko: "세 살 버릇 여든까지 간다. 좋은 습관일수록 어릴 때부터 몸에 익혀 두는 것이 중요하다."
+        },
+        {
+            en: "Courage is not the absence of fear, but the triumph over it. The brave may not live forever, but the cautious never truly live.",
+            ko: "호랑이에게 물려 가도 정신만 차리면 산다. 위기의 순간일수록 침착함을 잃지 말아야 한다."
+        },
+        {
+            en: "When you reach the end of your rope, tie a knot in it and hold on. Turn your wounds into wisdom and keep moving forward.",
+            ko: "낮말은 새가 듣고 밤말은 쥐가 듣는다. 어떤 말이든 언제나 신중하게 가려서 해야 한다."
+        },
+        {
+            en: "Creativity is intelligence having fun. Imagination is more important than knowledge, for knowledge alone is always limited.",
+            ko: "백지장도 맞들면 낫다. 혼자서는 버거운 일도 여럿이 함께라면 훨씬 수월하게 해낼 수 있다."
+        },
+        {
+            en: "Every accomplishment starts with the decision to try. Fall seven times and stand up eight, and the world makes way for you.",
+            ko: "바늘 도둑이 소도둑 된다. 아무리 작은 잘못이라도 그냥 두면 큰 잘못으로 자라나기 마련이다."
+        },
+        {
+            en: "No act of kindness, no matter how small, is ever wasted. Kindness is a language the deaf can hear and the blind can see.",
+            ko: "발 없는 말이 천 리 간다. 한번 내뱉은 말은 순식간에 아주 멀리까지 퍼져 나가는 법이다."
+        }
+    ];
+
+    let lang = "ko";
+    let curIdx = -1;
+    let passage = "";
+    let chars = [];
+    let correctChars = 0;
+    let startTime = null;
+    let timerRef = null;
+    let finished = false;
+    let erroredPos = new Set();
+    let reachedLen = 0;
+
+    const $wrap = document.getElementById("passage-wrap");
+    const $input = document.getElementById("type-input");
+    const $wpm = document.getElementById("stat-wpm");
+    const $cpm = document.getElementById("stat-cpm");
+    const $acc = document.getElementById("stat-acc");
+    const $time = document.getElementById("stat-time");
+    const $fill = document.getElementById("progress-fill");
+    const $banner = document.getElementById("result-banner");
+    const $resWpm = document.getElementById("result-wpm");
+    const $resDet = document.getElementById("result-detail");
+    const $restart = document.getElementById("restart-btn");
+    const $resultRestart = document.getElementById("result-restart-btn");
+    const $lang = document.getElementById("lang-select");
+
+    const COMPOUND_JUNG = { 9:1, 10:1, 11:1, 14:1, 15:1, 16:1, 19:1 };
+    const COMPOUND_JONG = { 3:1, 5:1, 6:1, 9:1, 10:1, 11:1, 12:1, 13:1, 14:1, 15:1, 18:1 };
+
+    function t(key, vars) {
+        const value = (I18N[lang] || I18N.ko)[key];
+        return typeof value === "function" ? value(vars || {}) : value;
+    }
+
+    function keystrokes(text) {
+        let n = 0;
+
+        for (let i = 0; i < text.length; i++) {
+            const code = text.charCodeAt(i);
+
+            if (code >= 0xAC00 && code <= 0xD7A3) {
+                const s = code - 0xAC00;
+                const jong = s % 28;
+                const jung = Math.floor(s / 28) % 21;
+
+                n += 1;
+                n += COMPOUND_JUNG[jung] ? 2 : 1;
+
+                if (jong > 0) {
+                    n += COMPOUND_JONG[jong] ? 2 : 1;
+                }
+            } else {
+                n += 1;
+            }
+        }
+
+        return n;
+    }
+
+    function applyLanguage() {
+        document.documentElement.lang = lang;
+        document.getElementById("random-label").textContent = t("random");
+        document.getElementById("restart-btn").textContent = t("restart");
+        document.getElementById("label-wpm").textContent = t("wpm");
+        document.getElementById("label-acc").textContent = t("acc");
+        document.getElementById("label-time").textContent = t("time");
+        document.getElementById("label-cpm").textContent = t("cpm");
+        document.getElementById("result-wpm-label").textContent = t("wpmLabel");
+        document.getElementById("shortcut-hint").textContent = t("hint");
+        document.getElementById("result-restart-btn").textContent = t("again");
+        $input.placeholder = t("typeHere");
+    }
+
+    function initPassage() {
+        clearInterval(timerRef);
+
+        finished = false;
+        correctChars = 0;
+        erroredPos = new Set();
+        reachedLen = 0;
+        startTime = null;
+        chars = [];
+
+        let ri = Math.floor(Math.random() * PASSAGES.length);
+
+        if (PASSAGES.length > 1) {
+            while (ri === curIdx) {
+                ri = Math.floor(Math.random() * PASSAGES.length);
+            }
+        }
+
+        curIdx = ri;
+        passage = PASSAGES[curIdx][lang] || PASSAGES[curIdx].en;
+
+        $wrap.textContent = "";
+
+        for (let i = 0; i < passage.length; i++) {
+            const ch = passage[i];
+            const span = document.createElement("span");
+
+            span.className = "ch-pending";
+            span.textContent = ch;
+
+            if (i === 0) {
+                span.classList.add("ch-cursor");
+            }
+
+            $wrap.appendChild(span);
+            chars.push({ ch, span });
+        }
+
+        $input.value = "";
+        $input.disabled = false;
+        $input.placeholder = t("typeHere");
+        $wpm.textContent = "--";
+        $cpm.textContent = "--";
+        $acc.textContent = "--";
+        $time.textContent = "0" + t("secSuffix");
+        $fill.style.width = "0%";
+        $banner.classList.add("hidden");
+
+        $input.focus();
+    }
+
+    function tick() {
+        if (!startTime || finished) {
+            return;
+        }
+
+        const secs = (performance.now() - startTime) / 1000;
+        const mins = secs / 60;
+
+        $wpm.textContent =
+            mins > 0 ? Math.round((correctChars / 5) / mins) : 0;
+
+        $cpm.textContent =
+            mins > 0
+                ? Math.round(keystrokes(passage.slice(0, correctChars)) / mins)
+                : 0;
+
+        $time.textContent = Math.round(secs) + t("secSuffix");
+    }
+
+    function evaluate(val, isComposing) {
+        if (!startTime && val.length > 0) {
+            startTime = performance.now();
+            timerRef = setInterval(tick, 250);
+        }
+
+        const stableLen = isComposing
+            ? Math.max(0, val.length - 1)
+            : val.length;
+
+        for (let k = 0; k < stableLen; k++) {
+            if (val[k] !== passage[k]) {
+                erroredPos.add(k);
+            }
+        }
+
+        if (stableLen > reachedLen) {
+            reachedLen = stableLen;
+        }
+
+        const dispLen = Math.min(val.length, passage.length);
+        let prefixLen = 0;
+        let firstErr = -1;
+
+        for (let i = 0; i < dispLen; i++) {
+            if (val[i] === passage[i]) {
+                prefixLen = i + 1;
+            } else {
+                firstErr = i;
+                break;
+            }
+        }
+
+        correctChars = prefixLen;
+
+        const cursorPos =
+                  val.length < passage.length ? val.length : -1;
+
+        for (let i = 0; i < chars.length; i++) {
+            let cls =
+                    i === firstErr
+                        ? "ch-err"
+                        : i < prefixLen
+                            ? "ch-done"
+                            : "ch-pending";
+
+            if (i === cursorPos) {
+                cls += " ch-cursor";
+            }
+
+            if (chars[i].span.className !== cls) {
+                chars[i].span.className = cls;
+            }
+        }
+
+        const secs = startTime
+            ? (performance.now() - startTime) / 1000
+            : 0;
+
+        const mins = secs / 60;
+
+        const wpm =
+                  mins > 0.001
+                      ? Math.round((correctChars / 5) / mins)
+                      : 0;
+
+        const cpm =
+                  mins > 0.001
+                      ? Math.round(
+                          keystrokes(passage.slice(0, correctChars)) / mins
+                      )
+                      : 0;
+
+        const acc =
+                  reachedLen > 0
+                      ? Math.max(
+                          0,
+                          Math.round(
+                              ((reachedLen - erroredPos.size) / reachedLen) * 100
+                          )
+                      )
+                      : 100;
+
+        $wpm.textContent = startTime ? wpm : "--";
+        $cpm.textContent = startTime ? cpm : "--";
+        $acc.textContent = startTime ? acc + "%" : "--";
+        $time.textContent = Math.round(secs) + t("secSuffix");
+        $fill.style.width =
+            ((correctChars / passage.length) * 100).toFixed(1) + "%";
+
+        if (!isComposing && val === passage) {
+            finish(secs, acc, cpm);
+        }
+    }
+
+    function finish(secs, acc, cpm) {
+        clearInterval(timerRef);
+
+        finished = true;
+        $input.disabled = true;
+
+        const mins = secs / 60;
+        const wpm =
+                  mins > 0.001
+                      ? Math.round((passage.length / 5) / mins)
+                      : 0;
+
+        cpm =
+            mins > 0.001
+                ? Math.round(keystrokes(passage) / mins)
+                : (cpm || 0);
+
+        $wpm.textContent = wpm;
+        $cpm.textContent = cpm;
+        $acc.textContent = acc + "%";
+        $time.textContent = Math.round(secs) + t("secSuffix");
+        $fill.style.width = "100%";
+
+        chars.forEach((item) => {
+            item.span.classList.remove("ch-cursor");
+        });
+
+        $resWpm.textContent = wpm;
+        $resDet.textContent = t("resultDetail", {
+            cpm,
+            acc,
+            errs: erroredPos.size,
+            time: Math.round(secs)
+        });
+
+        $banner.classList.remove("hidden");
+    }
+
+    $input.addEventListener("input", function (e) {
+        if (finished) {
+            return;
+        }
+
+        evaluate($input.value, !!e.isComposing);
+    });
+
+    $input.addEventListener("compositionend", function () {
+        if (finished) {
+            return;
+        }
+
+        evaluate($input.value, false);
+    });
+
+    $restart.addEventListener("click", initPassage);
+    $resultRestart.addEventListener("click", initPassage);
+
+    $lang.addEventListener("change", function () {
+        lang = $lang.value;
+        applyLanguage();
+        initPassage();
+    });
+
+    document.addEventListener("keydown", function (e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+            e.preventDefault();
+            initPassage();
+        }
+    });
+
+    applyLanguage();
+    initPassage();
+</script>
+</body>
+</html>
