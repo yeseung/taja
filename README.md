@@ -45,6 +45,7 @@
 - https://pongvn.com/ggreflex/ko/typing-test
 - https://world-typing.edgeone.dev/
 - https://toolio.pongvn.com/ko/tools/typing-speed
+- https://m.blog.naver.com/seochan_home/224343192123
 <br><br><br>
 
 

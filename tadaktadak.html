@@ -1,0 +1,1978 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>타닥타닥 타자교실</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root{
+            /* 손가락 색깔 */
+            --lp:#FF5DA2;  /* 왼손 새끼 */
+            --lr:#FF9F45;  /* 왼손 약 */
+            --lm:#FFD23F;  /* 왼손 가운데 */
+            --li:#5DC56A;  /* 왼손 집게 */
+            --ri:#4D96FF;  /* 오른손 집게 */
+            --rm:#21C7B6;  /* 오른손 가운데 */
+            --rr:#B779FF;  /* 오른손 약 */
+            --rp:#FF6B6B;  /* 오른손 새끼 */
+            --th:#9AA7B8;  /* 엄지 */
+
+            --ink:#3a3140;
+            --paper:#ffffff;
+            --sky1:#bdeaff;
+            --sky2:#d7f7e6;
+            --sky3:#fff3cf;
+        }
+
+        *{box-sizing:border-box;}
+        html,body{margin:0;padding:0;height:100%;}
+        body{
+            font-family:'Jua', sans-serif;
+            color:var(--ink);
+            background:linear-gradient(180deg,var(--sky1) 0%,var(--sky2) 55%,var(--sky3) 100%);
+            min-height:100%;
+            overflow-x:hidden;
+            -webkit-tap-highlight-color:transparent;
+            user-select:none;
+        }
+
+        /* 배경 장식 */
+        .bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+        .sun{position:absolute;top:-40px;right:-40px;width:170px;height:170px;border-radius:50%;
+            background:radial-gradient(circle at 40% 40%,#fff6c2,#ffd84d);
+            box-shadow:0 0 60px 20px rgba(255,216,77,.45);}
+        .cloud{position:absolute;background:#fff;border-radius:50px;opacity:.9;
+            filter:drop-shadow(0 8px 0 rgba(0,0,0,.04));}
+        .cloud::before,.cloud::after{content:"";position:absolute;background:#fff;border-radius:50%;}
+        .c1{width:120px;height:40px;top:90px;left:-140px;animation:drift 38s linear infinite;}
+        .c1::before{width:55px;height:55px;top:-22px;left:20px;}
+        .c1::after{width:40px;height:40px;top:-15px;left:65px;}
+        .c2{width:90px;height:32px;top:210px;left:-120px;animation:drift 52s linear infinite;animation-delay:-10s;}
+        .c2::before{width:45px;height:45px;top:-20px;left:14px;}
+        .c2::after{width:32px;height:32px;top:-12px;left:50px;}
+        .c3{width:140px;height:46px;top:40px;left:-160px;animation:drift 64s linear infinite;animation-delay:-30s;}
+        .c3::before{width:64px;height:64px;top:-26px;left:24px;}
+        .c3::after{width:46px;height:46px;top:-18px;left:78px;}
+        @keyframes drift{to{transform:translateX(120vw);}}
+
+        .wrap{position:relative;z-index:1;max-width:960px;margin:0 auto;padding:18px 16px 60px;}
+
+        /* 헤더 */
+        header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px;}
+        .brand{display:flex;align-items:center;gap:12px;}
+        .brand h1{margin:0;font-size:30px;color:#5a4a8a;text-shadow:2px 3px 0 #fff,3px 4px 0 rgba(0,0,0,.06);}
+        .brand .sub{font-family:'Gaegu';font-weight:700;color:#7d6f9c;font-size:15px;margin-top:2px;}
+        .byline{font-family:'Jua';font-weight:400;font-size:20px;color:#ff8bbd;
+            text-shadow:1px 1px 0 #fff;white-space:nowrap;vertical-align:middle;}
+        .topright{display:flex;align-items:center;gap:10px;}
+        .scorebox{background:#fff;border:3px solid #ffd84d;border-radius:999px;padding:6px 16px;
+            font-size:20px;color:#e8920a;box-shadow:0 4px 0 #f3c33a;display:flex;align-items:center;gap:6px;}
+        .iconbtn{background:#fff;border:3px solid #cfe6f5;border-radius:999px;width:46px;height:46px;
+            font-size:20px;cursor:pointer;box-shadow:0 4px 0 #bcd9ec;transition:transform .08s;}
+        .iconbtn:active{transform:translateY(3px);box-shadow:0 1px 0 #bcd9ec;}
+
+        /* 단계 선택 */
+        .levels{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin:2px 0 8px;}
+        /* 그룹형 메뉴 */
+        .lvlgroup{display:flex;flex-direction:column;align-items:center;gap:3px;
+            background:rgba(255,255,255,.55);border-radius:13px;padding:4px 8px 6px;}
+        .glabel{font-family:'Jua';font-size:11.5px;color:#9b8db5;}
+        .grow{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;}
+        /* 영어 대소문자 선택 바 */
+        .casebar{display:flex;gap:8px;align-items:center;justify-content:center;margin:-8px 0 14px;}
+        .caselabel{font-family:'Jua';font-size:15px;color:#6b5b8a;}
+        .casebtn{cursor:pointer;font-family:'Jua';font-size:15px;color:#5b4a6e;background:#fff;
+            border:3px solid #ece4f3;border-radius:12px;padding:6px 14px;box-shadow:0 3px 0 #e4d9f0;}
+        .casebtn.sel{border-color:#5dc56a;background:#eafaec;color:#2f9d46;box-shadow:0 3px 0 #a9dcb3;}
+        /* 완료 화면 안내 배너 */
+        .promo{background:#eef7ff;border:2px solid #c6e0f5;border-radius:14px;padding:10px 14px;
+            font-family:'Gaegu';font-weight:700;font-size:16px;color:#4a6b8a;margin:6px 0 2px;line-height:1.5;}
+        .promo b{color:#2f7fbf;}
+        /* 인스타 배지 */
+        .instawrap{text-align:center;margin:6px 0 18px;}
+        .instabadge{display:inline-flex;align-items:center;gap:7px;text-decoration:none;
+            font-family:'Jua';font-size:15px;color:#fff;padding:9px 18px;border-radius:999px;
+            background:linear-gradient(45deg,#f9ce34,#ee2a7b,#6228d7);box-shadow:0 4px 0 rgba(120,40,140,.25);}
+        .instabadge:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(120,40,140,.25);}
+        .instabadge .icam{font-size:16px;}
+        .instabadge .ihandle{opacity:.9;font-size:14px;}
+
+        /* 캐릭터 선택 */
+        .charpicker{display:none;gap:12px;flex-wrap:wrap;justify-content:center;margin:4px 0 14px;
+            background:rgba(255,255,255,.75);border-radius:22px;padding:14px;border:3px dashed #ffc6e0;}
+        .charpicker.show{display:flex;animation:fade .25s ease;}
+        .charopt{cursor:pointer;border:none;background:#fff;border-radius:18px;padding:10px 6px 8px;width:92px;
+            display:flex;flex-direction:column;align-items:center;gap:6px;
+            box-shadow:0 5px 0 #e4d9f0;border:3px solid transparent;transition:transform .08s;}
+        .charopt:hover{transform:translateY(-3px);}
+        .charopt:active{transform:translateY(2px);box-shadow:0 3px 0 #e4d9f0;}
+        .charopt.sel{border-color:#ff9ec7;box-shadow:0 5px 0 #ffb3d1;background:#fff0f6;}
+        .charopt .ava{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:34px;}
+        .charopt .cname{font-family:'Jua';font-size:14px;color:#6b5b8a;}
+        .lvl{cursor:pointer;border:none;font-family:'Jua';font-size:13.5px;color:#5b4a6e;
+            background:#fff;border-radius:12px;padding:5px 10px;display:flex;align-items:center;gap:5px;
+            box-shadow:0 3px 0 #e4d9f0;transition:transform .08s,box-shadow .08s;border:2px solid transparent;}
+        .lvl:hover{transform:translateY(-2px);}
+        .lvl:active{transform:translateY(2px);box-shadow:0 1px 0 #e4d9f0;}
+        .lvl.active{border-color:#ffb3d1;background:#fff0f6;box-shadow:0 3px 0 #ffb3d1;color:#d6418a;}
+        .lvl .e{font-size:16px;}
+
+        /* 메인 카드 */
+        .card{background:rgba(255,255,255,.86);backdrop-filter:blur(4px);border-radius:30px;
+            padding:20px 18px 26px;box-shadow:0 14px 0 rgba(120,110,160,.14),0 18px 30px rgba(80,70,120,.12);
+            border:4px solid #fff;}
+
+        /* 마스코트 영역 */
+        .stage{display:flex;align-items:flex-start;gap:14px;justify-content:center;margin-bottom:6px;flex-wrap:wrap;}
+        .mascot{width:96px;height:96px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#ffe9b0,#ffcaa0);
+            display:flex;align-items:center;justify-content:center;font-size:54px;flex:0 0 auto;
+            box-shadow:0 6px 0 #f0b48f;animation:idle 2.6s ease-in-out infinite;}
+        @keyframes idle{0%,100%{transform:translateY(0) rotate(-2deg);}50%{transform:translateY(-6px) rotate(2deg);}}
+        .mascot.happy{animation:hop .5s ease;}
+        @keyframes hop{0%{transform:scale(1);}40%{transform:scale(1.18) translateY(-10px);}100%{transform:scale(1);}}
+        .mascot.sad{animation:shakem .4s ease;}
+        @keyframes shakem{0%,100%{transform:translateX(0);}25%{transform:translateX(-7px);}75%{transform:translateX(7px);}}
+        .bubble{position:relative;background:#fff;border:3px solid #ffd9ec;border-radius:18px;padding:12px 16px;
+            font-size:20px;color:#c44d8b;max-width:360px;min-height:48px;display:flex;align-items:center;
+            box-shadow:0 5px 0 #ffd9ec;font-family:'Gaegu';font-weight:700;}
+        .bubble::before{content:"";position:absolute;left:-14px;top:24px;border:8px solid transparent;
+            border-right-color:#ffd9ec;}
+
+        /* 목표 글자 */
+        .target{text-align:center;margin:14px 0 8px;}
+        .word-context{font-size:30px;color:#6b5b8a;letter-spacing:4px;min-height:38px;margin-bottom:4px;}
+        .ctxrow{display:flex;flex-direction:column;align-items:center;gap:2px;}
+        .hardbadge{font-family:'Jua';font-size:14px;color:#fff;background:linear-gradient(45deg,#ff9d4d,#ff6b6b);
+            padding:3px 12px;border-radius:999px;box-shadow:0 3px 0 rgba(200,80,60,.3);
+            animation:pop .35s ease;}
+        .word-context.hard{color:#d35c3a;}
+        .word-context .syl{padding:0 2px;}
+
+        /* 노래방 자막 (지금 치고 있는 글자) */
+        .karaoke{display:none;font-size:26px;letter-spacing:3px;min-height:34px;margin:0 0 6px;
+            color:#2bb673;font-weight:400;}
+        .karaoke .ph{color:#cfc4dd;}          /* 아직 안 친 부분 */
+        .karaoke .cur{display:inline-block;width:3px;height:24px;background:#ff7fb5;
+            margin-left:2px;border-radius:2px;animation:blink .8s steps(1) infinite;vertical-align:-4px;}
+        @keyframes blink{50%{opacity:0;}}
+
+        .bigchar{font-size:118px;line-height:1.05;font-weight:400;text-shadow:0 6px 0 rgba(0,0,0,.07);
+            animation:pop .3s ease;}
+        @keyframes pop{0%{transform:scale(.4);opacity:0;}100%{transform:scale(1);opacity:1;}}
+        .englabel{font-size:18px;color:#8a7ba6;margin-top:-4px;}
+        .englabel b{font-size:22px;}
+
+        /* 타자 속도 표시 */
+        .statbar{display:none;justify-content:center;gap:10px;flex-wrap:wrap;margin:2px 0 10px;}
+        .statbar .stat{background:#fff;border:3px solid #cfe6f5;border-radius:999px;padding:5px 16px;
+            font-size:18px;color:#3f7bb0;box-shadow:0 4px 0 #bcd9ec;}
+        .statbar .stat.acc{border-color:#ffe08a;color:#dd9b1a;box-shadow:0 4px 0 #f3d271;}
+
+        /* 진행 칩 */
+        .chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:10px auto 4px;max-width:640px;}
+        .chip{width:34px;height:34px;border-radius:10px;background:#eee6f3;display:flex;align-items:center;
+            justify-content:center;font-size:20px;color:#9b8db5;border:2px solid transparent;}
+        .chip.done{background:#d6f5d9;color:#3fae54;}
+        .chip.cur{background:#fff;border-color:#ff9ec7;color:#d6418a;transform:scale(1.12);box-shadow:0 3px 0 #ffc6e0;}
+
+        /* 손가락 안내 */
+        .fingerguide{display:flex;align-items:center;justify-content:center;gap:14px;margin:10px 0 6px;flex-wrap:wrap;}
+        .fname{font-size:19px;padding:6px 14px;border-radius:999px;color:#fff;box-shadow:0 4px 0 rgba(0,0,0,.12);}
+        .hands{display:flex;gap:20px;}
+        .hand{display:flex;gap:5px;align-items:flex-end;}
+        .fin{width:13px;border-radius:7px 7px 4px 4px;background:#e3dcec;transition:all .15s;}
+        .fin.on{box-shadow:0 0 0 3px #fff,0 4px 10px rgba(0,0,0,.18);transform:translateY(-4px);}
+
+        /* 키보드 */
+        .keyboard{margin:8px auto 0;max-width:680px;}
+        .krow{display:flex;justify-content:center;gap:6px;margin-bottom:6px;}
+        .key{position:relative;width:50px;height:54px;border-radius:12px;background:#fff;
+            border:2px solid #ece4f3;display:flex;flex-direction:column;align-items:center;justify-content:center;
+            box-shadow:0 4px 0 #e0d6ec;user-select:none;}
+        .key .eng{position:absolute;top:3px;left:6px;font-size:11px;color:#b7aac9;}
+        .key .kor{font-size:22px;color:#5b4a6e;margin-top:6px;}
+        .key .bar{position:absolute;bottom:0;left:0;right:0;height:6px;border-radius:0 0 9px 9px;opacity:.85;}
+        .key.space{width:280px;}
+        .key.space .kor{font-size:15px;color:#9b8db5;margin-top:0;letter-spacing:1px;}
+        .key.mod{width:74px;background:#f6f2fb;}
+        .key.mod .kor{font-size:14px;color:#9b8db5;margin-top:0;}
+        .key.next{transform:translateY(-4px) scale(1.06);border-color:#fff;
+            box-shadow:0 8px 0 rgba(0,0,0,.12),0 0 0 4px #fff;
+            animation:bob .7s ease-in-out infinite;z-index:2;}
+        @keyframes bob{0%,100%{transform:translateY(-4px) scale(1.06);}50%{transform:translateY(-10px) scale(1.1);}}
+        .key.wrong{animation:wob .35s ease;}
+        @keyframes wob{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+        .key.hit{background:#d6f5d9 !important;}
+
+        .hint{text-align:center;color:#8a7ba6;font-family:'Gaegu';font-weight:700;font-size:16px;margin-top:14px;}
+
+        /* 우리 가족 문장 편집 화면 */
+        .famscreen{position:fixed;inset:0;z-index:55;display:none;align-items:center;justify-content:center;
+            padding:20px;overflow:auto;background:linear-gradient(180deg,#ffe3ef 0%,#f3e7ff 60%,#e3f0ff 100%);}
+        .famscreen.show{display:flex;}
+        .famcard{background:rgba(255,255,255,.95);border:5px solid #fff;border-radius:28px;
+            padding:26px 26px 24px;max-width:560px;width:100%;text-align:center;
+            box-shadow:0 16px 0 rgba(150,110,160,.16),0 22px 36px rgba(120,70,120,.18);}
+        .famtitle{font-family:'Jua';font-size:32px;color:#c0398a;text-shadow:2px 2px 0 #fff;margin-bottom:6px;}
+        .famsub{font-family:'Gaegu';font-weight:700;font-size:16px;color:#8a6b8a;margin-bottom:18px;line-height:1.6;}
+        .faminput-row{display:flex;gap:8px;}
+        .faminput{flex:1;font-family:'Gaegu';font-weight:700;font-size:19px;color:#5b4a6e;
+            border:3px solid #f0cfe6;border-radius:16px;padding:11px 14px;outline:none;box-shadow:0 4px 0 #ecc7e0;}
+        .faminput:focus{border-color:#ff9ec7;box-shadow:0 4px 0 #ffb3d1;}
+        .fambtn{cursor:pointer;border:none;font-family:'Jua';border-radius:16px;transition:transform .08s;}
+        .fambtn.add{font-size:18px;color:#fff;background:#ff8bbd;padding:11px 18px;box-shadow:0 4px 0 #e46a9e;white-space:nowrap;}
+        .fambtn.add:active{transform:translateY(2px);box-shadow:0 2px 0 #e46a9e;}
+        .famhint{font-family:'Gaegu';font-weight:700;font-size:14px;color:#b39ac0;margin:8px 0 14px;}
+        .famhint.err{color:#e46a6a;}
+        .famnote{font-family:'Gaegu';font-weight:700;font-size:13.5px;border-radius:12px;padding:8px 12px;margin:0 0 14px;line-height:1.5;}
+        .famnote.ok{background:#eef7ff;color:#4a6b8a;border:1.5px solid #c6e0f5;}
+        .famnote.warn{background:#fff6ee;color:#9a6b3a;border:1.5px solid #ffd9b8;}
+        .famlist{display:flex;flex-direction:column;gap:8px;max-height:260px;overflow:auto;margin-bottom:18px;text-align:left;}
+        .famitem{display:flex;align-items:center;gap:10px;background:#fff6fb;border:2px solid #f5d9ec;
+            border-radius:14px;padding:10px 12px;}
+        .famitem .ftxt{flex:1;font-family:'Gaegu';font-weight:700;font-size:17px;color:#5b4a6e;}
+        .famitem .fedit{cursor:pointer;border:none;background:#e4ecff;color:#4a6bd6;font-family:'Jua';
+            border-radius:10px;padding:5px 10px;font-size:14px;}
+        .famitem .fdel{cursor:pointer;border:none;background:#ffd9e4;color:#d6418a;font-family:'Jua';
+            border-radius:10px;padding:5px 10px;font-size:14px;}
+        .famcount{font-family:'Jua';font-size:14px;color:#b39ac0;text-align:right;margin:-10px 2px 12px;min-height:16px;}
+        .famempty{font-family:'Gaegu';font-weight:700;color:#b39ac0;font-size:15px;padding:16px;text-align:center;}
+        .fambtns{display:flex;gap:10px;}
+        .fambtn.ghost{flex:0 0 auto;font-size:17px;color:#8a6b8a;background:#f0e8f5;padding:13px 18px;box-shadow:0 4px 0 #ddd0e8;}
+        .fambtn.go{flex:1;font-size:22px;color:#fff;background:#5dc56a;padding:13px;box-shadow:0 5px 0 #3fae54;}
+        .fambtn.go:active{transform:translateY(2px);box-shadow:0 2px 0 #3fae54;}
+        .fambtn.go:disabled{background:#c8d6c9;box-shadow:0 5px 0 #adbcae;cursor:default;}
+
+        /* 시작 화면 */
+        .startscreen{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;
+            padding:20px;overflow:auto;
+            background:linear-gradient(180deg,#bdeaff 0%,#d7f7e6 55%,#fff3cf 100%);}
+        .startscreen.hide{display:none;}
+        .startcard{background:rgba(255,255,255,.92);border:5px solid #fff;border-radius:30px;
+            padding:26px 28px 28px;max-width:560px;width:100%;text-align:center;
+            box-shadow:0 16px 0 rgba(120,110,160,.16),0 22px 36px rgba(80,70,120,.16);
+            animation:pop .35s ease;}
+        .starttitle{font-family:'Jua';font-size:38px;color:#5a4a8a;text-shadow:2px 3px 0 #fff;margin-bottom:2px;}
+        .startsub{font-family:'Jua';font-size:20px;color:#ff8bbd;text-shadow:1px 1px 0 #fff;margin-bottom:14px;min-height:24px;}
+        .startstep{font-family:'Jua';font-size:20px;color:#6b5b8a;margin:14px 0 8px;}
+        .startpicker{background:transparent;border:none;padding:0;margin:0 0 4px;gap:8px;}
+        .startpicker .charopt{width:80px;padding:8px 4px 6px;}
+        .startpicker .ava{width:44px;height:44px;font-size:26px;}
+        .startpicker .cname{font-size:12px;}
+        .nameinput{font-family:'Jua';font-size:24px;text-align:center;color:#5b4a6e;
+            border:3px solid #cfe6f5;border-radius:16px;padding:10px 14px;width:240px;max-width:90%;
+            outline:none;box-shadow:0 4px 0 #bcd9ec;}
+        .nameinput:focus{border-color:#ff9ec7;box-shadow:0 4px 0 #ffb3d1;}
+        .nametip{font-family:'Gaegu';font-weight:700;font-size:15px;color:#9b8db5;margin-top:8px;}
+        .startbtn{cursor:pointer;border:none;font-family:'Jua';font-size:26px;color:#fff;background:#5dc56a;
+            border-radius:20px;padding:14px 40px;margin-top:20px;box-shadow:0 6px 0 #3fae54;transition:transform .08s;}
+        .startbtn:active{transform:translateY(3px);box-shadow:0 3px 0 #3fae54;}
+
+        /* 완료 화면 */
+        .overlay{position:fixed;inset:0;z-index:30;display:none;align-items:center;justify-content:center;
+            background:rgba(80,60,110,.35);backdrop-filter:blur(3px);}
+        .overlay.show{display:flex;animation:fade .25s ease;}
+        @keyframes fade{from{opacity:0;}to{opacity:1;}}
+        .panel{background:#fff;border-radius:30px;padding:30px 34px;text-align:center;border:5px solid #ffe08a;
+            box-shadow:0 16px 0 rgba(0,0,0,.12);max-width:90vw;animation:pop .35s ease;}
+        .panel .big{font-size:60px;}
+        .panel h2{margin:6px 0;color:#e8920a;font-size:34px;}
+        .panel p{margin:4px 0 16px;font-family:'Gaegu';font-weight:700;font-size:20px;color:#7d6f9c;}
+        .panel .stars{font-size:36px;letter-spacing:4px;margin-bottom:8px;}
+        .panel .btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+        .pbtn{cursor:pointer;border:none;font-family:'Jua';font-size:20px;color:#fff;border-radius:16px;padding:12px 22px;
+            box-shadow:0 5px 0 rgba(0,0,0,.18);transition:transform .08s;}
+        .pbtn:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.18);}
+        .pbtn.again{background:#ff9ec7;}
+        .pbtn.next{background:#5dc56a;}
+
+        .confetti{position:fixed;top:-20px;z-index:40;width:12px;height:18px;border-radius:3px;pointer-events:none;}
+
+        .footnote{text-align:center;margin-top:18px;font-family:'Gaegu';font-weight:700;color:#7d6f9c;font-size:15px;}
+
+        /* 영어 단계일 때 키 글자 강조 */
+        .key.engmode .kor{display:none;}
+        .key.engmode .eng{position:static;font-size:24px;color:#5b4a6e;margin-top:4px;}
+
+        /* ===== 게임 모드 ===== */
+        #gameWrap{display:none;}
+        .ghud{display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;margin:4px 0 8px;}
+        .ghud .gbox{background:#fff;border:3px solid #cfe6f5;border-radius:999px;padding:6px 16px;font-size:19px;
+            color:#4a7ba6;box-shadow:0 4px 0 #bcd9ec;}
+        .ghud .hearts{font-size:24px;letter-spacing:2px;}
+        .gfield{position:relative;height:320px;margin:0 auto;max-width:640px;border-radius:22px;overflow:hidden;
+            background:linear-gradient(180deg,#eaf6ff,#f3fbff);border:3px dashed #bfe0f3;}
+        .gfield .ground{position:absolute;left:0;right:0;bottom:0;height:34px;
+            background:linear-gradient(180deg,#cdeccd,#a9dca9);border-top:3px dashed #8ec88e;}
+        .drop{position:absolute;width:58px;height:58px;border-radius:50%;display:flex;flex-direction:column;
+            align-items:center;justify-content:center;color:#fff;box-shadow:0 5px 0 rgba(0,0,0,.15);
+            font-size:28px;line-height:1;will-change:transform;}
+        .drop .de{font-size:11px;opacity:.92;margin-top:1px;}
+        .drop.pop{animation:popout .3s ease forwards;}
+        @keyframes popout{to{transform:scale(1.8);opacity:0;}}
+        /* 단어 모드: 알약 모양 */
+        .drop.word{width:auto;min-width:64px;height:auto;border-radius:18px;padding:8px 14px;font-size:24px;}
+        .drop.word .wtext{letter-spacing:1px;}
+        .drop.word .wtext .typed{opacity:.45;}
+        .drop.word .wtext .now{text-decoration:underline;text-underline-offset:3px;}
+        .drop.word .de{font-size:12px;margin-top:3px;background:rgba(255,255,255,.25);padding:1px 8px;border-radius:8px;}
+        .gstart{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+            gap:14px;background:rgba(255,255,255,.7);backdrop-filter:blur(2px);text-align:center;z-index:5;}
+        .gstart p{margin:0;font-family:'Gaegu';font-weight:700;color:#5a7;font-size:18px;color:#6a6a8a;}
+        .gmodes{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;max-width:340px;}
+        .gmode{cursor:pointer;border:3px solid transparent;font-family:'Jua';font-size:16px;color:#5b4a6e;
+            background:#fff;border-radius:14px;padding:8px 14px;box-shadow:0 4px 0 #d9eef9;transition:transform .08s;}
+        .gmode:active{transform:translateY(2px);box-shadow:0 2px 0 #d9eef9;}
+        .gmode.sel{border-color:#5dc56a;background:#eafaec;color:#2f9d46;box-shadow:0 4px 0 #a9dcb3;}
+        .gstartbtn{cursor:pointer;border:none;font-family:'Jua';font-size:24px;color:#fff;background:#5dc56a;
+            border-radius:18px;padding:14px 30px;box-shadow:0 6px 0 #3fae54;}
+        .gstartbtn:active{transform:translateY(3px);box-shadow:0 3px 0 #3fae54;}
+
+        /* 좁은 창에서 살짝 줄이기 (데스크톱/노트북용) */
+        @media(max-width:720px){
+            .key{width:40px;height:48px;}
+            .key .kor{font-size:18px;}
+            .key.space{width:200px;}
+            .key.mod{width:56px;}
+            .bigchar{font-size:84px;}
+            .brand h1{font-size:22px;}
+        }
+    </style>
+</head>
+<body>
+<div class="bg">
+    <div class="sun"></div>
+    <div class="cloud c1"></div>
+    <div class="cloud c2"></div>
+    <div class="cloud c3"></div>
+</div>
+
+<div class="startscreen" id="startScreen">
+    <div class="startcard">
+        <div class="starttitle">타닥타닥 타자교실</div>
+        <div class="startsub" id="startCredit"></div>
+
+        <div class="startstep">1. 친구를 골라요 🐾</div>
+        <div class="charpicker startpicker show" id="startCharPicker"></div>
+
+        <div class="startstep">2. 이름을 알려줘요 ✏️</div>
+        <input type="text" id="nameInput" class="nameinput" maxlength="6" placeholder="이름 (예: 서찬)" autocomplete="off">
+        <div class="nametip" id="nameTip">이름을 적으면 칭찬할 때 불러줄게요!</div>
+
+        <button class="startbtn" id="startGoBtn">시작하기 ▶</button>
+    </div>
+</div>
+
+<div class="wrap">
+    <header>
+        <div class="brand">
+            <div class="mascot" id="navIcon" style="width:60px;height:60px;font-size:34px;box-shadow:0 4px 0 #f0b48f;cursor:pointer;" title="캐릭터 바꾸기">😺</div>
+            <div>
+                <h1>타닥타닥 타자교실 <span class="byline" id="byline"></span></h1>
+                <div class="sub" id="subLine">냐옹이와 함께 한글 자판을 배워요!</div>
+            </div>
+        </div>
+        <div class="topright">
+            <div class="scorebox">⭐ <span id="totalStars">0</span></div>
+            <button class="iconbtn" id="charBtn" title="캐릭터 바꾸기">🎭</button>
+            <button class="iconbtn" id="soundBtn" title="소리 켜기/끄기">🔊</button>
+        </div>
+    </header>
+
+    <div class="charpicker" id="charPicker"></div>
+
+    <div class="levels" id="levels"></div>
+    <div class="casebar" id="caseBar" style="display:none;">
+        <span class="caselabel">영어 문장 :</span>
+        <button class="casebtn sel" data-case="lower" onclick="setEngCase('lower')">abc 소문자</button>
+        <button class="casebtn" data-case="upper" onclick="setEngCase('upper')">Abc 대문자</button>
+    </div>
+
+    <div class="card">
+        <div class="stage">
+            <div class="mascot" id="mascot">😺</div>
+            <div class="bubble" id="bubble">아래 반짝이는 글자를 찾아서 눌러 봐요!</div>
+        </div>
+
+        <div class="statbar" id="statbar">
+            <div class="stat" id="statSpeed">⚡ - 타/분</div>
+            <div class="stat acc" id="statAcc">🎯 100%</div>
+        </div>
+
+        <div class="target">
+            <div class="ctxrow">
+                <span class="hardbadge" id="hardBadge" style="display:none;">🏆 도전!</span>
+                <div class="word-context" id="wordContext"></div>
+            </div>
+            <div class="karaoke" id="karaoke"></div>
+            <div class="bigchar" id="bigChar">ㅏ</div>
+            <div class="englabel" id="engLabel"></div>
+        </div>
+
+        <div class="chips" id="chips"></div>
+
+        <div class="fingerguide">
+            <div class="hands">
+                <div class="hand" id="handL"></div>
+                <div class="hand" id="handR"></div>
+            </div>
+            <div class="fname" id="fname">손가락</div>
+        </div>
+
+        <div id="gameWrap">
+            <div class="ghud">
+                <div class="gbox">점수 <span id="gScore">0</span></div>
+                <div class="gbox">단계 <span id="gLevel">1</span></div>
+                <div class="hearts" id="gHearts">💛💛💛</div>
+            </div>
+            <div class="gfield" id="gField">
+                <div class="ground"></div>
+                <div class="gstart" id="gStart">
+                    <p>위에서 떨어지는 글자를 키보드로 눌러 터뜨려요 💥</p>
+                    <div class="gmodes" id="gModes">
+                        <button class="gmode sel" data-mode="korean">🇰🇷 한글</button>
+                        <button class="gmode" data-mode="english">🔤 영어</button>
+                        <button class="gmode" data-mode="random">🎲 랜덤</button>
+                        <button class="gmode" data-mode="word">📦 단어</button>
+                    </div>
+                    <button class="gstartbtn" id="gStartBtn">▶ 게임 시작</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="keyboard" id="keyboard"></div>
+
+        <div class="hint">💡 한글로 바꾸지 않아도 돼요. 키보드에서 반짝이는 자리만 톡 누르면 된답니다!</div>
+    </div>
+
+    <div class="footnote">컴퓨터 키보드로 즐기는 한글·영어 타자 연습 🐾<br><span id="footCredit"></span></div>
+    <div class="instawrap">
+        <a class="instabadge" href="https://instagram.com/seochan_home" target="_blank" rel="noopener noreferrer">
+            <span class="icam">📷</span> 서찬서가 <span class="ihandle">@seochan_home</span>
+        </a>
+    </div>
+</div>
+
+
+<div class="famscreen" id="famScreen" style="display:none;">
+    <div class="famcard">
+        <div class="famtitle">💌 우리 가족 문장</div>
+        <div class="famsub">부모님이 아이에게 하고 싶은 말을 직접 넣어 주세요.<br>넣은 문장은 <b>‘문장 놀이’</b>에서 다른 문장들과 함께 나와요 💕</div>
+        <div class="famnote ok" id="famStoreNote">💾 넣으신 문장은 컴퓨터에 <b>자동 저장</b>돼요. 언제든 다시 열어 <b>추가·수정·삭제</b>할 수 있어요.</div>
+
+        <div class="faminput-row">
+            <input type="text" id="famInput" class="faminput" maxlength="40" placeholder="예: 개똥아 엄마는 항상 너를 사랑해" autocomplete="off">
+            <button class="fambtn add" id="famAddBtn">＋ 추가</button>
+        </div>
+        <div class="famhint" id="famHint">한글·영어 문장을 넣을 수 있어요 (최대 40자)</div>
+
+        <div class="famlist" id="famList"></div>
+        <div class="famcount" id="famCount"></div>
+
+        <div class="fambtns">
+            <button class="fambtn ghost" id="famCloseBtn">← 메뉴로</button>
+            <button class="fambtn go" id="famPlayBtn">▶ 문장 놀이로 가기</button>
+        </div>
+    </div>
+</div>
+
+<div class="overlay" id="overlay">
+    <div class="panel">
+        <div class="big" id="ovEmoji">🎉</div>
+        <h2 id="ovTitle">참 잘했어요!</h2>
+        <div class="stars" id="ovStars">⭐⭐⭐</div>
+        <p id="ovMsg">모든 글자를 다 눌렀어요!</p>
+        <div class="promo" id="ovPromo" style="display:none;">
+            🌍 지도에서 직접 찾아볼까요?<br>
+            <b>세계국기탐험대</b>로 나라와 수도를 배워요!
+        </div>
+        <div class="btns">
+            <button class="pbtn again" id="againBtn">🔄 한 번 더</button>
+            <button class="pbtn next" id="nextBtn">➡️ 다음 단계</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    /* ====================================================== */
+    /*  ⬇⬇⬇  여기에 채널명을 넣으세요 (이 한 줄만 바꾸면 됩니다)  ⬇⬇⬇  */
+    const CHANNEL_NAME = "서찬서가";     // 예: "아이와맘 TV", "민서이네 육아일기"
+    /* ====================================================== */
+
+    /* ===== 두벌식 자판: 자모 -> [물리키 코드, Shift여부] ===== */
+    const KEY = {
+        'ㄱ':['KeyR',0],'ㄲ':['KeyR',1],'ㄴ':['KeyS',0],'ㄷ':['KeyE',0],'ㄸ':['KeyE',1],
+        'ㄹ':['KeyF',0],'ㅁ':['KeyA',0],'ㅂ':['KeyQ',0],'ㅃ':['KeyQ',1],'ㅅ':['KeyT',0],
+        'ㅆ':['KeyT',1],'ㅇ':['KeyD',0],'ㅈ':['KeyW',0],'ㅉ':['KeyW',1],'ㅊ':['KeyC',0],
+        'ㅋ':['KeyZ',0],'ㅌ':['KeyX',0],'ㅍ':['KeyV',0],'ㅎ':['KeyG',0],
+        'ㅏ':['KeyK',0],'ㅐ':['KeyO',0],'ㅑ':['KeyI',0],'ㅒ':['KeyO',1],'ㅓ':['KeyJ',0],
+        'ㅔ':['KeyP',0],'ㅕ':['KeyU',0],'ㅖ':['KeyP',1],'ㅗ':['KeyH',0],'ㅛ':['KeyY',0],
+        'ㅜ':['KeyN',0],'ㅠ':['KeyB',0],'ㅡ':['KeyM',0],'ㅣ':['KeyL',0]
+    };
+    /* 겹모음 / 겹받침 -> 풀어서 누르기 */
+    const COMPOUND = {
+        'ㅘ':['ㅗ','ㅏ'],'ㅙ':['ㅗ','ㅐ'],'ㅚ':['ㅗ','ㅣ'],'ㅝ':['ㅜ','ㅓ'],'ㅞ':['ㅜ','ㅔ'],'ㅟ':['ㅜ','ㅣ'],'ㅢ':['ㅡ','ㅣ'],
+        'ㄳ':['ㄱ','ㅅ'],'ㄵ':['ㄴ','ㅈ'],'ㄶ':['ㄴ','ㅎ'],'ㄺ':['ㄹ','ㄱ'],'ㄻ':['ㄹ','ㅁ'],'ㄼ':['ㄹ','ㅂ'],
+        'ㄽ':['ㄹ','ㅅ'],'ㄾ':['ㄹ','ㅌ'],'ㄿ':['ㄹ','ㅍ'],'ㅀ':['ㄹ','ㅎ'],'ㅄ':['ㅂ','ㅅ']
+    };
+    const CHO=['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+    const JUNG=['ㅏ','ㅐ','ㅑ','ㅒ','ㅓ','ㅔ','ㅕ','ㅖ','ㅗ','ㅘ','ㅙ','ㅚ','ㅛ','ㅜ','ㅝ','ㅞ','ㅟ','ㅠ','ㅡ','ㅢ','ㅣ'];
+    const JONG=['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+
+    /* 한글 조합(노래방 자막용): 자모 순서를 실제 글자로 합치기 */
+    const VOWEL_COMB={'ㅗㅏ':'ㅘ','ㅗㅐ':'ㅙ','ㅗㅣ':'ㅚ','ㅜㅓ':'ㅝ','ㅜㅔ':'ㅞ','ㅜㅣ':'ㅟ','ㅡㅣ':'ㅢ'};
+    const FINAL_COMB={'ㄱㅅ':'ㄳ','ㄴㅈ':'ㄵ','ㄴㅎ':'ㄶ','ㄹㄱ':'ㄺ','ㄹㅁ':'ㄻ','ㄹㅂ':'ㄼ','ㄹㅅ':'ㄽ','ㄹㅌ':'ㄾ','ㄹㅍ':'ㄿ','ㄹㅎ':'ㅀ','ㅂㅅ':'ㅄ'};
+    const JONG_SPLIT={'ㄳ':['ㄱ','ㅅ'],'ㄵ':['ㄴ','ㅈ'],'ㄶ':['ㄴ','ㅎ'],'ㄺ':['ㄹ','ㄱ'],'ㄻ':['ㄹ','ㅁ'],'ㄼ':['ㄹ','ㅂ'],'ㄽ':['ㄹ','ㅅ'],'ㄾ':['ㄹ','ㅌ'],'ㄿ':['ㄹ','ㅍ'],'ㅀ':['ㄹ','ㅎ'],'ㅄ':['ㅂ','ㅅ']};
+
+    function composeTyped(steps, count){
+        let cho=-1, jung=-1, jong=-1, out='';
+        const block=()=>{
+            if(cho>=0 && jung>=0) return String.fromCharCode(0xAC00 + cho*588 + jung*28 + (jong>0?jong:0));
+            if(cho>=0) return CHO[cho];
+            if(jung>=0) return JUNG[jung];
+            return '';
+        };
+        const commit=()=>{ out+=block(); cho=-1;jung=-1;jong=-1; };
+        for(let i=0;i<count;i++){
+            const j=steps[i].jamo;
+            if(j==='␣'){ commit(); out+=' '; continue; }
+            const vi=JUNG.indexOf(j);
+            if(vi>=0){                               // 모음
+                if(jong>=0){                           // 받침이 다음 글자 첫소리로 이동
+                    const sp=JONG_SPLIT[JONG[jong]]||['',JONG[jong]];
+                    jong = sp[0]? JONG.indexOf(sp[0]) : 0;
+                    commit();
+                    cho=CHO.indexOf(sp[1]); jung=vi; jong=-1;
+                } else if(jung>=0){                    // 겹모음 시도
+                    const c=VOWEL_COMB[JUNG[jung]+j];
+                    if(c) jung=JUNG.indexOf(c); else { commit(); jung=vi; }
+                } else { jung=vi; }
+            } else {                                 // 자음
+                const ci=CHO.indexOf(j);
+                if(cho<0 && jung<0 && jong<0){ cho=ci; }
+                else if(cho>=0 && jung<0){ commit(); cho=ci; }
+                else if(jung>=0 && jong<0){
+                    const ji=JONG.indexOf(j);
+                    if(ji>0) jong=ji; else { commit(); cho=ci; }
+                } else if(jong>=0){
+                    const c=FINAL_COMB[JONG[jong]+j];
+                    if(c) jong=JONG.indexOf(c); else { commit(); cho=ci; }
+                }
+            }
+        }
+        out+=block();
+        return out;
+    }
+
+    /* 손가락 배정 */
+    const FINGER = {
+        KeyQ:'lp',KeyA:'lp',KeyZ:'lp',
+        KeyW:'lr',KeyS:'lr',KeyX:'lr',
+        KeyE:'lm',KeyD:'lm',KeyC:'lm',
+        KeyR:'li',KeyF:'li',KeyV:'li',KeyT:'li',KeyG:'li',KeyB:'li',
+        KeyY:'ri',KeyH:'ri',KeyN:'ri',KeyU:'ri',KeyJ:'ri',KeyM:'ri',
+        KeyI:'rm',KeyK:'rm',
+        KeyO:'rr',KeyL:'rr',
+        KeyP:'rp',
+        Space:'th'
+    };
+    const FINFO = {
+        lp:{n:'왼손 새끼손가락',c:'var(--lp)'}, lr:{n:'왼손 약손가락',c:'var(--lr)'},
+        lm:{n:'왼손 가운뎃손가락',c:'var(--lm)'}, li:{n:'왼손 집게손가락',c:'var(--li)'},
+        ri:{n:'오른손 집게손가락',c:'var(--ri)'}, rm:{n:'오른손 가운뎃손가락',c:'var(--rm)'},
+        rr:{n:'오른손 약손가락',c:'var(--rr)'}, rp:{n:'오른손 새끼손가락',c:'var(--rp)'},
+        th:{n:'엄지손가락 (스페이스)',c:'var(--th)'}
+    };
+
+    /* 키보드 레이아웃 (영문, 한글, shift한글) */
+    const ROWS = [
+        [['KeyQ','Q','ㅂ','ㅃ'],['KeyW','W','ㅈ','ㅉ'],['KeyE','E','ㄷ','ㄸ'],['KeyR','R','ㄱ','ㄲ'],['KeyT','T','ㅅ','ㅆ'],
+            ['KeyY','Y','ㅛ',''],['KeyU','U','ㅕ',''],['KeyI','I','ㅑ',''],['KeyO','O','ㅐ','ㅒ'],['KeyP','P','ㅔ','ㅖ']],
+        [['KeyA','A','ㅁ',''],['KeyS','S','ㄴ',''],['KeyD','D','ㅇ',''],['KeyF','F','ㄹ',''],['KeyG','G','ㅎ',''],
+            ['KeyH','H','ㅗ',''],['KeyJ','J','ㅓ',''],['KeyK','K','ㅏ',''],['KeyL','L','ㅣ','']],
+        [['ShiftLeft','Shift','Shift','',true],['KeyZ','Z','ㅋ',''],['KeyX','X','ㅌ',''],['KeyC','C','ㅊ',''],['KeyV','V','ㅍ',''],
+            ['KeyB','B','ㅠ',''],['KeyN','N','ㅜ',''],['KeyM','M','ㅡ',''],['ShiftRight','Shift','Shift','',true]],
+        [['Space','','스페이스','']]
+    ];
+
+    /* ===== 단계 정의 ===== */
+    const LEVELS = {
+        home:{name:'기본 자리',e:'🌱',type:'jamo',count:20,
+            pool:['ㅁ','ㄴ','ㅇ','ㄹ','ㅎ','ㅗ','ㅓ','ㅏ','ㅣ']},
+        top:{name:'윗줄 글자',e:'🌸',type:'jamo',count:20,
+            pool:['ㅂ','ㅈ','ㄷ','ㄱ','ㅅ','ㅛ','ㅕ','ㅑ','ㅐ','ㅔ']},
+        bottom:{name:'아랫줄 글자',e:'⭐',type:'jamo',count:18,
+            pool:['ㅋ','ㅌ','ㅊ','ㅍ','ㅠ','ㅜ','ㅡ']},
+        word:{name:'낱말 놀이',e:'🍎',type:'word',count:14,
+            items:[
+                '나무','바다','사자','오리','우유','모자','나비','다리',
+                '머리','구두','기차','노래','하늘','바람','거미','고구마',
+                '너구리','자동차','거북이','다람쥐','무지개','병아리','토마토','사과',
+                '포도','수박','바나나','강아지','고양이','기린','악어','원숭이',
+                '두더지','지렁이','개구리','잠자리','풍선','우산','신발','가방',
+                '연필','지우개','크레파스','이불','베개','수저','그릇','당근',
+                '오이','구름','하마','감자','참외','자두','대추','복숭아',
+                '미역','다시마','버섯','사슴','여우','오징어','상어','고래',
+                '문어','조개','수달','두루미','부엉이','참새','제비','갈매기',
+                '비둘기','매미','달팽이','호랑이','학교','교실','책상','의자',
+                '칠판','달력','지도','가위','색종이','크레용','물감','도화지',
+                '공책','필통','바지','치마','양말','장갑','목도리','운동화',
+                '잠옷','외투','소나기','이슬','노을','은하수','보름달','별자리',
+                '자전거','비행기','버스','트럭','오토바이','헬리콥터','사랑','우정',
+                '용기','노력','정직','겸손','배려','나눔','희망','가족',
+                '친구','형제','부모','동생','선생님','어린이','사람','마음',
+                '얼굴','손가락','발가락','머리카락','눈동자','강물','시냇물','호수',
+                '폭포','바위','모래','조약돌','언덕','들판','숲속','나뭇잎',
+                '풀잎','열매','가지','민들레','해바라기','무궁화','진달래','개나리',
+                '코스모스','국화','장미','백합','수련','선인장','대나무','소나무',
+                '은행나무','단풍나무','버드나무','도토리','밤송이','솔방울','거미줄','둥지',
+                '보금자리','시소','그네','모래성','종이배','구슬','공기놀이','줄넘기',
+                '훌라후프','자석','망원경','돋보기','지구본','나침반','운동장','교문',
+                '복도','화단','연못','새순','연잎','나팔','허수아비','방패연',
+                '구슬치기','울타리','오르막','내리막','징검다리','물방울','햇살','별빛']},
+        sentence:{name:'문장 놀이',e:'🌈',type:'sentence',count:24,
+            items:[
+                '나는 학교에 가요','나비가 날아가요','하늘이 파래요','우리 모두 친구',
+                '오리가 헤엄쳐요','나무가 자라요','비가 내려요','바람이 불어요',
+                '새가 노래해요','우리 가족 사랑해','아기가 웃어요','오늘은 즐거워요',
+                '아이가 그네를 타요','구름이 흘러가요','나는 그림을 그려요','우리 같이 놀아요',
+                '다람쥐가 도토리를 먹어요','아기 새가 노래해요','달님이 환하게 비춰요','나무에 열매가 열려요',
+                '시냇물이 졸졸 흘러요','바다가 넓고 푸르러요','파란 바다가 좋아요','초록 잎이 돋아요',
+                '시원한 바람이 불어요','촉촉한 비가 내려요','밥은 골고루 먹어요','친구와 사이좋게 지내요',
+                '거짓말은 하지 않아요','양치를 매일매일 해요','장난감은 스스로 정리해요','횡단보도로 길을 건너요',
+                '고맙다고 말해요','친구를 도와줘요','책을 많이 읽어요','우유를 잘 마셔요',
+                '신발을 바르게 신어요','우리 모두 사이좋게','바르게 인사해요','정리정돈을 잘해요',
+                '채소도 잘 먹어요','운동을 열심히 해요','바른 자세로 앉아요','준비물을 잘 챙겨요',
+                '동생과 사이좋게 놀아요','형아를 도와줘요','누나는 멋져요','동생에게 양보해요',
+                '서로 도와주어요','우리는 사이좋은 남매','동생이 울면 달래줘요','같이 장난감을 정리해요',
+                '형과 사이좋게 지내요','동생 손을 잡아줘요','우리 같이 노래해요','서로 칭찬해줘요',
+                '동생을 보살펴줘요','사이좋게 나눠 먹어요','고맙습니다 인사해요','죄송합니다 사과해요',
+                '안녕하세요 인사해요','음식을 남기지 않아요','다른 사람을 배려해요','순서를 잘 지켜요',
+                '조용히 기다려요','문은 살살 닫아요','어른이 먼저 드세요','감사한 마음을 가져요',
+                '친절하게 말해요','웃어른을 공경해요','인사를 먼저 해요','고운 말을 사용해요',
+                '자리를 양보해요','감사하다고 말해요','나는 지금 행복해요','조금 속상해요',
+                '정말 신나요','많이 사랑해요','조금 무서워요','너무 즐거워요',
+                '마음이 편안해요','고마운 마음이 들어요','미안한 마음을 전해요','설레는 마음이 가득해요',
+                '속상하면 말로 표현해요','오늘 기분이 좋아요','나는 자랑스러워요','마음이 두근거려요',
+                '마음이 포근해요','신나고 즐거워요','엄마는 언제나 너를 사랑해','너는 정말 소중한 아이야',
+                '언제나 네 편이야','사랑해 우리 아가','실수해도 괜찮아','너는 특별한 아이야',
+                '매일매일 사랑이 자라나','넌 엄마의 보물이야','천천히 해도 괜찮아','너는 빛나는 별이야',
+                '늘 응원할게','너를 믿어','너는 우리의 행복이야','너의 미소가 사랑스러워',
+                '네가 자랑스러워','오늘도 사랑한단다','너는 사랑받는 아이야','우리 아가 잘 자라',
+                '나는 노래를 불러요','친구야 같이 놀자','나는 책 읽기를 좋아해요','그림 그리기는 즐거워요',
+                '우리 가족은 소중해요','할머니 사랑해요','할아버지 고맙습니다','선생님 안녕하세요',
+                '나는 매일 자라나요','오늘 하루도 신나요','손을 흔들어 인사해요','방긋방긋 웃어요',
+                '나무를 심어요','물고기가 헤엄쳐요','강아지가 멍멍 짖어요','고양이가 야옹 울어요',
+                '새들이 지지배배 노래해요','바닷가에서 모래놀이해요','연을 높이 날려요','눈사람을 만들어요',
+                '개미가 줄지어 가요','나는 그림책을 봐요','블록으로 성을 만들어요','퍼즐을 맞춰요',
+                '색칠 공부를 해요','종이배를 접어요','풍선을 불어요','줄넘기를 해요',
+                '자전거를 타요','그네를 밀어줘요','보물찾기를 해요','나는 인사를 잘해요',
+                '음식을 골고루 먹어요','잠을 푹 자요','정리를 스스로 해요','약속을 잘 지켜요',
+                '친구와 사이좋게 놀아요','동생을 잘 돌봐요','누나와 사이좋게 지내요','어려운 친구를 도와요',
+                '미안하면 사과해요','고마우면 인사해요','용서하는 마음을 가져요','약한 친구를 보호해요',
+                '규칙을 잘 지켜요','줄을 바르게 서요','조용히 이야기해요','자연을 사랑해요',
+                '지금은 기분이 좋아요','조금 슬퍼요','많이 설레요','가슴이 두근거려요',
+                '참 행복해요','편안한 마음이에요','속상한 마음을 말해요','고마운 마음을 표현해요',
+                '나는 너를 응원해','너는 정말 대단해','다시 하면 돼','천천히 해도 좋아',
+                '너는 소중한 사람이야','언제나 너를 믿어','사랑하는 우리 아이','포기하지 않아서 멋져',
+                '잘 자라줘서 고마워','비누 거품이 보글보글','나뭇잎이 살랑살랑 흔들려요','순서대로 기다려요',
+                '양보하는 마음이 고와요','공공장소에서는 조용히 해요','동물을 사랑으로 보살펴요','나는 마음이 좋아요',
+                '정말 즐거워요','조금 수줍어요','우리 노래를 해요','보물을 같이 찾아요',
+                '양치를 잘해요','순서대로 차근차근','가족이 모여 밥을 먹어요','나는 마음이 가벼워요',
+                '정말 마음에 들어요','오늘도 정말 멋져요','바른 말을 사용해요','고운 마음을 나누어요',
+                '서로 도와가며 지내요','배려하는 마음이 고와요','웃는 얼굴이 보기 좋아요','나는 마음이 자라나요',
+                '오늘 하루도 고마워요','너는 참 자랑스러워','웃으면 복이 와요','바르게 생활해요',
+                '너는 참 소중한 아이야','많이 사랑해','힘들면 안아줄게','울어도 괜찮아',
+                '넘어져도 다시 일어나','서두르지 않아도 돼','네 속도로 가면 돼','실수는 배우는 과정이야',
+                '모르면 물어봐도 돼','도와달라고 말해도 돼','혼자가 아니야','네 마음을 말해줘',
+                '네 이야기가 궁금해','잘 들어줄게','네 마음을 이해해','슬퍼도 괜찮아',
+                '기분이 나아질 거야','푹 쉬어도 돼','아침에 만나자','오늘 하루도 고마워',
+                '목소리가 참 곱구나','생각이 참 깊구나','너는 용감한 아이야','너는 다정한 아이야',
+                '너는 정직한 아이야','너는 성실한 아이야','너 자신을 사랑해','거울 속 너에게 웃어줘',
+                '오늘의 너도 멋져','어제보다 자란 너야','내일은 더 좋아질 거야','포기하지 마',
+                '다시 시작해도 돼','천천히 해도 늦지 않아','결과보다 과정이 중요해','최선을 다한 네가 자랑스러워',
+                '비교하지 않아도 돼','너는 너답게 빛나','친구에게 먼저 인사해','친구의 이름을 불러줘',
+                '친구의 말을 들어줘','친구가 울면 위로해','친구를 놀리지 않아','친구를 밀지 않아',
+                '친구와 손을 잡아','친구를 기다려줘','친구에게 양보해','줄을 서서 기다려요',
+                '조용히 걸어요','문을 살살 닫아요','자리를 정리해요','바닥에 버리지 않아요',
+                '빌린 것은 돌려줘요','남의 것을 함부로 만지지 않아요','할머니 손을 잡아드려요','동생을 돌봐줘요',
+                '언니를 도와줘요','설거지를 도와요','신발을 가지런히 놓아요','방을 스스로 치워요',
+                '장난감을 정리해요','밥을 남기지 않아요','골고루 잘 먹어요','물을 자주 마셔요',
+                '눈을 자주 쉬어요','좌우를 살펴요','초록불에 건너요','차도로 다니지 않아요',
+                '모르는 차에 타지 않아요','길을 잃으면 그 자리에서 기다려요','어른에게 도움을 청해요','전화번호를 외워요',
+                '불을 만지지 않아요','가스 근처에 가지 않아요','높은 곳에 올라가지 않아요','물가에서 조심해요',
+                '혼자 수영하지 않아요','약을 함부로 먹지 않아요','위험한 것은 만지지 않아요','아프면 바로 말해요',
+                '무섭다고 말해도 돼요','싫으면 싫다고 말해요','내 몸은 소중해요','다른 사람 몸도 소중해요',
+                '허락 없이 만지지 않아요','비밀은 어른에게 말해요','정직하게 말해요','잘못하면 사과해요',
+                '용서를 구해요','용서할 줄도 알아요','말로 표현해요','심호흡을 해봐요',
+                '서로 이해해봐요','다름을 존중해요','모두 소중한 사람이에요','차별하지 않아요',
+                '새 친구를 반겨줘요','어려운 친구를 도와줘요','고마우면 고맙다고 말해요','친구의 성공을 축하해요',
+                '질투하지 않아요','시간을 잘 지켜요','숙제를 미루지 않아요','수업 시간에 집중해요',
+                '궁금하면 손을 들어요','틀려도 괜찮아요','친구의 발표를 들어요','박수를 쳐줘요',
+                '새로운 것을 배워요','질문을 많이 해요','호기심을 가져요','스스로 생각해요',
+                '작은 습관이 나를 만들어요','오늘 할 일을 오늘 해요','나무를 사랑해요','동물을 괴롭히지 않아요',
+                '길고양이를 돌봐줘요','분리수거를 잘해요','일회용품을 줄여요','지구를 지켜요',
+                '하늘이 참 맑아요','바람이 시원해요','달이 환하게 웃어요','새들이 노래해요',
+                '나뭇잎이 흔들려요','파도가 밀려와요','산이 높이 솟아요','여름은 신나요',
+                '가을은 시원해요','겨울은 포근해요','시간이 흘러가요','오늘은 다시 오지 않아요',
+                '지금 이 순간이 소중해요','너는 참 귀한 아이야','사랑한다고 말해줄게','네 곁을 지켜줄게',
+                '언제든 안겨도 돼','마음이 아프면 말해줘','너의 하루가 궁금해','무엇이든 이야기해도 돼',
+                '비밀을 지켜줄게','너를 응원해','잘 해낼 거라 믿어','용기를 내어봐',
+                '한 번 더 해보자','어려워도 도전해봐','조금만 더 힘내','네 손을 잡아줄게',
+                '같이 가자','나란히 걸어가자','오늘도 반가워','목소리를 들으니 좋아',
+                '안아주고 싶어','네가 웃으면 나도 웃어','작은 일에도 고마워해요','받은 사랑을 나눠요',
+                '먼저 손을 내밀어요','부드럽게 말해요','상냥하게 대답해요','공손하게 부탁해요',
+                '정중하게 거절해요','큰 소리로 인사해요','반갑게 맞이해요','배웅해 드려요',
+                '안부를 물어요','마음을 전해요','축하한다고 말해요','위로해 주어요',
+                '말없이 기다려요','믿고 지켜봐 주어요','서로 도와요','힘을 모아요',
+                '의견을 나눠요','다른 생각도 들어봐요','내 잘못을 인정해요','변명하지 않아요',
+                '책임을 져요','약한 사람을 도와요','어린 동생을 보살펴요','아픈 친구를 살펴요',
+                '외로운 이를 찾아가요','나이 드신 분을 도와요','자리를 내어드려요','길을 알려드려요',
+                '짐을 들어드려요','문을 잡아드려요','먼저 지나가시게 해요','기다려 드려요',
+                '감사 인사를 드려요','방긋 웃어드려요','좋은 하루 보내세요','안녕히 가세요',
+                '우리는 서로 도와요','고마운 마음을 전해요','오늘도 배워가요','마음의 문을 열어요',
+                '좋은 친구가 되어줘요','다정한 사람이 되어요','남을 배려하는 마음','한마음으로 모여요']},
+        proverb:{name:'속담',e:'📜',type:'proverb',count:10,
+            items:[
+                {p:'가는 말이 고와야 오는 말이 곱다', m:'내가 곱게 말해야 남도 곱게 말해요'},
+                {p:'발 없는 말이 천 리 간다', m:'말은 순식간에 멀리 퍼져요'},
+                {p:'말 한마디에 천 냥 빚도 갚는다', m:'말 한마디로 큰일도 잘 풀려요'},
+                {p:'낮말은 새가 듣고 밤말은 쥐가 듣는다', m:'말은 늘 조심해서 해야 해요'},
+                {p:'세 살 버릇 여든까지 간다', m:'어릴 때 든 버릇은 오래가요'},
+                {p:'웃는 얼굴에 침 뱉으랴', m:'웃는 사람에게는 화내기 어려워요'},
+                {p:'호랑이도 제 말 하면 온다', m:'남의 말을 하면 그 사람이 나타나기도 해요'},
+                {p:'입은 삐뚤어져도 말은 바로 해라', m:'어떤 상황에서도 말은 바르게 해야 해요'},
+                {p:'핑계 없는 무덤 없다', m:'무슨 일이든 핑계는 있기 마련이에요'},
+                {p:'윗물이 맑아야 아랫물이 맑다', m:'윗사람이 바르면 아랫사람도 바르게 돼요'},
+                {p:'가는 날이 장날이다', m:'우연히 갔는데 마침 일이 생겨요'},
+                {p:'누워서 침 뱉기', m:'남을 해치려다 자기가 해를 입어요'},
+                {p:'똥 묻은 개가 겨 묻은 개 나무란다', m:'자기 큰 흉은 모르고 남의 작은 흉을 봐요'},
+                {p:'얌전한 고양이 부뚜막에 먼저 올라간다', m:'얌전해 보여도 딴 데서 먼저 나서요'},
+                {p:'까마귀 날자 배 떨어진다', m:'우연히 두 일이 겹쳐 오해를 사요'},
+                {p:'소문난 잔치에 먹을 것 없다', m:'소문만 컸지 실속은 별로 없어요'},
+                {p:'방귀 뀐 놈이 성낸다', m:'잘못한 사람이 오히려 화를 내요'},
+                {p:'콩 심은 데 콩 나고 팥 심은 데 팥 난다', m:'모든 일은 한 대로 결과가 나와요'},
+                {p:'아니 땐 굴뚝에 연기 날까', m:'원인이 없으면 결과도 없어요'},
+                {p:'벼는 익을수록 고개를 숙인다', m:'훌륭한 사람일수록 겸손해요'},
+                {p:'시작이 반이다', m:'시작하면 이미 반은 한 거예요'},
+                {p:'천 리 길도 한 걸음부터', m:'큰일도 작은 시작에서 비롯돼요'},
+                {p:'티끌 모아 태산', m:'작은 것도 모으면 큰 것이 돼요'},
+                {p:'공든 탑이 무너지랴', m:'정성 들인 일은 쉽게 무너지지 않아요'},
+                {p:'돌다리도 두들겨 보고 건너라', m:'잘 아는 일도 꼼꼼히 살펴야 해요'},
+                {p:'아는 길도 물어 가라', m:'잘 아는 일도 확인하며 하는 게 좋아요'},
+                {p:'백지장도 맞들면 낫다', m:'쉬운 일도 함께 하면 더 쉬워요'},
+                {p:'하늘이 무너져도 솟아날 구멍이 있다', m:'아무리 어려워도 방법은 있어요'},
+                {p:'호랑이에게 물려 가도 정신만 차리면 산다', m:'위급해도 정신을 차리면 살 수 있어요'},
+                {p:'개구리 올챙이 적 생각 못 한다', m:'처음 어렵던 때를 잊으면 안 돼요'},
+                {p:'낫 놓고 기역 자도 모른다', m:'아주 쉬운 것도 모른다는 뜻이에요'},
+                {p:'등잔 밑이 어둡다', m:'가까운 것을 오히려 잘 몰라요'},
+                {p:'열 번 찍어 안 넘어가는 나무 없다', m:'꾸준히 하면 이루어져요'},
+                {p:'우물 안 개구리', m:'넓은 세상을 모르는 사람이에요'},
+                {p:'서당 개 삼 년이면 풍월을 읊는다', m:'오래 보고 들으면 저절로 익혀요'},
+                {p:'실패는 성공의 어머니', m:'실패를 딛고 성공에 이르러요'},
+                {p:'구슬이 서 말이라도 꿰어야 보배다', m:'좋은 것도 다듬어야 쓸모가 있어요'},
+                {p:'선무당이 사람 잡는다', m:'서투른 사람이 큰일을 그르쳐요'},
+                {p:'원숭이도 나무에서 떨어진다', m:'잘하는 사람도 실수할 때가 있어요'},
+                {p:'빈 수레가 요란하다', m:'잘 모르는 사람이 더 떠들어요'},
+                {p:'고래 싸움에 새우 등 터진다', m:'강한 이들 다툼에 약한 이가 다쳐요'},
+                {p:'꿩 대신 닭', m:'없으면 비슷한 것으로 대신해요'},
+                {p:'미꾸라지 한 마리가 온 웅덩이를 흐린다', m:'한 사람이 여럿을 힘들게 해요'},
+                {p:'지렁이도 밟으면 꿈틀한다', m:'약한 이도 너무 괴롭히면 맞서요'},
+                {p:'하룻강아지 범 무서운 줄 모른다', m:'철없이 겁 없이 덤벼요'},
+                {p:'닭 쫓던 개 지붕 쳐다본다', m:'애쓰던 일을 놓쳐 허탈해요'},
+                {p:'개똥도 약에 쓰려면 없다', m:'흔한 것도 필요할 땐 없어요'},
+                {p:'소 잃고 외양간 고친다', m:'일이 터지기 전에 미리 대비해요'},
+                {p:'꿩 먹고 알 먹는다', m:'한 가지로 두 가지 이득을 얻어요'},
+                {p:'자라 보고 놀란 가슴 솥뚜껑 보고 놀란다', m:'한번 놀라면 비슷한 것에도 놀라요'},
+                {p:'거미도 줄을 쳐야 벌레를 잡는다', m:'준비를 해야 무엇이든 얻어요'},
+                {p:'달면 삼키고 쓰면 뱉는다', m:'이로우면 취하고 해로우면 버려요'},
+                {p:'뱁새가 황새를 따라가면 가랑이가 찢어진다', m:'분수에 맞게 행동해야 해요'},
+                {p:'수박 겉 핥기', m:'속은 모르고 겉만 대충 봐요'},
+                {p:'바늘 도둑이 소 도둑 된다', m:'작은 잘못도 바로 고쳐야 해요'},
+                {p:'쥐구멍에도 볕 뜰 날 있다', m:'어려워도 좋은 날이 와요'},
+                {p:'우물을 파도 한 우물을 파라', m:'한 가지 일을 꾸준히 해야 해요'},
+                {p:'사공이 많으면 배가 산으로 간다', m:'참견이 많으면 일이 엉뚱해져요'},
+                {p:'마른하늘에 날벼락', m:'뜻밖의 일을 갑자기 당해요'},
+                {p:'금강산도 식후경', m:'아무리 좋아도 배가 불러야 즐거워요'},
+                {p:'무소식이 희소식이다', m:'소식이 없는 건 잘 지낸다는 뜻이에요'},
+                {p:'가재는 게 편이다', m:'비슷한 처지끼리 서로 편들어요'},
+                {p:'도토리 키 재기', m:'고만고만한 것끼리 비교해요'},
+                {p:'누워서 떡 먹기', m:'아주 쉬운 일이에요'},
+                {p:'땅 짚고 헤엄치기', m:'힘들이지 않고 할 수 있어요'},
+                {p:'식은 죽 먹기', m:'아주 쉽게 할 수 있어요'},
+                {p:'밑 빠진 독에 물 붓기', m:'아무리 해도 보람이 없어요'},
+                {p:'산 넘어 산이다', m:'어려움이 계속 이어져요'},
+                {p:'그림의 떡', m:'가질 수 없어 아쉬운 것이에요'},
+                {p:'엎질러진 물이다', m:'이미 벌어져 되돌릴 수 없어요'},
+                {p:'비 온 뒤에 땅이 굳는다', m:'어려움을 겪고 나면 더 단단해져요'},
+                {p:'고생 끝에 낙이 온다', m:'힘든 일을 견디면 좋은 날이 와요'},
+                {p:'십 년이면 강산도 변한다', m:'시간이 지나면 모든 게 달라져요'},
+                {p:'입에 쓴 약이 병에는 좋다', m:'듣기 싫은 말이 도움이 돼요'},
+                {p:'작은 고추가 맵다', m:'작아도 야무진 사람이 있어요'},
+                {p:'한 귀로 듣고 한 귀로 흘린다', m:'들은 것을 마음에 담지 않아요'},
+                {p:'어물전 망신은 꼴뚜기가 시킨다', m:'한 사람이 여럿을 부끄럽게 해요'},
+                {p:'종로에서 뺨 맞고 한강에서 눈 흘긴다', m:'엉뚱한 데서 화풀이를 해요'},
+                {p:'내 코가 석 자', m:'내 사정이 급해 남을 도울 수 없어요'},
+                {p:'될성부른 나무는 떡잎부터 알아본다', m:'잘될 사람은 어려서부터 남달라요'},
+                {p:'가뭄에 콩 나듯 한다', m:'어쩌다 아주 드물게 있어요'},
+                {p:'꼬리가 길면 밟힌다', m:'나쁜 일은 오래 하면 드러나요'},
+                {p:'남의 잔치에 감 놔라 배 놔라 한다', m:'남의 일에 쓸데없이 참견해요'},
+                {p:'떡 줄 사람은 생각도 않는데 김칫국부터 마신다', m:'될지도 모르는데 미리 기대해요'},
+                {p:'똥이 무서워서 피하나 더러워서 피하지', m:'나빠서가 아니라 상대하기 싫어 피해요'},
+                {p:'믿는 도끼에 발등 찍힌다', m:'믿던 것에 오히려 해를 입어요'},
+                {p:'고슴도치도 제 새끼는 함함하다고 한다', m:'누구나 제 자식은 예뻐 보여요'},
+                {p:'고양이 목에 방울 달기', m:'말은 좋아도 하기 어려운 일이에요'},
+                {p:'길고 짧은 것은 대보아야 안다', m:'직접 겨뤄 봐야 알 수 있어요'},
+                {p:'뚝배기보다 장맛이다', m:'겉모습보다 속 내용이 더 좋아요'},
+                {p:'매도 먼저 맞는 게 낫다', m:'힘든 일은 먼저 겪는 게 나아요'},
+                {p:'모로 가도 서울만 가면 된다', m:'방법이 어떻든 목적을 이루면 돼요'},
+                {p:'사촌이 땅을 사면 배가 아프다', m:'남이 잘되면 괜히 샘이 나요'},
+                {p:'세월이 약이다', m:'시간이 지나면 아픔이 나아져요'},
+                {p:'쇠뿔도 단김에 빼라', m:'할 일은 미루지 말고 바로 해요'},
+                {p:'옥에도 티가 있다', m:'아무리 좋아도 작은 흠은 있어요'},
+                {p:'우는 아이 젖 준다', m:'표현해야 원하는 것을 얻어요'},
+                {p:'장님이 코끼리 만지는 격', m:'일부만 보고 전체를 잘못 판단해요'},
+                {p:'팔은 안으로 굽는다', m:'가까운 사람에게 더 마음이 가요'},
+                {p:'호랑이를 잡으려면 호랑이 굴에 들어가야 한다', m:'큰일은 용기를 내야 이룰 수 있어요'}]},
+        /* ===== 쌍자음(Shift) 도전 단계 ===== */
+        ssang:{name:'쌍자음 글자',e:'🔥',type:'jamo',count:20,
+            pool:['ㄲ','ㄸ','ㅃ','ㅆ','ㅉ']},
+        ssangword:{name:'쌍자음 낱말',e:'🍓',type:'word',count:14,
+            items:[
+                '딸기','씨앗','짜장면','코끼리','토끼','꿀벌','까치','꼬리',
+                '뚜껑','뿌리','빨래','썰매','쓰레기','쪽지','찌개','뽀뽀',
+                '까마귀','꼬마','따오기','똑딱','빨강','뻐꾸기','뽕나무','쌍둥이',
+                '씩씩','깡충깡충','꼼꼼','끄덕끄덕','따뜻','또박또박','뚜벅뚜벅','반짝반짝',
+                '새싹','아빠','어깨','오빠','이빨','토끼풀','호빵','꼬치',
+                '깍두기','꽃게','딸꾹질','쓰레기통','꽃밭','꿀떡','뼈','쑥',
+                '싹','짝','꿈','땅','떡','빵','꽃','쌀']},
+        ssangsent:{name:'도전 문장',e:'🏆',type:'sentence',count:14,
+            items:[
+                '딸기가 빨갛게 익었어요','꽃이 예쁘게 피었어요','아빠와 함께 빵을 먹어요','씨앗에서 싹이 나요',
+                '코끼리는 코가 길어요','토끼가 깡충깡충 뛰어요','꿀벌이 꽃을 찾아가요','까치가 나무에 앉아요',
+                '오빠가 나를 도와줘요','어깨를 쭉 펴고 앉아요','이를 깨끗이 닦아요','아침에 일찍 일어나요',
+                '따뜻한 마음을 나눠요','또박또박 글씨를 써요','반짝반짝 별이 빛나요','꼼꼼하게 살펴봐요',
+                '씩씩하게 걸어가요','땅속에서 뿌리가 자라요','빨래가 바람에 흔들려요','떡을 나눠 먹어요',
+                '짝꿍과 사이좋게 놀아요','뚜벅뚜벅 걸어가요','새싹이 쑥쑥 자라요','꿈을 크게 가져요',
+                '예쁜 마음을 가꿔요','기뻐서 껑충 뛰었어요','동생과 뽀뽀했어요','쓰레기는 쓰레기통에 버려요',
+                '깜짝 놀라도 괜찮아요','꽃밭에 나비가 날아와요','아빠 사랑해요','오빠와 함께 놀아요',
+                '네가 있어서 행복해','오늘도 잘 지냈니','너를 믿고 있어','너는 잘하고 있어',
+                '조금씩 나아가면 돼','무슨 생각을 하고 있니','오늘 어떤 일이 있었니','그럴 수도 있어',
+                '많이 속상했겠구나','화가 날 수도 있어','따뜻한 차 한 잔 마셔','잘 자고 좋은 꿈 꿔',
+                '함께여서 좋아','네 웃음이 예뻐','네 눈이 반짝여','마음이 참 따뜻하구나',
+                '너는 지혜로운 아이야','스스로를 아껴줘','꿈을 향해 걸어가','네 노력을 알고 있어',
+                '애쓴 만큼 자랐어','친구와 함께 나눠','차례를 지켜요','쓰레기를 주워요',
+                '물건을 아껴 써요','어른께 인사드려요','어른의 말씀을 들어요','할아버지께 물을 드려요',
+                '가족과 함께 밥을 먹어요','책을 제자리에 꽂아요','손을 씻고 밥을 먹어요','천천히 오래 씹어요',
+                '일찍 자고 일찍 일어나요','아침을 꼭 먹어요','밖에서 뛰어놀아요','햇빛을 쬐어요',
+                '책을 가까이 보지 않아요','길을 건널 때 손을 들어요','자전거를 탈 때 조심해요','안전모를 써요',
+                '낯선 사람을 따라가지 않아요','계단에서 뛰지 않아요','화나도 때리지 않아요','잠시 쉬었다 이야기해요',
+                '생각이 다를 수 있어요','따돌리지 않아요','함께 놀자고 말해요','혼자 있는 친구에게 다가가요',
+                '나눠주는 마음이 예뻐요','칭찬을 아끼지 않아요','함께 기뻐해요','약속은 꼭 지켜요',
+                '선생님 말씀을 잘 들어요','발표를 씩씩하게 해요','책을 가까이해요','매일 조금씩 읽어요',
+                '끝까지 해내요','꾸준함이 힘이에요','자연을 아껴요','꽃을 함부로 꺾지 않아요',
+                '물을 아껴 써요','전기를 아껴 써요','비 온 뒤 무지개가 떠요','햇살이 따뜻해요',
+                '별이 반짝여요','꽃이 피어나요','눈이 소복이 쌓여요','봄이 오고 있어요',
+                '계절이 바뀌어요','할 수 있어','거의 다 왔어','보고 싶었어',
+                '행복은 가까이 있어','주는 기쁨을 알아요','따뜻한 말을 건네요','편지를 써요',
+                '곁에 있어 주어요','함께 해결해요','또 만나요']},
+        eng:{name:'영어 글자',e:'🔤',type:'eng',count:20,
+            pool:'ASDFGHJKL QWERTYUIOP ZXCVBNM'.replace(/ /g,'').split('')},
+        engword:{name:'영어 낱말',e:'🅰️',type:'engword',count:10,
+            items:['cat','dog','sun','box','cup','bus','hat','pen','egg','map','red','top','bee','owl','fox','jam',
+                'cow','pig','bug','net','sky','toy','run','jump','milk','book','star','tree','frog','duck']},
+        engsent:{name:'영어 문장',e:'💌',type:'engsent',count:12,
+            items:[
+                'mommy always loves you','daddy always loves you','you can do it','i am proud of you',
+                'you are special','you are my sunshine','i believe in you','it is okay to make mistakes',
+                'you are so brave','never give up','you are enough','i love you so much',
+                'you make me happy','you are a good friend','be kind to everyone','share with your friends',
+                'say thank you','say sorry when you are wrong','help your friends','we are a team',
+                'you are growing every day','dream big','you are smart','you are strong',
+                'keep trying','today is a good day','smile and be happy','you did a great job',
+                'i am here for you','you are not alone','be yourself','you are loved',
+                'have a nice day','good morning','good night sleep well','wash your hands',
+                'brush your teeth','eat your vegetables','listen to your teacher','please and thank you',
+                'i can read books','i like to learn','learning is fun','i am happy today',
+                'my family loves me','we are all different','kindness is free','you are a star',
+                'tomorrow is a new day','take a deep breath','it is okay to cry','ask for help',
+                'you can try again','i trust you','you are amazing','be a good listener',
+                'play nice with others','wait for your turn','clean up your toys','say hello with a smile',
+                'be polite to everyone','you are important','you make the world better','follow your dreams',
+                'be brave and kind','you are my treasure','practice makes better','mistakes help us grow',
+                'i am cheering for you','you are doing great']},
+        geokr:{name:'우리나라',e:'🇰🇷',type:'sentence',count:12,
+            items:[
+                '대한민국의 수도는 서울이에요','독도는 우리나라 동쪽 끝에 있어요','독도는 경상북도 울릉군에 있어요',
+                '울릉도 옆에 독도가 있어요','제주도는 우리나라에서 가장 큰 섬이에요','한라산은 제주도에 있어요',
+                '한라산은 남한에서 가장 높은 산이에요','우리나라는 삼면이 바다예요','동해는 우리나라 동쪽에 있어요',
+                '서해는 우리나라 서쪽에 있어요','남해는 우리나라 남쪽에 있어요','한강은 서울을 지나 흘러요',
+                '낙동강은 영남 지방을 흘러요','우리나라는 사계절이 뚜렷해요','설악산은 강원도에 있어요',
+                '지리산은 남부 지방에 있어요','경주는 신라의 옛 수도예요','부산은 큰 항구 도시예요',
+                '인천에는 큰 공항이 있어요','우리나라 옆에는 중국과 일본이 있어요','우리나라는 아시아에 있어요',
+                '태백산맥은 동쪽으로 길게 뻗어요','섬진강은 남쪽으로 흘러요','전주는 한옥 마을로 유명해요',
+                '안동에는 하회 마을이 있어요','강원도에는 산이 많아요','호남 평야는 넓은 들판이에요',
+                '우리나라 국화는 무궁화예요']},
+        geoworld:{name:'세계',e:'🌏',type:'sentence',count:12,
+            items:[
+                '일본의 수도는 도쿄예요','중국의 수도는 베이징이에요','미국의 수도는 워싱턴이에요',
+                '영국의 수도는 런던이에요','프랑스의 수도는 파리예요','독일의 수도는 베를린이에요',
+                '이탈리아의 수도는 로마예요','러시아의 수도는 모스크바예요','태국의 수도는 방콕이에요',
+                '호주의 수도는 캔버라예요','이집트의 수도는 카이로예요','인도의 수도는 뉴델리예요',
+                '캐나다의 수도는 오타와예요','브라질의 수도는 브라질리아예요','스페인의 수도는 마드리드예요',
+                '세계에서 가장 큰 대륙은 아시아예요','세계에서 가장 긴 강은 나일강이에요',
+                '세계에서 가장 높은 산은 에베레스트예요','지구에는 오대양 육대주가 있어요',
+                '아프리카에는 사하라 사막이 있어요','이집트에는 피라미드가 있어요','프랑스에는 에펠탑이 있어요',
+                '중국에는 만리장성이 있어요','인도에는 타지마할이 있어요','미국에는 자유의 여신상이 있어요',
+                '호주에는 캥거루가 살아요','남극은 아주 추운 곳이에요','북극에는 북극곰이 살아요',
+                '아마존은 큰 밀림이에요','태평양은 가장 큰 바다예요']},
+        family:{name:'우리 가족 문장',e:'💌',type:'family',count:0},
+        game:{name:'떨어지는 글자',e:'🎈',type:'game'}
+    };
+    /* 부모가 직접 넣는 '우리 가족 문장' */
+    let familySentences = [];
+    const FAM_KEY = 'tadak_family_sentences';
+    let famStorageOK = true;   // 이 환경에서 저장이 되는지
+
+    /* 저장이 실제로 작동하는지 확인 (file://에서는 막힐 수 있음) */
+    function checkFamStorage(){
+        try{
+            const t='__tadak_test__';
+            window.localStorage.setItem(t,'1');
+            window.localStorage.removeItem(t);
+            return true;
+        }catch(e){ return false; }
+    }
+    function loadFamily(){
+        famStorageOK = checkFamStorage();
+        if(!famStorageOK) return;
+        try{
+            const raw=window.localStorage.getItem(FAM_KEY);
+            if(raw){
+                const arr=JSON.parse(raw);
+                if(Array.isArray(arr)) familySentences=arr.filter(x=>typeof x==='string');
+            }
+        }catch(e){ /* 무시 */ }
+    }
+    function saveFamily(){
+        if(!famStorageOK) return;
+        try{ window.localStorage.setItem(FAM_KEY, JSON.stringify(familySentences)); }
+        catch(e){ famStorageOK=false; }
+    }
+    const ORDER=['home','top','bottom','word','sentence','ssang','ssangword','ssangsent','proverb','eng','engword','engsent','geokr','geoworld','family','game'];
+    /* 영어 문장 대소문자 모드: 'lower' | 'upper' */
+    let engCase='lower';
+
+    /* 격려 문구 */
+    const GOOD=['좋아요!','잘했어요!','멋져요!','최고예요!','대단해요!','와, 빨라요!','척척이에요!','반짝반짝!'];
+    const BAD=['앗, 다시 한 번!','괜찮아요, 천천히!','반짝이는 곳을 눌러요!','조금만 더 잘 보고!'];
+
+    /* 이름을 붙여 격려 문구 만들기 */
+    function withName(msg, kind){
+        const nm=(state.playerName||'').trim();
+        if(!nm) return msg;
+        // kind: 'good' | 'bad'
+        if(kind==='bad') return '앗, '+nm+'님! '+msg;
+        return nm+'님, '+msg;
+    }
+    function goodMsg(){ return withName(GOOD[Math.floor(Math.random()*GOOD.length)],'good'); }
+    function badMsg(){ return withName(BAD[Math.floor(Math.random()*BAD.length)],'bad'); }
+
+    /* ===== 상태 ===== */
+    let state = { level:'home', queue:[], itemIndex:0, stepIndex:0, totalStars:0, soundOn:true,
+        typeStart:0, typedCount:0, mistakes:0, char:'cat', playerName:'' };
+
+    /* ===== 선택 가능한 캐릭터 ===== */
+    const CHARS = {
+        cat:    {name:'냐옹이',  idle:'😺', happy:'😸', sad:'😿', play:'😹', skin:'radial-gradient(circle at 40% 35%,#ffe9b0,#ffcaa0)', shadow:'#f0b48f'},
+        duck:   {name:'꽥꽥오리', idle:'🦆', happy:'🦆', sad:'🦆', play:'🦆', skin:'radial-gradient(circle at 40% 35%,#fff3b0,#ffd66e)', shadow:'#e3b94e'},
+        capybara:{name:'카피바라', idle:'🦫', happy:'🦫', sad:'🦫', play:'🦫', skin:'radial-gradient(circle at 40% 35%,#e8cda0,#c79a6a)', shadow:'#a87f52'},
+        dog:    {name:'멍멍이',  idle:'🐶', happy:'🐶', sad:'🐶', play:'🐕', skin:'radial-gradient(circle at 40% 35%,#ffe0c2,#f3bd92)', shadow:'#d49a6a'},
+        giraffe:{name:'키다리기린', idle:'🦒', happy:'🦒', sad:'🦒', play:'🦒', skin:'radial-gradient(circle at 40% 35%,#ffeec2,#ffd98a)', shadow:'#e0b964'},
+        panda:  {name:'대나무판다', idle:'🐼', happy:'🐼', sad:'🐼', play:'🐼', skin:'radial-gradient(circle at 40% 35%,#f4f4f4,#d3d3d3)', shadow:'#a9a9a9'},
+        rabbit: {name:'깡충토끼', idle:'🐰', happy:'🐰', sad:'🐰', play:'🐇', skin:'radial-gradient(circle at 40% 35%,#ffe4ef,#ffc0d8)', shadow:'#e79ab8'},
+        bear:   {name:'포근곰돌이', idle:'🐻', happy:'🐻', sad:'🐻', play:'🐻', skin:'radial-gradient(circle at 40% 35%,#f0d5b0,#cfa477)', shadow:'#a9825a'},
+        fox:    {name:'살금여우', idle:'🦊', happy:'🦊', sad:'🦊', play:'🦊', skin:'radial-gradient(circle at 40% 35%,#ffd9b0,#ffab6b)', shadow:'#dd8a4c'},
+        penguin:{name:'뒤뚱펭귄', idle:'🐧', happy:'🐧', sad:'🐧', play:'🐧', skin:'radial-gradient(circle at 40% 35%,#d6ecff,#a8cdf0)', shadow:'#7fa8cc'}
+    };
+    const CHAR_ORDER=['cat','duck','capybara','dog','giraffe','panda','rabbit','bear','fox','penguin'];
+    function curChar(){ return CHARS[state.char]||CHARS.cat; }
+    function face(mood){ return curChar()[mood]||curChar().idle; }
+    function applyCharSkin(){
+        const c=curChar();
+        ['mascot','navIcon'].forEach(id=>{
+            const el=document.getElementById(id); if(!el) return;
+            el.style.background=c.skin;
+            el.style.boxShadow='0 '+(id==='navIcon'?'4':'6')+'px 0 '+c.shadow;
+        });
+        document.getElementById('mascot').textContent=face('idle');
+        document.getElementById('navIcon').textContent=face('idle');
+    }
+
+    /* ===== 자모 -> 단계 ===== */
+    function stepFromJamo(j){
+        const e = KEY[j]; if(!e) return null;
+        return {jamo:j, code:e[0], shift:!!e[1], finger:FINGER[e[0]]};
+    }
+    function stepFromLetter(ch, wantShift){
+        if(ch===' ') return {jamo:'␣', code:'Space', shift:false, finger:'th'};
+        const up=ch.toUpperCase(); const code='Key'+up;
+        if(!FINGER[code]) return null;
+        // 기본은 Shift 없이(영어 글자/낱말 단계). 대문자 모드에서만 wantShift=true로 호출.
+        return {jamo: wantShift?up:up, code, shift: !!wantShift, finger:FINGER[code]};
+    }
+    function pushJamo(arr,j){
+        if(COMPOUND[j]){ COMPOUND[j].forEach(x=>{const s=stepFromJamo(x); if(s)arr.push(s);}); }
+        else { const s=stepFromJamo(j); if(s)arr.push(s); }
+    }
+    function decompose(str){
+        const steps=[];
+        for(const ch of str){
+            if(ch===' '){ steps.push({jamo:'␣', code:'Space', shift:false, finger:'th'}); continue; }
+            const code=ch.charCodeAt(0);
+            if(code>=0xAC00 && code<=0xD7A3){
+                const s=code-0xAC00;
+                pushJamo(steps, CHO[Math.floor(s/588)]);
+                pushJamo(steps, JUNG[Math.floor((s%588)/28)]);
+                const jo=s%28; if(jo>0) pushJamo(steps, JONG[jo]);
+            } else { pushJamo(steps, ch); }
+        }
+        return steps;
+    }
+
+    /* ===== 세션 만들기 ===== */
+    function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+    /* 문장 놀이에서 어려운 문장이 섞이는 비율 */
+    const MIX_RATIO = 0.25;
+
+    function buildQueue(levelKey){
+        const L=LEVELS[levelKey];
+        const q=[];
+        if(L.type==='jamo'){
+            let last='';
+            for(let i=0;i<L.count;i++){
+                let pick; do{ pick=L.pool[Math.floor(Math.random()*L.pool.length)]; }while(pick===last && L.pool.length>1);
+                last=pick;
+                q.push({display:pick, context:'', steps:[stepFromJamo(pick)]});
+            }
+        }else if(L.type==='eng'){
+            let last='';
+            for(let i=0;i<L.count;i++){
+                let pick; do{ pick=L.pool[Math.floor(Math.random()*L.pool.length)]; }while(pick===last && L.pool.length>1);
+                last=pick;
+                q.push({display:pick, context:'', steps:[stepFromLetter(pick)]});
+            }
+        }else if(L.type==='engword'){
+            const chosen=shuffle(L.items).slice(0,L.count);
+            chosen.forEach(w=>{
+                const steps=[]; for(const ch of w){ const s=stepFromLetter(ch); if(s) steps.push(s); }
+                q.push({display:w, context:w.toUpperCase(), steps});
+            });
+        }else if(L.type==='engsent'){
+            const chosen=shuffle(L.items).slice(0,L.count);
+            chosen.forEach(s=>{
+                // 대문자 모드면 문장 첫 글자를 대문자로
+                const text = (engCase==='upper')
+                    ? s.charAt(0).toUpperCase()+s.slice(1)
+                    : s;
+                const steps=[];
+                for(const ch of text){
+                    if(ch===' '){ steps.push(stepFromLetter(' ')); continue; }
+                    const isUpper = (ch===ch.toUpperCase() && ch!==ch.toLowerCase());
+                    const st=stepFromLetter(ch, isUpper);
+                    if(st){ st.jamo = ch; steps.push(st); }
+                }
+                q.push({display:text, context:text, steps});
+            });
+        }else if(L.type==='proverb'){
+            // 랜덤으로 고르되, 쉬운 것부터 어려운 것 순서로 배치 (도전 욕구 ↑)
+            const chosen=shuffle(L.items).slice(0,L.count).map(o=>({o, steps:decompose(o.p)}));
+            chosen.sort((a,b)=>a.steps.length-b.steps.length);
+            chosen.forEach(({o,steps})=>{
+                q.push({display:o.p, context:o.p, steps});
+            });
+        }else if(levelKey==='sentence'){
+            /* 쉬운 문장 사이에 어려운 문장을 간간이 섞어 도전 욕구를 높임 */
+            const n=L.count;
+            const hardN=Math.max(2, Math.round(n*MIX_RATIO));   // 약 25%
+            const easyN=n-hardN;
+
+            /* 부모가 넣은 '우리 가족 문장'을 쉬운 문장에 자연스럽게 섞음.
+               개수가 적어도 묻히지 않도록 쉬운 자리의 최대 절반까지 우선 배치한다 */
+            const famAll = shuffle(familySentences.slice());
+            const famN = Math.min(famAll.length, Math.ceil(easyN/2));
+            const famPick = famAll.slice(0,famN)
+            .map(w=>({display:w, context:w, steps:decompose(w), hard:false, fam:true}));
+            const normals = shuffle(L.items).slice(0, easyN-famN)
+            .map(w=>({display:w, context:w, steps:decompose(w), hard:false}));
+            const easies = shuffle(famPick.concat(normals));
+
+            // 도전 문장 + 쉬운 속담을 어려운 항목 후보로 사용
+            const hardPool=[];
+            LEVELS.ssangsent.items.forEach(w=>hardPool.push({display:w, context:w, hard:true}));
+            LEVELS.proverb.items.forEach(o=>hardPool.push({display:o.p, context:o.p, hard:true}));
+            const hards=shuffle(hardPool).slice(0,hardN)
+            .map(o=>({...o, steps:decompose(o.display)}));
+
+            // 최종 배열에서 어려운 문장이 놓일 자리를 먼저 정함
+            // 조건: 0·1번은 쉬운 문장으로 시작 / 어려운 문장끼리 최소 2칸 이상 떨어짐
+            const hardPos=[];
+            const cand=[]; for(let i=2;i<n;i++) cand.push(i);
+            shuffle(cand).forEach(pos=>{
+                if(hardPos.length>=hardN) return;
+                if(hardPos.every(p=>Math.abs(p-pos)>=2)) hardPos.push(pos);
+            });
+            // 못 채웠으면 간격 조건을 완화해 보충
+            shuffle(cand).forEach(pos=>{
+                if(hardPos.length>=hardN) return;
+                if(!hardPos.includes(pos)) hardPos.push(pos);
+            });
+            const hardSet=new Set(hardPos);
+
+            let ei=0, hi=0;
+            for(let i=0;i<n;i++){
+                if(hardSet.has(i) && hi<hards.length) q.push(hards[hi++]);
+                else if(ei<easies.length) q.push(easies[ei++]);
+                else if(hi<hards.length) q.push(hards[hi++]);
+            }
+        }else if(L.type==='family'){
+            // 부모가 직접 넣은 문장들
+            familySentences.forEach(txt=>{
+                q.push({display:txt, context:txt, steps:decompose(txt), hard:false});
+            });
+        }else{
+            const chosen=shuffle(L.items).slice(0,L.count);
+            chosen.forEach(w=>q.push({display:w, context:w, steps:decompose(w), hard:false}));
+        }
+        return q;
+    }
+    function isEng(levelKey){ const t=LEVELS[levelKey].type; return t==='eng'||t==='engword'||t==='engsent'; }
+
+    /* ===== 화면 그리기 ===== */
+    function buildKeyboard(){
+        const kb=document.getElementById('keyboard'); kb.innerHTML='';
+        ROWS.forEach(row=>{
+            const r=document.createElement('div'); r.className='krow';
+            row.forEach(k=>{
+                const [code,eng,kor,korShift,isMod]=k;
+                const d=document.createElement('div');
+                d.className='key'+(code==='Space'?' space':'')+(isMod?' mod':'');
+                d.dataset.code=code;
+                const fin=FINGER[code];
+                if(code==='Space'){
+                    d.innerHTML='<div class="kor">space (엄지)</div>';
+                }else if(isMod){
+                    d.innerHTML='<div class="kor">⬆ Shift</div>';
+                }else{
+                    d.innerHTML='<span class="eng">'+eng+'</span><div class="kor">'+kor+'</div>'+
+                        '<div class="bar" style="background:'+(fin?FINFO[fin].c:'#ccc')+'"></div>';
+                    if(fin) d.style.background='color-mix(in srgb,'+FINFO[fin].c+' 12%, #fff)';
+                }
+                r.appendChild(d);
+            });
+            kb.appendChild(r);
+        });
+    }
+
+    function setKbMode(eng){
+        document.querySelectorAll('.key').forEach(k=>{
+            if(k.classList.contains('mod')||k.classList.contains('space')) return;
+            k.classList.toggle('engmode', !!eng);
+        });
+    }
+
+    function setGameVisible(on){
+        document.getElementById('gameWrap').style.display = on ? 'block' : 'none';
+        ['.target','.chips','.fingerguide','.statbar'].forEach(sel=>{
+            const el=document.querySelector(sel); if(el) el.style.display = on ? 'none' : '';
+        });
+    }
+
+    function isMulti(levelKey){ const t=LEVELS[levelKey].type; return t==='word'||t==='sentence'||t==='engword'||t==='engsent'||t==='proverb'||t==='family'; }
+
+    function currentSpeed(){
+        if(!state.typeStart || state.typedCount<1) return 0;
+        const mins=(Date.now()-state.typeStart)/60000;
+        if(mins<=0) return 0;
+        return Math.round(state.typedCount/mins);
+    }
+    function updateStats(){
+        const sb=document.getElementById('statbar');
+        if(!isMulti(state.level)){ sb.style.display='none'; return; }
+        sb.style.display='flex';
+        const spd=currentSpeed();
+        document.getElementById('statSpeed').textContent='⚡ '+(spd>0?spd:'-')+' 타/분';
+        const total=state.typedCount+state.mistakes;
+        const acc=total>0?Math.round(state.typedCount/total*100):100;
+        document.getElementById('statAcc').textContent='🎯 '+acc+'%';
+    }
+
+    function buildHands(){
+        // 왼손: 새끼 약 가운데 집게 엄지 / 오른손: 엄지 집게 가운데 약 새끼
+        const left=[['lp',26],['lr',34],['lm',42],['li',38],['th',24]];
+        const right=[['th',24],['ri',38],['rm',42],['rr',34],['rp',26]];
+        const mk=(arr,el)=>{el.innerHTML='';arr.forEach(([f,h])=>{const d=document.createElement('div');d.className='fin';d.dataset.fin=f;d.style.height=h+'px';d.style.background=FINFO[f].c;d.style.opacity='.35';el.appendChild(d);});};
+        mk(left,document.getElementById('handL'));
+        mk(right,document.getElementById('handR'));
+    }
+
+    const LEVEL_GROUPS = [
+        {label:'⌨️ 한글', keys:['home','top','bottom','word','sentence','ssang','ssangword','ssangsent','proverb']},
+        {label:'🔤 영어', keys:['eng','engword','engsent']},
+        {label:'🌏 지리', keys:['geokr','geoworld']},
+        {label:'💌 우리 가족', keys:['family']},
+        {label:'🎮 놀이', keys:['game']}
+    ];
+    function buildLevels(){
+        const box=document.getElementById('levels'); box.innerHTML='';
+        LEVEL_GROUPS.forEach(g=>{
+            const wrap=document.createElement('div');
+            wrap.className='lvlgroup';
+            const lab=document.createElement('div');
+            lab.className='glabel'; lab.textContent=g.label;
+            wrap.appendChild(lab);
+            const row=document.createElement('div'); row.className='grow';
+            g.keys.forEach(key=>{
+                const L=LEVELS[key];
+                const b=document.createElement('button');
+                b.className='lvl'+(key===state.level?' active':'');
+                b.dataset.key=key;
+                b.innerHTML='<span class="e">'+L.e+'</span> '+L.name;
+                b.onclick=()=>{ startLevel(key); };
+                row.appendChild(b);
+            });
+            wrap.appendChild(row);
+            box.appendChild(wrap);
+        });
+    }
+    /* 영어 문장: 소문자/대문자 선택 바 */
+    function updateCaseBar(){
+        const bar=document.getElementById('caseBar');
+        if(!bar) return;
+        if(state.level==='engsent'){
+            bar.style.display='flex';
+            bar.querySelectorAll('.casebtn').forEach(b=>{
+                b.classList.toggle('sel', b.dataset.case===engCase);
+            });
+        }else{
+            bar.style.display='none';
+        }
+    }
+    function setEngCase(mode){
+        engCase=mode;
+        updateCaseBar();
+        if(state.level==='engsent') startLevel('engsent');   // 새 모드로 다시 출제
+    }
+
+    /* ===== 캐릭터 선택 ===== */
+    function buildOneCharPicker(boxId){
+        const box=document.getElementById(boxId); if(!box) return; box.innerHTML='';
+        CHAR_ORDER.forEach(key=>{
+            const c=CHARS[key];
+            const b=document.createElement('button');
+            b.className='charopt'+(key===state.char?' sel':'');
+            b.dataset.char=key;
+            b.innerHTML='<div class="ava" style="background:'+c.skin+'">'+c.idle+'</div><div class="cname">'+c.name+'</div>';
+            b.onclick=()=>{ selectChar(key); };
+            box.appendChild(b);
+        });
+    }
+    function buildCharPicker(){
+        buildOneCharPicker('charPicker');
+        buildOneCharPicker('startCharPicker');
+    }
+    function selectChar(key){
+        state.char=key;
+        applyCharSkin();
+        document.getElementById('subLine').textContent=curChar().name+'와 함께 타자를 배워요!';
+        buildCharPicker();
+        // 시작 화면이 아직 떠 있는 동안에는 마스코트 반응을 생략
+        if(!document.getElementById('startScreen').classList.contains('hide')) return;
+        mascotReact('happy','happy', curChar().name+'(으)로 바꿨어요!');
+    }
+    function toggleCharPicker(){
+        document.getElementById('charPicker').classList.toggle('show');
+    }
+
+    /* ===== 진행 ===== */
+    function curItem(){ return state.queue[state.itemIndex]; }
+    function curStep(){ const it=curItem(); return it?it.steps[state.stepIndex]:null; }
+
+    /* ===== 우리 가족 문장 편집 ===== */
+    function openFamilyEditor(){
+        const scr=document.getElementById('famScreen');
+        scr.style.display='flex';
+        scr.classList.add('show');
+        renderFamilyList();
+        // 저장 가능 여부에 따라 안내 문구 갱신
+        const note=document.getElementById('famStoreNote');
+        if(note){
+            if(famStorageOK){
+                note.innerHTML='💾 넣으신 문장은 컴퓨터에 <b>자동 저장</b>돼요. 다음에 열어도 그대로 있어요.';
+                note.className='famnote ok';
+            }else{
+                note.innerHTML='⚠️ 이 컴퓨터에서는 <b>자동 저장이 안 될 수 있어요.</b> 프로그램을 닫으면 문장이 사라질 수 있으니 참고해 주세요.';
+                note.className='famnote warn';
+            }
+        }
+        const inp=document.getElementById('famInput');
+        inp.value=''; setTimeout(()=>inp.focus(),50);
+    }
+    function closeFamilyEditor(){
+        const scr=document.getElementById('famScreen');
+        scr.classList.remove('show');
+        scr.style.display='none';
+    }
+    function renderFamilyList(){
+        const box=document.getElementById('famList'); box.innerHTML='';
+        if(familySentences.length===0){
+            box.innerHTML='<div class="famempty">아직 문장이 없어요.<br>위에 하고 싶은 말을 적고 “추가”를 눌러 주세요 💕</div>';
+        }else{
+            familySentences.forEach((t,i)=>{
+                const row=document.createElement('div'); row.className='famitem';
+                const span=document.createElement('div'); span.className='ftxt'; span.textContent=t;
+                const edit=document.createElement('button'); edit.className='fedit'; edit.textContent='수정';
+                edit.onclick=()=>{
+                    const inp=document.getElementById('famInput');
+                    inp.value=t;                                   // 입력창에 다시 불러오고
+                    familySentences.splice(i,1); saveFamily();     // 목록에서 잠시 빼기
+                    renderFamilyList();
+                    const hint=document.getElementById('famHint');
+                    hint.textContent='고친 뒤 “추가”를 누르면 다시 저장돼요 ✏️';
+                    hint.classList.remove('err');
+                    inp.focus();
+                };
+                const del=document.createElement('button'); del.className='fdel'; del.textContent='삭제';
+                del.onclick=()=>{ familySentences.splice(i,1); saveFamily(); renderFamilyList(); };
+                row.appendChild(span); row.appendChild(edit); row.appendChild(del); box.appendChild(row);
+            });
+        }
+        const cnt=document.getElementById('famCount');
+        if(cnt) cnt.textContent = familySentences.length ? ('넣은 문장 '+familySentences.length+' / 20개') : '';
+    }
+    function addFamilySentence(){
+        const inp=document.getElementById('famInput');
+        const hint=document.getElementById('famHint');
+        const txt=inp.value.trim().replace(/\s+/g,' ');
+        if(!txt){ return; }
+        // 두벌식으로 칠 수 있는지 검사 (조합 일치)
+        const steps=decompose(txt);
+        const rebuilt = /[가-힣]/.test(txt) ? composeTyped(steps, steps.length) : txt;
+        const typable = steps.length>0 && (!/[가-힣]/.test(txt) || rebuilt===txt);
+        // 한글/영문/공백/기본 문장부호만 허용
+        const allowed = /^[가-힣a-zA-Z0-9 .,!?~'"·]+$/.test(txt);
+        if(!allowed){
+            hint.textContent='한글과 영어 문장만 넣을 수 있어요 (특수문자는 빼주세요)';
+            hint.classList.add('err'); return;
+        }
+        if(!typable){
+            hint.textContent='이 문장은 아직 넣을 수 없어요. 다시 확인해 주세요.';
+            hint.classList.add('err'); return;
+        }
+        if(familySentences.includes(txt)){
+            hint.textContent='이미 넣은 문장이에요.'; hint.classList.add('err'); return;
+        }
+        if(familySentences.length>=20){
+            hint.textContent='문장은 최대 20개까지 넣을 수 있어요.'; hint.classList.add('err'); return;
+        }
+        familySentences.push(txt);
+        saveFamily();
+        inp.value='';
+        hint.textContent='추가됐어요! 계속 넣거나 “연습 시작”을 눌러 주세요 💕';
+        hint.classList.remove('err');
+        renderFamilyList();
+        inp.focus();
+    }
+
+    function startLevel(key){
+        stopGame();
+        state.level=key;
+        buildLevels();
+        updateCaseBar();
+        setKbMode(isEng(key));
+        if(LEVELS[key].type==='game'){
+            setGameVisible(true);
+            showGameStart();
+            setBubble('떨어지는 글자를 키보드로 톡톡 터뜨려요!','idle');
+            document.querySelectorAll('.key').forEach(k=>k.classList.remove('next'));
+            return;
+        }
+        setGameVisible(false);
+        if(LEVELS[key].type==='family'){
+            // '우리 가족' 메뉴는 언제나 편집기를 연다 (추가·수정·삭제를 자유롭게)
+            state.queue=[]; state.itemIndex=0; state.stepIndex=0;
+            openFamilyEditor(); return;
+        }
+        state.queue=buildQueue(key);
+        state.itemIndex=0; state.stepIndex=0;
+        state.typeStart=0; state.typedCount=0; state.mistakes=0;
+        updateStats();
+        const isSsang = key==='ssang'||key==='ssangword'||key==='ssangsent';
+        let intro;
+        if(isSsang) intro='Shift를 누른 채로 글자를 눌러요! 💪';
+        else if(isEng(key)) intro='키보드에서 같은 글자를 찾아 눌러요!';
+        else intro='아래 반짝이는 글자를 찾아서 눌러 봐요!';
+        setBubble(intro,'idle');
+        render();
+    }
+
+    function render(){
+        const it=curItem(); if(!it) return;
+        const done = state.stepIndex >= it.steps.length;
+        const step = done ? it.steps[it.steps.length-1] : it.steps[state.stepIndex];
+        if(!step) return;
+        const tp=LEVELS[state.level].type;
+
+        // 큰 글자
+        const big=document.getElementById('bigChar');
+        if(done){ big.textContent='✓'; big.style.color='#5dc56a'; }
+        else{
+            big.textContent = step.jamo==='␣' ? '⎵' : step.jamo;
+            big.style.color = FINFO[step.finger]?'var(--'+step.finger+')':'#5b4a6e';
+        }
+        big.style.animation='none'; void big.offsetWidth; big.style.animation='pop .3s ease';
+
+        // 안내 문구
+        const engKey = step.code.replace('Key','');
+        const eng=document.getElementById('engLabel');
+        if(done){ eng.textContent='완성! 잘했어요 🎉'; }
+        else if(isEng(state.level)){
+            eng.innerHTML = step.code==='Space' ? '스페이스 키 (엄지)' :
+                ('키보드에서 <b>'+engKey+'</b> 글자를 찾아 눌러요'+(step.shift?' <b>( Shift 함께 )</b>':''));
+        }else{
+            eng.innerHTML = step.code==='Space' ? '스페이스 키' :
+                ('영문 자판으로는 <b>'+engKey+'</b> '+(step.shift?'( Shift 함께 )':'')+' 자리예요');
+        }
+
+        // 낱말 문맥
+        const wc=document.getElementById('wordContext');
+        wc.textContent = it.context || '';
+        wc.classList.toggle('hard', !!it.hard);
+        const hb=document.getElementById('hardBadge');
+        if(hb) hb.style.display = it.hard ? 'inline-block' : 'none';
+
+        // 칩 (낱말/문장/영어낱말 처럼 여러 글자일 때만)
+        const chips=document.getElementById('chips'); chips.innerHTML='';
+        if(tp==='word'||tp==='sentence'||tp==='engword'||tp==='engsent'||tp==='proverb'){
+            it.steps.forEach((s,i)=>{
+                const c=document.createElement('div');
+                c.className='chip'+(i<state.stepIndex?' done':'')+(i===state.stepIndex?' cur':'');
+                c.textContent = s.jamo==='␣' ? '⎵' : s.jamo;
+                chips.appendChild(c);
+            });
+        }
+
+        // 손가락 안내 + 키보드 하이라이트
+        const fn=document.getElementById('fname');
+        document.querySelectorAll('.fin').forEach(el=>{el.style.opacity='.35';el.classList.remove('on');});
+        document.querySelectorAll('.key').forEach(k=>k.classList.remove('next'));
+        if(done){
+            fn.textContent='완성!'; fn.style.background='#5dc56a';
+        }else{
+            const f=FINFO[step.finger];
+            fn.textContent=f.n; fn.style.background=f.c.startsWith('var')?getComputedStyle(document.documentElement).getPropertyValue('--'+step.finger):f.c;
+            document.querySelectorAll('.fin[data-fin="'+step.finger+'"]').forEach(el=>{el.style.opacity='1';el.classList.add('on');});
+            const tk=document.querySelector('.key[data-code="'+step.code+'"]');
+            if(tk) tk.classList.add('next');
+            if(step.shift){ document.querySelectorAll('.key[data-code^="Shift"]').forEach(k=>k.classList.add('next')); }
+        }
+
+        // 노래방 자막: 지금까지 친 글자가 따라 나옴 (완성되면 문장 전체 표시)
+        const kar=document.getElementById('karaoke');
+        if(isMulti(state.level)){
+            const typed = isEng(state.level)
+                ? it.steps.slice(0,state.stepIndex).map(s=>s.jamo==='␣'?' ':s.jamo).join('')
+                : composeTyped(it.steps, state.stepIndex);
+            kar.style.display='block';
+            kar.textContent=typed;
+            if(!done){ const cur=document.createElement('span'); cur.className='cur'; kar.appendChild(cur); }
+        }else{
+            kar.style.display='none';
+        }
+
+        updateStats();
+    }
+
+    function setBubble(text,mood){
+        document.getElementById('bubble').textContent=text;
+        if(mood) document.getElementById('mascot').textContent=face(mood);
+    }
+    function mascotReact(cls,mood,text){
+        const m=document.getElementById('mascot');
+        m.classList.remove('happy','sad'); void m.offsetWidth; m.classList.add(cls);
+        m.textContent=face(mood);
+        if(text) document.getElementById('bubble').textContent=text;
+    }
+
+    /* ===== 입력 처리 ===== */
+    const KNOWN = new Set(Object.keys(FINGER).concat(['Space']));
+
+    function onKey(e){
+        if(e.code==='Tab'){ e.preventDefault(); return; }
+        if(!KNOWN.has(e.code)) return;          // 글자/스페이스 키만 평가
+        e.preventDefault();
+        initAudio();
+
+        if(state.level==='game'){ if(game.running) gameKey(e); return; }
+
+        const step=curStep(); if(!step) return;
+
+        const need = step.shift;
+        const ok = (e.code===step.code) && (e.shiftKey===!!need);
+
+        const keyEl=document.querySelector('.key[data-code="'+e.code+'"]');
+
+        if(ok){
+            if(!state.typeStart) state.typeStart=Date.now();
+            state.typedCount++;
+            playGood();
+            if(keyEl){ keyEl.classList.add('hit'); setTimeout(()=>keyEl.classList.remove('hit'),180); }
+            advance();
+        }else{
+            state.mistakes++;
+            playBad();
+            if(keyEl){ keyEl.classList.add('wrong'); setTimeout(()=>keyEl.classList.remove('wrong'),350); }
+            mascotReact('sad','sad', badMsg());
+            updateStats();
+        }
+    }
+
+    /* 어려운 문장이 나오면 캐릭터가 도전을 알림 */
+    const HARD_MSGS = ['도전 문장이에요! 💪','어려운 문장이 나왔어요!','조금 어려워요, 할 수 있어요!','천천히 도전해 봐요!'];
+    function announceHard(){
+        const it=curItem();
+        if(!it || !it.hard) return;
+        const nm=(state.playerName||'').trim();
+        const base=HARD_MSGS[Math.floor(Math.random()*HARD_MSGS.length)];
+        setBubble(nm ? (nm+'님, '+base) : base, 'play');
+    }
+
+    function advance(){
+        const it=curItem();
+        state.stepIndex++;
+        const complete = state.stepIndex >= it.steps.length;
+        if(!complete){ render(); return; }
+
+        // 한 글자/낱말/문장 완성
+        state.totalStars++;
+        document.getElementById('totalStars').textContent=state.totalStars;
+        smallConfetti();
+        mascotReact('happy','happy', goodMsg());
+        const last = state.itemIndex+1 >= state.queue.length;
+
+        if(isMulti(state.level)){
+            // 완성된 낱말/문장을 자막에 잠깐 보여준 뒤
+            if(last){
+                render();                                  // 완성형 표시
+                const t=LEVELS[state.level].type;
+                const wait = (t==='sentence'||t==='proverb'||t==='engsent') ? 1100 : 750;
+                setTimeout(finishSession, wait);
+            }else{
+                // 곧바로 다음 항목으로 넘어가 입력이 끊기지 않게 함 (먹통 방지)
+                state.itemIndex++; state.stepIndex=0;
+                render();
+                announceHard();
+            }
+        }else{
+            // 자모 / 단일 영어 글자: 곧바로 다음으로
+            state.itemIndex++; state.stepIndex=0;
+            if(last){ setTimeout(finishSession, 350); }
+            else { render(); }
+        }
+    }
+
+    /* ===== 완료 ===== */
+    function finishSession(){
+        bigConfetti();
+        playFanfare();
+        const idx=ORDER.indexOf(state.level);
+        const hasNext = idx < ORDER.length-1;
+        document.getElementById('ovEmoji').textContent='🎉';
+        document.getElementById('ovTitle').textContent=(state.playerName?state.playerName+'님, ':'')+'참 잘했어요!';
+        document.getElementById('ovStars').textContent='⭐⭐⭐';
+        let msg = LEVELS[state.level].name+' 단계를 모두 끝냈어요!';
+        if(isMulti(state.level)){
+            const spd=currentSpeed();
+            const total=state.typedCount+state.mistakes;
+            const acc=total>0?Math.round(state.typedCount/total*100):100;
+            if(spd>0) msg += ' (타자 속도 '+spd+'타/분, 정확도 '+acc+'%)';
+        }
+        document.getElementById('ovMsg').textContent = msg;
+        const nb=document.getElementById('nextBtn');
+        const ab=document.getElementById('againBtn');
+        nb.textContent='➡️ 다음 단계';
+        // 문장류(문장/지리/영어문장)는 '다음 단계'를 숨기고 계속 연습하도록 유도
+        const REPLAY = ['sentence','geokr','geoworld','engsent','ssangsent','proverb'];
+        if(REPLAY.includes(state.level)){
+            nb.style.display='none';
+            ab.textContent='🔄 새 문장으로 또 하기';
+        }else{
+            nb.style.display = hasNext ? '' : 'none';
+            ab.textContent='🔄 한 번 더';
+        }
+        // 세계 지리를 마치면 세계국기탐험대 안내
+        const promo=document.getElementById('ovPromo');
+        if(promo){
+            if(state.level==='geoworld'||state.level==='geokr'){
+                promo.style.display='block';
+            }else{
+                promo.style.display='none';
+            }
+        }
+        document.getElementById('overlay').classList.add('show');
+    }
+    document.getElementById('againBtn').onclick=()=>{
+        closeOverlay();
+        if(state.level==='game'){ startGamePlay(); } else { startLevel(state.level); }
+    };
+    document.getElementById('nextBtn').onclick=()=>{
+        closeOverlay();
+        if(state.level==='game'){ startLevel('home'); return; }
+        const i=ORDER.indexOf(state.level); startLevel(ORDER[Math.min(i+1,ORDER.length-1)]);
+    };
+    function closeOverlay(){ document.getElementById('overlay').classList.remove('show'); }
+
+    /* ===== 소리 (Web Audio, 파일 없이 만들기) ===== */
+    let audioCtx=null;
+    function initAudio(){ if(!audioCtx){ try{audioCtx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){} } }
+    function tone(freq,dur,type,vol){
+        if(!state.soundOn||!audioCtx) return;
+        const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+        o.type=type||'sine'; o.frequency.value=freq;
+        g.gain.value=vol||0.12;
+        o.connect(g); g.connect(audioCtx.destination);
+        const t=audioCtx.currentTime;
+        g.gain.setValueAtTime(g.gain.value,t);
+        g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+        o.start(t); o.stop(t+dur);
+    }
+    function playGood(){ tone(880,0.12,'sine',0.12); setTimeout(()=>tone(1175,0.12,'sine',0.10),60); }
+    function playBad(){ tone(180,0.18,'square',0.06); }
+    function playFanfare(){ [523,659,784,1047].forEach((f,i)=>setTimeout(()=>tone(f,0.25,'triangle',0.12),i*130)); }
+
+    document.getElementById('soundBtn').onclick=function(){
+        state.soundOn=!state.soundOn;
+        this.textContent=state.soundOn?'🔊':'🔇';
+        initAudio();
+    };
+    document.getElementById('charBtn').onclick=toggleCharPicker;
+    document.getElementById('navIcon').onclick=toggleCharPicker;
+
+    /* ===== 꽃가루 ===== */
+    const COLORS=['#FF5DA2','#FF9F45','#FFD23F','#5DC56A','#4D96FF','#B779FF','#FF6B6B','#21C7B6'];
+    function makeConfetti(n){
+        for(let i=0;i<n;i++){
+            const c=document.createElement('div');
+            c.className='confetti';
+            c.style.left=Math.random()*100+'vw';
+            c.style.background=COLORS[Math.floor(Math.random()*COLORS.length)];
+            c.style.transform='rotate('+Math.random()*360+'deg)';
+            const dur=1.6+Math.random()*1.4;
+            c.style.transition='transform '+dur+'s linear, top '+dur+'s linear, opacity '+dur+'s';
+            document.body.appendChild(c);
+            requestAnimationFrame(()=>{
+                c.style.top=(100+Math.random()*20)+'vh';
+                c.style.transform='translateX('+(Math.random()*200-100)+'px) rotate('+Math.random()*720+'deg)';
+                c.style.opacity='0.2';
+            });
+            setTimeout(()=>c.remove(),dur*1000+100);
+        }
+    }
+    function smallConfetti(){ makeConfetti(14); }
+    function bigConfetti(){ makeConfetti(80); }
+
+    /* ===== 떨어지는 글자 게임 ===== */
+    const GAME_JAMO = Array.from(new Set([].concat(LEVELS.home.pool, LEVELS.top.pool, LEVELS.bottom.pool)));
+    const GAME_ENG = LEVELS.eng.pool.slice();   // A~Z
+    // 모드별 단일 글자 풀
+    const POOL_KO  = GAME_JAMO.map(j=>({label:j, step:stepFromJamo(j)})).filter(x=>x.step);
+    const POOL_EN  = GAME_ENG.map(ch=>({label:ch, step:stepFromLetter(ch)})).filter(x=>x.step);
+    const POOL_MIX = POOL_KO.concat(POOL_EN);
+    // 단어 모드 풀: 한글 낱말 + 영어 낱말 (모두 Shift 없이 칠 수 있게 검증된 것들)
+    const GAME_WORDS = [
+        // 한글 - 동물
+        '오리','나비','거미','악어','사자','기린','사슴','여우','너구리','다람쥐','두더지','거북이','개구리','지렁이',
+        '병아리','오징어','상어','고래','문어','조개','하마','수달','두루미','부엉이','참새','제비','갈매기','비둘기',
+        '매미','잠자리','무당벌레','달팽이','호랑이',
+        // 한글 - 음식/식물
+        '사과','포도','수박','우유','바나나','감자','고구마','토마토','참외','자두','대추','복숭아','블루베리',
+        '미역','다시마','버섯','당근','오이',
+        // 한글 - 사물/학교
+        '나무','바다','하늘','모자','다리','머리','구두','기차','노래','우산','신발','가방','연필','지우개',
+        '학교','교실','책상','의자','칠판','달력','지도','수저','가위','색종이','크레용','물감','도화지','공책','필통',
+        // 한글 - 옷
+        '바지','치마','양말','장갑','목도리','운동화','잠옷','외투',
+        // 한글 - 자연/탈것
+        '구름','무지개','바람','소나기','이슬','노을','은하수','보름달','별자리',
+        '자동차','자전거','비행기','버스','트럭','오토바이','헬리콥터',
+        // 한글 - 마음
+        '사랑','우정','용기','노력','정직','겸손','배려','나눔','희망',
+        // 영어
+        'cat','dog','sun','box','cup','bus','hat','pen','egg','map','red','top','bee','owl','fox',
+        'cow','pig','bug','net','sky','toy','run','jump','milk','book','star','tree','frog','duck',
+        'apple','lion','bear','fish','bird','rain','snow','moon','ball','cake','rice','door','desk',
+        'hand','foot','nose','blue','green','pink','gold','ship','road','rope','kite','drum'];
+    function wordSteps(w){
+        // 한글이면 자모 분해, 영어면 글자별
+        if(/[가-힣]/.test(w)) return decompose(w);
+        const out=[]; for(const ch of w){ const s=stepFromLetter(ch); if(s) out.push(s); } return out;
+    }
+    const POOL_WORD = GAME_WORDS.map(w=>({label:w, steps:wordSteps(w)})).filter(x=>x.steps.length);
+
+    function gamePool(){
+        const m=game.mode;
+        if(m==='korean') return POOL_KO;
+        if(m==='english') return POOL_EN;
+        return POOL_MIX;            // random
+    }
+    let game = { running:false, score:0, lives:3, bubbles:[], raf:0, lastTs:0, spawnAcc:0, mode:'korean' };
+
+    function showGameStart(){
+        game.running=false;
+        clearBubbles();
+        document.getElementById('gStart').style.display='flex';
+        document.getElementById('gScore').textContent='0';
+        document.getElementById('gLevel').textContent='1';
+        document.getElementById('gHearts').textContent='💛💛💛';
+    }
+    function clearBubbles(){
+        game.bubbles.forEach(b=>b.el.remove());
+        game.bubbles=[];
+    }
+    function stopGame(){
+        game.running=false;
+        if(game.raf) cancelAnimationFrame(game.raf);
+        game.raf=0;
+        clearBubbles();
+    }
+    function startGamePlay(){
+        initAudio();
+        document.getElementById('gStart').style.display='none';
+        clearBubbles();
+        game.running=true; game.score=0; game.lives=3; game.spawnAcc=0; game.lastTs=0;
+        updateGameHud();
+        const msg = game.mode==='word' ? '단어를 순서대로 쳐서 터뜨려요!' : '자, 떨어진다! 같은 자리를 눌러요!';
+        setBubble(msg,'play');
+        game.raf=requestAnimationFrame(gameLoop);
+    }
+    function updateGameHud(){
+        document.getElementById('gScore').textContent=game.score;
+        document.getElementById('gLevel').textContent=Math.floor(game.score/6)+1;
+        document.getElementById('gHearts').textContent=
+            '💛'.repeat(game.lives)+'🤍'.repeat(Math.max(0,3-game.lives));
+    }
+    function spawnDrop(){
+        const field=document.getElementById('gField');
+        const w=field.clientWidth||600;
+        if(game.mode==='word'){
+            const item=POOL_WORD[Math.floor(Math.random()*POOL_WORD.length)];
+            const el=document.createElement('div');
+            el.className='drop word';
+            const first=item.steps[0];
+            el.style.background='var(--'+first.finger+')';
+            // 글자 수가 많을수록 살짝 느리게 + 0.7~1.4배 무작위
+            const lenFactor=Math.max(0.6, 1.25 - item.steps.length*0.06);
+            const spd=lenFactor*(0.7+Math.random()*0.7);
+            const bub={el, word:item.label, steps:item.steps, prog:0, x:0, y:-60, spd};
+            renderWordBubble(bub);
+            field.appendChild(el);
+            const x=4+Math.random()*Math.max(10,(w-el.offsetWidth-8));
+            bub.x=x; el.style.transform='translate('+x+'px,-60px)';
+            game.bubbles.push(bub);
+        }else{
+            const pool=gamePool();
+            const item=pool[Math.floor(Math.random()*pool.length)];
+            const st=item.step; if(!st) return;
+            const el=document.createElement('div');
+            el.className='drop';
+            el.style.background='var(--'+st.finger+')';
+            el.innerHTML=item.label+'<span class="de">'+st.code.replace('Key','')+'</span>';
+            const x=4+Math.random()*(w-66);
+            el.style.transform='translate('+x+'px,-60px)';
+            field.appendChild(el);
+            // 글자마다 0.65~1.45배 무작위 속도 → 어떤 건 느리고 어떤 건 빠르게
+            const spd=0.65+Math.random()*0.8;
+            game.bubbles.push({el, code:st.code, label:item.label, x, y:-60, spd});
+        }
+    }
+    function renderWordBubble(b){
+        // 입력된 부분 흐리게, 다음 글자 강조, 다음 눌러야 할 키 표시
+        const composed = /[가-힣]/.test(b.word)
+            ? { done: composeTyped(b.steps, b.prog), full: b.word }
+            : { done: b.word.slice(0,b.prog), full: b.word };
+        const typed=composed.done;
+        const rest=b.word.slice(typed.length);
+        const next=b.steps[b.prog];
+        const keyHint = next ? next.code.replace('Key','') : '';
+        b.el.innerHTML='<span class="wtext"><span class="typed">'+typed+'</span>'+
+            '<span class="now">'+(rest[0]||'')+'</span>'+rest.slice(1)+'</span>'+
+            (next?'<span class="de">'+keyHint+(next.shift?'+Shift':'')+'</span>':'');
+    }
+    function gameLoop(ts){
+        if(!game.running) return;
+        if(!game.lastTs) game.lastTs=ts;
+        let dt=ts-game.lastTs; game.lastTs=ts;
+        if(dt>60) dt=60;
+
+        const field=document.getElementById('gField');
+        const fieldH=field.clientHeight||320;
+        const limit=fieldH-34-54;                       // 바닥(34) 위까지
+        const wordMode=game.mode==='word';
+        const baseSpeed=wordMode ? (0.020 + game.score*0.0008)   // 단어는 더 천천히
+            : (0.040 + game.score*0.0014);  // 글자는 점수 오를수록 빨라짐
+        const spawnEvery=wordMode ? Math.max(1700, 3200 - game.score*70)
+            : Math.max(750, 1700 - game.score*45);
+
+        game.spawnAcc+=dt;
+        if(game.spawnAcc>=spawnEvery){ game.spawnAcc=0; spawnDrop(); }
+
+        for(let i=game.bubbles.length-1;i>=0;i--){
+            const b=game.bubbles[i];
+            b.y += baseSpeed*(b.spd||1)*dt;               // 각 글자/단어마다 다른 속도
+            b.el.style.transform='translate('+b.x+'px,'+b.y+'px)';
+            if(b.y>=limit){
+                b.el.remove();
+                game.bubbles.splice(i,1);
+                loseLife();
+                if(!game.running) return;
+            }
+        }
+        game.raf=requestAnimationFrame(gameLoop);
+    }
+    function loseLife(){
+        game.lives--;
+        updateGameHud();
+        playBad();
+        const field=document.getElementById('gField');
+        field.style.boxShadow='inset 0 0 0 5px #ff9aa2';
+        setTimeout(()=>field.style.boxShadow='',180);
+        mascotReact('sad','sad', withName('놓쳤어요!','bad'));
+        if(game.lives<=0) gameOver();
+    }
+    function gameKey(e){
+        if(game.mode==='word'){
+            // 가장 아래쪽 단어 중, 다음에 눌러야 할 키가 일치하는 것을 한 글자 진행
+            let target=null, idx=-1;
+            game.bubbles.forEach((b,i)=>{
+                const nx=b.steps[b.prog];
+                if(nx && nx.code===e.code && (e.shiftKey===!!nx.shift)){
+                    if(!target||b.y>target.y){ target=b; idx=i; }
+                }
+            });
+            if(target){
+                target.prog++;
+                playGood();
+                if(target.prog>=target.steps.length){
+                    // 단어 완성!
+                    game.score++;
+                    state.totalStars++; document.getElementById('totalStars').textContent=state.totalStars;
+                    updateGameHud();
+                    target.el.classList.add('pop');
+                    const el=target.el; setTimeout(()=>el.remove(),300);
+                    game.bubbles.splice(idx,1);
+                    mascotReact('happy','happy', withName('단어 완성!','good'));
+                }else{
+                    renderWordBubble(target);
+                }
+            }else{
+                tone(200,0.1,'square',0.05);
+            }
+            return;
+        }
+        // 단일 글자 모드: 같은 자리의 글자 중 가장 아래 있는 것을 터뜨림
+        let target=null, idx=-1;
+        game.bubbles.forEach((b,i)=>{ if(b.code===e.code){ if(!target||b.y>target.y){ target=b; idx=i; } } });
+        if(target){
+            game.score++;
+            state.totalStars++; document.getElementById('totalStars').textContent=state.totalStars;
+            updateGameHud();
+            playGood();
+            target.el.classList.add('pop');
+            const el=target.el;
+            setTimeout(()=>el.remove(),300);
+            game.bubbles.splice(idx,1);
+            if(game.score%6===0) mascotReact('happy','happy', withName('신난다!','good'));
+        }else{
+            tone(200,0.1,'square',0.05);   // 빗나감(가벼운 소리, 목숨 안 깎임)
+        }
+    }
+    function gameOver(){
+        game.running=false;
+        if(game.raf) cancelAnimationFrame(game.raf);
+        setTimeout(clearBubbles,300);
+        playBad();
+        document.getElementById('ovEmoji').textContent='🎈';
+        document.getElementById('ovTitle').textContent='게임 끝!';
+        document.getElementById('ovStars').textContent='⭐ '+game.score;
+        document.getElementById('ovMsg').textContent='글자 '+game.score+'개를 터뜨렸어요!';
+        const nb=document.getElementById('nextBtn');
+        nb.style.display=''; nb.textContent='🏠 다른 놀이';
+        document.getElementById('againBtn').textContent='🔄 한 번 더';
+        document.getElementById('overlay').classList.add('show');
+    }
+    document.getElementById('gStartBtn').onclick=startGamePlay;
+    // 게임 모드 선택 버튼
+    document.querySelectorAll('#gModes .gmode').forEach(btn=>{
+        btn.onclick=function(){
+            document.querySelectorAll('#gModes .gmode').forEach(b=>b.classList.remove('sel'));
+            this.classList.add('sel');
+            game.mode=this.dataset.mode;
+        };
+    });
+
+    /* ===== 시작 화면 처리 ===== */
+    function finishStartScreen(){
+        const nm=document.getElementById('nameInput').value.trim().slice(0,6);
+        state.playerName=nm;
+        const ss=document.getElementById('startScreen');
+        ss.classList.add('hide');
+        document.getElementById('subLine').textContent=curChar().name+'와 함께 타자를 배워요!';
+        const greet = nm ? (nm+'님, 함께 타자 연습 시작해요!') : '함께 타자 연습 시작해요!';
+        mascotReact('happy','happy', greet);
+    }
+    document.getElementById('startGoBtn').onclick=finishStartScreen;
+    /* 우리 가족 문장 편집기 버튼 */
+    document.getElementById('famAddBtn').onclick=addFamilySentence;
+    document.getElementById('famInput').addEventListener('keydown',function(e){
+        e.stopPropagation();
+        if(e.key==='Enter') addFamilySentence();
+    });
+    document.getElementById('famCloseBtn').onclick=function(){ closeFamilyEditor(); };
+    document.getElementById('famPlayBtn').onclick=function(){
+        closeFamilyEditor();
+        startLevel('sentence');   // 가족 문장이 섞여 나오는 '문장 놀이'로 이동
+        if(familySentences.length){
+            setBubble('엄마 아빠의 문장도 섞여 나와요 💕','play');
+        }
+    };document.getElementById('nameInput').addEventListener('keydown',function(e){
+        e.stopPropagation();                 // 이름 입력 중에는 타자 연습으로 안 넘어가게
+        if(e.key==='Enter') finishStartScreen();
+    });
+
+    /* ===== 시작 ===== */
+    if(CHANNEL_NAME && CHANNEL_NAME.trim()){
+        document.getElementById('byline').textContent='· '+CHANNEL_NAME.trim()+' 제공';
+        document.title='타닥타닥 타자교실 | '+CHANNEL_NAME.trim();
+        document.getElementById('footCredit').textContent='🎀 '+CHANNEL_NAME.trim()+' 가족을 위해 준비했어요 🎀';
+        document.getElementById('startCredit').textContent='· '+CHANNEL_NAME.trim()+' 제공';
+    }
+    buildKeyboard();
+    buildHands();
+    loadFamily();
+    buildLevels();
+    buildCharPicker();
+    applyCharSkin();
+    document.getElementById('subLine').textContent=curChar().name+'와 함께 타자를 배워요!';
+    startLevel('home');
+    window.addEventListener('keydown', function(e){
+        // 시작 화면이 떠 있는 동안엔 연습 입력을 막음
+        if(!document.getElementById('startScreen').classList.contains('hide')) return;
+        onKey(e);
+    }, {passive:false});
+</script>
+</body>
+</html>
