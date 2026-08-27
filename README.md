@@ -46,6 +46,7 @@
 - https://world-typing.edgeone.dev/
 - https://toolio.pongvn.com/ko/tools/typing-speed
 - https://m.blog.naver.com/seochan_home/224343192123
+- https://workmate.tools/ko/korean-typing
 <br><br><br>
 
 
