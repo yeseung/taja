@@ -1,0 +1,1921 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>스마트 타자 연습</title>
+
+    <meta
+            name="description"
+            content="한글, 영어, 숫자와 기호를 간편하게 연습할 수 있는 무료 웹 타자 연습입니다."
+    >
+
+    <style>
+        :root {
+            --background: #f5f6f8;
+            --surface: #ffffff;
+            --surface-soft: #f8f9fb;
+
+            --text: #20242c;
+            --text-sub: #6b7280;
+            --text-light: #9ca3af;
+
+            --line: #e7e9ee;
+            --line-dark: #d9dde5;
+
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-soft: #eef2ff;
+
+            --danger: #dc2626;
+            --danger-soft: #fef2f2;
+
+            --warning: #d97706;
+            --warning-soft: #fffbeb;
+
+            --success: #059669;
+
+            --radius-small: 12px;
+            --radius: 18px;
+            --radius-large: 24px;
+
+            --shadow:
+                    0 10px 30px rgba(15, 23, 42, 0.06);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100%;
+        }
+
+        body {
+            min-height: 100vh;
+            background: var(--background);
+            color: var(--text);
+            font-family:
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "Apple SD Gothic Neo",
+                    "Noto Sans KR",
+                    "Malgun Gothic",
+                    "Segoe UI",
+                    sans-serif;
+            letter-spacing: -0.035em;
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        button {
+            border: 0;
+        }
+
+        button,
+        input {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        button:focus-visible,
+        input:focus-visible {
+            outline: 3px solid rgba(79, 70, 229, 0.2);
+            outline-offset: 2px;
+        }
+
+        .app {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px 20px;
+        }
+
+        .phone {
+            position: relative;
+            width: 100%;
+            max-width: 460px;
+            min-height: 760px;
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 32px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .screen {
+            min-height: 760px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* =========================
+           메뉴
+        ========================= */
+
+        .menu {
+            padding: 52px 28px 36px;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .hero-icon {
+            width: 76px;
+            height: 76px;
+            margin: 0 auto 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 24px;
+            background: var(--primary);
+            color: #ffffff;
+            font-size: 38px;
+            box-shadow:
+                    0 12px 24px rgba(79, 70, 229, 0.18);
+        }
+
+        .hero h1 {
+            margin: 0;
+            color: var(--text);
+            font-size: 27px;
+            font-weight: 800;
+            letter-spacing: -0.055em;
+        }
+
+        .hero p {
+            margin: 10px 0 0;
+            color: var(--text-sub);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .practice-groups {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .practice-group {
+            padding: 20px;
+            background: var(--surface-soft);
+            border: 1px solid var(--line);
+            border-radius: var(--radius-large);
+        }
+
+        .group-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 14px;
+            color: var(--primary);
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .group-title.symbol {
+            color: var(--warning);
+        }
+
+        .group-icon {
+            font-size: 18px;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .menu-button {
+            min-height: 104px;
+            padding: 18px 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition:
+                    border-color 0.15s ease,
+                    background 0.15s ease,
+                    transform 0.15s ease,
+                    box-shadow 0.15s ease;
+        }
+
+        .menu-button:hover {
+            background: var(--primary-soft);
+            border-color: #c7d2fe;
+            box-shadow:
+                    0 5px 15px rgba(15, 23, 42, 0.05);
+        }
+
+        .menu-button:active {
+            transform: scale(0.98);
+        }
+
+        .menu-button-icon {
+            color: var(--text-light);
+            font-size: 25px;
+            line-height: 1;
+        }
+
+        .menu-button strong {
+            font-size: 14px;
+            font-weight: 750;
+        }
+
+        .symbol-button {
+            width: 100%;
+            min-height: 120px;
+        }
+
+        .symbol-button:hover {
+            background: var(--warning-soft);
+            border-color: #fde68a;
+        }
+
+        .button-description {
+            color: var(--text-light);
+            font-size: 11px;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+
+        /* =========================
+           연습 화면
+        ========================= */
+
+        .practice-header {
+            min-height: 78px;
+            padding: 17px 20px 13px;
+            display: grid;
+            grid-template-columns: 44px 1fr 44px;
+            align-items: center;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .back-button {
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            color: var(--text-sub);
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 28px;
+            line-height: 1;
+            transition:
+                    background 0.15s ease,
+                    color 0.15s ease;
+        }
+
+        .back-button:hover {
+            background: var(--surface-soft);
+            color: var(--text);
+        }
+
+        .practice-info {
+            min-width: 0;
+            text-align: center;
+        }
+
+        .mode-label {
+            margin-bottom: 4px;
+            color: var(--primary);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .number-label {
+            color: var(--text);
+            font-size: 14px;
+            font-weight: 750;
+        }
+
+        .progress {
+            width: 100%;
+            height: 5px;
+            overflow: hidden;
+            background: #eef0f4;
+        }
+
+        .progress-bar {
+            width: 0;
+            height: 100%;
+            background: var(--primary);
+            transition: width 0.25s ease;
+        }
+
+        .practice-main {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 26px;
+        }
+
+        .target-area {
+            flex: 1;
+            min-height: 300px;
+            padding: 30px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .target-text {
+            max-width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            column-gap: 1px;
+            color: #64748b;
+            font-size: 38px;
+            font-weight: 800;
+            line-height: 1.45;
+            letter-spacing: 0.08em;
+            word-break: break-all;
+        }
+
+        .target-text.symbol-mode {
+            font-size: 54px;
+            letter-spacing: 0.15em;
+        }
+
+        .char {
+            white-space: pre;
+            transition: color 0.08s ease;
+        }
+
+        .char.pending {
+            color: #64748b;
+        }
+
+        .char.correct {
+            color: var(--primary);
+        }
+
+        .char.wrong {
+            color: var(--danger);
+        }
+
+        .symbol-mode-label {
+            margin-top: 28px;
+            color: var(--text-light);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        .input-area {
+            position: relative;
+            padding-top: 12px;
+        }
+
+        .typing-input {
+            width: 100%;
+            height: 70px;
+            padding: 0 20px;
+            background: var(--surface-soft);
+            color: var(--text);
+            border: 2px solid var(--line);
+            border-radius: var(--radius-large);
+            outline: none;
+            text-align: center;
+            font-size: 21px;
+            font-weight: 650;
+            transition:
+                    border-color 0.15s ease,
+                    background 0.15s ease,
+                    box-shadow 0.15s ease;
+        }
+
+        .typing-input::placeholder {
+            color: #c1c5cd;
+            font-weight: 500;
+        }
+
+        .typing-input:focus {
+            background: var(--surface);
+            border-color: var(--primary);
+            box-shadow:
+                    0 0 0 4px rgba(79, 70, 229, 0.07);
+        }
+
+        .typing-input.error {
+            background: var(--danger-soft);
+            border-color: #f87171;
+            color: var(--danger);
+        }
+
+        .error-message {
+            min-height: 28px;
+            padding-top: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            color: var(--danger);
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .next-button {
+            width: 100%;
+            min-height: 62px;
+            margin-top: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: var(--primary);
+            color: #ffffff;
+            border-radius: var(--radius-large);
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 750;
+            transition:
+                    background 0.15s ease,
+                    opacity 0.15s ease,
+                    transform 0.15s ease;
+        }
+
+        .next-button:hover:not(:disabled) {
+            background: var(--primary-hover);
+        }
+
+        .next-button:active:not(:disabled) {
+            transform: scale(0.99);
+        }
+
+        .next-button:disabled {
+            background: #d5d8df;
+            color: #ffffff;
+            cursor: not-allowed;
+        }
+
+        .keyboard-guide {
+            margin: 13px 0 0;
+            color: var(--text-light);
+            text-align: center;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .keyboard-guide strong {
+            color: var(--primary);
+        }
+
+        /* =========================
+           완료
+        ========================= */
+
+        .result {
+            flex: 1;
+            padding: 48px 28px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .result-icon {
+            width: 112px;
+            height: 112px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary-soft);
+            color: var(--primary);
+            border-radius: 50%;
+            font-size: 54px;
+        }
+
+        .result-title {
+            margin: 0;
+            color: var(--text);
+            font-size: 30px;
+            font-weight: 850;
+            letter-spacing: -0.055em;
+        }
+
+        .result-description {
+            margin: 9px 0 30px;
+            color: var(--text-sub);
+            font-size: 14px;
+        }
+
+        .result-card {
+            width: 100%;
+            padding: 22px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--surface-soft);
+            border: 1px solid var(--line);
+            border-radius: var(--radius-large);
+        }
+
+        .result-card-label {
+            color: var(--text-sub);
+            font-size: 14px;
+            font-weight: 650;
+        }
+
+        .result-score {
+            color: var(--primary);
+            font-size: 22px;
+            font-weight: 800;
+        }
+
+        .result-actions {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .result-button {
+            width: 100%;
+            min-height: 60px;
+            border-radius: var(--radius-large);
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 750;
+            transition:
+                    background 0.15s ease,
+                    transform 0.15s ease;
+        }
+
+        .result-button:active {
+            transform: scale(0.99);
+        }
+
+        .result-button.primary {
+            background: var(--primary);
+            color: #ffffff;
+        }
+
+        .result-button.primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .result-button.secondary {
+            background: var(--surface);
+            color: var(--text-sub);
+            border: 1px solid var(--line-dark);
+        }
+
+        .result-button.secondary:hover {
+            background: var(--surface-soft);
+        }
+
+        /* =========================
+           애니메이션
+        ========================= */
+
+        @keyframes shake {
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-5px);
+            }
+
+            75% {
+                transform: translateX(5px);
+            }
+        }
+
+        .shake {
+            animation: shake 0.2s ease-in-out;
+        }
+
+        /* =========================
+           모바일
+        ========================= */
+
+        @media (max-width: 520px) {
+            body {
+                background: var(--surface);
+            }
+
+            .app {
+                min-height: 100dvh;
+                padding: 0;
+                align-items: stretch;
+            }
+
+            .phone {
+                max-width: none;
+                min-height: 100dvh;
+                border: 0;
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            .screen {
+                min-height: 100dvh;
+            }
+
+            .menu {
+                padding:
+                        max(42px, env(safe-area-inset-top))
+                        20px
+                        max(28px, env(safe-area-inset-bottom));
+            }
+
+            .hero {
+                margin-bottom: 28px;
+            }
+
+            .hero-icon {
+                width: 68px;
+                height: 68px;
+                font-size: 33px;
+            }
+
+            .hero h1 {
+                font-size: 25px;
+            }
+
+            .practice-header {
+                padding-top:
+                        max(15px, env(safe-area-inset-top));
+            }
+
+            .practice-main {
+                padding:
+                        20px
+                        20px
+                        max(24px, env(safe-area-inset-bottom));
+            }
+
+            .target-area {
+                min-height: 240px;
+            }
+
+            .target-text {
+                font-size: 31px;
+                letter-spacing: 0.05em;
+            }
+
+            .target-text.symbol-mode {
+                font-size: 44px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .menu {
+                padding-left: 16px;
+                padding-right: 16px;
+            }
+
+            .practice-group {
+                padding: 16px;
+            }
+
+            .menu-button {
+                min-height: 96px;
+            }
+
+            .target-text {
+                font-size: 27px;
+            }
+
+            .target-text.symbol-mode {
+                font-size: 39px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <div class="phone">
+
+        <!-- =========================
+             메뉴 화면
+        ========================== -->
+        <section
+                id="menuScreen"
+                class="screen menu"
+        >
+            <div class="hero">
+
+                <div
+                        class="hero-icon"
+                        aria-hidden="true"
+                >
+                    ⌨️
+                </div>
+
+                <h1>스마트 타자 연습</h1>
+
+                <p>
+                    한글 · 영어 · 숫자 · 기호를<br>
+                    간편하게 연습해 보세요.
+                </p>
+
+            </div>
+
+            <div class="practice-groups">
+
+                <!-- 한글 -->
+                <div class="practice-group">
+
+                    <div class="group-title">
+                        <span
+                                class="group-icon"
+                                aria-hidden="true"
+                        >
+                            🇰🇷
+                        </span>
+
+                        <span>한글 연습</span>
+                    </div>
+
+                    <div class="menu-grid">
+
+                        <button
+                                type="button"
+                                class="menu-button"
+                                data-lang="ko"
+                                data-mode="word"
+                        >
+                            <span
+                                    class="menu-button-icon"
+                                    aria-hidden="true"
+                            >
+                                가
+                            </span>
+
+                            <strong>단어 연습</strong>
+                        </button>
+
+                        <button
+                                type="button"
+                                class="menu-button"
+                                data-lang="ko"
+                                data-mode="sentence"
+                        >
+                            <span
+                                    class="menu-button-icon"
+                                    aria-hidden="true"
+                            >
+                                📖
+                            </span>
+
+                            <strong>문장 연습</strong>
+                        </button>
+
+                    </div>
+
+                </div>
+
+                <!-- 영어 -->
+                <div class="practice-group">
+
+                    <div class="group-title">
+                        <span
+                                class="group-icon"
+                                aria-hidden="true"
+                        >
+                            🌐
+                        </span>
+
+                        <span>영어 연습</span>
+                    </div>
+
+                    <div class="menu-grid">
+
+                        <button
+                                type="button"
+                                class="menu-button"
+                                data-lang="en"
+                                data-mode="word"
+                        >
+                            <span
+                                    class="menu-button-icon"
+                                    aria-hidden="true"
+                            >
+                                A
+                            </span>
+
+                            <strong>단어 연습</strong>
+                        </button>
+
+                        <button
+                                type="button"
+                                class="menu-button"
+                                data-lang="en"
+                                data-mode="sentence"
+                        >
+                            <span
+                                    class="menu-button-icon"
+                                    aria-hidden="true"
+                            >
+                                📖
+                            </span>
+
+                            <strong>문장 연습</strong>
+                        </button>
+
+                    </div>
+
+                </div>
+
+                <!-- 기호 / 숫자 -->
+                <div class="practice-group">
+
+                    <div class="group-title symbol">
+                        <span
+                                class="group-icon"
+                                aria-hidden="true"
+                        >
+                            #️⃣
+                        </span>
+
+                        <span>기호 및 숫자 연습</span>
+                    </div>
+
+                    <button
+                            type="button"
+                            class="menu-button symbol-button"
+                            data-lang="sym"
+                            data-mode="all"
+                    >
+                        <span
+                                class="menu-button-icon"
+                                aria-hidden="true"
+                        >
+                            1#
+                        </span>
+
+                        <strong>연습 시작하기</strong>
+
+                        <span class="button-description">
+                            기호와 숫자를 3개씩 묶어서 연습합니다.
+                        </span>
+                    </button>
+
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- =========================
+             연습 화면
+        ========================== -->
+        <section
+                id="practiceScreen"
+                class="screen hidden"
+        >
+
+            <header class="practice-header">
+
+                <button
+                        type="button"
+                        id="backButton"
+                        class="back-button"
+                        aria-label="메뉴로 돌아가기"
+                >
+                    ‹
+                </button>
+
+                <div class="practice-info">
+
+                    <div
+                            id="modeLabel"
+                            class="mode-label"
+                    >
+                        KO · WORD
+                    </div>
+
+                    <div
+                            id="numberLabel"
+                            class="number-label"
+                    >
+                        No. 1 / 2000
+                    </div>
+
+                </div>
+
+                <div></div>
+
+            </header>
+
+            <div
+                    class="progress"
+                    aria-hidden="true"
+            >
+                <div
+                        id="progressBar"
+                        class="progress-bar"
+                ></div>
+            </div>
+
+            <main class="practice-main">
+
+                <div class="target-area">
+
+                    <div
+                            id="targetText"
+                            class="target-text"
+                            aria-live="polite"
+                    ></div>
+
+                    <div
+                            id="symbolModeLabel"
+                            class="symbol-mode-label hidden"
+                    >
+                        3-Character Set Mode
+                    </div>
+
+                </div>
+
+                <div class="input-area">
+
+                    <input
+                            type="text"
+                            id="typingInput"
+                            class="typing-input"
+                            placeholder="입력..."
+                            autocomplete="off"
+                            autocapitalize="off"
+                            spellcheck="false"
+                            aria-label="타자 입력"
+                    >
+
+                    <div
+                            id="errorMessage"
+                            class="error-message"
+                            aria-live="polite"
+                    ></div>
+
+                    <button
+                            type="button"
+                            id="nextButton"
+                            class="next-button"
+                            disabled
+                    >
+                        <span aria-hidden="true">✓</span>
+                        <span>다음 세트 (Space)</span>
+                    </button>
+
+                    <p class="keyboard-guide">
+                        정답 입력 후
+                        <strong>스페이스바</strong>
+                        또는
+                        <strong>Enter</strong>를 누르세요.
+                    </p>
+
+                </div>
+
+            </main>
+
+        </section>
+
+
+        <!-- =========================
+             결과 화면
+        ========================== -->
+        <section
+                id="resultScreen"
+                class="screen result hidden"
+        >
+
+            <div
+                    class="result-icon"
+                    aria-hidden="true"
+            >
+                🏆
+            </div>
+
+            <h2 class="result-title">
+                연습 완료!
+            </h2>
+
+            <p class="result-description">
+                모든 타자 연습을 완료했습니다.
+            </p>
+
+            <div class="result-card">
+
+                <span class="result-card-label">
+                    완료 결과
+                </span>
+
+                <strong
+                        id="resultScore"
+                        class="result-score"
+                >
+                    0 / 2000
+                </strong>
+
+            </div>
+
+            <div class="result-actions">
+
+                <button
+                        type="button"
+                        id="retryButton"
+                        class="result-button primary"
+                >
+                    ↻ 다시 도전하기
+                </button>
+
+                <button
+                        type="button"
+                        id="resultMenuButton"
+                        class="result-button secondary"
+                >
+                    메뉴로 나가기
+                </button>
+
+            </div>
+
+        </section>
+
+    </div>
+
+</div>
+
+
+<script>
+    (function () {
+        'use strict';
+
+        /* =========================================================
+           연습 데이터
+        ========================================================= */
+
+        const RAW_DATA = {
+
+            ko: {
+
+                word: [
+                    '사과',
+                    '하늘',
+                    '구름',
+                    '나무',
+                    '바다',
+                    '햇살',
+                    '바람',
+                    '노래',
+                    '친구',
+                    '행복',
+                    '학교',
+                    '공부',
+                    '사랑',
+                    '우정',
+                    '희망',
+                    '기쁨',
+                    '미소',
+                    '마음',
+                    '계절',
+                    '풍경',
+                    '우주',
+                    '별빛',
+                    '달빛',
+                    '태양',
+                    '지구',
+                    '열정',
+                    '도전',
+                    '성공',
+                    '실패',
+                    '용기',
+                    '믿음',
+                    '평화',
+                    '자유',
+                    '정의',
+                    '지혜',
+                    '배려',
+                    '나눔',
+                    '감사',
+                    '위로',
+                    '휴식'
+                ],
+
+                sentence: [
+                    '오늘도 즐거운 하루 되세요.',
+                    '코딩은 정말 재미있는 공부입니다.',
+                    '포기하지 않는 마음이 중요합니다.',
+                    '하늘이 참 맑고 푸르네요.',
+                    '건강을 위해 매일 운동을 합시다.',
+                    '작은 노력이 큰 변화를 만듭니다.',
+                    '책 읽기는 마음의 양식입니다.',
+                    '웃음은 만병통치약이라고 합니다.',
+                    '함께라면 무엇이든 할 수 있어요.',
+                    '아름다운 노을을 감상해 보세요.',
+                    '자신을 믿는 것이 가장 큰 힘입니다.',
+                    '오늘의 노력이 내일의 결실이 됩니다.',
+                    '항상 긍정적인 마음가짐을 가집시다.',
+                    '진심은 언제나 통하는 법입니다.'
+                ]
+
+            },
+
+            en: {
+
+                word: [
+                    'Apple',
+                    'Sky',
+                    'Cloud',
+                    'Tree',
+                    'Ocean',
+                    'Sunny',
+                    'Wind',
+                    'Song',
+                    'Friend',
+                    'Happy',
+                    'School',
+                    'Study',
+                    'Love',
+                    'Peace',
+                    'Hope',
+                    'Joy',
+                    'Smile',
+                    'Heart',
+                    'Season',
+                    'View',
+                    'Space',
+                    'Star',
+                    'Moon',
+                    'Sun',
+                    'Earth',
+                    'Passion',
+                    'Challenge',
+                    'Success',
+                    'Failure',
+                    'Courage'
+                ],
+
+                sentence: [
+                    'Have a nice day today.',
+                    'Coding is very interesting.',
+                    'Consistency is the key to success.',
+                    'The sky is clear and blue.',
+                    'Exercise daily for your health.',
+                    'Small efforts make big changes.',
+                    'Reading books feeds your soul.',
+                    'Laughter is the best medicine.',
+                    'Together we can do anything.'
+                ]
+
+            },
+
+            sym: {
+
+                all: [
+                    '1', '2', '3', '4', '5',
+                    '6', '7', '8', '9', '0',
+
+                    '!', '@', '#', '$', '%',
+                    '^', '&', '*', '(', ')',
+
+                    '-', '_', '+', '=', '[',
+                    ']', '{', '}', ';', ':',
+
+                    "'", '"', ',', '.', '<',
+                    '>', '/', '?', '\\', '|',
+
+                    '`', '~'
+                ]
+
+            }
+
+        };
+
+
+        /* =========================================================
+           DOM
+        ========================================================= */
+
+        const menuScreen =
+                  document.getElementById('menuScreen');
+
+        const practiceScreen =
+                  document.getElementById('practiceScreen');
+
+        const resultScreen =
+                  document.getElementById('resultScreen');
+
+        const typingInput =
+                  document.getElementById('typingInput');
+
+        const targetTextElement =
+                  document.getElementById('targetText');
+
+        const nextButton =
+                  document.getElementById('nextButton');
+
+        const backButton =
+                  document.getElementById('backButton');
+
+        const retryButton =
+                  document.getElementById('retryButton');
+
+        const resultMenuButton =
+                  document.getElementById('resultMenuButton');
+
+        const modeLabel =
+                  document.getElementById('modeLabel');
+
+        const numberLabel =
+                  document.getElementById('numberLabel');
+
+        const progressBar =
+                  document.getElementById('progressBar');
+
+        const errorMessage =
+                  document.getElementById('errorMessage');
+
+        const symbolModeLabel =
+                  document.getElementById('symbolModeLabel');
+
+        const resultScore =
+                  document.getElementById('resultScore');
+
+
+        /* =========================================================
+           상태
+        ========================================================= */
+
+        let currentLanguage = 'ko';
+        let currentMode = 'word';
+
+        let practiceData = [];
+
+        let currentIndex = 0;
+        let correctCount = 0;
+
+        let isComposing = false;
+
+
+        /* =========================================================
+           배열 섞기
+
+           sort(() => Math.random() - 0.5) 대신
+           Fisher-Yates 방식을 사용합니다.
+        ========================================================= */
+
+        function shuffleArray(array) {
+
+            const result = array.slice();
+
+            for (let i = result.length - 1; i > 0; i--) {
+
+                const randomIndex =
+                          Math.floor(Math.random() * (i + 1));
+
+                const temp = result[i];
+
+                result[i] = result[randomIndex];
+                result[randomIndex] = temp;
+
+            }
+
+            return result;
+
+        }
+
+
+        /* =========================================================
+           데이터 확장
+        ========================================================= */
+
+        function expandData(dataArray, targetCount) {
+
+            targetCount = targetCount || 2000;
+
+            if (!Array.isArray(dataArray) || dataArray.length === 0) {
+                return [];
+            }
+
+            const expanded = [];
+
+            while (expanded.length < targetCount) {
+
+                const shuffled =
+                          shuffleArray(dataArray);
+
+                for (let i = 0; i < shuffled.length; i++) {
+
+                    expanded.push(shuffled[i]);
+
+                    if (expanded.length >= targetCount) {
+                        break;
+                    }
+
+                }
+
+            }
+
+            return expanded;
+
+        }
+
+
+        /* =========================================================
+           연습 데이터 생성
+        ========================================================= */
+
+        function createPracticeData(language, mode) {
+
+            if (language === 'sym') {
+
+                /*
+                 * 원본과 동일한 방식:
+                 * 문자 6000개 생성
+                 * → 3개씩 묶기
+                 * → 총 2000세트
+                 */
+
+                const pool =
+                          expandData(RAW_DATA.sym.all, 6000);
+
+                const sets = [];
+
+                for (let i = 0; i < pool.length; i += 3) {
+
+                    sets.push(
+                        pool
+                        .slice(i, i + 3)
+                        .join('')
+                    );
+
+                }
+
+                return sets;
+
+            }
+
+            return expandData(
+                RAW_DATA[language][mode],
+                2000
+            );
+
+        }
+
+
+        /* =========================================================
+           화면 전환
+        ========================================================= */
+
+        function showScreen(screenName) {
+
+            menuScreen.classList.add('hidden');
+            practiceScreen.classList.add('hidden');
+            resultScreen.classList.add('hidden');
+
+            if (screenName === 'menu') {
+                menuScreen.classList.remove('hidden');
+            }
+
+            if (screenName === 'practice') {
+                practiceScreen.classList.remove('hidden');
+            }
+
+            if (screenName === 'result') {
+                resultScreen.classList.remove('hidden');
+            }
+
+        }
+
+
+        /* =========================================================
+           연습 시작
+        ========================================================= */
+
+        function startPractice(language, mode) {
+
+            currentLanguage = language;
+            currentMode = mode;
+
+            practiceData =
+                createPracticeData(
+                    currentLanguage,
+                    currentMode
+                );
+
+            currentIndex = 0;
+            correctCount = 0;
+
+            typingInput.value = '';
+
+            showScreen('practice');
+
+            updatePracticeScreen();
+
+            window.setTimeout(function () {
+                typingInput.focus();
+            }, 50);
+
+        }
+
+
+        /* =========================================================
+           현재 목표
+        ========================================================= */
+
+        function getTargetText() {
+
+            return practiceData[currentIndex] || '';
+
+        }
+
+
+        /* =========================================================
+           모드 표시
+        ========================================================= */
+
+        function getModeName() {
+
+            if (currentLanguage === 'sym') {
+                return 'SYMBOLS';
+            }
+
+            return (
+                currentLanguage.toUpperCase() +
+                ' · ' +
+                currentMode.toUpperCase()
+            );
+
+        }
+
+
+        /* =========================================================
+           글자 표시
+        ========================================================= */
+
+        function renderTargetText() {
+
+            const target =
+                      getTargetText();
+
+            const userInput =
+                      typingInput.value;
+
+            targetTextElement.innerHTML = '';
+
+            if (currentLanguage === 'sym') {
+
+                targetTextElement.classList.add(
+                    'symbol-mode'
+                );
+
+                symbolModeLabel.classList.remove(
+                    'hidden'
+                );
+
+            } else {
+
+                targetTextElement.classList.remove(
+                    'symbol-mode'
+                );
+
+                symbolModeLabel.classList.add(
+                    'hidden'
+                );
+
+            }
+
+            Array.from(target).forEach(
+                function (character, index) {
+
+                    const span =
+                              document.createElement('span');
+
+                    span.className = 'char';
+
+                    if (index >= userInput.length) {
+
+                        span.classList.add(
+                            'pending'
+                        );
+
+                    } else if (
+                        userInput[index] === character
+                    ) {
+
+                        span.classList.add(
+                            'correct'
+                        );
+
+                    } else {
+
+                        span.classList.add(
+                            'wrong'
+                        );
+
+                    }
+
+                    span.textContent =
+                        character === ' '
+                            ? '\u00A0'
+                            : character;
+
+                    targetTextElement.appendChild(
+                        span
+                    );
+
+                }
+            );
+
+        }
+
+
+        /* =========================================================
+           오타 검사
+        ========================================================= */
+
+        function checkMistype() {
+
+            if (isComposing) {
+                return false;
+            }
+
+            const input =
+                      typingInput.value;
+
+            const target =
+                      getTargetText();
+
+            return (
+                input.length > 0 &&
+                !target.startsWith(input)
+            );
+
+        }
+
+
+        /* =========================================================
+           입력 상태 업데이트
+        ========================================================= */
+
+        function updateInputState() {
+
+            const target =
+                      getTargetText();
+
+            const input =
+                      typingInput.value;
+
+            const isCorrect =
+                      input === target;
+
+            const hasMistype =
+                      checkMistype();
+
+            typingInput.classList.toggle(
+                'error',
+                hasMistype
+            );
+
+            nextButton.disabled =
+                !isCorrect;
+
+            if (hasMistype) {
+
+                errorMessage.textContent =
+                    '⚠ 오타를 수정해 주세요!';
+
+            } else {
+
+                errorMessage.textContent = '';
+
+            }
+
+            renderTargetText();
+
+        }
+
+
+        /* =========================================================
+           연습 화면 갱신
+        ========================================================= */
+
+        function updatePracticeScreen() {
+
+            const total =
+                      practiceData.length;
+
+            modeLabel.textContent =
+                getModeName();
+
+            numberLabel.textContent =
+                'No. ' +
+                (currentIndex + 1) +
+                ' / ' +
+                total;
+
+            const progress =
+                      total > 0
+                          ? (currentIndex / total) * 100
+                          : 0;
+
+            progressBar.style.width =
+                progress + '%';
+
+            typingInput.value = '';
+
+            updateInputState();
+
+        }
+
+
+        /* =========================================================
+           입력 완료
+        ========================================================= */
+
+        function completeCurrentItem() {
+
+            if (isComposing) {
+                return;
+            }
+
+            const target =
+                      getTargetText();
+
+            const input =
+                      typingInput.value;
+
+            if (input !== target) {
+
+                typingInput.classList.remove(
+                    'shake'
+                );
+
+                /*
+                 * 같은 클래스를 다시 적용했을 때
+                 * 애니메이션이 재실행되도록 강제 reflow
+                 */
+                void typingInput.offsetWidth;
+
+                typingInput.classList.add(
+                    'shake'
+                );
+
+                return;
+
+            }
+
+            correctCount++;
+
+            currentIndex++;
+
+            if (
+                currentIndex >=
+                practiceData.length
+            ) {
+
+                showResult();
+                return;
+
+            }
+
+            updatePracticeScreen();
+            typingInput.focus();
+
+        }
+
+
+        /* =========================================================
+           결과
+        ========================================================= */
+
+        function showResult() {
+
+            resultScore.textContent =
+                correctCount +
+                ' / ' +
+                practiceData.length;
+
+            progressBar.style.width = '100%';
+
+            showScreen('result');
+
+        }
+
+
+        /* =========================================================
+           메뉴로
+        ========================================================= */
+
+        function goMenu() {
+
+            typingInput.value = '';
+
+            errorMessage.textContent = '';
+
+            showScreen('menu');
+
+        }
+
+
+        /* =========================================================
+           메뉴 버튼
+        ========================================================= */
+
+        const menuButtons =
+                  document.querySelectorAll(
+                      '[data-lang][data-mode]'
+                  );
+
+        menuButtons.forEach(
+            function (button) {
+
+                button.addEventListener(
+                    'click',
+                    function () {
+
+                        const language =
+                                  button.dataset.lang;
+
+                        const mode =
+                                  button.dataset.mode;
+
+                        startPractice(
+                            language,
+                            mode
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+
+        /* =========================================================
+           입력 이벤트
+        ========================================================= */
+
+        typingInput.addEventListener(
+            'input',
+            function () {
+
+                updateInputState();
+
+            }
+        );
+
+
+        /* =========================================================
+           한글 IME 입력 처리
+        ========================================================= */
+
+        typingInput.addEventListener(
+            'compositionstart',
+            function () {
+
+                isComposing = true;
+
+            }
+        );
+
+        typingInput.addEventListener(
+            'compositionend',
+            function () {
+
+                isComposing = false;
+
+                updateInputState();
+
+            }
+        );
+
+
+        /* =========================================================
+           키보드 이벤트
+        ========================================================= */
+
+        typingInput.addEventListener(
+            'keydown',
+            function (event) {
+
+                /*
+                 * 한글 조합 중 Enter 등의 이벤트 방지
+                 */
+                if (
+                    isComposing ||
+                    event.isComposing ||
+                    event.keyCode === 229
+                ) {
+                    return;
+                }
+
+                if (event.key === 'Enter') {
+
+                    event.preventDefault();
+
+                    completeCurrentItem();
+
+                    return;
+
+                }
+
+                if (event.key === ' ') {
+
+                    const target =
+                              getTargetText();
+
+                    /*
+                     * 정답이 완성된 경우에만
+                     * Space를 다음 문제 키로 사용합니다.
+
+                     * 문장 입력 중의 일반 공백 입력은
+                     * 그대로 허용합니다.
+                     */
+                    if (
+                        typingInput.value === target
+                    ) {
+
+                        event.preventDefault();
+
+                        completeCurrentItem();
+
+                    }
+
+                }
+
+            }
+        );
+
+
+        /* =========================================================
+           버튼 이벤트
+        ========================================================= */
+
+        nextButton.addEventListener(
+            'click',
+            completeCurrentItem
+        );
+
+        backButton.addEventListener(
+            'click',
+            goMenu
+        );
+
+        resultMenuButton.addEventListener(
+            'click',
+            goMenu
+        );
+
+        retryButton.addEventListener(
+            'click',
+            function () {
+
+                startPractice(
+                    currentLanguage,
+                    currentMode
+                );
+
+            }
+        );
+
+
+        /* =========================================================
+           초기 화면
+        ========================================================= */
+
+        showScreen('menu');
+
+    })();
+</script>
+
+</body>
+</html>
