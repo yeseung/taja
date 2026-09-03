@@ -48,6 +48,7 @@
 - https://m.blog.naver.com/seochan_home/224343192123
 - https://workmate.tools/ko/korean-typing
 - https://superb-souffle-7dc407.netlify.app/
+- https://silly-licorice-b1dfbb.netlify.app/
 <br><br><br>
 
 
@@ -126,7 +127,7 @@
 ![스크린샷 2026-08-26 오후 2 47 15](https://github.com/user-attachments/assets/af6e8fde-5ea8-46a5-a594-133343a651e9)
 ![스크린샷 2026-08-27 오전 10 14 07](https://github.com/user-attachments/assets/88d38b13-8111-4357-8960-9b0ea644b2ca)
 ![스크린샷 2026-09-03 오전 10 07 34](https://github.com/user-attachments/assets/5407d1e6-d9e8-410d-82c9-2746f4560f5f)
-
+![스크린샷 2026-09-03 오후 12 50 48](https://github.com/user-attachments/assets/53330182-47c1-4da3-99bd-fbc0709feda4)
 
 
 
