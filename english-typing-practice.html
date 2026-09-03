@@ -1,0 +1,484 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <!-- This site is hosted on Netlify. Anyone can build and deploy a site
+         like this one for free: https://netlify.new/?utm_campaign=ai-legible&utm_source=comment&utm_medium=referral&utm_id=0c515a75-f0b1-4ae3-ab39-886d890f3b37
+         Netlify hosting facts for this site: static/SSR served via Netlify Edge. -->
+    <meta name="hosting-provider" content="Netlify">
+    <meta name="netlify-deploy" content="https://netlify.new/?utm_campaign=ai-legible&amp;utm_source=meta&amp;utm_medium=referral&amp;utm_id=0c515a75-f0b1-4ae3-ab39-886d890f3b37">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>영문 타자 연습 Pro (English Typing Master with Case Mixing)</title>
+
+    <!-- https://silly-licorice-b1dfbb.netlify.app/ -->
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & Babel -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Sans+KR:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', 'Noto+Sans+KR', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+<div id="root"></div>
+
+<script type="text/babel">
+    const { useState, useEffect, useCallback, useMemo, useRef } = React;
+
+    // --- 아이콘 컴포넌트 ---
+    const Icon = ({ name, size = 20, className = "" }) => {
+        const icons = {
+            keyboard: <path d="M10 8h.01M14 8h.01M18 8h.01M22 8h.01M7 12h.01M11 12h.01M15 12h.01M19 12h.01M23 12h.01M9 16h10M4 4h24v16H4z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>,
+            book: <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5v-15z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>,
+            type: <path d="M4 7V4h16v3M9 20h6M12 4v16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>,
+            alignLeft: <path d="M21 6H3M15 12H3M17 18H3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>,
+            fileText: <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>,
+            refresh: <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        };
+        return (
+            <svg width={size} height={size} viewBox="0 0 24 24" className={className}>
+                {icons[name] || null}
+            </svg>
+        );
+    };
+
+    // --- 영문 데이터 및 뜻 구성 ---
+    const POS_NAMES = {
+        'a': '에이', 'b': '비', 'c': '씨', 'd': '디', 'e': '이', 'f': '에프', 'g': '쥐', 'h': '에이치',
+        'i': '아이', 'j': '제이', 'k': '케이', 'l': '엘', 'm': '엠', 'n': '엔', 'o': '오', 'p': '피',
+        'q': '큐', 'r': '알', 's': '에스', 't': '티', 'u': '유', 'v': '브이', 'w': '더블유', 'x': '엑스',
+        'y': '와이', 'z': '제트', ';': '세미콜론', ',': '콤마', '.': '마침표', '/': '슬래시'
+    };
+
+    const POS_HOME = ["a", "s", "d", "f", "j", "k", "l", ";"];
+    const POS_TOP = ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"];
+    const POS_BOTTOM = ["z", "x", "c", "v", "b", "n", "m", ",", ".", "/"];
+
+    const WORD_DATA_BASE = [
+        { text: "time", meaning: "시간" }, { text: "year", meaning: "년(해)" }, { text: "people", meaning: "사람들" },
+        { text: "way", meaning: "방법/길" }, { text: "day", meaning: "날/하루" }, { text: "man", meaning: "남자" },
+        { text: "thing", meaning: "물건/것" }, { text: "woman", meaning: "여자" }, { text: "life", meaning: "인생/삶" },
+        { text: "child", meaning: "아이" }, { text: "world", meaning: "세계" }, { text: "school", meaning: "학교" },
+        { text: "family", meaning: "가족" }, { text: "student", meaning: "학생" }, { text: "group", meaning: "그룹/집단" },
+        { text: "country", meaning: "나라/국가" }, { text: "problem", meaning: "문제" }, { text: "hand", meaning: "손" }
+    ];
+
+    const WORD_DATA_ADV = [
+        { text: "knowledge", meaning: "지식" }, { text: "experience", meaning: "경험" }, { text: "business", meaning: "사업/업무" },
+        { text: "government", meaning: "정부" }, { text: "important", meaning: "중요한" }, { text: "different", meaning: "다른" },
+        { text: "community", meaning: "지역사회" }, { text: "everything", meaning: "모든 것" }, { text: "understand", meaning: "이해하다" },
+        { text: "information", meaning: "정보" }, { text: "available", meaning: "이용 가능한" }, { text: "university", meaning: "대학교" }
+    ];
+
+    const SHORT_SENTENCES = [
+        { text: "Practice makes perfect.", meaning: "연습이 완벽을 만든다." },
+        { text: "Better late than never.", meaning: "늦더라도 안 하는 것보다 낫다." },
+        { text: "Knowledge is power.", meaning: "아는 것이 힘이다." },
+        { text: "Time is money.", meaning: "시간은 금이다." },
+        { text: "Honesty is the best policy.", meaning: "정직이 최선의 방책이다." },
+        { text: "Easy come, easy go.", meaning: "쉽게 얻은 것은 쉽게 잃는다." },
+        { text: "The quick brown fox jumps over the lazy dog.", meaning: "빠른 갈색 여우가 게으른 개를 뛰어넘는다." }
+    ];
+
+    const LONG_SENTENCES = [
+        { text: "I have a dream that one day this nation will rise up and live out the true meaning of its creed.", meaning: "나에게는 언젠가 이 나라가 일어서서 그 신조의 진정한 의미를 실현하리라는 꿈이 있습니다." },
+        { text: "To be, or not to be, that is the question.", meaning: "사느냐 죽느냐, 그것이 문제로다." },
+        { text: "Stay hungry, stay foolish.", meaning: "계속 갈망하라, 여전히 우직하게." },
+        { text: "It was the best of times, it was the worst of times.", meaning: "최고의 시절이었고, 최악의 시절이었다." }
+    ];
+
+    // 대소문자 혼합 생성 함수
+    const generateMixedLargeSet = (baseChars, count = 100) => {
+        let result = [];
+        while (result.length < count) {
+            const char = baseChars[Math.floor(Math.random() * baseChars.length)];
+            // 알파벳인 경우 50% 확률로 대문자 적용
+            const isAlpha = /^[a-zA-Z]$/.test(char);
+            const finalChar = (isAlpha && Math.random() > 0.5) ? char.toUpperCase() : char;
+            const meaning = POS_NAMES[char.toLowerCase()] || "";
+            result.push({ text: finalChar, meaning: isAlpha && finalChar === finalChar.toUpperCase() ? `대문자 ${meaning}` : meaning });
+        }
+        return result;
+    };
+
+    const RAW_DATA = {
+        position: {
+            base: generateMixedLargeSet(POS_HOME, 100),
+            top: generateMixedLargeSet(POS_TOP, 100),
+            bottom: generateMixedLargeSet(POS_BOTTOM, 100),
+            all: generateMixedLargeSet([...POS_HOME, ...POS_TOP, ...POS_BOTTOM], 150)
+        },
+        words: {
+            base: generateLargeSet(WORD_DATA_BASE, 100),
+            top: generateLargeSet(WORD_DATA_ADV, 100)
+        },
+        shortSentences: SHORT_SENTENCES,
+        longSentences: LONG_SENTENCES
+    };
+
+    function generateLargeSet(baseArray, count = 100) {
+        let result = [];
+        if (!baseArray) return [];
+        while (result.length < count) {
+            result = [...result, ...[...baseArray].sort(() => Math.random() - 0.5)];
+        }
+        return result.slice(0, count);
+    };
+
+    // --- 키보드 레이아웃 (대/소문자 병기) ---
+    const MAIN_KEYS = [
+        [{ main: 'Esc', code: 'Escape' }, { main: 'F1' }, { main: 'F2' }, { main: 'F3' }, { main: 'F4' }, { main: 'F5', ml: 'ml-4' }, { main: 'F6' }, { main: 'F7' }, { main: 'F8' }, { main: 'F9', ml: 'ml-4' }, { main: 'F10' }, { main: 'F11' }, { main: 'F12' }],
+        [{ main: '~', sub: '`', code: '`' }, { main: '1' }, { main: '2' }, { main: '3' }, { main: '4' }, { main: '5' }, { main: '6' }, { main: '7' }, { main: '8' }, { main: '9' }, { main: '0' }, { main: '-', sub: '_' }, { main: '=', sub: '+' }, { main: 'Backspace', width: 'w-20', code: 'Backspace' }],
+        [{ main: 'Tab', width: 'w-14', code: 'Tab' }, { main: 'Q', sub: 'q' }, { main: 'W', sub: 'w' }, { main: 'E', sub: 'e' }, { main: 'R', sub: 'r' }, { main: 'T', sub: 't' }, { main: 'Y', sub: 'y' }, { main: 'U', sub: 'u' }, { main: 'I', sub: 'i' }, { main: 'O', sub: 'o' }, { main: 'P', sub: 'p' }, { main: '[', sub: '{' }, { main: ']', sub: '}' }, { main: '\\', sub: '|', width: 'w-14' }],
+        [{ main: 'Caps', width: 'w-16', code: 'CapsLock' }, { main: 'A', sub: 'a' }, { main: 'S', sub: 's' }, { main: 'D', sub: 'd' }, { main: 'F', sub: 'f' }, { main: 'G', sub: 'g' }, { main: 'H', sub: 'h' }, { main: 'J', sub: 'j' }, { main: 'K', sub: 'k' }, { main: 'L', sub: 'l' }, { main: ';', sub: ':' }, { main: "'", sub: '"' }, { main: 'Enter', width: 'w-20', code: 'Enter' }],
+        [{ main: 'Shift', width: 'w-24', code: 'Shift' }, { main: 'Z', sub: 'z' }, { main: 'X', sub: 'x' }, { main: 'C', sub: 'c' }, { main: 'V', sub: 'v' }, { main: 'B', sub: 'b' }, { main: 'N', sub: 'n' }, { main: 'M', sub: 'm' }, { main: ',', sub: '<' }, { main: '.', sub: '>' }, { main: '/', sub: '?' }, { main: 'Shift', width: 'w-24', code: 'Shift' }],
+        [{ main: 'Ctrl', code: 'Control' }, { main: 'Win', code: 'Meta' }, { main: 'Alt', code: 'Alt' }, { main: 'Space', width: 'w-64', code: ' ' }, { main: 'Alt', code: 'Alt' }, { main: 'Win', code: 'Meta' }, { main: 'Ctrl', code: 'Control' }]
+    ];
+
+    const NAV_KEYS = [
+        [{ main: 'Prt', code: 'PrintScreen' }, { main: 'Scl', code: 'ScrollLock' }, { main: 'Pau', code: 'Pause' }],
+        [{ main: 'Ins', code: 'Insert' }, { main: 'Hom', code: 'Home' }, { main: 'PgU', code: 'PageUp' }],
+        [{ main: 'Del', code: 'Delete' }, { main: 'End', code: 'End' }, { main: 'PgD', code: 'PageDown' }],
+        [],
+        [{ main: '', width: 'w-10 invisible' }, { main: '↑', code: 'ArrowUp' }, { main: '', width: 'w-10 invisible' }],
+        [{ main: '←', code: 'ArrowLeft' }, { main: '↓', code: 'ArrowDown' }, { main: '→', code: 'ArrowRight' }]
+    ];
+
+    const NUMPAD_LAYOUT = [
+        { main: 'Num', code: 'NumLock' }, { main: '/' }, { main: '*' }, { main: '-' },
+        { main: '7' }, { main: '8' }, { main: '9' }, { main: '+', rowSpan: 2 },
+        { main: '4' }, { main: '5' }, { main: '6' },
+        { main: '1' }, { main: '2' }, { main: '3' }, { main: 'Ent', code: 'Enter', rowSpan: 2 },
+        { main: '0', colSpan: 2 }, { main: '.' }
+    ];
+
+    function App() {
+        const [mode, setMode] = useState('position');
+        const [subMode, setSubMode] = useState('base');
+        const [targetList, setTargetList] = useState([]);
+        const [currentIndex, setCurrentIndex] = useState(0);
+        const [inputText, setInputText] = useState('');
+        const [pressedKey, setPressedKey] = useState(null);
+        const [isShiftPressed, setIsShiftPressed] = useState(false);
+        const [stats, setStats] = useState({ wpm: 0, accuracy: 100, startTime: null, correctCount: 0, totalCount: 0 });
+        const [flushKey, setFlushKey] = useState(0);
+        const inputRef = useRef(null);
+
+        const getSourceData = useCallback(() => {
+            if (mode === 'position') return RAW_DATA.position[subMode] || [];
+            if (mode === 'words') return RAW_DATA.words[subMode] || [];
+            const sourceKey = mode === 'short' ? 'shortSentences' : mode === 'long' ? 'longSentences' : mode;
+            return RAW_DATA[sourceKey] || [];
+        }, [mode, subMode]);
+
+        useEffect(() => {
+            const source = getSourceData();
+            setTargetList([...source]);
+            setCurrentIndex(0);
+            setInputText('');
+            setStats({ wpm: 0, accuracy: 100, startTime: null, correctCount: 0, totalCount: 0 });
+            setFlushKey(prev => prev + 1);
+        }, [mode, subMode, getSourceData]);
+
+        const currentTarget = useMemo(() => targetList[currentIndex] || { text: "", meaning: "" }, [targetList, currentIndex]);
+
+        const nextKeyToPress = useMemo(() => {
+            if (!currentTarget.text) return null;
+            // 현재 입력중인 텍스트 다음 문자를 찾아야 함
+            const char = currentTarget.text[inputText.length];
+            return char || null;
+        }, [currentTarget, inputText]);
+
+        useEffect(() => {
+            const handleKeyDownGlobal = (e) => {
+                setPressedKey(e.key);
+                if (e.key === 'Shift') setIsShiftPressed(true);
+                if (inputRef.current && document.activeElement !== inputRef.current) {
+                    inputRef.current.focus();
+                }
+            };
+            const handleKeyUpGlobal = (e) => {
+                setPressedKey(null);
+                if (e.key === 'Shift') setIsShiftPressed(false);
+            };
+            window.addEventListener('keydown', handleKeyDownGlobal);
+            window.addEventListener('keyup', handleKeyUpGlobal);
+            return () => {
+                window.removeEventListener('keydown', handleKeyDownGlobal);
+                window.removeEventListener('keyup', handleKeyUpGlobal);
+            };
+        }, []);
+
+        const nextStep = useCallback((correct) => {
+            const now = Date.now();
+            const timeSpent = (now - (stats.startTime || now)) / 1000 / 60;
+            const charCount = (mode === 'position' ? 1 : inputText.length) || 1;
+            const newWpm = timeSpent > 0 ? Math.floor((charCount / 5) / timeSpent) : 0;
+
+            setStats(prev => ({
+                ...prev,
+                wpm: newWpm || prev.wpm,
+                totalCount: prev.totalCount + 1,
+                correctCount: prev.correctCount + (correct ? 1 : 0),
+                accuracy: Math.floor(((prev.correctCount + (correct ? 1 : 0)) / (prev.totalCount + 1)) * 100),
+                startTime: null
+            }));
+
+            setInputText('');
+            setFlushKey(prev => prev + 1);
+            setCurrentIndex(prev => (prev + 1 >= targetList.length ? 0 : prev + 1));
+        }, [mode, inputText, stats.startTime, targetList.length]);
+
+        const handleInputChange = (e) => {
+            const val = e.target.value;
+            if (!stats.startTime && val.length > 0) {
+                setStats(prev => ({ ...prev, startTime: Date.now() }));
+            }
+
+            if (mode === 'position') {
+                // 자리 연습은 대소문자 정확히 일치해야 함
+                if (val.includes(currentTarget.text)) {
+                    nextStep(true);
+                    return;
+                }
+            } else if (mode === 'words') {
+                if (val === currentTarget.text) {
+                    nextStep(true);
+                    return;
+                }
+            }
+            setInputText(val);
+        };
+
+        const handleKeyDown = (e) => {
+            if (e.key === 'Enter') {
+                const cleanInput = inputText.trim();
+                const cleanTarget = currentTarget.text.trim();
+                if (cleanInput === cleanTarget || ((mode === 'long' || mode === 'short') && cleanInput.length >= cleanTarget.length * 0.9)) {
+                    nextStep(true);
+                }
+            }
+        };
+
+        const renderKey = (keyObj, idx) => {
+            if (!keyObj) return null;
+
+            const main = keyObj.main || "";
+            const sub = keyObj.sub || "";
+            const code = keyObj.code || main;
+
+            // 눌린 키 강조 (대소문자 구분 없이 물리적 키 위치 기반)
+            const isPressed = pressedKey && (
+                pressedKey === main ||
+                pressedKey === sub ||
+                pressedKey.toLowerCase() === main.toLowerCase() ||
+                pressedKey === code
+            );
+
+            // 다음에 누를 키 강조 (대소문자 구분을 위해 Shift 필요 여부 판단)
+            const targetChar = nextKeyToPress;
+            const isTargetMain = targetChar && targetChar === main;
+            const isTargetSub = targetChar && targetChar === sub;
+            const isTargetLower = targetChar && /^[a-z]$/.test(targetChar) && targetChar.toUpperCase() === main;
+            const isTargetShift = targetChar && /^[A-Z]$/.test(targetChar) && main === 'Shift';
+
+            const isNextKey = isTargetMain || isTargetSub || isTargetLower || (isTargetShift && main === 'Shift');
+
+            let layoutStyle = `relative flex flex-col items-center justify-center rounded-lg text-[11px] font-bold transition-all border-b-4 select-none `;
+            if (keyObj.width) layoutStyle += keyObj.width + " "; else layoutStyle += "w-10 ";
+            if (keyObj.height) layoutStyle += keyObj.height + " "; else layoutStyle += "h-10 ";
+            if (keyObj.ml) layoutStyle += keyObj.ml + " ";
+
+            return (
+                <div key={idx} className={`${layoutStyle} ${isPressed ? 'bg-blue-600 text-white border-blue-800 translate-y-0.5 border-b-0' : isNextKey ? 'bg-amber-400 text-slate-900 border-amber-600 animate-pulse ring-1 ring-amber-200' : 'bg-slate-800 text-slate-400 border-slate-950 hover:bg-slate-700'}`}>
+                    <div className="flex flex-col items-center leading-none">
+                        <span className="text-[12px]">{main}</span>
+                        {sub && <span className="text-[9px] opacity-60 font-medium">{sub}</span>}
+                    </div>
+                </div>
+            );
+        };
+
+        const itemWidth = 200;
+
+        return (
+            <div className="min-h-screen bg-slate-50 p-1 md:p-2 font-sans text-slate-800">
+                <div className="max-w-6xl mx-auto space-y-1">
+
+                    <header className="bg-white p-2 px-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col xl:flex-row items-center gap-2">
+                        <div className="flex items-center gap-3">
+                            <div className="p-1.5 bg-blue-600 rounded-xl text-white shadow-md">
+                                <Icon name="keyboard" size={24} />
+                            </div>
+                            <div className="leading-tight">
+                                <h1 className="text-lg md:text-xl font-black text-slate-900 tracking-tighter uppercase">English Typing Pro</h1>
+                                <p className="text-[9px] font-bold text-blue-600 tracking-widest">MIXED CASE EDITION</p>
+                            </div>
+                        </div>
+                        <nav className="flex bg-slate-100 p-1 rounded-xl flex-wrap justify-center gap-1 xl:ml-6">
+                            {[
+                                { id: 'position', label: '자리 연습', icon: "book" },
+                                { id: 'words', label: '낱말 연습', icon: "type" },
+                                { id: 'short', label: '단문 연습', icon: "alignLeft" },
+                                { id: 'long', label: '장문 연습', icon: "fileText" }
+                            ].map((item) => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => setMode(item.id)}
+                                    className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm md:text-base font-black transition-all ${mode === item.id ? 'bg-white text-blue-600 shadow-sm ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-800'}`}
+                                >
+                                    <Icon name={item.icon} size={20}/> {item.label}
+                                </button>
+                            ))}
+                        </nav>
+                        <div className="xl:flex-1"></div>
+                    </header>
+
+                    {(mode === 'position' || mode === 'words') && (
+                        <div className="flex flex-col items-center animate-in fade-in slide-in-from-top-1 duration-300">
+                            <div className="bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200 flex gap-2 items-center flex-wrap justify-center">
+                                {[
+                                    { id: 'base', label: mode === 'position' ? 'Home Row (A-L)' : 'Basic Words' },
+                                    { id: 'top', label: mode === 'position' ? 'Top Row (Q-P)' : 'Advanced Words' },
+                                    { id: 'bottom', label: mode === 'position' ? 'Bottom Row (Z-M)' : 'Bottom' },
+                                    { id: 'all', label: 'All Mixed Keys' }
+                                ].filter(sub => mode === 'words' ? (sub.id === 'base' || sub.id === 'top') : true).map(sub => (
+                                    <button
+                                        key={sub.id}
+                                        onClick={() => setSubMode(sub.id)}
+                                        className={`px-4 py-1.5 rounded-full text-xs md:text-sm font-black transition-all ${subMode === sub.id ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                                    >
+                                        {sub.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    <main className="bg-white p-3 py-4 rounded-[2rem] shadow-sm border border-slate-200 flex flex-col items-center justify-center min-h-[260px] relative overflow-hidden">
+                        <div className="absolute top-4 left-6 px-2.5 py-1 bg-blue-50 text-blue-600 text-[8px] font-black rounded-full uppercase tracking-tighter ring-1 ring-blue-100">{mode.toUpperCase()} PRACTICE</div>
+
+                        <div className="w-full max-w-5xl space-y-6">
+                            {(mode === 'position' || mode === 'words') ? (
+                                <div className="relative w-full h-32 flex flex-col items-center justify-center">
+                                    <div className="relative w-full h-24 overflow-hidden flex items-center justify-center">
+                                        <div className="flex items-center transition-transform duration-500 ease-out"
+                                             style={{ transform: `translateX(calc(50% - ${currentIndex * itemWidth + (itemWidth / 2)}px))` }}>
+                                            {targetList.map((item, idx) => {
+                                                const isCurrent = idx === currentIndex;
+                                                return (
+                                                    <div key={idx} style={{ width: `${itemWidth}px` }} className={`flex-shrink-0 flex items-center justify-center transition-all duration-500 ${isCurrent ? 'scale-150 z-20' : 'opacity-70 scale-90 blur-[0.2px]'}`}>
+                                                        <div className={`font-black tracking-tighter leading-none break-keep p-2 transition-colors ${mode === 'position' ? 'text-4xl md:text-6xl' : 'text-2xl md:text-3xl'} ${isCurrent ? 'text-blue-700 underline decoration-blue-200 underline-offset-8' : 'text-slate-950'}`}>
+                                                            {item.text.split('').map((char, i) => {
+                                                                let style = isCurrent ? "text-blue-700" : "text-slate-950";
+                                                                if (isCurrent && i < inputText.length) {
+                                                                    style = char === inputText[i] ? "text-blue-900" : "text-red-500 bg-red-50 rounded px-0.5";
+                                                                }
+                                                                return <span key={i} className={`${style} transition-colors duration-100`}>{char}</span>;
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                    <div className="h-6 flex items-center justify-center">
+                                        <p className="text-sm md:text-base font-bold text-emerald-600 bg-emerald-50 px-4 py-0.5 rounded-full animate-in fade-in zoom-in duration-300">
+                                            {currentTarget.meaning}
+                                        </p>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="w-full flex flex-col items-center py-6">
+                                    <div className={`font-black text-slate-950 text-center break-keep transition-all duration-300 leading-relaxed mb-4 text-3xl md:text-4xl`}>
+                                        {currentTarget.text.split('').map((char, i) => {
+                                            let style = "text-slate-950 opacity-100";
+                                            if (i < inputText.length) {
+                                                style = char === inputText[i] ? "text-blue-700" : "text-red-500 bg-red-50 rounded px-0.5";
+                                            }
+                                            return <span key={i} className={`${style} transition-colors duration-100`}>{char}</span>;
+                                        })}
+                                    </div>
+                                    <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 max-w-2xl text-center">
+                                        <p className="text-sm md:text-base font-bold text-emerald-700 leading-snug">
+                                            뜻: {currentTarget.meaning}
+                                        </p>
+                                    </div>
+                                    <div className="mt-4 text-[10px] text-slate-400 font-bold uppercase tracking-widest">Type exactly and press Enter</div>
+                                </div>
+                            )}
+
+                            <div className="relative max-w-sm mx-auto w-full">
+                                <input
+                                    key={`input-field-${flushKey}`}
+                                    ref={inputRef}
+                                    type="text"
+                                    value={inputText}
+                                    onChange={handleInputChange}
+                                    onKeyDown={handleKeyDown}
+                                    placeholder="Type correctly..."
+                                    autoFocus
+                                    autoComplete="off"
+                                    className="w-full text-xl md:text-2xl font-black text-center py-3.5 px-6 rounded-xl border-2 border-slate-100 bg-slate-50 focus:border-blue-600 focus:bg-white transition-all outline-none shadow-sm"
+                                />
+                            </div>
+                        </div>
+                    </main>
+
+                    <div className="flex justify-end items-center px-4">
+                        <div className="bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+                            <div className="flex items-center gap-6">
+                                <div className="text-center">
+                                    <p className="text-[7px] text-slate-400 font-bold uppercase tracking-widest">WPM (Speed)</p>
+                                    <p className="text-sm font-black text-blue-600 leading-none">{stats.wpm}</p>
+                                </div>
+                                <div className="text-center">
+                                    <p className="text-[7px] text-slate-400 font-bold uppercase tracking-widest">Accuracy</p>
+                                    <p className="text-sm font-black text-emerald-600 leading-none">{stats.accuracy}%</p>
+                                </div>
+                            </div>
+                            <button onClick={() => { const source = getSourceData(); setTargetList([...source].sort(() => Math.random() - 0.5)); setCurrentIndex(0); setInputText(''); setFlushKey(k => k + 1); }} className="p-1.5 hover:bg-slate-100 rounded-full text-slate-400" title="Restart">
+                                <Icon name="refresh" size={14} />
+                            </button>
+                        </div>
+                    </div>
+
+                    <section className="bg-slate-900 p-2.5 rounded-[1.5rem] shadow-2xl overflow-x-auto border-t-4 border-slate-800">
+                        <div className="flex justify-between gap-4 min-w-[1060px]">
+                            <div className="flex flex-col gap-1">{MAIN_KEYS.map((row, rIdx) => (<div key={rIdx} className="flex gap-1">{row.map((k, kIdx) => renderKey(k, kIdx))}</div>))}</div>
+                            <div className="flex flex-col gap-1 w-32">{NAV_KEYS.map((row, rIdx) => ( <div key={rIdx} className="flex gap-1">{row.map((k, kIdx) => renderKey(k, kIdx))}</div>))}</div>
+                            <div className="grid grid-cols-4 gap-1 h-fit w-48 relative">
+                                {NUMPAD_LAYOUT.map((key, idx) => {
+                                    const isPressed = pressedKey === (key.code || String(key.main || ""));
+                                    // 대소문자 구분하여 가상키보드 강조
+                                    const isNextKey = nextKeyToPress === String(key.main || "") || nextKeyToPress === String(key.sub || "");
+
+                                    return (
+                                        <div key={idx} className={`flex items-center justify-center rounded-lg text-[9px] font-black transition-all border-b-[3px] select-none ${key.colSpan === 2 ? 'col-span-2 w-full' : 'w-10'} ${key.rowSpan === 2 ? 'row-span-2 h-[82px]' : 'h-10'} ${isPressed ? 'bg-blue-600 text-white border-blue-800 translate-y-0.5 border-b-0' : isNextKey ? 'bg-amber-400 text-slate-900 border-amber-600 animate-pulse ring-1 ring-amber-200' : 'bg-slate-800 text-slate-400 border-slate-950 hover:bg-slate-700'}`}>
+                                            <div className="flex flex-col items-center leading-none">
+                                                <span className="text-[12px]">{key.main}</span>
+                                                {key.sub && <span className="text-[9px] opacity-60 font-medium">{key.sub}</span>}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+</script>
+</body>
+</html>
