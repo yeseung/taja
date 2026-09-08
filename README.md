@@ -50,6 +50,8 @@
 - https://superb-souffle-7dc407.netlify.app/
 - https://silly-licorice-b1dfbb.netlify.app/
 - https://www.jhnsoft.co.kr/korean-typing-practice/
+- https://www.jhnsoft.co.kr/english-typing-practice/
+
 <br><br><br>
 
 
@@ -131,7 +133,7 @@
 ![스크린샷 2026-09-03 오후 12 50 48](https://github.com/user-attachments/assets/53330182-47c1-4da3-99bd-fbc0709feda4)
 ![스크린샷 2026-09-03 오후 12 59 15](https://github.com/user-attachments/assets/3afa6b5c-2313-4513-8e6a-883a7419f812)
 ![스크린샷 2026-09-08 오후 4 49 24](https://github.com/user-attachments/assets/0492143e-f79f-4627-b079-997f335f12dd)
-
+![스크린샷 2026-09-08 오후 4 56 17](https://github.com/user-attachments/assets/27f47695-60d4-4ae5-a84d-4b2966f77e3f)
 
 
 
