@@ -49,6 +49,7 @@
 - https://workmate.tools/ko/korean-typing
 - https://superb-souffle-7dc407.netlify.app/
 - https://silly-licorice-b1dfbb.netlify.app/
+- https://www.jhnsoft.co.kr/korean-typing-practice/
 <br><br><br>
 
 
@@ -129,6 +130,7 @@
 ![스크린샷 2026-09-03 오전 10 07 34](https://github.com/user-attachments/assets/5407d1e6-d9e8-410d-82c9-2746f4560f5f)
 ![스크린샷 2026-09-03 오후 12 50 48](https://github.com/user-attachments/assets/53330182-47c1-4da3-99bd-fbc0709feda4)
 ![스크린샷 2026-09-03 오후 12 59 15](https://github.com/user-attachments/assets/3afa6b5c-2313-4513-8e6a-883a7419f812)
+![스크린샷 2026-09-08 오후 4 49 24](https://github.com/user-attachments/assets/0492143e-f79f-4627-b079-997f335f12dd)
 
 
 
