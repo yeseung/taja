@@ -1,0 +1,2645 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>영어 타자 연습 | English Typing Practice</title>
+
+    <meta
+            name="description"
+            content="영어 단어와 문장을 따라 입력하면서 WPM, CPM, 정확도와 오타를 실시간으로 확인할 수 있는 무료 영어 타자 연습입니다."
+    >
+    <meta
+            name="keywords"
+            content="영어 타자 연습, 영어 타자, 타자 속도, WPM, CPM, 영어 타자 테스트, English Typing Practice"
+    >
+
+    <meta property="og:title" content="영어 타자 연습 | English Typing Practice">
+    <meta
+            property="og:description"
+            content="설치 없이 브라우저에서 이용하는 무료 영어 타자 속도 측정 및 연습"
+    >
+    <meta property="og:type" content="website">
+
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="manifest" href="/manifest.webmanifest">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+            href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap"
+            rel="stylesheet"
+    >
+
+    <style>
+        :root {
+            --background: #f7f8fa;
+            --surface: #ffffff;
+            --surface-soft: #f8fafc;
+
+            --text: #171717;
+            --text-sub: #64748b;
+            --text-light: #94a3b8;
+
+            --border: #e5e7eb;
+            --border-dark: #d1d5db;
+
+            --primary: #111827;
+            --primary-hover: #374151;
+
+            --blue: #2563eb;
+            --blue-soft: #eff6ff;
+
+            --green: #16a34a;
+            --green-soft: #f0fdf4;
+
+            --red: #dc2626;
+            --red-soft: #fef2f2;
+
+            --yellow: #ca8a04;
+            --yellow-soft: #fefce8;
+
+            --radius: 24px;
+            --radius-small: 14px;
+
+            --shadow:
+                    0 12px 30px rgba(15, 23, 42, 0.06);
+
+            --max-width: 1000px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            margin: 0;
+
+            background: var(--background);
+            color: var(--text);
+
+            font-family:
+                    "Noto Sans KR",
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "Segoe UI",
+                    sans-serif;
+
+            font-size: 16px;
+            line-height: 1.7;
+            letter-spacing: -0.04em;
+        }
+
+        button,
+        select,
+        textarea {
+            font: inherit;
+            letter-spacing: inherit;
+        }
+
+        button,
+        select {
+            touch-action: manipulation;
+        }
+
+        button:focus-visible,
+        select:focus-visible,
+        textarea:focus-visible,
+        summary:focus-visible {
+            outline: 3px solid rgba(37, 99, 235, 0.18);
+            outline-offset: 2px;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        .container {
+            width: min(calc(100% - 32px), var(--max-width));
+            margin: 0 auto;
+            padding: 48px 0 80px;
+        }
+
+        .page-header {
+            margin-bottom: 28px;
+            text-align: center;
+        }
+
+        .eyebrow {
+            margin: 0 0 8px;
+
+            color: var(--blue);
+
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .page-header h1 {
+            margin: 0;
+
+            font-size: clamp(32px, 6vw, 48px);
+            font-weight: 800;
+            line-height: 1.2;
+            letter-spacing: -0.06em;
+        }
+
+        .page-header .description {
+            max-width: 720px;
+            margin: 16px auto 0;
+
+            color: var(--text-sub);
+
+            font-size: 16px;
+        }
+
+        .card {
+            margin-bottom: 24px;
+            padding: 32px;
+
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+
+            background: var(--surface);
+
+            box-shadow: var(--shadow);
+        }
+
+        .section-title {
+            margin: 0;
+
+            font-size: 24px;
+            font-weight: 800;
+            line-height: 1.35;
+            letter-spacing: -0.05em;
+        }
+
+        .section-subtitle {
+            margin: 4px 0 0;
+
+            color: var(--text-sub);
+
+            font-size: 14px;
+        }
+
+        .practice-toolbar {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 24px;
+
+            margin-bottom: 28px;
+        }
+
+        .practice-options {
+            display: flex;
+            gap: 12px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+
+            min-width: 150px;
+        }
+
+        .field-label {
+            color: #374151;
+
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        select,
+        textarea {
+            width: 100%;
+
+            border: 1px solid var(--border-dark);
+            border-radius: var(--radius-small);
+
+            background: #fff;
+            color: var(--text);
+
+            transition:
+                    border-color 0.2s,
+                    box-shadow 0.2s;
+        }
+
+        select {
+            min-height: 48px;
+            padding: 0 42px 0 15px;
+
+            cursor: pointer;
+
+            appearance: none;
+
+            background-image:
+                    linear-gradient(45deg, transparent 50%, #64748b 50%),
+                    linear-gradient(135deg, #64748b 50%, transparent 50%);
+
+            background-position:
+                    calc(100% - 19px) 20px,
+                    calc(100% - 14px) 20px;
+
+            background-size: 5px 5px;
+            background-repeat: no-repeat;
+        }
+
+        textarea {
+            display: block;
+
+            min-height: 116px;
+            padding: 18px;
+
+            resize: vertical;
+
+            font-size: 20px;
+            line-height: 1.7;
+        }
+
+        select:focus,
+        textarea:focus {
+            border-color: var(--blue);
+            outline: none;
+
+            box-shadow:
+                    0 0 0 4px rgba(37, 99, 235, 0.08);
+        }
+
+        select:disabled,
+        textarea:disabled {
+            cursor: not-allowed;
+
+            background: #f8fafc;
+            color: #94a3b8;
+        }
+
+        .metric-strip {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+
+            margin-bottom: 24px;
+        }
+
+        .metric {
+            min-width: 0;
+            padding: 18px 14px;
+
+            border: 1px solid var(--border);
+            border-radius: 18px;
+
+            background: var(--surface-soft);
+
+            text-align: center;
+        }
+
+        .metric span {
+            display: block;
+
+            margin-bottom: 5px;
+
+            color: var(--text-sub);
+
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .metric strong {
+            display: block;
+
+            font-size: clamp(22px, 4vw, 30px);
+            font-weight: 800;
+            line-height: 1.25;
+        }
+
+        .practice-stage {
+            padding: 24px;
+
+            border: 1px solid var(--border);
+            border-radius: 20px;
+
+            background: #fff;
+        }
+
+        .stage-meta {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+
+            margin-bottom: 14px;
+
+            color: var(--text-sub);
+
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .stage-meta #levelLabel {
+            color: var(--blue);
+
+            font-weight: 700;
+        }
+
+        .prompt-text {
+            min-height: 140px;
+            margin-bottom: 20px;
+            padding: 24px;
+
+            border: 2px solid var(--border);
+            border-radius: 18px;
+
+            background: var(--surface-soft);
+
+            color: #1f2937;
+
+            font-family:
+                    "Noto Sans KR",
+                    "Segoe UI",
+                    Arial,
+                    sans-serif;
+
+            font-size: clamp(22px, 4vw, 30px);
+            font-weight: 600;
+            line-height: 1.8;
+            letter-spacing: -0.015em;
+
+            overflow-wrap: anywhere;
+        }
+
+        .prompt-char {
+            border-radius: 3px;
+
+            transition:
+                    color 0.1s,
+                    background 0.1s;
+        }
+
+        .prompt-char.correct {
+            background: var(--green-soft);
+            color: var(--green);
+        }
+
+        .prompt-char.incorrect {
+            background: var(--red-soft);
+            color: var(--red);
+
+            text-decoration: underline;
+            text-decoration-thickness: 2px;
+        }
+
+        .prompt-char.current {
+            border-bottom: 3px solid var(--blue);
+
+            background: var(--blue-soft);
+            color: var(--blue);
+        }
+
+        .typing-input-label {
+            display: block;
+
+            margin-bottom: 8px;
+
+            color: #374151;
+
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .input-progress {
+            width: 100%;
+            height: 8px;
+            margin-top: 16px;
+
+            border-radius: 999px;
+
+            background: #eef2f7;
+
+            overflow: hidden;
+        }
+
+        .input-progress span {
+            display: block;
+
+            width: 0;
+            height: 100%;
+
+            border-radius: inherit;
+
+            background: var(--blue);
+
+            transition: width 0.15s ease;
+        }
+
+        .typing-status {
+            min-height: 26px;
+            margin: 16px 0;
+
+            color: var(--text-sub);
+
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .practice-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        button {
+            min-height: 48px;
+            padding: 0 22px;
+
+            border: 1px solid var(--primary);
+            border-radius: 14px;
+
+            background: var(--primary);
+            color: #fff;
+
+            cursor: pointer;
+
+            font-weight: 700;
+
+            transition:
+                    background 0.2s,
+                    border-color 0.2s,
+                    transform 0.1s;
+        }
+
+        button:hover:not(:disabled) {
+            border-color: var(--primary-hover);
+            background: var(--primary-hover);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(1px);
+        }
+
+        button.secondary {
+            border-color: var(--border-dark);
+
+            background: #fff;
+            color: #374151;
+        }
+
+        button.secondary:hover:not(:disabled) {
+            border-color: #9ca3af;
+
+            background: #f8fafc;
+        }
+
+        button:disabled {
+            cursor: not-allowed;
+
+            opacity: 0.45;
+        }
+
+        .result-panel {
+            margin-top: 24px;
+            padding: 26px;
+
+            border: 1px solid #bbf7d0;
+            border-radius: 20px;
+
+            background: var(--green-soft);
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+
+            margin-bottom: 20px;
+        }
+
+        .result-header span {
+            display: block;
+
+            margin-bottom: 3px;
+
+            color: #15803d;
+
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .result-header h2 {
+            margin: 0;
+
+            color: #14532d;
+
+            font-size: 22px;
+            font-weight: 800;
+        }
+
+        .result-grade {
+            padding: 8px 14px;
+
+            border-radius: 999px;
+
+            background: #fff;
+            color: #166534;
+
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .result-score {
+            display: grid;
+            grid-template-columns: minmax(180px, 0.7fr) 1fr;
+            gap: 20px;
+            align-items: center;
+
+            margin-bottom: 20px;
+        }
+
+        .result-main span {
+            display: block;
+
+            margin-bottom: 5px;
+
+            color: #15803d;
+
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .result-main strong {
+            color: #14532d;
+
+            font-size: clamp(34px, 6vw, 52px);
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .result-main small {
+            font-size: 16px;
+        }
+
+        .result-message {
+            margin: 0;
+
+            color: #3f6212;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+
+            margin-bottom: 20px;
+        }
+
+        .result-grid > div {
+            padding: 15px;
+
+            border: 1px solid #dcfce7;
+            border-radius: 14px;
+
+            background: rgba(255, 255, 255, 0.75);
+        }
+
+        .result-grid span {
+            display: block;
+
+            margin-bottom: 4px;
+
+            color: #4d7c0f;
+
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .result-grid strong {
+            color: #14532d;
+
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .guide-header {
+            margin-bottom: 26px;
+        }
+
+        .guide-header h2 {
+            margin: 0 0 10px;
+
+            font-size: 25px;
+            font-weight: 800;
+            letter-spacing: -0.05em;
+        }
+
+        .guide-header p:last-child {
+            margin: 0;
+
+            color: var(--text-sub);
+        }
+
+        .guide-steps {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+
+            margin-bottom: 30px;
+        }
+
+        .guide-step {
+            padding: 20px;
+
+            border: 1px solid var(--border);
+            border-radius: 18px;
+
+            background: var(--surface-soft);
+        }
+
+        .guide-step > span {
+            display: block;
+
+            margin-bottom: 8px;
+
+            color: var(--blue);
+
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .guide-step strong {
+            display: block;
+
+            margin-bottom: 7px;
+
+            font-size: 17px;
+        }
+
+        .guide-step p {
+            margin: 0;
+
+            color: var(--text-sub);
+
+            font-size: 14px;
+        }
+
+        .guide-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .guide-grid section {
+            padding: 20px;
+
+            border: 1px solid var(--border);
+            border-radius: 18px;
+        }
+
+        .guide-grid h3 {
+            margin: 0 0 8px;
+
+            font-size: 17px;
+            font-weight: 800;
+        }
+
+        .guide-grid p {
+            margin: 0;
+
+            color: var(--text-sub);
+
+            font-size: 14px;
+        }
+
+        .wpm-table {
+            margin-top: 30px;
+        }
+
+        .wpm-table h3 {
+            margin: 0 0 14px;
+
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .wpm-list {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .wpm-item {
+            padding: 17px;
+
+            border: 1px solid var(--border);
+            border-radius: 16px;
+
+            background: var(--surface-soft);
+        }
+
+        .wpm-item span {
+            display: block;
+
+            color: var(--blue);
+
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .wpm-item strong {
+            display: block;
+
+            margin: 5px 0;
+
+            font-size: 16px;
+        }
+
+        .wpm-item p {
+            margin: 0;
+
+            color: var(--text-sub);
+
+            font-size: 13px;
+        }
+
+        .faq {
+            margin-top: 30px;
+        }
+
+        .faq h2 {
+            margin: 0 0 6px;
+
+            font-size: 22px;
+            font-weight: 800;
+        }
+
+        details {
+            padding: 18px 0;
+
+            border-bottom: 1px solid var(--border);
+        }
+
+        details:last-child {
+            border-bottom: 0;
+        }
+
+        summary {
+            cursor: pointer;
+
+            font-weight: 700;
+        }
+
+        details p {
+            margin: 12px 0 0;
+
+            color: var(--text-sub);
+        }
+
+        .footer {
+            padding-top: 10px;
+
+            color: var(--text-light);
+
+            font-size: 13px;
+            text-align: center;
+        }
+
+        @media (max-width: 800px) {
+            .container {
+                width: min(calc(100% - 24px), var(--max-width));
+                padding-top: 28px;
+            }
+
+            .card {
+                padding: 22px 18px;
+
+                border-radius: 20px;
+            }
+
+            .practice-toolbar {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .practice-options {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .field {
+                min-width: 0;
+            }
+
+            .metric-strip {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .guide-steps {
+                grid-template-columns: 1fr;
+            }
+
+            .guide-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .wpm-list {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .result-score {
+                grid-template-columns: 1fr;
+            }
+
+            .result-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 480px) {
+            .practice-options {
+                grid-template-columns: 1fr;
+            }
+
+            .metric-strip {
+                gap: 8px;
+            }
+
+            .metric {
+                padding: 14px 8px;
+            }
+
+            .practice-stage {
+                padding: 16px;
+            }
+
+            .prompt-text {
+                min-height: 120px;
+                padding: 18px;
+
+                font-size: 21px;
+            }
+
+            textarea {
+                font-size: 18px;
+            }
+
+            .practice-actions button {
+                flex: 1 1 100%;
+            }
+
+            .result-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .result-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .wpm-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<main class="container">
+
+    <header class="page-header">
+        <p class="eyebrow">
+            ⌨️ 학습 · 속도 측정
+        </p>
+
+        <h1>영어 타자 연습</h1>
+
+        <p class="description">
+            영어 단어와 문장을 따라 입력하면서 타자 속도와 정확도를 높여 보세요.
+            분당 단어 수(WPM), 분당 타수(CPM), 정확도와 오타를 실시간으로 확인할 수 있습니다.
+        </p>
+    </header>
+
+
+    <noscript>
+        <section class="card">
+            JavaScript를 활성화해야 영어 타자 연습 기능을 사용할 수 있습니다.
+        </section>
+    </noscript>
+
+
+    <section
+            class="card"
+            aria-labelledby="typingToolTitle"
+    >
+
+        <header class="practice-toolbar">
+
+            <div>
+                <p class="section-subtitle">
+                    English Typing Practice
+                </p>
+
+                <h2
+                        id="typingToolTitle"
+                        class="section-title"
+                >
+                    영어 타자 속도 테스트
+                </h2>
+            </div>
+
+
+            <div class="practice-options">
+
+                <label class="field">
+                    <span class="field-label">
+                        난이도
+                    </span>
+
+                    <select id="difficulty">
+                        <option value="beginner">
+                            초급
+                        </option>
+
+                        <option
+                                value="intermediate"
+                                selected
+                        >
+                            중급
+                        </option>
+
+                        <option value="advanced">
+                            고급
+                        </option>
+                    </select>
+                </label>
+
+
+                <label class="field">
+                    <span class="field-label">
+                        연습 시간
+                    </span>
+
+                    <select id="duration">
+                        <option value="30">
+                            30초
+                        </option>
+
+                        <option
+                                value="60"
+                                selected
+                        >
+                            60초
+                        </option>
+
+                        <option value="120">
+                            120초
+                        </option>
+                    </select>
+                </label>
+
+            </div>
+
+        </header>
+
+
+        <div
+                class="metric-strip"
+                aria-label="실시간 타자 지표"
+        >
+
+            <div class="metric">
+                <span>
+                    ⏱️ 남은 시간
+                </span>
+
+                <strong id="timeMetric">
+                    1:00
+                </strong>
+            </div>
+
+
+            <div class="metric">
+                <span>
+                    ⚡ WPM
+                </span>
+
+                <strong id="wpmMetric">
+                    0
+                </strong>
+            </div>
+
+
+            <div class="metric">
+                <span>
+                    🎯 정확도
+                </span>
+
+                <strong id="accuracyMetric">
+                    100%
+                </strong>
+            </div>
+
+
+            <div class="metric">
+                <span>
+                    ❌ 오타
+                </span>
+
+                <strong id="errorMetric">
+                    0
+                </strong>
+            </div>
+
+        </div>
+
+
+        <div class="practice-stage">
+
+            <div class="stage-meta">
+
+                <span id="levelLabel">
+                    중급 문장
+                </span>
+
+                <span>
+                    <b id="completedCount">0</b>개 완료
+                </span>
+
+            </div>
+
+
+            <div
+                    id="promptText"
+                    class="prompt-text"
+                    aria-live="polite"
+            ></div>
+
+
+            <label
+                    class="typing-input-label"
+                    for="typingInput"
+            >
+                아래에 영어 문장을 입력하세요
+            </label>
+
+
+            <textarea
+                    id="typingInput"
+                    rows="3"
+                    autocomplete="off"
+                    autocapitalize="off"
+                    spellcheck="false"
+                    placeholder="연습 시작 버튼을 누른 뒤 입력하세요."
+                    disabled
+            ></textarea>
+
+
+            <div
+                    class="input-progress"
+                    aria-hidden="true"
+            >
+                <span id="inputProgressBar"></span>
+            </div>
+
+
+            <p
+                    id="typingStatus"
+                    class="typing-status"
+                    aria-live="polite"
+            >
+                난이도와 시간을 선택한 뒤 연습 시작 버튼을 눌러주세요.
+            </p>
+
+
+            <div class="practice-actions">
+
+                <button
+                        id="startButton"
+                        type="button"
+                >
+                    ▶️ 연습 시작
+                </button>
+
+
+                <button
+                        id="resetButton"
+                        class="secondary"
+                        type="button"
+                >
+                    ↻ 초기화
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <section
+                id="resultPanel"
+                class="result-panel"
+                hidden
+                aria-labelledby="resultTitle"
+        >
+
+            <header class="result-header">
+
+                <div>
+                    <span>
+                        Practice Result
+                    </span>
+
+                    <h2 id="resultTitle">
+                        연습 결과
+                    </h2>
+                </div>
+
+
+                <strong
+                        id="resultGrade"
+                        class="result-grade"
+                >
+                    좋은 출발
+                </strong>
+
+            </header>
+
+
+            <div class="result-score">
+
+                <div class="result-main">
+
+                    <span>
+                        분당 단어 수
+                    </span>
+
+                    <strong id="resultWpm">
+                        0
+                        <small>WPM</small>
+                    </strong>
+
+                </div>
+
+
+                <p
+                        id="resultMessage"
+                        class="result-message"
+                >
+                    꾸준히 연습하면 속도와 정확도를 함께 높일 수 있습니다.
+                </p>
+
+            </div>
+
+
+            <div class="result-grid">
+
+                <div>
+                    <span>정확도</span>
+                    <strong id="resultAccuracy">
+                        100%
+                    </strong>
+                </div>
+
+
+                <div>
+                    <span>분당 타수</span>
+                    <strong id="resultCpm">
+                        0 CPM
+                    </strong>
+                </div>
+
+
+                <div>
+                    <span>입력 문자</span>
+                    <strong id="resultChars">
+                        0자
+                    </strong>
+                </div>
+
+
+                <div>
+                    <span>완료 문장</span>
+                    <strong id="resultCompleted">
+                        0개
+                    </strong>
+                </div>
+
+
+                <div>
+                    <span>오타</span>
+                    <strong id="resultErrors">
+                        0개
+                    </strong>
+                </div>
+
+
+                <div>
+                    <span>연습 시간</span>
+                    <strong id="resultTime">
+                        0초
+                    </strong>
+                </div>
+
+            </div>
+
+
+            <button
+                    id="retryButton"
+                    type="button"
+            >
+                🔄 같은 조건으로 다시 연습
+            </button>
+
+        </section>
+
+    </section>
+
+
+    <section
+            class="card"
+            aria-labelledby="typingGuideTitle"
+    >
+
+        <header class="guide-header">
+
+            <p class="eyebrow">
+                영어 타자 연습 안내
+            </p>
+
+            <h2 id="typingGuideTitle">
+                WPM 측정 방법과 영어 타자 연습법
+            </h2>
+
+            <p>
+                온라인 영어 타자 연습은 별도의 프로그램을 설치하지 않고
+                브라우저에서 문장을 따라 입력하면서 속도와 정확도를 확인하는 도구입니다.
+            </p>
+
+        </header>
+
+
+        <div class="guide-steps">
+
+            <div class="guide-step">
+
+                <span>01</span>
+
+                <strong>
+                    조건 선택
+                </strong>
+
+                <p>
+                    현재 실력에 맞는 난이도와
+                    30초, 60초 또는 120초의 연습 시간을 선택합니다.
+                </p>
+
+            </div>
+
+
+            <div class="guide-step">
+
+                <span>02</span>
+
+                <strong>
+                    문장 입력
+                </strong>
+
+                <p>
+                    제시되는 영어 문장을 그대로 입력합니다.
+                    맞는 글자와 틀린 글자가 색으로 구분됩니다.
+                </p>
+
+            </div>
+
+
+            <div class="guide-step">
+
+                <span>03</span>
+
+                <strong>
+                    결과 확인
+                </strong>
+
+                <p>
+                    시간이 끝나면 WPM, CPM, 정확도,
+                    오타와 완료 문장 수를 확인할 수 있습니다.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="guide-grid">
+
+            <section>
+
+                <h3>
+                    WPM이란?
+                </h3>
+
+                <p>
+                    WPM은 Words Per Minute의 약자로
+                    1분 동안 입력한 영어 단어 수를 나타내는 지표입니다.
+                    일반적인 영어 타자 테스트에서는 5개의 문자를
+                    한 단어로 환산하여 계산합니다.
+                </p>
+
+            </section>
+
+
+            <section>
+
+                <h3>
+                    CPM과 WPM의 차이
+                </h3>
+
+                <p>
+                    CPM은 Characters Per Minute의 약자로
+                    1분 동안 입력한 문자 수를 의미합니다.
+                    WPM과 함께 확인하면 실제 입력량과 속도를
+                    함께 비교하기 좋습니다.
+                </p>
+
+            </section>
+
+
+            <section>
+
+                <h3>
+                    정확도 계산 방법
+                </h3>
+
+                <p>
+                    정확도는 입력한 문자 중 제시 문장과
+                    동일하게 입력한 문자의 비율을 기준으로 계산합니다.
+                    빠른 속도보다 먼저 정확한 입력을 익히는 것이 좋습니다.
+                </p>
+
+            </section>
+
+
+            <section>
+
+                <h3>
+                    난이도별 차이
+                </h3>
+
+                <p>
+                    초급은 짧고 익숙한 문장,
+                    중급은 일상적인 문장과 구두점,
+                    고급은 긴 문장과 복잡한 어휘를 사용합니다.
+                </p>
+
+            </section>
+
+
+            <section>
+
+                <h3>
+                    타자 속도를 높이는 방법
+                </h3>
+
+                <p>
+                    키보드를 자주 내려다보기보다 홈 포지션을 익히고
+                    정확도를 먼저 높여보세요.
+                    익숙해진 뒤 조금씩 입력 속도를 올리는 것이 좋습니다.
+                </p>
+
+            </section>
+
+
+            <section>
+
+                <h3>
+                    측정 결과 해석
+                </h3>
+
+                <p>
+                    타자 속도는 키보드 종류와 문장 난이도,
+                    입력 환경에 따라 달라질 수 있습니다.
+                    같은 조건으로 반복 연습하면 실력 변화를 비교하기 좋습니다.
+                </p>
+
+            </section>
+
+        </div>
+
+
+        <section class="wpm-table">
+
+            <h3>
+                📊 영어 타자 속도 참고표
+            </h3>
+
+
+            <div class="wpm-list">
+
+                <div class="wpm-item">
+
+                    <span>
+                        20 WPM 미만
+                    </span>
+
+                    <strong>
+                        입문 단계
+                    </strong>
+
+                    <p>
+                        키 위치와 정확도에 집중해
+                        천천히 연습하세요.
+                    </p>
+
+                </div>
+
+
+                <div class="wpm-item">
+
+                    <span>
+                        20~39 WPM
+                    </span>
+
+                    <strong>
+                        기초 단계
+                    </strong>
+
+                    <p>
+                        일상적인 문장을 안정적으로
+                        입력하는 단계입니다.
+                    </p>
+
+                </div>
+
+
+                <div class="wpm-item">
+
+                    <span>
+                        40~59 WPM
+                    </span>
+
+                    <strong>
+                        보통 단계
+                    </strong>
+
+                    <p>
+                        일반적인 문서 작성에
+                        활용하기 좋은 속도입니다.
+                    </p>
+
+                </div>
+
+
+                <div class="wpm-item">
+
+                    <span>
+                        60 WPM 이상
+                    </span>
+
+                    <strong>
+                        빠른 단계
+                    </strong>
+
+                    <p>
+                        정확도를 유지하면서
+                        높은 입력 속도를 보입니다.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <section class="faq">
+
+            <h2>
+                ❓ 자주 묻는 질문
+            </h2>
+
+
+            <details>
+
+                <summary>
+                    띄어쓰기와 구두점도 정확도에 포함되나요?
+                </summary>
+
+                <p>
+                    네. 띄어쓰기, 쉼표, 마침표 등도
+                    문장을 구성하는 문자이므로 정확도와 진행도에 포함됩니다.
+                </p>
+
+            </details>
+
+
+            <details>
+
+                <summary>
+                    모바일에서도 사용할 수 있나요?
+                </summary>
+
+                <p>
+                    스마트폰과 태블릿에서도 사용할 수 있습니다.
+                    다만 화면 키보드와 물리 키보드는 입력 방식이 다르므로
+                    기록을 비교할 때는 같은 기기를 사용하는 것이 좋습니다.
+                </p>
+
+            </details>
+
+
+            <details>
+
+                <summary>
+                    연습 결과가 서버에 저장되나요?
+                </summary>
+
+                <p>
+                    아닙니다. 이 버전은 서버 저장이나
+                    브라우저 로컬 기록 저장 기능을 사용하지 않습니다.
+                    페이지를 새로 열면 이전 연습 결과는 남지 않습니다.
+                </p>
+
+            </details>
+
+        </section>
+
+    </section>
+
+
+    <footer class="footer">
+        English Typing Practice · 영어 타자 연습
+    </footer>
+
+</main>
+
+
+<script>
+    (function () {
+        "use strict";
+
+
+        /*
+         * 연습 문장
+         */
+
+        const TEXTS = {
+
+            beginner: [
+                "The sun is warm and bright today.",
+                "I like to read a good book at home.",
+                "My friend has a small brown dog.",
+                "We walk to school every morning.",
+                "Please open the window and look outside.",
+                "A cup of water is on the table.",
+                "She can sing a happy song.",
+                "This is a simple typing practice.",
+                "The blue bird sits in the green tree.",
+                "Good habits make each day better."
+            ],
+
+            intermediate: [
+                "Small steps every day can lead to meaningful progress.",
+                "A clear plan helps us finish difficult work on time.",
+                "Learning a new skill takes patience, focus, and regular practice.",
+                "The quickest way to improve is to notice and correct each mistake.",
+                "Good communication begins with careful listening and honest questions.",
+                "Technology can make everyday tasks faster and more convenient.",
+                "Reading English sentences aloud can improve rhythm and confidence.",
+                "A quiet workspace makes it easier to concentrate on important details.",
+                "People often remember simple ideas when they are explained clearly.",
+                "Consistent practice is more useful than one unusually long session."
+            ],
+
+            advanced: [
+                "Precision matters more than speed when unfamiliar vocabulary first appears.",
+                "Effective collaboration requires curiosity, concise communication, and mutual respect.",
+                "Although the deadline seemed unrealistic, the team reorganized its priorities and succeeded.",
+                "Analytical thinking helps distinguish reliable evidence from a convenient assumption.",
+                "Sustainable improvement emerges when deliberate practice becomes an ordinary daily routine.",
+                "The researcher carefully documented each unexpected variable before repeating the experiment.",
+                "Complex problems become manageable when they are divided into smaller, verifiable decisions.",
+                "Professional writers revise their sentences to improve clarity, structure, and emotional impact.",
+                "Accurate keyboard control reduces interruptions and preserves concentration during demanding work.",
+                "Understanding punctuation is essential because subtle marks can completely change a sentence."
+            ]
+
+        };
+
+
+        /*
+         * DOM
+         */
+
+        const el = {
+            difficulty: document.getElementById("difficulty"),
+            duration: document.getElementById("duration"),
+
+            time: document.getElementById("timeMetric"),
+            wpm: document.getElementById("wpmMetric"),
+            accuracy: document.getElementById("accuracyMetric"),
+            errors: document.getElementById("errorMetric"),
+
+            level: document.getElementById("levelLabel"),
+            completed: document.getElementById("completedCount"),
+
+            prompt: document.getElementById("promptText"),
+            input: document.getElementById("typingInput"),
+            progress: document.getElementById("inputProgressBar"),
+            status: document.getElementById("typingStatus"),
+
+            start: document.getElementById("startButton"),
+            reset: document.getElementById("resetButton"),
+
+            panel: document.getElementById("resultPanel"),
+
+            grade: document.getElementById("resultGrade"),
+
+            resultWpm: document.getElementById("resultWpm"),
+            resultAccuracy: document.getElementById("resultAccuracy"),
+            resultCpm: document.getElementById("resultCpm"),
+            resultChars: document.getElementById("resultChars"),
+            resultCompleted: document.getElementById("resultCompleted"),
+            resultErrors: document.getElementById("resultErrors"),
+            resultTime: document.getElementById("resultTime"),
+            resultMessage: document.getElementById("resultMessage"),
+
+            retry: document.getElementById("retryButton")
+        };
+
+
+        /*
+         * 상태
+         */
+
+        let state = createInitialState();
+
+        let queues = {};
+
+
+        function createInitialState() {
+
+            return {
+                running: false,
+                ended: false,
+
+                startTime: 0,
+                endTime: 0,
+
+                timer: null,
+
+                remaining:
+                    parseInt(
+                        el && el.duration
+                            ? el.duration.value
+                            : 60,
+                        10
+                    ),
+
+                text: "",
+
+                typedChars: 0,
+                correctKeys: 0,
+                totalKeys: 0,
+
+                errors: 0,
+                completed: 0,
+
+                lastValue: ""
+            };
+        }
+
+
+        /*
+         * 배열 섞기
+         */
+
+        function shuffle(list) {
+
+            const result =
+                      list.slice();
+
+
+            for (
+                let i = result.length - 1;
+                i > 0;
+                i--
+            ) {
+
+                const j =
+                          Math.floor(
+                              Math.random() *
+                              (i + 1)
+                          );
+
+
+                [
+                    result[i],
+                    result[j]
+                ] = [
+                    result[j],
+                    result[i]
+                ];
+            }
+
+
+            return result;
+        }
+
+
+        /*
+         * 난이도 한글 표시
+         */
+
+        function labelForDifficulty() {
+
+            const labels = {
+                beginner: "초급",
+                intermediate: "중급",
+                advanced: "고급"
+            };
+
+
+            return labels[
+                el.difficulty.value
+                ];
+        }
+
+
+        /*
+         * 다음 문장
+         */
+
+        function nextText() {
+
+            const difficulty =
+                      el.difficulty.value;
+
+
+            if (
+                !queues[difficulty] ||
+                !queues[difficulty].length
+            ) {
+
+                queues[difficulty] =
+                    shuffle(
+                        TEXTS[difficulty]
+                    );
+            }
+
+
+            state.text =
+                queues[difficulty].shift();
+
+
+            state.lastValue = "";
+
+            el.input.value = "";
+
+
+            renderPrompt("");
+
+            updateProgress(0);
+        }
+
+
+        /*
+         * 제시 문장 출력
+         */
+
+        function renderPrompt(value) {
+
+            el.prompt.replaceChildren();
+
+
+            for (
+                let i = 0;
+                i < state.text.length;
+                i++
+            ) {
+
+                const span =
+                          document.createElement("span");
+
+
+                span.className =
+                    "prompt-char";
+
+
+                span.textContent =
+                    state.text[i];
+
+
+                if (
+                    i < value.length
+                ) {
+
+                    span.classList.add(
+                        value[i] === state.text[i]
+                            ? "correct"
+                            : "incorrect"
+                    );
+
+                } else if (
+                    i === value.length
+                ) {
+
+                    span.classList.add(
+                        "current"
+                    );
+                }
+
+
+                el.prompt.appendChild(span);
+            }
+        }
+
+
+        /*
+         * 시간 형식
+         */
+
+        function formatTime(seconds) {
+
+            const minutes =
+                      Math.floor(
+                          seconds / 60
+                      );
+
+
+            const remain =
+                      String(
+                          seconds % 60
+                      ).padStart(
+                          2,
+                          "0"
+                      );
+
+
+            return (
+                minutes +
+                ":" +
+                remain
+            );
+        }
+
+
+        /*
+         * 경과 시간
+         */
+
+        function elapsed() {
+
+            if (
+                !state.startTime
+            ) {
+                return 0;
+            }
+
+
+            return Math.max(
+                0.01,
+
+                (
+                    (
+                        state.endTime ||
+                        Date.now()
+                    ) -
+                    state.startTime
+                ) / 1000
+            );
+        }
+
+
+        /*
+         * 측정값 계산
+         */
+
+        function metrics() {
+
+            const sec =
+                      elapsed();
+
+
+            const minutes =
+                      sec / 60;
+
+
+            const ready =
+                      sec >= 1.5;
+
+
+            /*
+             * 표준 영문 WPM:
+             * 5글자 = 1단어 기준
+             */
+
+            const wpm =
+                      ready
+                          ? Math.round(
+                              Math.max(
+                                  0,
+                                  (
+                                      state.typedChars / 5 -
+                                      state.errors
+                                  ) / minutes
+                              )
+                          )
+                          : 0;
+
+
+            const cpm =
+                      ready
+                          ? Math.round(
+                              state.typedChars /
+                              minutes
+                          )
+                          : 0;
+
+
+            const accuracy =
+                      state.totalKeys
+                          ? Math.round(
+                              (
+                                  state.correctKeys /
+                                  state.totalKeys
+                              ) * 100
+                          )
+                          : 100;
+
+
+            return {
+                wpm,
+                cpm,
+                accuracy,
+                sec
+            };
+        }
+
+
+        /*
+         * 실시간 지표 갱신
+         */
+
+        function updateMetrics() {
+
+            const result =
+                      metrics();
+
+
+            el.time.textContent =
+                formatTime(
+                    Math.max(
+                        0,
+                        state.remaining
+                    )
+                );
+
+
+            el.wpm.textContent =
+                String(
+                    result.wpm
+                );
+
+
+            el.accuracy.textContent =
+                result.accuracy +
+                "%";
+
+
+            el.errors.textContent =
+                String(
+                    state.errors
+                );
+
+
+            el.completed.textContent =
+                String(
+                    state.completed
+                );
+        }
+
+
+        /*
+         * 진행률
+         */
+
+        function updateProgress(length) {
+
+            if (
+                !state.text.length
+            ) {
+
+                el.progress.style.width =
+                    "0%";
+
+                return;
+            }
+
+
+            const percent =
+                      Math.min(
+                          100,
+
+                          Math.round(
+                              (
+                                  length /
+                                  state.text.length
+                              ) * 100
+                          )
+                      );
+
+
+            el.progress.style.width =
+                percent +
+                "%";
+        }
+
+
+        /*
+         * 옵션 잠금
+         */
+
+        function setOptionsDisabled(value) {
+
+            el.difficulty.disabled =
+                value;
+
+            el.duration.disabled =
+                value;
+        }
+
+
+        /*
+         * 연습 시작
+         */
+
+        function start() {
+
+            if (
+                state.running
+            ) {
+                return;
+            }
+
+
+            if (
+                state.ended
+            ) {
+
+                reset();
+            }
+
+
+            state.running = true;
+
+            state.startTime =
+                Date.now();
+
+            state.endTime = 0;
+
+            state.remaining =
+                parseInt(
+                    el.duration.value,
+                    10
+                );
+
+
+            setOptionsDisabled(true);
+
+
+            el.input.disabled =
+                false;
+
+
+            el.start.textContent =
+                "연습 중";
+
+
+            el.start.disabled =
+                true;
+
+
+            el.status.textContent =
+                "좋습니다. 정확도를 유지하면서 문장을 끝까지 입력하세요.";
+
+
+            updateMetrics();
+
+
+            state.timer =
+                window.setInterval(
+                    function () {
+
+                        state.remaining =
+                            Math.max(
+                                0,
+                                state.remaining - 1
+                            );
+
+
+                        updateMetrics();
+
+
+                        if (
+                            state.remaining <= 0
+                        ) {
+
+                            finish();
+                        }
+
+                    },
+                    1000
+                );
+
+
+            el.input.focus();
+        }
+
+
+        /*
+         * 초기화
+         */
+
+        function reset() {
+
+            if (
+                state.timer
+            ) {
+
+                clearInterval(
+                    state.timer
+                );
+            }
+
+
+            state = {
+                running: false,
+                ended: false,
+
+                startTime: 0,
+                endTime: 0,
+
+                timer: null,
+
+                remaining:
+                    parseInt(
+                        el.duration.value,
+                        10
+                    ),
+
+                text: "",
+
+                typedChars: 0,
+                correctKeys: 0,
+                totalKeys: 0,
+
+                errors: 0,
+                completed: 0,
+
+                lastValue: ""
+            };
+
+
+            queues = {};
+
+
+            setOptionsDisabled(false);
+
+
+            el.start.disabled =
+                false;
+
+
+            el.start.textContent =
+                "▶️ 연습 시작";
+
+
+            el.input.disabled =
+                true;
+
+
+            el.input.value =
+                "";
+
+
+            el.panel.hidden =
+                true;
+
+
+            el.status.textContent =
+                "난이도와 시간을 선택한 뒤 연습 시작 버튼을 눌러주세요.";
+
+
+            el.level.textContent =
+                labelForDifficulty() +
+                " 문장";
+
+
+            nextText();
+
+            updateMetrics();
+        }
+
+
+        /*
+         * 입력 처리
+         */
+
+        function handleInput() {
+
+            if (
+                state.ended ||
+                !state.running
+            ) {
+                return;
+            }
+
+
+            let value =
+                    el.input.value;
+
+
+            /*
+             * 현재 문장보다 긴 입력 방지
+             */
+
+            if (
+                value.length >
+                state.text.length
+            ) {
+
+                value =
+                    value.slice(
+                        0,
+                        state.text.length
+                    );
+
+
+                el.input.value =
+                    value;
+            }
+
+
+            /*
+             * 새로 입력된 문자만 계산
+             */
+
+            if (
+                value.length >
+                state.lastValue.length
+            ) {
+
+                for (
+                    let i =
+                            state.lastValue.length;
+
+                    i < value.length;
+
+                    i++
+                ) {
+
+                    state.totalKeys++;
+
+                    state.typedChars++;
+
+
+                    if (
+                        value[i] ===
+                        state.text[i]
+                    ) {
+
+                        state.correctKeys++;
+
+                    } else {
+
+                        state.errors++;
+                    }
+                }
+            }
+
+
+            state.lastValue =
+                value;
+
+
+            renderPrompt(value);
+
+            updateProgress(
+                value.length
+            );
+
+            updateMetrics();
+
+
+            /*
+             * 문장 완성
+             */
+
+            if (
+                value ===
+                state.text
+            ) {
+
+                state.completed++;
+
+
+                el.status.textContent =
+                    "문장을 정확하게 입력했습니다. 다음 문장으로 넘어갑니다.";
+
+
+                nextText();
+
+                updateMetrics();
+            }
+        }
+
+
+        /*
+         * 연습 종료
+         */
+
+        function finish() {
+
+            if (
+                state.ended
+            ) {
+                return;
+            }
+
+
+            state.endTime =
+                Date.now();
+
+
+            state.ended =
+                true;
+
+            state.running =
+                false;
+
+
+            if (
+                state.timer
+            ) {
+
+                clearInterval(
+                    state.timer
+                );
+
+                state.timer =
+                    null;
+            }
+
+
+            state.remaining = 0;
+
+
+            el.input.disabled =
+                true;
+
+
+            setOptionsDisabled(false);
+
+
+            el.start.disabled =
+                true;
+
+
+            el.start.textContent =
+                "연습 완료";
+
+
+            const result =
+                      metrics();
+
+
+            const selectedDuration =
+                      parseInt(
+                          el.duration.value,
+                          10
+                      );
+
+
+            const used =
+                      Math.min(
+                          selectedDuration,
+
+                          Math.max(
+                              1,
+                              Math.round(
+                                  result.sec
+                              )
+                          )
+                      );
+
+
+            let grade;
+
+
+            if (
+                result.wpm >= 60
+            ) {
+
+                grade =
+                    "빠른 타자";
+
+            } else if (
+                result.wpm >= 40
+            ) {
+
+                grade =
+                    "안정적인 타자";
+
+            } else if (
+                result.wpm >= 20
+            ) {
+
+                grade =
+                    "좋은 출발";
+
+            } else {
+
+                grade =
+                    "차근차근 연습";
+            }
+
+
+            let message;
+
+
+            if (
+                result.accuracy >= 96
+            ) {
+
+                message =
+                    "속도와 정확도의 균형이 좋습니다. 같은 정확도를 유지하며 조금씩 속도를 높여 보세요.";
+
+            } else if (
+                result.accuracy >= 90
+            ) {
+
+                message =
+                    "안정적인 결과입니다. 틀린 글자를 바로잡는 연습을 더하면 기록을 높이는 데 도움이 됩니다.";
+
+            } else {
+
+                message =
+                    "속도를 조금 낮추고 정확한 손가락 위치에 집중해 보세요. 정확도가 올라가면 WPM도 자연스럽게 향상됩니다.";
+            }
+
+
+            el.grade.textContent =
+                grade;
+
+
+            el.resultWpm.innerHTML =
+                result.wpm +
+                " <small>WPM</small>";
+
+
+            el.resultAccuracy.textContent =
+                result.accuracy +
+                "%";
+
+
+            el.resultCpm.textContent =
+                result.cpm +
+                " CPM";
+
+
+            el.resultChars.textContent =
+                state.typedChars +
+                "자";
+
+
+            el.resultCompleted.textContent =
+                state.completed +
+                "개";
+
+
+            el.resultErrors.textContent =
+                state.errors +
+                "개";
+
+
+            el.resultTime.textContent =
+                used +
+                "초";
+
+
+            el.resultMessage.textContent =
+                message;
+
+
+            el.panel.hidden =
+                false;
+
+
+            el.status.textContent =
+                "연습이 끝났습니다. 아래에서 결과를 확인하세요.";
+
+
+            updateMetrics();
+
+
+            el.panel.scrollIntoView({
+                behavior: "smooth",
+                block: "nearest"
+            });
+        }
+
+
+        /*
+         * 이벤트
+         */
+
+        el.input.addEventListener(
+            "input",
+            handleInput
+        );
+
+
+        el.input.addEventListener(
+            "paste",
+            function (event) {
+
+                if (
+                    state.running
+                ) {
+
+                    event.preventDefault();
+
+                    el.status.textContent =
+                        "연습 중에는 붙여넣기를 사용할 수 없습니다.";
+                }
+            }
+        );
+
+
+        el.input.addEventListener(
+            "drop",
+            function (event) {
+
+                if (
+                    state.running
+                ) {
+
+                    event.preventDefault();
+
+                    el.status.textContent =
+                        "연습 중에는 드래그 입력을 사용할 수 없습니다.";
+                }
+            }
+        );
+
+
+        el.start.addEventListener(
+            "click",
+            start
+        );
+
+
+        el.reset.addEventListener(
+            "click",
+            reset
+        );
+
+
+        el.retry.addEventListener(
+            "click",
+            function () {
+
+                reset();
+
+                start();
+            }
+        );
+
+
+        el.duration.addEventListener(
+            "change",
+            reset
+        );
+
+
+        el.difficulty.addEventListener(
+            "change",
+            reset
+        );
+
+
+        /*
+         * 최초 실행
+         */
+
+        reset();
+
+    })();
+</script>
+
+</body>
+</html>
