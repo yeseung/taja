@@ -1,0 +1,1991 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>한글 타자 연습 | Korean Typing Practice</title>
+
+  <meta
+          name="description"
+          content="설치 없이 한글 자리, 단어, 문장을 연습할 수 있는 무료 한글 타자연습입니다. 타수, 정확 문자 수, 정확도를 실시간으로 확인하세요."
+  >
+  <meta
+          name="keywords"
+          content="한글 타자연습, 타자연습, 한글타자, 타자속도, 타수측정, Korean Typing Practice"
+  >
+
+  <meta property="og:title" content="한글 타자 연습 | Korean Typing Practice">
+  <meta
+          property="og:description"
+          content="설치 없이 무료로 이용하는 한글 타자연습"
+  >
+  <meta property="og:type" content="website">
+
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="manifest" href="/manifest.webmanifest">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link
+          href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet"
+  >
+
+  <style>
+    :root {
+      --background: #f6f7f9;
+      --surface: #ffffff;
+      --surface-soft: #f8fafc;
+
+      --text: #171717;
+      --text-sub: #64748b;
+      --text-light: #94a3b8;
+
+      --border: #e5e7eb;
+      --border-dark: #d1d5db;
+
+      --primary: #111827;
+      --primary-hover: #374151;
+
+      --green: #16a34a;
+      --green-bg: #f0fdf4;
+
+      --red: #dc2626;
+      --red-bg: #fef2f2;
+
+      --blue: #2563eb;
+      --blue-bg: #eff6ff;
+
+      --radius: 24px;
+      --radius-small: 14px;
+
+      --shadow:
+              0 12px 30px rgba(15, 23, 42, 0.06);
+
+      --max-width: 1000px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+
+      background: var(--background);
+      color: var(--text);
+
+      font-family:
+              "Noto Sans KR",
+              -apple-system,
+              BlinkMacSystemFont,
+              "Segoe UI",
+              sans-serif;
+
+      font-size: 16px;
+      line-height: 1.7;
+      letter-spacing: -0.04em;
+    }
+
+    button,
+    select,
+    textarea {
+      font: inherit;
+      letter-spacing: inherit;
+    }
+
+    button,
+    select {
+      touch-action: manipulation;
+    }
+
+    button:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible,
+    summary:focus-visible {
+      outline: 3px solid rgba(37, 99, 235, 0.18);
+      outline-offset: 2px;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    .container {
+      width: min(calc(100% - 32px), var(--max-width));
+      margin: 0 auto;
+      padding: 48px 0 80px;
+    }
+
+    .page-header {
+      margin-bottom: 28px;
+      text-align: center;
+    }
+
+    .page-header .eyebrow {
+      margin: 0 0 8px;
+      color: var(--blue);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .page-header h1 {
+      margin: 0;
+
+      color: var(--text);
+
+      font-size: clamp(32px, 6vw, 48px);
+      font-weight: 800;
+      line-height: 1.2;
+
+      letter-spacing: -0.06em;
+    }
+
+    .page-header .description {
+      max-width: 720px;
+      margin: 16px auto 0;
+
+      color: var(--text-sub);
+      font-size: 16px;
+    }
+
+    .card {
+      margin-bottom: 24px;
+      padding: 32px;
+
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .card h2 {
+      margin: 0 0 24px;
+
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.05em;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .field-label {
+      color: #374151;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    select,
+    textarea {
+      width: 100%;
+
+      border: 1px solid var(--border-dark);
+      border-radius: var(--radius-small);
+
+      background: #fff;
+      color: var(--text);
+
+      transition:
+              border-color 0.2s,
+              box-shadow 0.2s;
+    }
+
+    select {
+      min-height: 50px;
+      padding: 0 16px;
+
+      appearance: none;
+
+      background-image:
+              linear-gradient(45deg, transparent 50%, #64748b 50%),
+              linear-gradient(135deg, #64748b 50%, transparent 50%);
+      background-position:
+              calc(100% - 19px) 21px,
+              calc(100% - 14px) 21px;
+      background-size: 5px 5px;
+      background-repeat: no-repeat;
+    }
+
+    textarea {
+      display: block;
+
+      min-height: 100px;
+      padding: 16px;
+
+      resize: vertical;
+
+      line-height: 1.7;
+    }
+
+    select:focus,
+    textarea:focus {
+      border-color: var(--blue);
+
+      box-shadow:
+              0 0 0 4px rgba(37, 99, 235, 0.08);
+
+      outline: none;
+    }
+
+    select:disabled,
+    textarea:disabled {
+      cursor: not-allowed;
+      background: #f8fafc;
+      color: #94a3b8;
+    }
+
+    .custom-wrap {
+      margin-bottom: 24px;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+
+      margin-bottom: 24px;
+    }
+
+    .metric {
+      min-width: 0;
+      padding: 18px 14px;
+
+      border: 1px solid var(--border);
+      border-radius: 18px;
+
+      background: var(--surface-soft);
+
+      text-align: center;
+    }
+
+    .metric span {
+      display: block;
+
+      margin-bottom: 6px;
+
+      color: var(--text-sub);
+
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .metric strong {
+      display: block;
+
+      overflow: hidden;
+
+      font-size: clamp(20px, 4vw, 28px);
+      font-weight: 800;
+      line-height: 1.3;
+
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .prompt-label {
+      margin-bottom: 8px;
+
+      color: var(--text-sub);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .prompt {
+      min-height: 120px;
+      margin-bottom: 20px;
+      padding: 24px;
+
+      border: 2px solid var(--border);
+      border-radius: 18px;
+
+      background: #fff;
+
+      font-size: clamp(21px, 4vw, 29px);
+      font-weight: 600;
+      line-height: 1.9;
+
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+    }
+
+    .prompt .correct {
+      color: var(--green);
+      background: var(--green-bg);
+    }
+
+    .prompt .incorrect {
+      color: var(--red);
+      background: var(--red-bg);
+      text-decoration: underline;
+      text-decoration-thickness: 2px;
+    }
+
+    .prompt .cursor {
+      border-bottom: 3px solid var(--blue);
+
+      background: var(--blue-bg);
+    }
+
+    .key-map {
+      margin: 0 0 24px;
+      padding: 18px;
+
+      border: 1px solid var(--border);
+      border-radius: 18px;
+
+      background: var(--surface-soft);
+
+      overflow-x: auto;
+    }
+
+    .key-row {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+
+      min-width: max-content;
+
+      margin-bottom: 6px;
+    }
+
+    .key-row:last-child {
+      margin-bottom: 0;
+    }
+
+    kbd {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      width: 44px;
+      height: 44px;
+
+      border: 1px solid var(--border-dark);
+      border-radius: 10px;
+
+      background: #fff;
+
+      color: #374151;
+
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 700;
+
+      box-shadow: 0 2px 0 #d1d5db;
+    }
+
+    kbd.target {
+      border-color: var(--blue);
+
+      background: var(--blue-bg);
+      color: var(--blue);
+
+      box-shadow:
+              0 2px 0 #bfdbfe,
+              0 0 0 3px rgba(37, 99, 235, 0.08);
+    }
+
+    .typing-input {
+      min-height: 115px;
+
+      font-size: 20px;
+      font-weight: 500;
+    }
+
+    progress {
+      display: block;
+
+      width: 100%;
+      height: 8px;
+      margin: 18px 0;
+
+      border: 0;
+      border-radius: 999px;
+
+      overflow: hidden;
+
+      appearance: none;
+    }
+
+    progress::-webkit-progress-bar {
+      background: #eef2f7;
+    }
+
+    progress::-webkit-progress-value {
+      border-radius: 999px;
+      background: var(--blue);
+    }
+
+    progress::-moz-progress-bar {
+      border-radius: 999px;
+      background: var(--blue);
+    }
+
+    .status {
+      min-height: 26px;
+      margin: 0 0 18px;
+
+      color: var(--text-sub);
+
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    button {
+      min-height: 48px;
+      padding: 0 22px;
+
+      border: 1px solid var(--primary);
+      border-radius: 14px;
+
+      background: var(--primary);
+      color: #fff;
+
+      cursor: pointer;
+
+      font-weight: 700;
+
+      transition:
+              background 0.2s,
+              border-color 0.2s,
+              transform 0.1s;
+    }
+
+    button:hover:not(:disabled) {
+      border-color: var(--primary-hover);
+      background: var(--primary-hover);
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    button.secondary {
+      border-color: var(--border-dark);
+      background: #fff;
+      color: #374151;
+    }
+
+    button.secondary:hover:not(:disabled) {
+      border-color: #9ca3af;
+      background: #f8fafc;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+    }
+
+    .help {
+      margin: 16px 0 0;
+
+      color: var(--text-light);
+
+      font-size: 13px;
+    }
+
+    .result {
+      margin-top: 24px;
+      padding: 24px;
+
+      border: 1px solid #bbf7d0;
+      border-radius: 18px;
+
+      background: var(--green-bg);
+    }
+
+    .result h2 {
+      margin: 0 0 8px;
+
+      color: #166534;
+
+      font-size: 18px;
+    }
+
+    .result-score {
+      display: block;
+
+      margin-bottom: 8px;
+
+      color: #14532d;
+
+      font-size: clamp(24px, 5vw, 34px);
+      font-weight: 800;
+    }
+
+    .result p {
+      margin: 0;
+
+      color: #3f6212;
+      font-size: 14px;
+    }
+
+    .guide h3 {
+      margin: 28px 0 10px;
+
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .guide h3:first-of-type {
+      margin-top: 0;
+    }
+
+    .guide p,
+    .guide li {
+      color: #4b5563;
+    }
+
+    .guide ol {
+      padding-left: 24px;
+    }
+
+    .guide li + li {
+      margin-top: 8px;
+    }
+
+    details {
+      padding: 18px 0;
+
+      border-bottom: 1px solid var(--border);
+    }
+
+    details:last-child {
+      border-bottom: 0;
+    }
+
+    summary {
+      cursor: pointer;
+
+      font-weight: 700;
+    }
+
+    details p {
+      margin: 12px 0 0;
+    }
+
+    .footer {
+      padding-top: 12px;
+
+      color: var(--text-light);
+
+      font-size: 13px;
+      text-align: center;
+    }
+
+    @media (max-width: 760px) {
+      .container {
+        width: min(calc(100% - 24px), var(--max-width));
+        padding-top: 28px;
+      }
+
+      .card {
+        padding: 22px 18px;
+        border-radius: 20px;
+      }
+
+      .toolbar {
+        grid-template-columns: 1fr;
+      }
+
+      .metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .prompt {
+        min-height: 100px;
+        padding: 18px;
+
+        line-height: 1.8;
+      }
+
+      .actions button {
+        flex: 1 1 calc(50% - 5px);
+      }
+    }
+
+    @media (max-width: 420px) {
+      .metrics {
+        gap: 8px;
+      }
+
+      .metric {
+        padding: 14px 8px;
+      }
+
+      .metric span {
+        font-size: 12px;
+      }
+
+      .actions button {
+        flex-basis: 100%;
+      }
+
+      kbd {
+        width: 38px;
+        height: 40px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<main class="container">
+
+  <header class="page-header">
+    <p class="eyebrow">⌨️ 학습 · 한글 입력</p>
+
+    <h1>한글 타자 연습</h1>
+
+    <p class="description">
+      설치 없이 한글 자리·단어·문장을 연습하세요.
+      두벌식 환산 타수와 정확 문자 수, 정확도를 실시간으로 확인할 수 있습니다.
+    </p>
+  </header>
+
+  <noscript>
+    <div class="card">
+      JavaScript를 활성화해야 타자 연습 기능을 사용할 수 있습니다.
+    </div>
+  </noscript>
+
+  <section class="card" aria-labelledby="practice-title">
+
+    <h2 id="practice-title">⌨️ 나의 속도로 한글 연습</h2>
+
+    <div class="toolbar">
+
+      <label class="field">
+        <span class="field-label">연습 모드</span>
+
+        <select id="mode">
+          <option value="home">기본 자리</option>
+          <option value="words">단어</option>
+          <option value="sentences" selected>짧은 문장</option>
+          <option value="custom">직접 입력</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span class="field-label">연습 시간</span>
+
+        <select id="duration">
+          <option value="30">30초</option>
+          <option value="60" selected>60초</option>
+          <option value="120">120초</option>
+          <option value="180">180초</option>
+        </select>
+      </label>
+
+    </div>
+
+    <label
+            id="custom-wrap"
+            class="field custom-wrap"
+            hidden
+    >
+            <span class="field-label">
+                직접 입력할 문장 · 최대 2,000자
+            </span>
+
+      <textarea
+              id="custom"
+              rows="4"
+              maxlength="2000"
+              placeholder="연습할 문장을 줄별로 입력하세요."
+      ></textarea>
+    </label>
+
+    <div class="metrics">
+
+      <div class="metric">
+        <span>⏱️ 남은 시간</span>
+        <strong id="remaining">60초</strong>
+      </div>
+
+      <div class="metric">
+        <span>⌨️ 환산 타수 / 분</span>
+        <strong id="speed">0</strong>
+      </div>
+
+      <div class="metric">
+        <span>📝 정확 문자 / 분</span>
+        <strong id="cpm">0</strong>
+      </div>
+
+      <div class="metric">
+        <span>🎯 현재 정확도</span>
+        <strong id="accuracy">100%</strong>
+      </div>
+
+    </div>
+
+    <div class="prompt-label">
+      따라 입력할 문장
+    </div>
+
+    <div
+            id="prompt"
+            class="prompt"
+            aria-label="따라 입력할 문장"
+    ></div>
+
+    <div
+            id="key-map"
+            class="key-map"
+            hidden
+            aria-label="두벌식 자판"
+    >
+
+      <div class="key-row">
+        <kbd>ㅂ</kbd>
+        <kbd>ㅈ</kbd>
+        <kbd>ㄷ</kbd>
+        <kbd>ㄱ</kbd>
+        <kbd>ㅅ</kbd>
+        <kbd>ㅛ</kbd>
+        <kbd>ㅕ</kbd>
+        <kbd>ㅑ</kbd>
+        <kbd>ㅐ</kbd>
+        <kbd>ㅔ</kbd>
+      </div>
+
+      <div class="key-row">
+        <kbd>ㅁ</kbd>
+        <kbd>ㄴ</kbd>
+        <kbd>ㅇ</kbd>
+        <kbd>ㄹ</kbd>
+        <kbd>ㅎ</kbd>
+        <kbd>ㅗ</kbd>
+        <kbd>ㅓ</kbd>
+        <kbd>ㅏ</kbd>
+        <kbd>ㅣ</kbd>
+      </div>
+
+      <div class="key-row">
+        <kbd>ㅋ</kbd>
+        <kbd>ㅌ</kbd>
+        <kbd>ㅊ</kbd>
+        <kbd>ㅍ</kbd>
+        <kbd>ㅠ</kbd>
+        <kbd>ㅜ</kbd>
+        <kbd>ㅡ</kbd>
+      </div>
+
+    </div>
+
+    <label class="field">
+
+            <span class="field-label">
+                연습 입력
+            </span>
+
+      <textarea
+              id="typing-input"
+              class="typing-input"
+              rows="3"
+              disabled
+              autocomplete="off"
+              autocapitalize="off"
+              spellcheck="false"
+              placeholder="연습 시작 후 제시된 글을 입력하세요."
+      ></textarea>
+
+    </label>
+
+    <progress
+            id="progress"
+            value="0"
+            max="100"
+            aria-label="현재 문장 진행률"
+    ></progress>
+
+    <p
+            id="typing-status"
+            class="status"
+            role="status"
+            aria-live="polite"
+    >
+      연습 모드와 시간을 선택해 주세요.
+    </p>
+
+    <div class="actions">
+
+      <button
+              id="start"
+              type="button"
+      >
+        ▶️ 연습 시작
+      </button>
+
+      <button
+              id="next"
+              class="secondary"
+              type="button"
+              disabled
+      >
+        다음 문장
+      </button>
+
+      <button
+              id="finish"
+              class="secondary"
+              type="button"
+              disabled
+      >
+        종료
+      </button>
+
+    </div>
+
+    <p class="help">
+      문장을 완성한 뒤 Enter를 누르면 다음 문장으로 이동합니다.
+      측정 중 붙여넣기와 드래그 입력은 사용할 수 없습니다.
+    </p>
+
+    <section
+            id="typing-result"
+            class="result"
+            hidden
+            aria-labelledby="typing-result-title"
+    >
+
+      <h2 id="typing-result-title">
+        🏁 연습 결과
+      </h2>
+
+      <strong
+              id="result-score"
+              class="result-score"
+      ></strong>
+
+      <p id="result-detail"></p>
+
+    </section>
+
+  </section>
+
+
+  <section
+          class="card guide"
+          aria-labelledby="guide-title"
+  >
+
+    <h2 id="guide-title">
+      📖 한글 타자 연습 사용 방법
+    </h2>
+
+    <h3>한글 타자연습 시작하기</h3>
+
+    <ol>
+      <li>
+        처음 연습한다면 기본 자리 모드에서
+        자음과 모음의 위치를 익혀보세요.
+      </li>
+
+      <li>
+        단어 또는 짧은 문장 모드를 선택하고
+        연습 시간을 설정합니다.
+      </li>
+
+      <li>
+        연습 시작 버튼을 누르면 시간이 측정됩니다.
+      </li>
+
+      <li>
+        제시되는 문장을 띄어쓰기와 문장부호까지
+        그대로 입력합니다.
+      </li>
+
+      <li>
+        문장을 완성하면 Enter 또는 다음 문장 버튼으로
+        계속 진행할 수 있습니다.
+      </li>
+    </ol>
+
+
+    <h3>타수와 정확 문자 수</h3>
+
+    <p>
+      한글 한 글자는 여러 자모의 조합으로 만들어집니다.
+      예를 들어 '한'은 ㅎ·ㅏ·ㄴ을 입력하여 완성됩니다.
+      이 페이지에서는 정확하게 입력한 한글을
+      두벌식 자판 입력 수로 환산하여 타수를 계산합니다.
+    </p>
+
+    <p>
+      정확 문자/분(CPM)은 실제로 올바르게 입력한
+      완성 문자 수를 기준으로 계산합니다.
+    </p>
+
+
+    <h3>정확도 계산</h3>
+
+    <p>
+      현재 제시된 문장과 같은 위치에 입력된 글자를 비교합니다.
+      띄어쓰기와 문장부호도 문자로 계산합니다.
+      잘못 입력한 뒤 지워서 수정하면 현재 결과에
+      수정된 내용이 반영됩니다.
+    </p>
+
+
+    <h3>한글 조합 입력</h3>
+
+    <p>
+      한글 입력기의 조합 중간 상태를 바로 오타로 판정하지 않습니다.
+      한글 조합이 완료된 문자열을 기준으로 채점하기 때문에
+      일반적인 한글 입력 환경에서도 자연스럽게 연습할 수 있습니다.
+    </p>
+
+
+    <h3>직접 입력 모드</h3>
+
+    <p>
+      직접 입력 모드를 선택하면 원하는 문장을 줄 단위로 등록하여
+      연습할 수 있습니다. 빈 줄은 자동으로 제외합니다.
+    </p>
+
+  </section>
+
+
+  <section
+          class="card guide"
+          aria-labelledby="faq-title"
+  >
+
+    <h2 id="faq-title">
+      ❓ 자주 묻는 질문
+    </h2>
+
+    <details>
+      <summary>
+        한글을 조합하는 동안 오타로 표시되나요?
+      </summary>
+
+      <p>
+        아닙니다. 한글 입력기의 조합이 완료된 문자열을 기준으로
+        비교합니다.
+      </p>
+    </details>
+
+    <details>
+      <summary>
+        타수는 다른 타자연습 사이트와 동일한가요?
+      </summary>
+
+      <p>
+        서비스마다 타수 계산 방법이 조금씩 다를 수 있습니다.
+        이 페이지는 정확하게 입력한 문자를
+        두벌식 자모 입력 수로 환산한 값을 사용합니다.
+      </p>
+    </details>
+
+    <details>
+      <summary>
+        입력 내용이 서버에 저장되나요?
+      </summary>
+
+      <p>
+        아닙니다. 이 HTML은 브라우저에서만 동작하며
+        입력한 연습 내용이나 결과를 서버로 전송하지 않습니다.
+      </p>
+    </details>
+
+  </section>
+
+
+  <footer class="footer">
+    한글 타자 연습 · Korean Typing Practice
+  </footer>
+
+</main>
+
+
+<script>
+  (function () {
+    "use strict";
+
+    const $ = (id) => document.getElementById(id);
+
+    const input = $("typing-input");
+
+    const bank = {
+      home: [
+        "ㅁ ㄴ ㅇ ㄹ ㅎ ㅗ ㅓ ㅏ ㅣ",
+        "ㅂ ㅈ ㄷ ㄱ ㅅ ㅛ ㅕ ㅑ ㅐ ㅔ",
+        "ㅋ ㅌ ㅊ ㅍ ㅠ ㅜ ㅡ",
+        "ㄱ ㄴ ㄷ ㄹ ㅁ ㅂ ㅅ ㅇ",
+        "ㅏ ㅓ ㅗ ㅜ ㅡ ㅣ ㅐ ㅔ"
+      ],
+
+      words: [
+        "하늘 바람 구름 나무",
+        "오늘 내일 아침 저녁",
+        "학교 도서관 연필 공책",
+        "생각 질문 대답 약속",
+        "마음 배려 용기 응원",
+        "계절 봄 여름 가을 겨울",
+        "모음 자음 문장 글쓰기",
+        "차분함 정확함 꾸준함"
+      ],
+
+      sentences: [
+        "작은 연습이 모여 어제보다 나은 오늘을 만듭니다.",
+        "창문을 열자 시원한 바람이 방 안으로 들어왔습니다.",
+        "정확한 한 글자가 빠른 열 글자보다 도움이 될 때가 있습니다.",
+        "책상 위의 공책에 오늘 하고 싶은 일을 적었습니다.",
+        "길을 걷다가 잠시 멈춰 맑은 하늘을 바라봅니다.",
+        "서두르지 않고 차근차근 나만의 속도를 찾아갑니다.",
+        "함께 나누는 좋은 질문은 새로운 생각의 시작입니다.",
+        "따뜻한 차 한 잔과 짧은 휴식으로 오후를 준비합니다.",
+        "익숙하지 않은 문장도 천천히 읽으면 뜻이 보입니다.",
+        "오늘 끝내지 못한 일은 내일의 계획에 담아 둡니다.",
+        "키보드 위의 손에 힘을 빼고 편안하게 입력합니다.",
+        "완벽한 시작보다 꾸준히 이어 가는 과정이 중요합니다."
+      ]
+    };
+
+
+    let running = false;
+    let composing = false;
+
+    let started = 0;
+    let seconds = 60;
+    let timer = null;
+
+    let prompts = [];
+    let index = 0;
+
+    let committed = "";
+    let completed = 0;
+
+    let totals = {
+      total: 0,
+      correct: 0,
+      keys: 0
+    };
+
+
+    /*
+     * 두벌식 입력 타수 계산
+     */
+
+    const complexVowels = new Set([
+      9, 10, 11,
+      14, 15, 16,
+      19
+    ]);
+
+    const complexFinals = new Set([
+      3, 5, 6,
+      9, 10, 11,
+      12, 13,
+      14, 15,
+      18
+    ]);
+
+
+    function getHangulKeyCount(character) {
+
+      const code = character.charCodeAt(0);
+
+      const HANGUL_START = 0xAC00;
+      const HANGUL_END = 0xD7A3;
+
+      if (
+              code < HANGUL_START ||
+              code > HANGUL_END
+      ) {
+        return character.trim() ? 1 : 1;
+      }
+
+
+      const syllableIndex =
+                    code - HANGUL_START;
+
+      const vowelIndex =
+                    Math.floor(
+                            (syllableIndex % 588) / 28
+                    );
+
+      const finalIndex =
+                    syllableIndex % 28;
+
+
+      let count = 1;
+
+
+      /*
+       * 중성
+       */
+
+      count +=
+              complexVowels.has(vowelIndex)
+                      ? 2
+                      : 1;
+
+
+      /*
+       * 종성
+       */
+
+      if (finalIndex > 0) {
+
+        count +=
+                complexFinals.has(finalIndex)
+                        ? 2
+                        : 1;
+      }
+
+
+      return count;
+    }
+
+
+    function score(target, typed) {
+
+      const targetChars =
+                    Array.from(target);
+
+      const typedChars =
+                    Array.from(typed);
+
+
+      let correct = 0;
+      let keys = 0;
+
+
+      typedChars.forEach((character, position) => {
+
+        if (
+                targetChars[position] ===
+                character
+        ) {
+
+          correct++;
+
+          keys +=
+                  getHangulKeyCount(character);
+        }
+
+      });
+
+
+      return {
+        total: typedChars.length,
+        correct: correct,
+        keys: keys
+      };
+    }
+
+
+    function metrics(data, elapsedSeconds) {
+
+      const minutes =
+                    Math.max(
+                            elapsedSeconds / 60,
+                            0.00001
+                    );
+
+
+      const speed =
+                    Math.round(
+                            data.keys / minutes
+                    );
+
+
+      const cpm =
+                    Math.round(
+                            data.correct / minutes
+                    );
+
+
+      const accuracy =
+                    data.total > 0
+                            ? (
+                            data.correct /
+                            data.total
+                    ) * 100
+                            : 100;
+
+
+      const errors =
+                    Math.max(
+                            0,
+                            data.total -
+                            data.correct
+                    );
+
+
+      return {
+        speed: speed,
+        cpm: cpm,
+        accuracy: accuracy,
+        errors: errors
+      };
+    }
+
+
+    function target() {
+
+      if (!prompts.length) {
+        return "";
+      }
+
+      return prompts[
+      index % prompts.length
+              ];
+    }
+
+
+    function currentTotals() {
+
+      const current =
+                    score(
+                            target(),
+                            committed
+                    );
+
+
+      return {
+        total:
+                totals.total +
+                current.total,
+
+        correct:
+                totals.correct +
+                current.correct,
+
+        keys:
+                totals.keys +
+                current.keys
+      };
+    }
+
+
+    function paint() {
+
+      const text = target();
+
+      const targetChars =
+                    Array.from(text);
+
+      const typedChars =
+                    Array.from(committed);
+
+      const host = $("prompt");
+
+
+      host.replaceChildren();
+
+
+      targetChars.forEach(
+              (character, position) => {
+
+                const span =
+                              document.createElement("span");
+
+
+                span.textContent =
+                        character;
+
+
+                if (
+                        position <
+                        typedChars.length
+                ) {
+
+                  span.className =
+                          typedChars[position] ===
+                          character
+                                  ? "correct"
+                                  : "incorrect";
+
+                } else if (
+                        position ===
+                        typedChars.length
+                ) {
+
+                  span.className =
+                          "cursor";
+                }
+
+
+                host.append(span);
+              }
+      );
+
+
+      $("progress").value =
+              targetChars.length
+                      ? Math.min(
+                              100,
+                              (
+                                      typedChars.length /
+                                      targetChars.length
+                              ) * 100
+                      )
+                      : 0;
+
+
+      document
+      .querySelectorAll(
+              "#key-map kbd"
+      )
+      .forEach((key) => {
+
+        key.classList.toggle(
+                "target",
+                key.textContent ===
+                targetChars[
+                        typedChars.length
+                        ]
+        );
+      });
+    }
+
+
+    function preview() {
+
+      const mode =
+                    $("mode").value;
+
+
+      $("custom-wrap").hidden =
+              mode !== "custom";
+
+
+      $("key-map").hidden =
+              mode !== "home";
+
+
+      prompts =
+              mode === "custom"
+                      ? [
+                        "등록한 문장으로 연습합니다."
+                      ]
+                      : bank[mode].slice();
+
+
+      index = 0;
+      committed = "";
+
+      input.value = "";
+
+
+      $("remaining").textContent =
+              $("duration").value +
+              "초";
+
+
+      $("speed").textContent =
+              "0";
+
+      $("cpm").textContent =
+              "0";
+
+      $("accuracy").textContent =
+              "100%";
+
+
+      paint();
+    }
+
+
+    function update(elapsed) {
+
+      const result =
+                    metrics(
+                            currentTotals(),
+                            elapsed
+                    );
+
+
+      $("remaining").textContent =
+              Math.max(
+                      0,
+                      Math.ceil(
+                              seconds - elapsed
+                      )
+              ) + "초";
+
+
+      $("speed").textContent =
+              result.speed;
+
+
+      $("cpm").textContent =
+              result.cpm;
+
+
+      $("accuracy").textContent =
+              result.accuracy.toFixed(1) +
+              "%";
+
+
+      return result;
+    }
+
+
+    function lock(value) {
+
+      [
+        "mode",
+        "duration",
+        "custom"
+      ].forEach((id) => {
+
+        $(id).disabled =
+                value;
+      });
+
+
+      $("start").disabled =
+              value;
+
+
+      $("next").disabled =
+              !value;
+
+
+      $("finish").disabled =
+              !value;
+
+
+      input.disabled =
+              !value;
+    }
+
+
+    function finish() {
+
+      if (!running) {
+        return;
+      }
+
+
+      const elapsed =
+                    Math.min(
+                            seconds,
+                            Math.max(
+                                    0.001,
+                                    (
+                                            performance.now() -
+                                            started
+                                    ) / 1000
+                            )
+                    );
+
+
+      running = false;
+
+      clearInterval(timer);
+
+      timer = null;
+
+
+      const result =
+                    update(elapsed);
+
+
+      const total =
+                    currentTotals();
+
+
+      lock(false);
+
+      input.disabled = true;
+
+      composing = false;
+
+
+      $("typing-result").hidden =
+              false;
+
+
+      $("result-score").textContent =
+              result.speed +
+              "타/분 · 정확도 " +
+              result.accuracy.toFixed(1) +
+              "%";
+
+
+      $("result-detail").textContent =
+              "연습 " +
+              elapsed.toFixed(1) +
+              "초 · 정확 문자 " +
+              total.correct +
+              "자 · 남은 오타 " +
+              result.errors +
+              "자 · 완료 문장 " +
+              completed +
+              "개";
+
+
+      $("typing-status").textContent =
+              "연습이 끝났습니다. 다시 시작하면 새로운 측정을 시작합니다.";
+    }
+
+
+    function tick() {
+
+      if (!running) {
+        return;
+      }
+
+
+      const elapsed =
+                    (
+                            performance.now() -
+                            started
+                    ) / 1000;
+
+
+      if (
+              elapsed >= seconds
+      ) {
+
+        finish();
+
+        return;
+      }
+
+
+      update(elapsed);
+    }
+
+
+    function commit() {
+
+      if (!running) {
+        return;
+      }
+
+
+      const elapsed =
+                    (
+                            performance.now() -
+                            started
+                    ) / 1000;
+
+
+      if (
+              elapsed >= seconds
+      ) {
+
+        finish();
+
+        return;
+      }
+
+
+      committed =
+              input.value.normalize(
+                      "NFC"
+              );
+
+
+      paint();
+
+      update(elapsed);
+
+
+      if (
+              committed ===
+              target()
+      ) {
+
+        $("typing-status").textContent =
+                "문장을 완성했습니다. Enter 또는 다음 문장을 눌러주세요.";
+
+      } else {
+
+        $("typing-status").textContent =
+                "입력한 부분을 확인하며 계속 연습하세요.";
+      }
+    }
+
+
+    function next() {
+
+      if (
+              !running ||
+              composing
+      ) {
+        return;
+      }
+
+
+      const elapsed =
+                    (
+                            performance.now() -
+                            started
+                    ) / 1000;
+
+
+      if (
+              elapsed >= seconds
+      ) {
+
+        finish();
+
+        return;
+      }
+
+
+      if (
+              !committed.length
+      ) {
+
+        $("typing-status").textContent =
+                "한 글자 이상 입력한 뒤 다음 문장으로 이동해 주세요.";
+
+        return;
+      }
+
+
+      const currentScore =
+                    score(
+                            target(),
+                            committed
+                    );
+
+
+      totals.total +=
+              currentScore.total;
+
+      totals.correct +=
+              currentScore.correct;
+
+      totals.keys +=
+              currentScore.keys;
+
+
+      if (
+              committed ===
+              target()
+      ) {
+
+        completed++;
+      }
+
+
+      index++;
+
+      committed = "";
+
+      input.value = "";
+
+
+      paint();
+
+      input.focus();
+
+
+      $("typing-status").textContent =
+              "다음 문장입니다.";
+    }
+
+
+    function shuffle(list) {
+
+      for (
+              let i = list.length - 1;
+              i > 0;
+              i--
+      ) {
+
+        const j =
+                      Math.floor(
+                              Math.random() *
+                              (i + 1)
+                      );
+
+
+        [
+          list[i],
+          list[j]
+        ] = [
+          list[j],
+          list[i]
+        ];
+      }
+
+
+      return list;
+    }
+
+
+    function start() {
+
+      const mode =
+                    $("mode").value;
+
+
+      let list;
+
+
+      if (
+              mode === "custom"
+      ) {
+
+        list =
+                $("custom")
+                .value
+                .normalize("NFC")
+                .split(/\r?\n/)
+                .map(
+                        (text) =>
+                                text.trim()
+                )
+                .filter(Boolean);
+
+      } else {
+
+        list =
+                bank[mode].slice();
+
+        shuffle(list);
+      }
+
+
+      if (
+              !list.length
+      ) {
+
+        $("typing-status").textContent =
+                "연습할 문장을 먼저 입력해 주세요.";
+
+        $("custom").focus();
+
+        return;
+      }
+
+
+      prompts = list;
+
+      index = 0;
+
+      totals = {
+        total: 0,
+        correct: 0,
+        keys: 0
+      };
+
+      completed = 0;
+
+      committed = "";
+
+      composing = false;
+
+      input.value = "";
+
+
+      seconds =
+              Number(
+                      $("duration").value
+              );
+
+
+      started =
+              performance.now();
+
+
+      running = true;
+
+
+      lock(true);
+
+
+      $("typing-result").hidden =
+              true;
+
+
+      paint();
+
+      update(0);
+
+
+      input.focus();
+
+
+      $("typing-status").textContent =
+              "측정 중입니다. 제시된 문장을 따라 입력하세요.";
+
+
+      timer =
+              setInterval(
+                      tick,
+                      100
+              );
+    }
+
+
+    $("start").addEventListener(
+            "click",
+            start
+    );
+
+
+    $("next").addEventListener(
+            "click",
+            next
+    );
+
+
+    $("finish").addEventListener(
+            "click",
+            finish
+    );
+
+
+    $("mode").addEventListener(
+            "change",
+            preview
+    );
+
+
+    $("duration").addEventListener(
+            "change",
+            preview
+    );
+
+
+    input.addEventListener(
+            "compositionstart",
+            function () {
+
+              composing = true;
+            }
+    );
+
+
+    input.addEventListener(
+            "compositionend",
+            function () {
+
+              composing = false;
+
+              commit();
+            }
+    );
+
+
+    input.addEventListener(
+            "input",
+            function (event) {
+
+              if (
+                      !composing &&
+                      !event.isComposing
+              ) {
+
+                commit();
+              }
+            }
+    );
+
+
+    input.addEventListener(
+            "keydown",
+            function (event) {
+
+              if (
+                      event.key === "Enter" &&
+                      !composing &&
+                      !event.isComposing &&
+                      event.keyCode !== 229
+              ) {
+
+                if (
+                        committed ===
+                        target()
+                ) {
+
+                  event.preventDefault();
+
+                  next();
+                }
+              }
+            }
+    );
+
+
+    [
+      "paste",
+      "drop"
+    ].forEach(
+            function (type) {
+
+              input.addEventListener(
+                      type,
+                      function (event) {
+
+                        event.preventDefault();
+
+                        $("typing-status").textContent =
+                                "측정 중에는 직접 입력해 주세요.";
+                      }
+              );
+            }
+    );
+
+
+    input.addEventListener(
+            "beforeinput",
+            function (event) {
+
+              if (
+                      [
+                        "insertFromPaste",
+                        "insertFromDrop",
+                        "insertReplacementText"
+                      ].includes(
+                              event.inputType
+                      )
+              ) {
+
+                event.preventDefault();
+              }
+            }
+    );
+
+
+    document.addEventListener(
+            "visibilitychange",
+            tick
+    );
+
+
+    preview();
+
+  })();
+</script>
+
+</body>
+</html>
