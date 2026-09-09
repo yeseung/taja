@@ -61,6 +61,7 @@
 - https://github.com/naskybird-bit/-
 - https://github.com/lanzarote0tr/KeyVim
 - https://github.com/s-ja/typezen
+- https://github.com/inseong01/typing-practice
 <br><br><br>
 
 
