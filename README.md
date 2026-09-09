@@ -140,6 +140,7 @@
 ![스크린샷 2026-09-08 오후 10 05 07](https://github.com/user-attachments/assets/2d861230-650b-495c-a5f1-4bea4e5b4483)
 ![스크린샷 2026-09-09 오후 12 48 08](https://github.com/user-attachments/assets/bfa8dd69-e467-4c3c-972e-81b7397565ab)
 ![스크린샷 2026-09-09 오후 2 59 31](https://github.com/user-attachments/assets/eb0def81-c362-4e83-9e21-1823ced4391a)
+![스크린샷 2026-09-09 오후 3 13 53](https://github.com/user-attachments/assets/066a4526-6c78-46c4-9689-f2e6fa23dfc0)
 
 
 
