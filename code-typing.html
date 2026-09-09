@@ -1,0 +1,1714 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>코딩 타자연습</title>
+
+    <!-- https://github.com/scn2930/codeTyping -->
+
+    <meta
+            name="description"
+            content="C, JavaScript, Java, Python 코드를 직접 입력하며 타자 속도와 정확도를 연습하는 코딩 타자연습입니다."
+    >
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #f7f8fa;
+            color: #171717;
+            font-family:
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "Segoe UI",
+                    "Noto Sans KR",
+                    Arial,
+                    sans-serif;
+            line-height: 1.6;
+        }
+
+        button,
+        input,
+        select {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .app {
+            width: min(100% - 32px, 1000px);
+            margin: 0 auto;
+            padding: 40px 0 80px;
+        }
+
+        .header {
+            margin-bottom: 32px;
+            text-align: center;
+        }
+
+        .header-icon {
+            margin-bottom: 8px;
+            font-size: 42px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: clamp(28px, 5vw, 40px);
+            letter-spacing: -0.04em;
+        }
+
+        .header p {
+            margin: 8px 0 0;
+            color: #737373;
+            font-size: 15px;
+        }
+
+        .card {
+            padding: 24px;
+            border: 1px solid #e5e7eb;
+            border-radius: 20px;
+            background: #ffffff;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+        }
+
+        .setup-card {
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            margin: 0 0 16px;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .language-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .language-button {
+            min-height: 44px;
+            padding: 0 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            background: #ffffff;
+            color: #525252;
+            font-weight: 600;
+            transition:
+                    border-color 0.15s ease,
+                    background 0.15s ease,
+                    color 0.15s ease;
+        }
+
+        .language-button:hover {
+            border-color: #171717;
+            color: #171717;
+        }
+
+        .language-button.active {
+            border-color: #171717;
+            background: #171717;
+            color: #ffffff;
+        }
+
+        .practice-list {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .practice-item {
+            width: 100%;
+            padding: 18px;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            background: #ffffff;
+            text-align: left;
+            transition:
+                    transform 0.15s ease,
+                    border-color 0.15s ease,
+                    box-shadow 0.15s ease;
+        }
+
+        .practice-item:hover {
+            transform: translateY(-2px);
+            border-color: #b8b8b8;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .practice-lang {
+            display: inline-flex;
+            margin-bottom: 8px;
+            padding: 4px 9px;
+            border-radius: 8px;
+            background: #f3f4f6;
+            color: #525252;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .practice-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .practice-description {
+            margin-top: 4px;
+            color: #737373;
+            font-size: 14px;
+        }
+
+        .typing-screen {
+            display: none;
+        }
+
+        .typing-screen.active {
+            display: block;
+        }
+
+        .select-screen.hidden {
+            display: none;
+        }
+
+        .typing-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .back-button,
+        .reset-button {
+            min-height: 42px;
+            padding: 0 14px;
+            border: 1px solid #e5e7eb;
+            border-radius: 11px;
+            background: #ffffff;
+            color: #404040;
+            font-weight: 600;
+        }
+
+        .back-button:hover,
+        .reset-button:hover {
+            border-color: #171717;
+        }
+
+        .current-info {
+            text-align: center;
+        }
+
+        .current-info strong {
+            display: block;
+            font-size: 18px;
+        }
+
+        .current-info span {
+            color: #737373;
+            font-size: 13px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .stat {
+            padding: 16px 10px;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            background: #ffffff;
+            text-align: center;
+        }
+
+        .stat-label {
+            display: block;
+            margin-bottom: 5px;
+            color: #737373;
+            font-size: 12px;
+        }
+
+        .stat-value {
+            font-size: 19px;
+            font-weight: 800;
+        }
+
+        .progress-card {
+            margin-bottom: 16px;
+            padding: 16px 18px;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            background: #ffffff;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 8px;
+            color: #525252;
+            font-size: 13px;
+        }
+
+        .progress {
+            height: 8px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: #eeeeee;
+        }
+
+        .progress-bar {
+            width: 0;
+            height: 100%;
+            border-radius: inherit;
+            background: #171717;
+            transition: width 0.2s ease;
+        }
+
+        .typing-card {
+            padding: 24px;
+            border: 1px solid #e5e7eb;
+            border-radius: 20px;
+            background: #ffffff;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+        }
+
+        .code-label {
+            margin-bottom: 8px;
+            color: #737373;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .code-box {
+            min-height: 72px;
+            margin-bottom: 14px;
+            padding: 18px;
+            overflow-x: auto;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            background: #f8f9fa;
+        }
+
+        .code-text {
+            margin: 0;
+            color: #171717;
+            font-family:
+                    "SFMono-Regular",
+                    Consolas,
+                    "Liberation Mono",
+                    Menlo,
+                    monospace;
+            font-size: 16px;
+            line-height: 1.7;
+            white-space: pre;
+        }
+
+        .typing-input {
+            width: 100%;
+            height: 54px;
+            padding: 0 16px;
+            border: 2px solid #d4d4d4;
+            border-radius: 14px;
+            outline: none;
+            background: #ffffff;
+            color: #171717;
+            font-family:
+                    "SFMono-Regular",
+                    Consolas,
+                    "Liberation Mono",
+                    Menlo,
+                    monospace;
+            font-size: 16px;
+            transition:
+                    border-color 0.15s ease,
+                    box-shadow 0.15s ease,
+                    background 0.15s ease;
+        }
+
+        .typing-input:focus {
+            border-color: #171717;
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.06);
+        }
+
+        .typing-input.error {
+            border-color: #ef4444;
+            background: #fffafa;
+        }
+
+        .typing-input.correct {
+            border-color: #22c55e;
+            background: #f7fff9;
+        }
+
+        .typing-guide {
+            margin-top: 12px;
+            color: #737373;
+            font-size: 13px;
+        }
+
+        .typing-guide strong {
+            color: #404040;
+        }
+
+        .character-status {
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 1px solid #eeeeee;
+            font-family:
+                    "SFMono-Regular",
+                    Consolas,
+                    "Liberation Mono",
+                    Menlo,
+                    monospace;
+            font-size: 15px;
+            line-height: 1.8;
+            word-break: break-all;
+        }
+
+        .character {
+            color: #b8b8b8;
+        }
+
+        .character.correct {
+            color: #171717;
+        }
+
+        .character.wrong {
+            color: #ef4444;
+            text-decoration: underline;
+            text-decoration-thickness: 2px;
+        }
+
+        .character.current {
+            border-bottom: 2px solid #171717;
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            width: min(100%, 460px);
+            padding: 28px;
+            border-radius: 20px;
+            background: #ffffff;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+        }
+
+        .modal-icon {
+            margin-bottom: 8px;
+            font-size: 40px;
+            text-align: center;
+        }
+
+        .modal-title {
+            margin: 0 0 6px;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        .modal-subtitle {
+            margin: 0 0 24px;
+            color: #737373;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 22px;
+        }
+
+        .result-item {
+            padding: 15px 10px;
+            border-radius: 13px;
+            background: #f6f7f8;
+            text-align: center;
+        }
+
+        .result-item span {
+            display: block;
+            margin-bottom: 4px;
+            color: #737373;
+            font-size: 12px;
+        }
+
+        .result-item strong {
+            font-size: 20px;
+        }
+
+        .modal-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .modal-button {
+            min-height: 48px;
+            border: 0;
+            border-radius: 12px;
+            font-weight: 700;
+        }
+
+        .modal-button.secondary {
+            background: #f1f1f1;
+            color: #333333;
+        }
+
+        .modal-button.primary {
+            background: #171717;
+            color: #ffffff;
+        }
+
+        @media (max-width: 700px) {
+            .app {
+                width: min(100% - 24px, 1000px);
+                padding-top: 24px;
+            }
+
+            .card,
+            .typing-card {
+                padding: 18px;
+                border-radius: 16px;
+            }
+
+            .practice-list {
+                grid-template-columns: 1fr;
+            }
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .typing-top {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .current-info {
+                order: -1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <header class="header">
+        <div class="header-icon">⌨️</div>
+        <h1>코딩 타자연습</h1>
+        <p>코드를 직접 입력하면서 타자 속도와 정확도를 연습해 보세요.</p>
+    </header>
+
+    <!-- 연습 선택 -->
+    <main id="selectScreen" class="select-screen">
+
+        <section class="card setup-card">
+            <h2 class="section-title">프로그래밍 언어</h2>
+
+            <div id="languageList" class="language-list"></div>
+
+            <div id="practiceList" class="practice-list"></div>
+        </section>
+
+    </main>
+
+    <!-- 타자 연습 -->
+    <main id="typingScreen" class="typing-screen">
+
+        <div class="typing-top">
+
+            <button
+                    id="backButton"
+                    class="back-button"
+                    type="button"
+            >
+                ← 목록
+            </button>
+
+            <div class="current-info">
+                <strong id="practiceName">JavaScript · 구구단</strong>
+                <span id="lineInfo">1 / 1</span>
+            </div>
+
+            <button
+                    id="resetButton"
+                    class="reset-button"
+                    type="button"
+            >
+                ↻ 다시 시작
+            </button>
+
+        </div>
+
+        <div class="stats">
+
+            <div class="stat">
+                <span class="stat-label">경과 시간</span>
+                <strong id="timeStat" class="stat-value">0초</strong>
+            </div>
+
+            <div class="stat">
+                <span class="stat-label">오타 수</span>
+                <strong id="errorStat" class="stat-value">0</strong>
+            </div>
+
+            <div class="stat">
+                <span class="stat-label">정확도</span>
+                <strong id="accuracyStat" class="stat-value">0%</strong>
+            </div>
+
+            <div class="stat">
+                <span class="stat-label">타수</span>
+                <strong id="typingStat" class="stat-value">0</strong>
+            </div>
+
+        </div>
+
+        <div class="progress-card">
+
+            <div class="progress-info">
+                <span>연습 진행률</span>
+                <strong id="progressText">0%</strong>
+            </div>
+
+            <div class="progress">
+                <div id="progressBar" class="progress-bar"></div>
+            </div>
+
+        </div>
+
+        <section class="typing-card">
+
+            <div class="code-label">
+                따라 입력할 코드
+            </div>
+
+            <div class="code-box">
+                <pre id="codeText" class="code-text"></pre>
+            </div>
+
+            <input
+                    id="typingInput"
+                    class="typing-input"
+                    type="text"
+                    autocomplete="off"
+                    autocapitalize="off"
+                    spellcheck="false"
+                    aria-label="코드 입력"
+                    placeholder="위 코드를 그대로 입력하세요."
+            >
+
+            <div class="typing-guide">
+                코드를 입력한 뒤 문장이 일치하면
+                <strong>Enter</strong>를 눌러 다음 줄로 이동합니다.
+            </div>
+
+            <div
+                    id="characterStatus"
+                    class="character-status"
+                    aria-live="polite"
+            ></div>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<!-- 결과 모달 -->
+<div
+        id="resultModal"
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="resultTitle"
+>
+
+    <div class="modal-content">
+
+        <div class="modal-icon">🎉</div>
+
+        <h2 id="resultTitle" class="modal-title">
+            연습 완료
+        </h2>
+
+        <p class="modal-subtitle">
+            모든 코드 입력을 완료했습니다.
+        </p>
+
+        <div class="result-grid">
+
+            <div class="result-item">
+                <span>총 시간</span>
+                <strong id="resultTime">0초</strong>
+            </div>
+
+            <div class="result-item">
+                <span>총 오타</span>
+                <strong id="resultErrors">0</strong>
+            </div>
+
+            <div class="result-item">
+                <span>평균 정확도</span>
+                <strong id="resultAccuracy">0%</strong>
+            </div>
+
+            <div class="result-item">
+                <span>평균 타수</span>
+                <strong id="resultTyping">0</strong>
+            </div>
+
+        </div>
+
+        <div class="modal-buttons">
+
+            <button
+                    id="resultListButton"
+                    class="modal-button secondary"
+                    type="button"
+            >
+                목록으로
+            </button>
+
+            <button
+                    id="retryButton"
+                    class="modal-button primary"
+                    type="button"
+            >
+                다시 연습
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+    (function () {
+        "use strict";
+
+        /*
+         * =========================================
+         * 코드 연습 데이터
+         * =========================================
+         */
+
+        const codeData = [
+            {
+                lang: "c",
+                title: "gugudan",
+                name: "구구단",
+                code: [
+                    "#include <stdio.h>",
+                    "int main() {",
+                    "for (int i = 1; i <= 9; i++) {",
+                    "printf(\"%d단:\\n\", i);",
+                    "for (int j = 1; j <= 9; j++) {",
+                    "printf(\"%d x %d = %d\\n\", i, j, i * j);",
+                    "}",
+                    "printf(\"\\n\");",
+                    "}",
+                    "return 0;",
+                    "}"
+                ]
+            },
+
+            {
+                lang: "c",
+                title: "diamond",
+                name: "다이아몬드",
+                code: [
+                    "#include <stdio.h>",
+                    "void printDiamond(int n) {",
+                    "for (int i = 1; i <= n; i++) {",
+                    "for (int j = n; j > i; j--) {",
+                    "printf(\" \");",
+                    "}",
+                    "for (int k = 1; k <= (2 * i - 1); k++) {",
+                    "printf(\"*\");",
+                    "}",
+                    "printf(\"\\n\");",
+                    "}",
+                    "for (int i = n - 1; i > 0; i--) {",
+                    "for (int j = n; j > i; j--) {",
+                    "printf(\" \");",
+                    "}",
+                    "for (int k = 1; k <= (2 * i - 1); k++) {",
+                    "printf(\"*\");",
+                    "}",
+                    "printf(\"\\n\");",
+                    "}",
+                    "}",
+                    "int main() {",
+                    "int n = 5;",
+                    "printDiamond(n);",
+                    "return 0;",
+                    "}"
+                ]
+            },
+
+            {
+                lang: "js",
+                title: "gugudan",
+                name: "구구단",
+                code: [
+                    "const gugudan = () => {",
+                    "for (let i = 2; i <= 9; i++) {",
+                    "console.log(`--- ${i}단 ---`);",
+                    "for (let j = 1; j <= 9; j++) {",
+                    "console.log(`${i} x ${j} = ${i * j}`);",
+                    "}",
+                    "console.log(' ');",
+                    "}",
+                    "};"
+                ]
+            },
+
+            {
+                lang: "js",
+                title: "diamond",
+                name: "다이아몬드",
+                code: [
+                    "function printDiamond(n) {",
+                    "for (let i = 1; i <= n; i++) {",
+                    "let line = ' '.repeat(n - i) + '*'.repeat(2 * i - 1);",
+                    "console.log(line);",
+                    "}",
+                    "for (let i = n - 1; i > 0; i--) {",
+                    "let line = ' '.repeat(n - i) + '*'.repeat(2 * i - 1);",
+                    "console.log(line);",
+                    "}",
+                    "}"
+                ]
+            },
+
+            {
+                lang: "java",
+                title: "gugudan",
+                name: "구구단",
+                code: [
+                    "public class Gugudan {",
+                    "public static void main(String[] args) {",
+                    "for (int i = 1; i <= 9; i++) {",
+                    "System.out.println(i + \"단:\");",
+                    "for (int j = 1; j <= 9; j++) {",
+                    "System.out.printf(\"%d x %d = %d%n\", i, j, i * j);",
+                    "}",
+                    "System.out.println();",
+                    "}",
+                    "}",
+                    "}"
+                ]
+            },
+
+            {
+                lang: "java",
+                title: "diamond",
+                name: "다이아몬드",
+                code: [
+                    "public class Diamond {",
+                    "public static void printDiamond(int n) {",
+                    "for (int i = 1; i <= n; i++) {",
+                    "for (int j = n; j > i; j--) {",
+                    "System.out.print(\" \");",
+                    "}",
+                    "for (int k = 1; k <= (2 * i - 1); k++) {",
+                    "System.out.print(\"*\");",
+                    "}",
+                    "System.out.println();",
+                    "}",
+                    "for (int i = n - 1; i > 0; i--) {",
+                    "for (int j = n; j > i; j--) {",
+                    "System.out.print(\" \");",
+                    "}",
+                    "for (int k = 1; k <= (2 * i - 1); k++) {",
+                    "System.out.print(\"*\");",
+                    "}",
+                    "System.out.println();",
+                    "}",
+                    "}",
+                    "public static void main(String[] args) {",
+                    "int n = 5;",
+                    "printDiamond(n);",
+                    "}",
+                    "}"
+                ]
+            },
+
+            {
+                lang: "python",
+                title: "gugudan",
+                name: "구구단",
+                code: [
+                    "def print_gugudan():",
+                    "for i in range(1, 10):",
+                    "print(f\"{i}단:\")",
+                    "for j in range(1, 10):",
+                    "print(f\"{i} x {j} = {i * j}\")",
+                    "print()",
+                    "print_gugudan()"
+                ]
+            },
+
+            {
+                lang: "python",
+                title: "diamond",
+                name: "다이아몬드",
+                code: [
+                    "def print_diamond(n):",
+                    "for i in range(1, n + 1):",
+                    "line = ' ' * (n - i) + '*' * (2 * i - 1)",
+                    "print(line)",
+                    "for i in range(n - 1, 0, -1):",
+                    "line = ' ' * (n - i) + '*' * (2 * i - 1)",
+                    "print(line)",
+                    "n = 5",
+                    "print_diamond(n)"
+                ]
+            }
+        ];
+
+
+        /*
+         * =========================================
+         * 언어 정보
+         * =========================================
+         */
+
+        const languages = [
+            {
+                id: "all",
+                name: "전체"
+            },
+            {
+                id: "c",
+                name: "C"
+            },
+            {
+                id: "js",
+                name: "JavaScript"
+            },
+            {
+                id: "java",
+                name: "Java"
+            },
+            {
+                id: "python",
+                name: "Python"
+            }
+        ];
+
+        const languageNames = {
+            c: "C",
+            js: "JavaScript",
+            java: "Java",
+            python: "Python"
+        };
+
+
+        /*
+         * =========================================
+         * DOM
+         * =========================================
+         */
+
+        const selectScreen = document.getElementById("selectScreen");
+        const typingScreen = document.getElementById("typingScreen");
+
+        const languageList = document.getElementById("languageList");
+        const practiceList = document.getElementById("practiceList");
+
+        const practiceName = document.getElementById("practiceName");
+        const lineInfo = document.getElementById("lineInfo");
+
+        const timeStat = document.getElementById("timeStat");
+        const errorStat = document.getElementById("errorStat");
+        const accuracyStat = document.getElementById("accuracyStat");
+        const typingStat = document.getElementById("typingStat");
+
+        const progressText = document.getElementById("progressText");
+        const progressBar = document.getElementById("progressBar");
+
+        const codeText = document.getElementById("codeText");
+        const typingInput = document.getElementById("typingInput");
+        const characterStatus = document.getElementById("characterStatus");
+
+        const backButton = document.getElementById("backButton");
+        const resetButton = document.getElementById("resetButton");
+
+        const resultModal = document.getElementById("resultModal");
+
+        const resultTime = document.getElementById("resultTime");
+        const resultErrors = document.getElementById("resultErrors");
+        const resultAccuracy = document.getElementById("resultAccuracy");
+        const resultTyping = document.getElementById("resultTyping");
+
+        const resultListButton = document.getElementById("resultListButton");
+        const retryButton = document.getElementById("retryButton");
+
+
+        /*
+         * =========================================
+         * 상태
+         * =========================================
+         */
+
+        let selectedLanguage = "all";
+        let currentPractice = null;
+
+        let currentLineIndex = 0;
+
+        let practiceStartTime = 0;
+        let lineStartTime = 0;
+
+        let timerId = null;
+
+        let currentErrors = 0;
+        let currentAccuracy = 0;
+        let currentTyping = 0;
+
+        let totalErrors = 0;
+
+        let accuracyRecords = [];
+        let typingRecords = [];
+
+
+        /*
+         * =========================================
+         * 선택 화면
+         * =========================================
+         */
+
+        function renderLanguages() {
+            languageList.innerHTML = "";
+
+            languages.forEach(function (language) {
+                const button = document.createElement("button");
+
+                button.type = "button";
+                button.className = "language-button";
+
+                if (selectedLanguage === language.id) {
+                    button.classList.add("active");
+                }
+
+                button.textContent = language.name;
+
+                button.addEventListener("click", function () {
+                    selectedLanguage = language.id;
+
+                    renderLanguages();
+                    renderPracticeList();
+                });
+
+                languageList.appendChild(button);
+            });
+        }
+
+
+        function renderPracticeList() {
+            practiceList.innerHTML = "";
+
+            const filteredData = selectedLanguage === "all"
+                ? codeData
+                : codeData.filter(function (item) {
+                    return item.lang === selectedLanguage;
+                });
+
+            filteredData.forEach(function (item) {
+                const button = document.createElement("button");
+
+                button.type = "button";
+                button.className = "practice-item";
+
+                const lang = document.createElement("span");
+                lang.className = "practice-lang";
+                lang.textContent = languageNames[item.lang];
+
+                const title = document.createElement("div");
+                title.className = "practice-title";
+                title.textContent = item.name;
+
+                const description = document.createElement("div");
+                description.className = "practice-description";
+                description.textContent =
+                    item.code.length + "줄 코드 연습";
+
+                button.appendChild(lang);
+                button.appendChild(title);
+                button.appendChild(description);
+
+                button.addEventListener("click", function () {
+                    startPractice(item);
+                });
+
+                practiceList.appendChild(button);
+            });
+        }
+
+
+        /*
+         * =========================================
+         * 연습 시작
+         * =========================================
+         */
+
+        function startPractice(item) {
+            currentPractice = item;
+            currentLineIndex = 0;
+
+            practiceStartTime = 0;
+            lineStartTime = 0;
+
+            currentErrors = 0;
+            currentAccuracy = 0;
+            currentTyping = 0;
+
+            totalErrors = 0;
+
+            accuracyRecords = [];
+            typingRecords = [];
+
+            clearTimer();
+
+            selectScreen.classList.add("hidden");
+            typingScreen.classList.add("active");
+
+            practiceName.textContent =
+                languageNames[item.lang] + " · " + item.name;
+
+            updateStats();
+            renderCurrentLine();
+
+            requestAnimationFrame(function () {
+                typingInput.focus();
+            });
+        }
+
+
+        /*
+         * =========================================
+         * 현재 줄 표시
+         * =========================================
+         */
+
+        function renderCurrentLine() {
+            if (!currentPractice) {
+                return;
+            }
+
+            const currentCode =
+                      currentPractice.code[currentLineIndex];
+
+            codeText.textContent = currentCode;
+
+            typingInput.value = "";
+            typingInput.classList.remove("error", "correct");
+
+            currentErrors = 0;
+            currentAccuracy = 0;
+            currentTyping = 0;
+
+            lineStartTime = 0;
+
+            renderCharacterStatus();
+
+            updateStats();
+            updateProgress();
+
+            lineInfo.textContent =
+                (currentLineIndex + 1) +
+                " / " +
+                currentPractice.code.length;
+
+            requestAnimationFrame(function () {
+                typingInput.focus();
+            });
+        }
+
+
+        /*
+         * =========================================
+         * 입력 처리
+         * =========================================
+         */
+
+        typingInput.addEventListener("input", function () {
+            if (!currentPractice) {
+                return;
+            }
+
+            startTimer();
+
+            const target =
+                      currentPractice.code[currentLineIndex];
+
+            const input = typingInput.value;
+
+            calculateCurrentStats(target, input);
+
+            updateInputState(target, input);
+            renderCharacterStatus();
+            updateStats();
+        });
+
+
+        typingInput.addEventListener("keydown", function (event) {
+            if (event.key !== "Enter") {
+                return;
+            }
+
+            event.preventDefault();
+
+            if (!currentPractice) {
+                return;
+            }
+
+            const target =
+                      currentPractice.code[currentLineIndex];
+
+            const input =
+                      typingInput.value;
+
+            if (input !== target) {
+                typingInput.classList.add("error");
+                return;
+            }
+
+            saveCurrentLineResult();
+
+            if (
+                currentLineIndex <
+                currentPractice.code.length - 1
+            ) {
+                currentLineIndex += 1;
+                renderCurrentLine();
+                return;
+            }
+
+            finishPractice();
+        });
+
+
+        /*
+         * 붙여넣기 방지
+         * 원본 프로젝트의 기능을 유지
+         */
+
+        typingInput.addEventListener("paste", function (event) {
+            event.preventDefault();
+        });
+
+
+        /*
+         * =========================================
+         * 통계 계산
+         * =========================================
+         */
+
+        function calculateCurrentStats(target, input) {
+            let errors = 0;
+            let correct = 0;
+
+            for (let i = 0; i < input.length; i++) {
+                if (input[i] === target[i]) {
+                    correct += 1;
+                } else {
+                    errors += 1;
+                }
+            }
+
+            currentErrors = errors;
+
+            currentAccuracy =
+                target.length > 0
+                    ? (correct / target.length) * 100
+                    : 0;
+
+            const elapsedSeconds =
+                      lineStartTime > 0
+                          ? Math.max(
+                              (Date.now() - lineStartTime) / 1000,
+                              0.001
+                          )
+                          : 0;
+
+            currentTyping =
+                elapsedSeconds > 0
+                    ? Math.floor(
+                        (correct / elapsedSeconds) * 60
+                    )
+                    : 0;
+        }
+
+
+        /*
+         * =========================================
+         * 입력 상태
+         * =========================================
+         */
+
+        function updateInputState(target, input) {
+            typingInput.classList.remove(
+                "error",
+                "correct"
+            );
+
+            if (input.length === 0) {
+                return;
+            }
+
+            if (input === target) {
+                typingInput.classList.add("correct");
+                return;
+            }
+
+            let hasError = false;
+
+            for (let i = 0; i < input.length; i++) {
+                if (input[i] !== target[i]) {
+                    hasError = true;
+                    break;
+                }
+            }
+
+            if (hasError) {
+                typingInput.classList.add("error");
+            }
+        }
+
+
+        /*
+         * =========================================
+         * 문자 단위 상태
+         * =========================================
+         */
+
+        function renderCharacterStatus() {
+            characterStatus.innerHTML = "";
+
+            if (!currentPractice) {
+                return;
+            }
+
+            const target =
+                      currentPractice.code[currentLineIndex];
+
+            const input =
+                      typingInput.value;
+
+            Array.from(target).forEach(function (char, index) {
+                const span = document.createElement("span");
+
+                span.className = "character";
+                span.textContent = char;
+
+                if (index < input.length) {
+                    if (input[index] === char) {
+                        span.classList.add("correct");
+                    } else {
+                        span.classList.add("wrong");
+                    }
+                } else if (index === input.length) {
+                    span.classList.add("current");
+                }
+
+                characterStatus.appendChild(span);
+            });
+        }
+
+
+        /*
+         * =========================================
+         * 타이머
+         * =========================================
+         */
+
+        function startTimer() {
+            if (!practiceStartTime) {
+                practiceStartTime = Date.now();
+            }
+
+            if (!lineStartTime) {
+                lineStartTime = Date.now();
+            }
+
+            if (timerId) {
+                return;
+            }
+
+            timerId = window.setInterval(function () {
+                if (!currentPractice) {
+                    return;
+                }
+
+                const target =
+                          currentPractice.code[currentLineIndex];
+
+                calculateCurrentStats(
+                    target,
+                    typingInput.value
+                );
+
+                updateStats();
+            }, 250);
+        }
+
+
+        function clearTimer() {
+            if (!timerId) {
+                return;
+            }
+
+            clearInterval(timerId);
+            timerId = null;
+        }
+
+
+        /*
+         * =========================================
+         * 통계 UI
+         * =========================================
+         */
+
+        function updateStats() {
+            const elapsed =
+                      practiceStartTime
+                          ? Math.floor(
+                              (Date.now() - practiceStartTime) /
+                              1000
+                          )
+                          : 0;
+
+            timeStat.textContent =
+                elapsed + "초";
+
+            errorStat.textContent =
+                currentErrors;
+
+            accuracyStat.textContent =
+                currentAccuracy.toFixed(2) + "%";
+
+            typingStat.textContent =
+                currentTyping;
+        }
+
+
+        /*
+         * =========================================
+         * 진행률
+         * =========================================
+         */
+
+        function updateProgress() {
+            if (!currentPractice) {
+                return;
+            }
+
+            const percent =
+                      (currentLineIndex /
+                          currentPractice.code.length) *
+                      100;
+
+            progressText.textContent =
+                Math.floor(percent) + "%";
+
+            progressBar.style.width =
+                percent + "%";
+        }
+
+
+        /*
+         * =========================================
+         * 줄 결과 저장
+         * =========================================
+         */
+
+        function saveCurrentLineResult() {
+            totalErrors += currentErrors;
+
+            accuracyRecords.push(
+                currentAccuracy
+            );
+
+            typingRecords.push(
+                currentTyping
+            );
+        }
+
+
+        /*
+         * =========================================
+         * 전체 완료
+         * =========================================
+         */
+
+        function finishPractice() {
+            clearTimer();
+
+            progressBar.style.width = "100%";
+            progressText.textContent = "100%";
+
+            const elapsedMilliseconds =
+                      practiceStartTime
+                          ? Date.now() - practiceStartTime
+                          : 0;
+
+            const elapsedSeconds =
+                      Math.floor(
+                          elapsedMilliseconds / 1000
+                      );
+
+            const averageAccuracy =
+                      getAverage(accuracyRecords);
+
+            const averageTyping =
+                      getAverage(typingRecords);
+
+            resultTime.textContent =
+                formatTime(elapsedSeconds);
+
+            resultErrors.textContent =
+                totalErrors;
+
+            resultAccuracy.textContent =
+                averageAccuracy.toFixed(2) + "%";
+
+            resultTyping.textContent =
+                Math.round(averageTyping);
+
+            saveResult({
+                time: elapsedMilliseconds,
+                errors: totalErrors,
+                accuracy: averageAccuracy,
+                typing: averageTyping,
+                lang: currentPractice.lang,
+                title: currentPractice.title
+            });
+
+            resultModal.classList.add("active");
+        }
+
+
+        function getAverage(values) {
+            if (!values.length) {
+                return 0;
+            }
+
+            const sum = values.reduce(function (total, value) {
+                return total + Number(value);
+            }, 0);
+
+            return sum / values.length;
+        }
+
+
+        function formatTime(totalSeconds) {
+            const hours =
+                      Math.floor(totalSeconds / 3600);
+
+            const minutes =
+                      Math.floor(
+                          (totalSeconds % 3600) / 60
+                      );
+
+            const seconds =
+                      totalSeconds % 60;
+
+            if (hours > 0) {
+                return (
+                    hours +
+                    "시간 " +
+                    minutes +
+                    "분 " +
+                    seconds +
+                    "초"
+                );
+            }
+
+            if (minutes > 0) {
+                return (
+                    minutes +
+                    "분 " +
+                    seconds +
+                    "초"
+                );
+            }
+
+            return seconds + "초";
+        }
+
+
+        /*
+         * =========================================
+         * localStorage
+         * =========================================
+         */
+
+        function saveResult(result) {
+            try {
+                localStorage.setItem(
+                    "codeTypingResult",
+                    JSON.stringify(result)
+                );
+            } catch (error) {
+                console.warn(
+                    "결과를 저장할 수 없습니다.",
+                    error
+                );
+            }
+        }
+
+
+        /*
+         * =========================================
+         * 다시 시작
+         * =========================================
+         */
+
+        function restartPractice() {
+            if (!currentPractice) {
+                return;
+            }
+
+            resultModal.classList.remove("active");
+
+            startPractice(currentPractice);
+        }
+
+
+        /*
+         * =========================================
+         * 목록 이동
+         * =========================================
+         */
+
+        function showPracticeList() {
+            clearTimer();
+
+            resultModal.classList.remove("active");
+
+            currentPractice = null;
+
+            typingScreen.classList.remove("active");
+            selectScreen.classList.remove("hidden");
+
+            renderLanguages();
+            renderPracticeList();
+        }
+
+
+        /*
+         * =========================================
+         * 버튼 이벤트
+         * =========================================
+         */
+
+        backButton.addEventListener(
+            "click",
+            showPracticeList
+        );
+
+        resetButton.addEventListener(
+            "click",
+            restartPractice
+        );
+
+        resultListButton.addEventListener(
+            "click",
+            showPracticeList
+        );
+
+        retryButton.addEventListener(
+            "click",
+            restartPractice
+        );
+
+
+        /*
+         * =========================================
+         * 모달 외부 클릭
+         * =========================================
+         */
+
+        resultModal.addEventListener(
+            "click",
+            function (event) {
+                if (event.target === resultModal) {
+                    resultModal.classList.remove("active");
+                }
+            }
+        );
+
+
+        /*
+         * =========================================
+         * ESC
+         * =========================================
+         */
+
+        document.addEventListener(
+            "keydown",
+            function (event) {
+                if (
+                    event.key === "Escape" &&
+                    resultModal.classList.contains("active")
+                ) {
+                    resultModal.classList.remove("active");
+                }
+            }
+        );
+
+
+        /*
+         * =========================================
+         * 초기 실행
+         * =========================================
+         */
+
+        renderLanguages();
+        renderPracticeList();
+
+    })();
+</script>
+
+</body>
+</html>
