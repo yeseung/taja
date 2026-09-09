@@ -1,0 +1,2551 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>KeyWar - 타자연습 게임</title>
+
+  <!-- https://github.com/papered/KeyWar -->
+
+  <meta
+          name="description"
+          content="바닐라 자바스크립트로 만든 타자연습 게임 KeyWar입니다."
+  >
+
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --surface: #ffffff;
+      --surface-soft: #f8fafc;
+      --border: #e5e7eb;
+      --text: #111827;
+      --sub: #6b7280;
+
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-soft: #eff6ff;
+
+      --success: #16a34a;
+      --success-soft: #f0fdf4;
+
+      --danger: #dc2626;
+      --danger-soft: #fef2f2;
+
+      --warning: #d97706;
+
+      --radius: 20px;
+      --radius-small: 12px;
+
+      --shadow:
+              0 14px 40px rgba(15, 23, 42, 0.07);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+
+      background: var(--bg);
+
+      color: var(--text);
+
+      font-family:
+              -apple-system,
+              BlinkMacSystemFont,
+              "Segoe UI",
+              "Noto Sans KR",
+              Arial,
+              sans-serif;
+
+      line-height: 1.6;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .app {
+      width: min(100% - 30px, 900px);
+      margin: 0 auto;
+      padding: 40px 0 70px;
+    }
+
+    /* header */
+
+    .header {
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .logo {
+      margin-bottom: 5px;
+      font-size: 42px;
+    }
+
+    .title {
+      margin: 0;
+
+      font-size: clamp(32px, 6vw, 46px);
+      font-weight: 900;
+      letter-spacing: -0.05em;
+    }
+
+    .subtitle {
+      margin: 8px 0 0;
+      color: var(--sub);
+      font-size: 14px;
+    }
+
+    /* common */
+
+    .card {
+      overflow: hidden;
+
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+
+      background: var(--surface);
+
+      box-shadow: var(--shadow);
+    }
+
+    .section-title {
+      margin: 0 0 8px;
+
+      font-size: 23px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+
+    .section-description {
+      margin: 0;
+      color: var(--sub);
+      font-size: 14px;
+    }
+
+    .button {
+      min-height: 46px;
+      padding: 0 18px;
+
+      border: 1px solid transparent;
+      border-radius: 12px;
+
+      font-size: 14px;
+      font-weight: 800;
+
+      transition:
+              background-color 0.15s ease,
+              border-color 0.15s ease,
+              transform 0.15s ease;
+    }
+
+    .button:active {
+      transform: translateY(1px);
+    }
+
+    .button-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .button-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .button-secondary {
+      border-color: var(--border);
+      background: #fff;
+      color: var(--text);
+    }
+
+    .button-secondary:hover {
+      background: var(--surface-soft);
+    }
+
+    .button-danger {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    /* menu */
+
+    .menu-card {
+      padding: 26px;
+    }
+
+    .mode-list {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+
+      margin-top: 24px;
+    }
+
+    .mode-button {
+      min-height: 155px;
+      padding: 22px 15px;
+
+      border: 1px solid var(--border);
+      border-radius: 18px;
+
+      background: #fff;
+
+      color: var(--text);
+
+      text-align: center;
+    }
+
+    .mode-button:hover {
+      border-color: #bfdbfe;
+      background: var(--primary-soft);
+    }
+
+    .mode-icon {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 34px;
+    }
+
+    .mode-name {
+      display: block;
+      margin-bottom: 4px;
+
+      font-size: 17px;
+      font-weight: 900;
+    }
+
+    .mode-description {
+      display: block;
+
+      color: var(--sub);
+
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    /* setup */
+
+    .setup-card {
+      padding: 28px;
+    }
+
+    .form-group {
+      margin-top: 22px;
+    }
+
+    .form-label {
+      display: block;
+
+      margin-bottom: 7px;
+
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .select,
+    .input {
+      width: 100%;
+      height: 50px;
+      padding: 0 14px;
+
+      border: 1px solid var(--border);
+      border-radius: 12px;
+
+      outline: none;
+
+      background: #fff;
+
+      color: var(--text);
+    }
+
+    .select:focus,
+    .input:focus {
+      border-color: var(--primary);
+
+      box-shadow:
+              0 0 0 4px rgba(37, 99, 235, 0.1);
+    }
+
+    .setup-actions {
+      display: flex;
+      gap: 10px;
+
+      margin-top: 26px;
+    }
+
+    .setup-actions .button {
+      flex: 1;
+    }
+
+    /* game */
+
+    .game-header {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 9px;
+
+      margin-bottom: 14px;
+    }
+
+    .stat {
+      padding: 14px 8px;
+
+      border: 1px solid var(--border);
+      border-radius: 14px;
+
+      background: var(--surface);
+
+      text-align: center;
+    }
+
+    .stat-label {
+      display: block;
+
+      margin-bottom: 3px;
+
+      color: var(--sub);
+
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .stat-value {
+      display: block;
+
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+
+    .game-card {
+      padding: 26px;
+    }
+
+    .game-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+
+      margin-bottom: 20px;
+    }
+
+    .game-mode {
+      padding: 6px 10px;
+
+      border-radius: 999px;
+
+      background: var(--primary-soft);
+      color: var(--primary);
+
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    /* progress */
+
+    .progress-wrap {
+      margin-bottom: 24px;
+    }
+
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+
+      margin-bottom: 7px;
+
+      color: var(--sub);
+
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .progress {
+      overflow: hidden;
+
+      height: 9px;
+
+      border-radius: 999px;
+
+      background: #eef2f7;
+    }
+
+    .progress-bar {
+      width: 0;
+      height: 100%;
+
+      border-radius: inherit;
+
+      background: var(--primary);
+
+      transition: width 0.2s ease;
+    }
+
+    /* target */
+
+    .sentence-wrap {
+      min-height: 145px;
+      padding: 25px;
+
+      border: 1px solid var(--border);
+      border-radius: 17px;
+
+      background: var(--surface-soft);
+
+      text-align: center;
+    }
+
+    .sentence-label {
+      margin-bottom: 12px;
+
+      color: var(--sub);
+
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .sentence {
+      font-size: clamp(21px, 4vw, 30px);
+      font-weight: 900;
+      letter-spacing: -0.03em;
+
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+    }
+
+    .char {
+      border-radius: 3px;
+    }
+
+    .char.correct {
+      color: var(--success);
+    }
+
+    .char.wrong {
+      background: var(--danger-soft);
+      color: var(--danger);
+    }
+
+    .char.current {
+      background: #dbeafe;
+    }
+
+    /* typing input */
+
+    .typing-area {
+      margin-top: 18px;
+    }
+
+    .typing-input {
+      width: 100%;
+      height: 60px;
+      padding: 0 17px;
+
+      border: 2px solid var(--border);
+      border-radius: 14px;
+
+      outline: none;
+
+      background: #fff;
+
+      color: var(--text);
+
+      font-size: 19px;
+    }
+
+    .typing-input:focus {
+      border-color: var(--primary);
+
+      box-shadow:
+              0 0 0 4px rgba(37, 99, 235, 0.1);
+    }
+
+    .typing-message {
+      min-height: 24px;
+      margin-top: 8px;
+
+      color: var(--sub);
+
+      font-size: 12px;
+    }
+
+    .typing-message.success {
+      color: var(--success);
+    }
+
+    .typing-message.error {
+      color: var(--danger);
+    }
+
+    .game-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 9px;
+
+      margin-top: 20px;
+    }
+
+    /* dual */
+
+    .dual-score {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 12px;
+
+      margin-bottom: 20px;
+    }
+
+    .player-card {
+      padding: 17px;
+
+      border: 2px solid var(--border);
+      border-radius: 15px;
+
+      background: #fff;
+
+      text-align: center;
+    }
+
+    .player-card.active {
+      border-color: var(--primary);
+      background: var(--primary-soft);
+    }
+
+    .player-title {
+      color: var(--sub);
+
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .player-score {
+      margin-top: 3px;
+
+      font-size: 27px;
+      font-weight: 900;
+    }
+
+    .versus {
+      font-size: 15px;
+      font-weight: 900;
+    }
+
+    /* result */
+
+    .result-card {
+      padding: 32px;
+      text-align: center;
+    }
+
+    .result-icon {
+      font-size: 46px;
+    }
+
+    .result-title {
+      margin: 10px 0 5px;
+
+      font-size: 28px;
+      font-weight: 900;
+    }
+
+    .result-description {
+      margin: 0;
+
+      color: var(--sub);
+
+      font-size: 14px;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+
+      margin: 28px 0;
+    }
+
+    .result-item {
+      padding: 18px 10px;
+
+      border: 1px solid var(--border);
+      border-radius: 14px;
+
+      background: var(--surface-soft);
+    }
+
+    .result-label {
+      display: block;
+
+      color: var(--sub);
+
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .result-value {
+      display: block;
+
+      margin-top: 4px;
+
+      font-size: 25px;
+      font-weight: 900;
+    }
+
+    .result-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+    }
+
+    /* footer */
+
+    .footer {
+      margin-top: 25px;
+
+      color: #9ca3af;
+
+      text-align: center;
+
+      font-size: 11px;
+    }
+
+    @media (max-width: 700px) {
+      .app {
+        width: min(100% - 22px, 900px);
+        padding-top: 25px;
+      }
+
+      .mode-list {
+        grid-template-columns: 1fr;
+      }
+
+      .mode-button {
+        min-height: 110px;
+      }
+
+      .game-header {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .result-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .game-card {
+        padding: 18px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .setup-actions,
+      .game-actions,
+      .result-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .dual-score {
+        grid-template-columns: 1fr;
+      }
+
+      .versus {
+        padding: 2px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <header class="header">
+    <div class="logo">⌨️⚔️</div>
+
+    <h1 class="title">KeyWar</h1>
+
+    <p class="subtitle">
+      빠르고 정확하게 입력하는 타자연습 게임
+    </p>
+  </header>
+
+
+  <!-- 메인 메뉴 -->
+
+  <main id="menuScreen">
+
+    <section class="card menu-card">
+
+      <h2 class="section-title">
+        게임 모드
+      </h2>
+
+      <p class="section-description">
+        원하는 타자연습 방식을 선택하세요.
+      </p>
+
+
+      <div class="mode-list">
+
+        <button
+                type="button"
+                class="mode-button"
+                data-mode="practice"
+        >
+          <span class="mode-icon">📝</span>
+
+          <span class="mode-name">
+                        연습
+                    </span>
+
+          <span class="mode-description">
+                        시간 제한 없이 문장을 연습합니다.
+                    </span>
+        </button>
+
+
+        <button
+                type="button"
+                class="mode-button"
+                data-mode="single"
+        >
+          <span class="mode-icon">⚔️</span>
+
+          <span class="mode-name">
+                        싱글
+                    </span>
+
+          <span class="mode-description">
+                        제한된 문장을 빠르게 입력합니다.
+                    </span>
+        </button>
+
+
+        <button
+                type="button"
+                class="mode-button"
+                data-mode="dual"
+        >
+          <span class="mode-icon">👥</span>
+
+          <span class="mode-name">
+                        2인 대전
+                    </span>
+
+          <span class="mode-description">
+                        한 기기에서 번갈아 타이핑합니다.
+                    </span>
+        </button>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- 설정 -->
+
+  <main
+          id="setupScreen"
+          class="hidden"
+  >
+
+    <section class="card setup-card">
+
+      <h2
+              class="section-title"
+              id="setupTitle"
+      >
+        게임 설정
+      </h2>
+
+      <p
+              class="section-description"
+              id="setupDescription"
+      >
+        게임 설정을 선택하세요.
+      </p>
+
+
+      <div class="form-group">
+
+        <label
+                for="sentenceCount"
+                class="form-label"
+        >
+          문장 수
+        </label>
+
+        <select
+                id="sentenceCount"
+                class="select"
+        >
+          <option value="5">5문장</option>
+          <option value="10" selected>10문장</option>
+          <option value="15">15문장</option>
+          <option value="20">20문장</option>
+        </select>
+
+      </div>
+
+
+      <div
+              class="form-group hidden"
+              id="playerNameGroup"
+      >
+
+        <label
+                for="player1Name"
+                class="form-label"
+        >
+          참가자 이름
+        </label>
+
+        <input
+                type="text"
+                id="player1Name"
+                class="input"
+                maxlength="10"
+                value="PLAYER 1"
+        >
+
+        <input
+                type="text"
+                id="player2Name"
+                class="input"
+                maxlength="10"
+                value="PLAYER 2"
+                style="margin-top:8px"
+        >
+
+      </div>
+
+
+      <div class="setup-actions">
+
+        <button
+                type="button"
+                class="button button-secondary"
+                id="setupBackButton"
+        >
+          ← 돌아가기
+        </button>
+
+        <button
+                type="button"
+                class="button button-primary"
+                id="startButton"
+        >
+          게임 시작
+        </button>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- 게임 -->
+
+  <main
+          id="gameScreen"
+          class="hidden"
+  >
+
+    <div class="game-header">
+
+      <div class="stat">
+                <span class="stat-label">
+                    현재 문장
+                </span>
+
+        <strong
+                class="stat-value"
+                id="sentenceCounter"
+        >
+          1 / 10
+        </strong>
+      </div>
+
+
+      <div class="stat">
+                <span class="stat-label">
+                    타수
+                </span>
+
+        <strong
+                class="stat-value"
+                id="cpmValue"
+        >
+          0
+        </strong>
+      </div>
+
+
+      <div class="stat">
+                <span class="stat-label">
+                    정확도
+                </span>
+
+        <strong
+                class="stat-value"
+                id="accuracyValue"
+        >
+          100%
+        </strong>
+      </div>
+
+
+      <div class="stat">
+                <span class="stat-label">
+                    시간
+                </span>
+
+        <strong
+                class="stat-value"
+                id="timeValue"
+        >
+          00:00
+        </strong>
+      </div>
+
+    </div>
+
+
+    <section class="card game-card">
+
+      <div class="game-top">
+
+        <div>
+          <h2
+                  class="section-title"
+                  id="gameTitle"
+          >
+            타자연습
+          </h2>
+
+          <p
+                  class="section-description"
+                  id="gameDescription"
+          >
+            아래 문장을 입력하세요.
+          </p>
+        </div>
+
+        <span
+                class="game-mode"
+                id="modeBadge"
+        >
+                    PRACTICE
+                </span>
+
+      </div>
+
+
+      <div
+              class="dual-score hidden"
+              id="dualScore"
+      >
+
+        <div
+                class="player-card"
+                id="player1Card"
+        >
+          <div
+                  class="player-title"
+                  id="player1Label"
+          >
+            PLAYER 1
+          </div>
+
+          <div
+                  class="player-score"
+                  id="player1Score"
+          >
+            0
+          </div>
+        </div>
+
+        <div class="versus">
+          VS
+        </div>
+
+        <div
+                class="player-card"
+                id="player2Card"
+        >
+          <div
+                  class="player-title"
+                  id="player2Label"
+          >
+            PLAYER 2
+          </div>
+
+          <div
+                  class="player-score"
+                  id="player2Score"
+          >
+            0
+          </div>
+        </div>
+
+      </div>
+
+
+      <div class="progress-wrap">
+
+        <div class="progress-info">
+
+                    <span>
+                        진행도
+                    </span>
+
+          <span id="progressText">
+                        0%
+                    </span>
+
+        </div>
+
+        <div class="progress">
+          <div
+                  class="progress-bar"
+                  id="progressBar"
+          ></div>
+        </div>
+
+      </div>
+
+
+      <div class="sentence-wrap">
+
+        <div class="sentence-label">
+          TARGET SENTENCE
+        </div>
+
+        <div
+                class="sentence"
+                id="targetSentence"
+        ></div>
+
+      </div>
+
+
+      <div class="typing-area">
+
+        <input
+                type="text"
+                id="typingInput"
+                class="typing-input"
+                placeholder="문장을 입력하세요."
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                aria-label="타자 입력"
+        >
+
+        <div
+                class="typing-message"
+                id="typingMessage"
+                aria-live="polite"
+        >
+          문장을 정확하게 입력하면 자동으로 다음 문장으로 넘어갑니다.
+        </div>
+
+      </div>
+
+
+      <div class="game-actions">
+
+        <button
+                type="button"
+                class="button button-secondary"
+                id="restartButton"
+        >
+          ↻ 다시 시작
+        </button>
+
+        <button
+                type="button"
+                class="button button-secondary"
+                id="quitButton"
+        >
+          게임 종료
+        </button>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- 결과 -->
+
+  <main
+          id="resultScreen"
+          class="hidden"
+  >
+
+    <section class="card result-card">
+
+      <div class="result-icon">
+        🏆
+      </div>
+
+      <h2
+              class="result-title"
+              id="resultTitle"
+      >
+        게임 완료
+      </h2>
+
+      <p
+              class="result-description"
+              id="resultDescription"
+      >
+        결과를 확인하세요.
+      </p>
+
+
+      <div class="result-grid">
+
+        <div class="result-item">
+
+                    <span class="result-label">
+                        평균 타수
+                    </span>
+
+          <strong
+                  class="result-value"
+                  id="resultCpm"
+          >
+            0
+          </strong>
+
+        </div>
+
+
+        <div class="result-item">
+
+                    <span class="result-label">
+                        정확도
+                    </span>
+
+          <strong
+                  class="result-value"
+                  id="resultAccuracy"
+          >
+            100%
+          </strong>
+
+        </div>
+
+
+        <div class="result-item">
+
+                    <span class="result-label">
+                        소요시간
+                    </span>
+
+          <strong
+                  class="result-value"
+                  id="resultTime"
+          >
+            0초
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <div class="result-actions">
+
+        <button
+                type="button"
+                class="button button-primary"
+                id="retryButton"
+        >
+          ↻ 다시하기
+        </button>
+
+        <button
+                type="button"
+                class="button button-secondary"
+                id="homeButton"
+        >
+          메인으로
+        </button>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <footer class="footer">
+    KeyWar Vanilla JavaScript Edition
+  </footer>
+
+</div>
+
+
+<script>
+  "use strict";
+
+
+  /* ======================================================
+     연습 문장
+  ====================================================== */
+
+  const sentenceData = [
+    "오늘도 즐겁게 타자 연습을 시작합니다.",
+    "빠른 속도보다 정확하게 입력하는 것이 중요합니다.",
+    "꾸준한 연습은 좋은 타자 습관을 만들어 줍니다.",
+    "작은 노력들이 모이면 큰 변화를 만들 수 있습니다.",
+    "천천히 정확하게 입력하면서 키보드에 익숙해집니다.",
+    "새로운 일을 시작할 때에는 용기가 필요합니다.",
+    "좋은 습관은 하루아침에 만들어지지 않습니다.",
+    "오늘의 연습이 내일의 실력이 됩니다.",
+    "실수하더라도 다시 천천히 시작하면 됩니다.",
+    "목표를 향해 조금씩 앞으로 나아갑니다.",
+
+    "아침 햇살이 창문을 통해 방 안으로 들어옵니다.",
+    "따뜻한 차 한 잔과 함께 여유로운 시간을 보냅니다.",
+    "조용한 음악을 들으며 하루를 정리합니다.",
+    "길을 걷다 보면 새로운 풍경을 발견할 수 있습니다.",
+    "푸른 하늘을 바라보면 마음이 편안해집니다.",
+    "친구와 함께 이야기하는 시간은 언제나 즐겁습니다.",
+    "책을 읽으며 새로운 생각과 지식을 배웁니다.",
+    "건강을 위해 매일 조금씩 운동하는 것이 좋습니다.",
+    "즐거운 마음으로 시작하면 하루가 더욱 행복해집니다.",
+    "어려운 문제도 하나씩 해결하면 답을 찾을 수 있습니다.",
+
+    "Typing practice can improve your keyboard skills.",
+    "Accuracy is more important than speed at first.",
+    "Practice every day and enjoy the process.",
+    "A good habit can make a big difference.",
+    "Keep your eyes on the screen while typing.",
+    "Small improvements can lead to great results.",
+    "Learning new things requires time and patience.",
+    "Stay focused and type each word carefully.",
+    "Do not worry when you make a typing mistake.",
+    "Your typing speed will improve with practice."
+  ];
+
+
+  /* ======================================================
+     DOM
+  ====================================================== */
+
+  const menuScreen =
+                document.getElementById("menuScreen");
+
+  const setupScreen =
+                document.getElementById("setupScreen");
+
+  const gameScreen =
+                document.getElementById("gameScreen");
+
+  const resultScreen =
+                document.getElementById("resultScreen");
+
+
+  const modeButtons =
+                document.querySelectorAll(".mode-button");
+
+
+  const setupTitle =
+                document.getElementById("setupTitle");
+
+  const setupDescription =
+                document.getElementById("setupDescription");
+
+  const sentenceCountSelect =
+                document.getElementById("sentenceCount");
+
+  const playerNameGroup =
+                document.getElementById("playerNameGroup");
+
+  const player1NameInput =
+                document.getElementById("player1Name");
+
+  const player2NameInput =
+                document.getElementById("player2Name");
+
+  const setupBackButton =
+                document.getElementById("setupBackButton");
+
+  const startButton =
+                document.getElementById("startButton");
+
+
+  const sentenceCounter =
+                document.getElementById("sentenceCounter");
+
+  const cpmValue =
+                document.getElementById("cpmValue");
+
+  const accuracyValue =
+                document.getElementById("accuracyValue");
+
+  const timeValue =
+                document.getElementById("timeValue");
+
+  const gameTitle =
+                document.getElementById("gameTitle");
+
+  const gameDescription =
+                document.getElementById("gameDescription");
+
+  const modeBadge =
+                document.getElementById("modeBadge");
+
+  const progressBar =
+                document.getElementById("progressBar");
+
+  const progressText =
+                document.getElementById("progressText");
+
+  const targetSentence =
+                document.getElementById("targetSentence");
+
+  const typingInput =
+                document.getElementById("typingInput");
+
+  const typingMessage =
+                document.getElementById("typingMessage");
+
+  const restartButton =
+                document.getElementById("restartButton");
+
+  const quitButton =
+                document.getElementById("quitButton");
+
+
+  const dualScore =
+                document.getElementById("dualScore");
+
+  const player1Card =
+                document.getElementById("player1Card");
+
+  const player2Card =
+                document.getElementById("player2Card");
+
+  const player1Label =
+                document.getElementById("player1Label");
+
+  const player2Label =
+                document.getElementById("player2Label");
+
+  const player1ScoreElement =
+                document.getElementById("player1Score");
+
+  const player2ScoreElement =
+                document.getElementById("player2Score");
+
+
+  const resultTitle =
+                document.getElementById("resultTitle");
+
+  const resultDescription =
+                document.getElementById("resultDescription");
+
+  const resultCpm =
+                document.getElementById("resultCpm");
+
+  const resultAccuracy =
+                document.getElementById("resultAccuracy");
+
+  const resultTime =
+                document.getElementById("resultTime");
+
+  const retryButton =
+                document.getElementById("retryButton");
+
+  const homeButton =
+                document.getElementById("homeButton");
+
+
+  /* ======================================================
+     상태
+  ====================================================== */
+
+  let selectedMode = "practice";
+
+  let selectedSentences = [];
+
+  let currentSentenceIndex = 0;
+
+  let startTime = 0;
+
+  let timerId = null;
+
+  let totalTyped = 0;
+
+  let totalCorrect = 0;
+
+  let completedCharacters = 0;
+
+  let isComposing = false;
+
+
+  /* 2인 대전 */
+
+  let currentPlayer = 1;
+
+  let player1Score = 0;
+
+  let player2Score = 0;
+
+  let player1Name = "PLAYER 1";
+
+  let player2Name = "PLAYER 2";
+
+
+  /* ======================================================
+     화면 전환
+  ====================================================== */
+
+  function showScreen(name) {
+
+    menuScreen.classList.add("hidden");
+    setupScreen.classList.add("hidden");
+    gameScreen.classList.add("hidden");
+    resultScreen.classList.add("hidden");
+
+
+    if (name === "menu") {
+
+      menuScreen.classList.remove("hidden");
+    }
+
+    if (name === "setup") {
+
+      setupScreen.classList.remove("hidden");
+    }
+
+    if (name === "game") {
+
+      gameScreen.classList.remove("hidden");
+    }
+
+    if (name === "result") {
+
+      resultScreen.classList.remove("hidden");
+    }
+  }
+
+
+  /* ======================================================
+     모드 선택
+  ====================================================== */
+
+  modeButtons.forEach(function (button) {
+
+    button.addEventListener(
+            "click",
+            function () {
+
+              selectedMode =
+                      button.dataset.mode;
+
+              openSetup();
+            }
+    );
+  });
+
+
+  function openSetup() {
+
+    playerNameGroup.classList.add("hidden");
+
+
+    if (selectedMode === "practice") {
+
+      setupTitle.textContent =
+              "연습 모드";
+
+      setupDescription.textContent =
+              "문장 수를 선택하고 자유롭게 연습하세요.";
+    }
+
+
+    if (selectedMode === "single") {
+
+      setupTitle.textContent =
+              "싱글 게임";
+
+      setupDescription.textContent =
+              "선택한 문장을 가능한 빠르고 정확하게 입력하세요.";
+    }
+
+
+    if (selectedMode === "dual") {
+
+      setupTitle.textContent =
+              "2인 대전";
+
+      setupDescription.textContent =
+              "한 기기에서 두 명이 번갈아 문장을 입력합니다.";
+
+      playerNameGroup.classList.remove(
+              "hidden"
+      );
+    }
+
+
+    showScreen("setup");
+  }
+
+
+  /* ======================================================
+     게임 준비
+  ====================================================== */
+
+  function shuffleArray(array) {
+
+    const result =
+                  [...array];
+
+
+    for (
+            let i = result.length - 1;
+            i > 0;
+            i--
+    ) {
+
+      const randomIndex =
+                    Math.floor(
+                            Math.random() * (i + 1)
+                    );
+
+
+      [
+        result[i],
+        result[randomIndex]
+      ] = [
+        result[randomIndex],
+        result[i]
+      ];
+    }
+
+
+    return result;
+  }
+
+
+  function prepareSentences() {
+
+    const count =
+                  Number(
+                          sentenceCountSelect.value
+                  );
+
+
+    selectedSentences =
+            shuffleArray(
+                    sentenceData
+            ).slice(
+                    0,
+                    Math.min(
+                            count,
+                            sentenceData.length
+                    )
+            );
+  }
+
+
+  /* ======================================================
+     게임 시작
+  ====================================================== */
+
+  function startGame() {
+
+    prepareSentences();
+
+
+    currentSentenceIndex = 0;
+
+    startTime = Date.now();
+
+    totalTyped = 0;
+
+    totalCorrect = 0;
+
+    completedCharacters = 0;
+
+    currentPlayer = 1;
+
+    player1Score = 0;
+
+    player2Score = 0;
+
+
+    player1Name =
+            player1NameInput.value.trim()
+            || "PLAYER 1";
+
+    player2Name =
+            player2NameInput.value.trim()
+            || "PLAYER 2";
+
+
+    player1Label.textContent =
+            player1Name;
+
+    player2Label.textContent =
+            player2Name;
+
+
+    player1ScoreElement.textContent =
+            "0";
+
+    player2ScoreElement.textContent =
+            "0";
+
+
+    dualScore.classList.toggle(
+            "hidden",
+            selectedMode !== "dual"
+    );
+
+
+    if (selectedMode === "practice") {
+
+      gameTitle.textContent =
+              "타자 연습";
+
+      gameDescription.textContent =
+              "문장을 정확하게 입력하세요.";
+
+      modeBadge.textContent =
+              "PRACTICE";
+    }
+
+
+    if (selectedMode === "single") {
+
+      gameTitle.textContent =
+              "싱글 게임";
+
+      gameDescription.textContent =
+              "최대한 빠르게 모든 문장을 입력하세요.";
+
+      modeBadge.textContent =
+              "SINGLE";
+    }
+
+
+    if (selectedMode === "dual") {
+
+      gameTitle.textContent =
+              "2인 타자 대전";
+
+      gameDescription.textContent =
+              "현재 차례의 참가자가 문장을 입력하세요.";
+
+      modeBadge.textContent =
+              "DUAL";
+    }
+
+
+    typingInput.disabled =
+            false;
+
+
+    showScreen("game");
+
+    renderSentence();
+
+    updateStats();
+
+    updateDualPlayer();
+
+
+    stopTimer();
+
+
+    timerId =
+            setInterval(
+                    updateStats,
+                    250
+            );
+
+
+    setTimeout(function () {
+
+      typingInput.focus();
+
+    }, 100);
+  }
+
+
+  /* ======================================================
+     문장 표시
+  ====================================================== */
+
+  function renderSentence() {
+
+    typingInput.value = "";
+
+    typingMessage.textContent =
+            selectedMode === "dual"
+                    ? getCurrentPlayerName() + " 차례입니다."
+                    : "문장을 정확하게 입력하면 자동으로 다음 문장으로 넘어갑니다.";
+
+    typingMessage.className =
+            "typing-message";
+
+
+    renderCharacters("");
+
+    updateProgress();
+  }
+
+
+  function renderCharacters(typedText) {
+
+    const target =
+                  selectedSentences[
+                          currentSentenceIndex
+                          ];
+
+
+    if (!target) {
+
+      targetSentence.innerHTML = "";
+
+      return;
+    }
+
+
+    targetSentence.innerHTML = "";
+
+
+    const targetChars =
+                  Array.from(target);
+
+    const typedChars =
+                  Array.from(typedText);
+
+
+    targetChars.forEach(
+            function (character, index) {
+
+              const span =
+                            document.createElement("span");
+
+              span.className =
+                      "char";
+
+              span.textContent =
+                      character;
+
+
+              if (index < typedChars.length) {
+
+                if (
+                        typedChars[index] ===
+                        character
+                ) {
+
+                  span.classList.add(
+                          "correct"
+                  );
+
+                } else {
+
+                  span.classList.add(
+                          "wrong"
+                  );
+                }
+
+              } else if (
+                      index ===
+                      typedChars.length
+              ) {
+
+                span.classList.add(
+                        "current"
+                );
+              }
+
+
+              targetSentence.appendChild(
+                      span
+              );
+            }
+    );
+  }
+
+
+  /* ======================================================
+     타자 입력
+  ====================================================== */
+
+  typingInput.addEventListener(
+          "compositionstart",
+          function () {
+
+            isComposing = true;
+          }
+  );
+
+
+  typingInput.addEventListener(
+          "compositionend",
+          function () {
+
+            isComposing = false;
+
+            processTyping();
+          }
+  );
+
+
+  typingInput.addEventListener(
+          "input",
+          function () {
+
+            if (!isComposing) {
+
+              processTyping();
+            }
+          }
+  );
+
+
+  function processTyping() {
+
+    const target =
+                  selectedSentences[
+                          currentSentenceIndex
+                          ];
+
+    const typed =
+                  typingInput.value;
+
+
+    renderCharacters(typed);
+
+
+    if (typed === target) {
+
+      completeSentence();
+
+      return;
+    }
+
+
+    if (
+            typed.length >
+            target.length
+    ) {
+
+      typingMessage.textContent =
+              "문장의 길이를 확인해 주세요.";
+
+      typingMessage.className =
+              "typing-message error";
+
+    } else {
+
+      typingMessage.textContent =
+              selectedMode === "dual"
+                      ? getCurrentPlayerName() +
+                      " 입력 중..."
+                      : "입력 중...";
+
+      typingMessage.className =
+              "typing-message";
+    }
+
+
+    updateStats();
+  }
+
+
+  /* ======================================================
+     문장 완료
+  ====================================================== */
+
+  function completeSentence() {
+
+    const target =
+                  selectedSentences[
+                          currentSentenceIndex
+                          ];
+
+    const typed =
+                  typingInput.value;
+
+
+    const result =
+                  compareText(
+                          target,
+                          typed
+                  );
+
+
+    totalTyped +=
+            Array.from(typed).length;
+
+    totalCorrect +=
+            result.correct;
+
+    completedCharacters +=
+            Array.from(target).length;
+
+
+    if (selectedMode === "dual") {
+
+      if (currentPlayer === 1) {
+
+        player1Score++;
+
+      } else {
+
+        player2Score++;
+      }
+
+
+      player1ScoreElement.textContent =
+              player1Score;
+
+      player2ScoreElement.textContent =
+              player2Score;
+    }
+
+
+    typingMessage.textContent =
+            "정답!";
+
+    typingMessage.className =
+            "typing-message success";
+
+
+    currentSentenceIndex++;
+
+
+    if (
+            currentSentenceIndex >=
+            selectedSentences.length
+    ) {
+
+      finishGame();
+
+      return;
+    }
+
+
+    if (selectedMode === "dual") {
+
+      currentPlayer =
+              currentPlayer === 1
+                      ? 2
+                      : 1;
+
+      updateDualPlayer();
+    }
+
+
+    setTimeout(function () {
+
+      renderSentence();
+
+      updateStats();
+
+      typingInput.focus();
+
+    }, 180);
+  }
+
+
+  /* ======================================================
+     문자 비교
+  ====================================================== */
+
+  function compareText(target, typed) {
+
+    const targetChars =
+                  Array.from(target);
+
+    const typedChars =
+                  Array.from(typed);
+
+
+    let correct = 0;
+
+
+    typedChars.forEach(
+            function (character, index) {
+
+              if (
+                      character ===
+                      targetChars[index]
+              ) {
+
+                correct++;
+              }
+            }
+    );
+
+
+    return {
+      correct: correct,
+      total: typedChars.length
+    };
+  }
+
+
+  /* ======================================================
+     통계
+  ====================================================== */
+
+  function getCurrentTypedStats() {
+
+    const target =
+                  selectedSentences[
+                          currentSentenceIndex
+                          ] || "";
+
+    const typed =
+                  typingInput.value;
+
+
+    return compareText(
+            target,
+            typed
+    );
+  }
+
+
+  function calculateCpm() {
+
+    if (!startTime) {
+      return 0;
+    }
+
+
+    const elapsedMinutes =
+                  (
+                          Date.now() -
+                          startTime
+                  ) / 60000;
+
+
+    if (elapsedMinutes <= 0) {
+      return 0;
+    }
+
+
+    const currentLength =
+                  Array.from(
+                          typingInput.value
+                  ).length;
+
+
+    return Math.round(
+            (
+                    completedCharacters +
+                    currentLength
+            ) /
+            elapsedMinutes
+    );
+  }
+
+
+  function calculateAccuracy() {
+
+    const currentStats =
+                  getCurrentTypedStats();
+
+
+    const total =
+                  totalTyped +
+                  currentStats.total;
+
+    const correct =
+                  totalCorrect +
+                  currentStats.correct;
+
+
+    if (total === 0) {
+      return 100;
+    }
+
+
+    return Math.round(
+            (
+                    correct /
+                    total
+            ) * 100
+    );
+  }
+
+
+  function updateStats() {
+
+    if (!startTime) {
+      return;
+    }
+
+
+    sentenceCounter.textContent =
+            Math.min(
+                    currentSentenceIndex + 1,
+                    selectedSentences.length
+            ) +
+            " / " +
+            selectedSentences.length;
+
+
+    cpmValue.textContent =
+            calculateCpm();
+
+
+    accuracyValue.textContent =
+            calculateAccuracy() +
+            "%";
+
+
+    timeValue.textContent =
+            formatClock(
+                    Date.now() -
+                    startTime
+            );
+
+
+    updateProgress();
+  }
+
+
+  /* ======================================================
+     진행률
+  ====================================================== */
+
+  function updateProgress() {
+
+    const total =
+                  selectedSentences.length;
+
+
+    if (!total) {
+      return;
+    }
+
+
+    const currentInput =
+                  typingInput.value;
+
+
+    const currentTarget =
+                  selectedSentences[
+                          currentSentenceIndex
+                          ] || "";
+
+
+    let partial =
+                0;
+
+
+    if (currentTarget.length > 0) {
+
+      partial =
+              Math.min(
+                      Array.from(
+                              currentInput
+                      ).length /
+                      Array.from(
+                              currentTarget
+                      ).length,
+
+                      1
+              );
+    }
+
+
+    const progress =
+                  Math.min(
+                          100,
+                          (
+                                  (
+                                          currentSentenceIndex +
+                                          partial
+                                  ) /
+                                  total
+                          ) * 100
+                  );
+
+
+    progressBar.style.width =
+            progress.toFixed(1) +
+            "%";
+
+
+    progressText.textContent =
+            Math.round(progress) +
+            "%";
+  }
+
+
+  /* ======================================================
+     2인 대전
+  ====================================================== */
+
+  function getCurrentPlayerName() {
+
+    return currentPlayer === 1
+            ? player1Name
+            : player2Name;
+  }
+
+
+  function updateDualPlayer() {
+
+    if (selectedMode !== "dual") {
+
+      player1Card.classList.remove(
+              "active"
+      );
+
+      player2Card.classList.remove(
+              "active"
+      );
+
+      return;
+    }
+
+
+    player1Card.classList.toggle(
+            "active",
+            currentPlayer === 1
+    );
+
+
+    player2Card.classList.toggle(
+            "active",
+            currentPlayer === 2
+    );
+  }
+
+
+  /* ======================================================
+     게임 완료
+  ====================================================== */
+
+  function finishGame() {
+
+    stopTimer();
+
+
+    typingInput.disabled =
+            true;
+
+
+    const elapsed =
+                  Date.now() -
+                  startTime;
+
+
+    const minutes =
+                  elapsed / 60000;
+
+
+    const finalCpm =
+                  minutes > 0
+                          ? Math.round(
+                                  completedCharacters /
+                                  minutes
+                          )
+                          : 0;
+
+
+    const finalAccuracy =
+                  totalTyped > 0
+                          ? Math.round(
+                                  (
+                                          totalCorrect /
+                                          totalTyped
+                                  ) * 100
+                          )
+                          : 100;
+
+
+    if (selectedMode === "dual") {
+
+      if (
+              player1Score >
+              player2Score
+      ) {
+
+        resultTitle.textContent =
+                player1Name +
+                " 승리!";
+
+      } else if (
+              player2Score >
+              player1Score
+      ) {
+
+        resultTitle.textContent =
+                player2Name +
+                " 승리!";
+
+      } else {
+
+        resultTitle.textContent =
+                "무승부!";
+      }
+
+
+      resultDescription.textContent =
+              player1Name +
+              " " +
+              player1Score +
+              " : " +
+              player2Score +
+              " " +
+              player2Name;
+
+    } else {
+
+      resultTitle.textContent =
+              "게임 완료!";
+
+      resultDescription.textContent =
+              "모든 문장을 입력했습니다.";
+    }
+
+
+    resultCpm.textContent =
+            finalCpm + "타";
+
+    resultAccuracy.textContent =
+            finalAccuracy + "%";
+
+    resultTime.textContent =
+            formatDuration(elapsed);
+
+
+    showScreen("result");
+  }
+
+
+  /* ======================================================
+     시간
+  ====================================================== */
+
+  function formatClock(milliseconds) {
+
+    const seconds =
+                  Math.floor(
+                          milliseconds / 1000
+                  );
+
+
+    const minutes =
+                  Math.floor(
+                          seconds / 60
+                  );
+
+
+    const remaining =
+                  seconds % 60;
+
+
+    return (
+            String(minutes)
+            .padStart(2, "0") +
+            ":" +
+            String(remaining)
+            .padStart(2, "0")
+    );
+  }
+
+
+  function formatDuration(milliseconds) {
+
+    const seconds =
+                  Math.round(
+                          milliseconds / 1000
+                  );
+
+
+    if (seconds < 60) {
+
+      return seconds +
+              "초";
+    }
+
+
+    const minutes =
+                  Math.floor(
+                          seconds / 60
+                  );
+
+    const remaining =
+                  seconds % 60;
+
+
+    return (
+            minutes +
+            "분 " +
+            remaining +
+            "초"
+    );
+  }
+
+
+  /* ======================================================
+     타이머
+  ====================================================== */
+
+  function stopTimer() {
+
+    if (timerId) {
+
+      clearInterval(timerId);
+
+      timerId = null;
+    }
+  }
+
+
+  /* ======================================================
+     종료 및 초기화
+  ====================================================== */
+
+  function goHome() {
+
+    stopTimer();
+
+    typingInput.disabled =
+            false;
+
+    typingInput.value =
+            "";
+
+    showScreen("menu");
+  }
+
+
+  /* ======================================================
+     이벤트
+  ====================================================== */
+
+  setupBackButton.addEventListener(
+          "click",
+          function () {
+
+            showScreen("menu");
+          }
+  );
+
+
+  startButton.addEventListener(
+          "click",
+          startGame
+  );
+
+
+  restartButton.addEventListener(
+          "click",
+          startGame
+  );
+
+
+  retryButton.addEventListener(
+          "click",
+          startGame
+  );
+
+
+  quitButton.addEventListener(
+          "click",
+          goHome
+  );
+
+
+  homeButton.addEventListener(
+          "click",
+          goHome
+  );
+
+
+  /* 붙여넣기 방지 */
+
+  typingInput.addEventListener(
+          "paste",
+          function (event) {
+
+            event.preventDefault();
+
+            typingMessage.textContent =
+                    "타자연습에서는 붙여넣기를 사용할 수 없습니다.";
+
+            typingMessage.className =
+                    "typing-message error";
+          }
+  );
+
+
+  /* ESC 메인으로 */
+
+  document.addEventListener(
+          "keydown",
+          function (event) {
+
+            if (
+                    event.key === "Escape" &&
+                    !gameScreen.classList.contains(
+                            "hidden"
+                    )
+            ) {
+
+              goHome();
+            }
+          }
+  );
+
+
+  /* ======================================================
+     초기화
+  ====================================================== */
+
+  showScreen("menu");
+
+</script>
+
+</body>
+</html>
