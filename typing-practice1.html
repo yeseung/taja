@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Typing Practice - 타자연습</title>
+
+    <meta
+            name="description"
+            content="원하는 문장을 입력하고 바로 연습할 수 있는 간단한 웹 타자연습입니다."
+    >
+    <meta
+            name="keywords"
+            content="타자연습, 타이핑 연습, typing practice, typing test"
+    >
+
+    <style>
+        :root {
+            --bg: #f7f8fa;
+            --card: #ffffff;
+            --text: #222222;
+            --muted: #8a8f98;
+            --border: #e6e8ec;
+            --primary: #4d7cff;
+            --primary-hover: #3869ed;
+            --correct: #222222;
+            --wrong: #ef4444;
+            --current: #4d7cff;
+            --key-bg: #ffffff;
+            --key-active: #dce6ff;
+            --shadow: 0 18px 50px rgba(0, 0, 0, 0.08);
+            --radius: 24px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100%;
+        }
+
+        body {
+            min-height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family:
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "Segoe UI",
+                    "Noto Sans KR",
+                    sans-serif;
+        }
+
+        button,
+        textarea {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .page {
+            width: min(100% - 32px, 1000px);
+            min-height: 100vh;
+            margin: 0 auto;
+            padding: 48px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .app {
+            width: 100%;
+        }
+
+        .header {
+            margin-bottom: 28px;
+            text-align: center;
+        }
+
+        .title {
+            margin: 0;
+            font-size: clamp(32px, 6vw, 56px);
+            font-weight: 800;
+            letter-spacing: -0.04em;
+        }
+
+        .subtitle {
+            margin: 10px 0 0;
+            color: var(--muted);
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        .card {
+            padding: 32px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--card);
+            box-shadow: var(--shadow);
+        }
+
+        .start-screen,
+        .practice-screen,
+        .result-screen {
+            display: none;
+        }
+
+        .start-screen.active,
+        .practice-screen.active,
+        .result-screen.active {
+            display: block;
+        }
+
+        .section-title {
+            margin: 0 0 10px;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .section-description {
+            margin: 0 0 20px;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .text-input {
+            width: 100%;
+            min-height: 180px;
+            padding: 18px;
+            resize: vertical;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            outline: none;
+            background: #fff;
+            color: var(--text);
+            font-size: 17px;
+            line-height: 1.8;
+            transition:
+                    border-color 0.2s,
+                    box-shadow 0.2s;
+        }
+
+        .text-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(77, 124, 255, 0.1);
+        }
+
+        .example-buttons {
+            margin-top: 14px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .example-button {
+            padding: 9px 13px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: #fff;
+            color: var(--text);
+            font-size: 13px;
+        }
+
+        .example-button:hover {
+            background: #f5f7fa;
+        }
+
+        .button-row {
+            margin-top: 22px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .button {
+            min-height: 48px;
+            padding: 0 22px;
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            background: #fff;
+            color: var(--text);
+            font-weight: 700;
+        }
+
+        .button:hover {
+            background: #f6f7f9;
+        }
+
+        .button.primary {
+            flex: 1;
+            border-color: var(--primary);
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .button.primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .practice-header {
+            margin-bottom: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 18px;
+        }
+
+        .stat {
+            text-align: right;
+        }
+
+        .stat-value {
+            display: block;
+            font-size: 22px;
+            font-weight: 800;
+        }
+
+        .stat-label {
+            display: block;
+            margin-top: 2px;
+            color: var(--muted);
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .typing-area {
+            position: relative;
+            min-height: 230px;
+            padding: 28px;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            background: #fbfbfc;
+            overflow: hidden;
+            cursor: text;
+        }
+
+        .typing-text {
+            margin: 0;
+            font-size: clamp(19px, 3vw, 26px);
+            line-height: 1.9;
+            letter-spacing: 0.01em;
+            word-break: break-word;
+            white-space: pre-wrap;
+        }
+
+        .character {
+            color: #b8bcc3;
+        }
+
+        .character.correct {
+            color: var(--correct);
+        }
+
+        .character.wrong {
+            color: var(--wrong);
+            background: rgba(239, 68, 68, 0.08);
+            border-radius: 3px;
+        }
+
+        .character.current {
+            position: relative;
+        }
+
+        .character.current::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            bottom: -4px;
+            width: 100%;
+            height: 2px;
+            background: var(--current);
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+
+        .hidden-input {
+            position: fixed;
+            left: -9999px;
+            top: -9999px;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+        }
+
+        .focus-guide {
+            margin-top: 12px;
+            color: var(--muted);
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .keyboard {
+            margin-top: 26px;
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            user-select: none;
+        }
+
+        .keyboard-row {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .key {
+            width: 46px;
+            height: 46px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--key-bg);
+            color: #555;
+            font-size: 13px;
+            box-shadow: 0 2px 0 #d9dce1;
+            transition:
+                    transform 0.05s,
+                    background 0.05s;
+        }
+
+        .key.active {
+            background: var(--key-active);
+            transform: translateY(2px);
+            box-shadow: none;
+        }
+
+        .key.space {
+            width: 270px;
+        }
+
+        .progress {
+            width: 100%;
+            height: 6px;
+            margin-top: 22px;
+            border-radius: 999px;
+            background: #edf0f4;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            width: 0;
+            height: 100%;
+            border-radius: inherit;
+            background: var(--primary);
+            transition: width 0.15s;
+        }
+
+        .result-title {
+            margin: 0;
+            text-align: center;
+            font-size: 30px;
+        }
+
+        .result-subtitle {
+            margin: 8px 0 28px;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .result-item {
+            padding: 22px 12px;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: #fafbfc;
+            text-align: center;
+        }
+
+        .result-value {
+            margin-bottom: 6px;
+            font-size: 30px;
+            font-weight: 800;
+        }
+
+        .result-label {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        @media (max-width: 700px) {
+            .page {
+                width: min(100% - 20px, 1000px);
+                padding: 20px 0;
+                align-items: flex-start;
+            }
+
+            .card {
+                padding: 22px 18px;
+                border-radius: 18px;
+            }
+
+            .practice-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .stats {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .stat {
+                text-align: left;
+            }
+
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .keyboard {
+                overflow-x: auto;
+                padding-bottom: 8px;
+            }
+
+            .keyboard-row {
+                min-width: 590px;
+            }
+
+            .button-row {
+                flex-direction: column;
+            }
+
+            .button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="page">
+    <main class="app">
+
+        <header class="header">
+            <h1 class="title">Typing Practice</h1>
+
+            <p class="subtitle">
+                연습할 문장을 직접 입력하고<br>
+                키보드로 따라 입력해 보세요.
+            </p>
+        </header>
+
+        <section class="card">
+
+            <!-- 시작 화면 -->
+            <div class="start-screen active" id="startScreen">
+
+                <h2 class="section-title">
+                    연습 문장
+                </h2>
+
+                <p class="section-description">
+                    직접 문장을 입력하거나 아래 예시 문장을 선택하세요.
+                </p>
+
+                <textarea
+                        id="practiceTextInput"
+                        class="text-input"
+                        maxlength="1000"
+                        placeholder="연습할 문장을 입력하세요."
+                >아름다운 우리말을 정확하고 빠르게 입력하는 연습을 해보세요.</textarea>
+
+                <div class="example-buttons">
+                    <button
+                            type="button"
+                            class="example-button"
+                            data-example="한글"
+                    >
+                        한글 예시
+                    </button>
+
+                    <button
+                            type="button"
+                            class="example-button"
+                            data-example="영어"
+                    >
+                        English
+                    </button>
+
+                    <button
+                            type="button"
+                            class="example-button"
+                            data-example="긴문장"
+                    >
+                        긴 문장
+                    </button>
+                </div>
+
+                <div class="button-row">
+                    <button
+                            type="button"
+                            class="button primary"
+                            id="startButton"
+                    >
+                        연습 시작
+                    </button>
+                </div>
+
+            </div>
+
+
+            <!-- 연습 화면 -->
+            <div class="practice-screen" id="practiceScreen">
+
+                <div class="practice-header">
+
+                    <button
+                            type="button"
+                            class="button"
+                            id="backButton"
+                    >
+                        ← 돌아가기
+                    </button>
+
+                    <div class="stats">
+
+                        <div class="stat">
+                            <span
+                                    class="stat-value"
+                                    id="speedValue"
+                            >
+                                0
+                            </span>
+                            <span class="stat-label">
+                                CPM
+                            </span>
+                        </div>
+
+                        <div class="stat">
+                            <span
+                                    class="stat-value"
+                                    id="accuracyValue"
+                            >
+                                100
+                            </span>
+                            <span class="stat-label">
+                                Accuracy
+                            </span>
+                        </div>
+
+                        <div class="stat">
+                            <span
+                                    class="stat-value"
+                                    id="errorValue"
+                            >
+                                0
+                            </span>
+                            <span class="stat-label">
+                                Errors
+                            </span>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div
+                        class="typing-area"
+                        id="typingArea"
+                        tabindex="0"
+                >
+                    <p
+                            class="typing-text"
+                            id="typingText"
+                    ></p>
+                </div>
+
+                <input
+                        type="text"
+                        id="typingInput"
+                        class="hidden-input"
+                        autocomplete="off"
+                        autocapitalize="off"
+                        autocorrect="off"
+                        spellcheck="false"
+                >
+
+                <p class="focus-guide">
+                    문장 영역을 클릭한 후 입력을 시작하세요.
+                </p>
+
+                <div class="progress">
+                    <div
+                            class="progress-bar"
+                            id="progressBar"
+                    ></div>
+                </div>
+
+                <div
+                        class="keyboard"
+                        id="keyboard"
+                        aria-hidden="true"
+                ></div>
+
+            </div>
+
+
+            <!-- 결과 화면 -->
+            <div class="result-screen" id="resultScreen">
+
+                <h2 class="result-title">
+                    연습 완료 🎉
+                </h2>
+
+                <p class="result-subtitle">
+                    이번 타자연습 결과입니다.
+                </p>
+
+                <div class="result-grid">
+
+                    <div class="result-item">
+                        <div
+                                class="result-value"
+                                id="resultSpeed"
+                        >
+                            0
+                        </div>
+
+                        <div class="result-label">
+                            CPM
+                        </div>
+                    </div>
+
+                    <div class="result-item">
+                        <div
+                                class="result-value"
+                                id="resultAccuracy"
+                        >
+                            100%
+                        </div>
+
+                        <div class="result-label">
+                            Accuracy
+                        </div>
+                    </div>
+
+                    <div class="result-item">
+                        <div
+                                class="result-value"
+                                id="resultErrors"
+                        >
+                            0
+                        </div>
+
+                        <div class="result-label">
+                            Errors
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="button-row">
+
+                    <button
+                            type="button"
+                            class="button"
+                            id="resultBackButton"
+                    >
+                        문장 선택
+                    </button>
+
+                    <button
+                            type="button"
+                            class="button primary"
+                            id="retryButton"
+                    >
+                        다시 연습
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+</div>
+
+<script>
+    (function () {
+        'use strict';
+
+        const examples = {
+            '한글':
+                '아름다운 우리말을 정확하고 빠르게 입력하는 연습을 해보세요.',
+
+            '영어':
+                'Practice makes perfect. Keep typing every day and improve your speed.',
+
+            '긴문장':
+                '빠른 타자 속도도 중요하지만 처음부터 정확하게 입력하는 습관을 들이는 것이 더욱 중요합니다. 천천히 정확성을 높인 뒤 자연스럽게 속도를 높여 보세요.'
+        };
+
+        const keyboardRows = [
+            [
+                '`', '1', '2', '3', '4',
+                '5', '6', '7', '8', '9',
+                '0', '-', '='
+            ],
+            [
+                'Q', 'W', 'E', 'R', 'T',
+                'Y', 'U', 'I', 'O', 'P',
+                '[', ']', '\\'
+            ],
+            [
+                'A', 'S', 'D', 'F', 'G',
+                'H', 'J', 'K', 'L',
+                ';', "'"
+            ],
+            [
+                'Z', 'X', 'C', 'V', 'B',
+                'N', 'M', ',', '.', '/'
+            ],
+            [
+                'SPACE'
+            ]
+        ];
+
+        const startScreen =
+                  document.querySelector('#startScreen');
+
+        const practiceScreen =
+                  document.querySelector('#practiceScreen');
+
+        const resultScreen =
+                  document.querySelector('#resultScreen');
+
+        const practiceTextInput =
+                  document.querySelector('#practiceTextInput');
+
+        const startButton =
+                  document.querySelector('#startButton');
+
+        const backButton =
+                  document.querySelector('#backButton');
+
+        const resultBackButton =
+                  document.querySelector('#resultBackButton');
+
+        const retryButton =
+                  document.querySelector('#retryButton');
+
+        const typingArea =
+                  document.querySelector('#typingArea');
+
+        const typingText =
+                  document.querySelector('#typingText');
+
+        const typingInput =
+                  document.querySelector('#typingInput');
+
+        const speedValue =
+                  document.querySelector('#speedValue');
+
+        const accuracyValue =
+                  document.querySelector('#accuracyValue');
+
+        const errorValue =
+                  document.querySelector('#errorValue');
+
+        const progressBar =
+                  document.querySelector('#progressBar');
+
+        const keyboard =
+                  document.querySelector('#keyboard');
+
+        const resultSpeed =
+                  document.querySelector('#resultSpeed');
+
+        const resultAccuracy =
+                  document.querySelector('#resultAccuracy');
+
+        const resultErrors =
+                  document.querySelector('#resultErrors');
+
+
+        let targetText = '';
+        let typedText = '';
+
+        let startedAt = null;
+        let timerId = null;
+
+        let finished = false;
+
+
+        function showScreen(screen) {
+            startScreen.classList.remove('active');
+            practiceScreen.classList.remove('active');
+            resultScreen.classList.remove('active');
+
+            screen.classList.add('active');
+        }
+
+
+        function escapeHtml(value) {
+            return value
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+        }
+
+
+        function createKeyboard() {
+            keyboard.innerHTML = '';
+
+            keyboardRows.forEach(function (row) {
+                const rowElement =
+                          document.createElement('div');
+
+                rowElement.className =
+                    'keyboard-row';
+
+                row.forEach(function (key) {
+                    const keyElement =
+                              document.createElement('div');
+
+                    keyElement.className = 'key';
+
+                    if (key === 'SPACE') {
+                        keyElement.classList.add('space');
+                        keyElement.dataset.key = ' ';
+                        keyElement.textContent = '';
+                    } else {
+                        keyElement.dataset.key =
+                            key.toLowerCase();
+
+                        keyElement.textContent = key;
+                    }
+
+                    rowElement.appendChild(
+                        keyElement
+                    );
+                });
+
+                keyboard.appendChild(
+                    rowElement
+                );
+            });
+        }
+
+
+        function renderText() {
+            let html = '';
+
+            for (
+                let index = 0;
+                index < targetText.length;
+                index++
+            ) {
+                const targetChar =
+                          targetText[index];
+
+                let className = 'character';
+
+                if (index < typedText.length) {
+                    if (
+                        typedText[index] ===
+                        targetChar
+                    ) {
+                        className += ' correct';
+                    } else {
+                        className += ' wrong';
+                    }
+                } else if (
+                    index === typedText.length
+                ) {
+                    className += ' current';
+                }
+
+                const displayChar =
+                          targetChar === ' '
+                              ? '&nbsp;'
+                              : targetChar === '\n'
+                                  ? '\n'
+                                  : escapeHtml(
+                                      targetChar
+                                  );
+
+                html +=
+                    '<span class="' +
+                    className +
+                    '">' +
+                    displayChar +
+                    '</span>';
+            }
+
+            typingText.innerHTML = html;
+
+            updateStats();
+            scrollCurrentCharacter();
+        }
+
+
+        function scrollCurrentCharacter() {
+            const currentCharacter =
+                      typingText.querySelector(
+                          '.character.current'
+                      );
+
+            if (!currentCharacter) {
+                return;
+            }
+
+            currentCharacter.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+        }
+
+
+        function startPractice() {
+            const value =
+                      practiceTextInput.value.trim();
+
+            if (!value) {
+                practiceTextInput.focus();
+                return;
+            }
+
+            targetText = value;
+
+            resetPractice();
+
+            showScreen(practiceScreen);
+
+            renderText();
+
+            window.setTimeout(function () {
+                focusTyping();
+            }, 0);
+        }
+
+
+        function resetPractice() {
+            stopTimer();
+
+            typedText = '';
+
+            typingInput.value = '';
+
+            startedAt = null;
+
+            finished = false;
+
+            speedValue.textContent = '0';
+            accuracyValue.textContent = '100';
+            errorValue.textContent = '0';
+
+            progressBar.style.width = '0%';
+        }
+
+
+        function focusTyping() {
+            typingInput.focus();
+        }
+
+
+        function startTimer() {
+            if (startedAt !== null) {
+                return;
+            }
+
+            startedAt = Date.now();
+
+            timerId = window.setInterval(
+                updateStats,
+                500
+            );
+        }
+
+
+        function stopTimer() {
+            if (timerId !== null) {
+                window.clearInterval(timerId);
+                timerId = null;
+            }
+        }
+
+
+        function getCorrectCount() {
+            let count = 0;
+
+            for (
+                let index = 0;
+                index < typedText.length;
+                index++
+            ) {
+                if (
+                    typedText[index] ===
+                    targetText[index]
+                ) {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+
+        function getErrorCount() {
+            let count = 0;
+
+            for (
+                let index = 0;
+                index < typedText.length;
+                index++
+            ) {
+                if (
+                    typedText[index] !==
+                    targetText[index]
+                ) {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+
+        function getAccuracy() {
+            if (typedText.length === 0) {
+                return 100;
+            }
+
+            return Math.round(
+                (
+                    getCorrectCount() /
+                    typedText.length
+                ) * 100
+            );
+        }
+
+
+        function getCpm() {
+            if (
+                startedAt === null ||
+                typedText.length === 0
+            ) {
+                return 0;
+            }
+
+            const elapsedMinutes =
+                      (
+                          Date.now() -
+                          startedAt
+                      ) /
+                      60000;
+
+            if (elapsedMinutes <= 0) {
+                return 0;
+            }
+
+            return Math.round(
+                getCorrectCount() /
+                elapsedMinutes
+            );
+        }
+
+
+        function updateStats() {
+            speedValue.textContent =
+                getCpm();
+
+            accuracyValue.textContent =
+                getAccuracy();
+
+            errorValue.textContent =
+                getErrorCount();
+
+            const progress =
+                      targetText.length > 0
+                          ? (
+                          typedText.length /
+                          targetText.length
+                      ) * 100
+                          : 0;
+
+            progressBar.style.width =
+                Math.min(
+                    progress,
+                    100
+                ) + '%';
+        }
+
+
+        function finishPractice() {
+            if (finished) {
+                return;
+            }
+
+            finished = true;
+
+            stopTimer();
+
+            updateStats();
+
+            resultSpeed.textContent =
+                getCpm();
+
+            resultAccuracy.textContent =
+                getAccuracy() + '%';
+
+            resultErrors.textContent =
+                getErrorCount();
+
+            showScreen(resultScreen);
+        }
+
+
+        function handleInput() {
+            if (finished) {
+                return;
+            }
+
+            let value = typingInput.value;
+
+            if (
+                value.length >
+                targetText.length
+            ) {
+                value =
+                    value.substring(
+                        0,
+                        targetText.length
+                    );
+
+                typingInput.value = value;
+            }
+
+            if (
+                value.length > 0 &&
+                startedAt === null
+            ) {
+                startTimer();
+            }
+
+            typedText = value;
+
+            renderText();
+
+            if (
+                typedText.length >=
+                targetText.length
+            ) {
+                finishPractice();
+            }
+        }
+
+
+        function setActiveKey(key, active) {
+            let normalizedKey =
+                    key.toLowerCase();
+
+            if (key === ' ') {
+                normalizedKey = ' ';
+            }
+
+            const keys =
+                      keyboard.querySelectorAll(
+                          '.key'
+                      );
+
+            keys.forEach(function (
+                keyElement
+            ) {
+                if (
+                    keyElement.dataset.key ===
+                    normalizedKey
+                ) {
+                    keyElement.classList.toggle(
+                        'active',
+                        active
+                    );
+                }
+            });
+        }
+
+
+        function handleKeyDown(event) {
+            setActiveKey(
+                event.key,
+                true
+            );
+        }
+
+
+        function handleKeyUp(event) {
+            setActiveKey(
+                event.key,
+                false
+            );
+        }
+
+
+        document
+        .querySelectorAll(
+            '.example-button'
+        )
+        .forEach(function (button) {
+            button.addEventListener(
+                'click',
+                function () {
+                    const example =
+                              button.dataset.example;
+
+                    practiceTextInput.value =
+                        examples[example];
+
+                    practiceTextInput.focus();
+                }
+            );
+        });
+
+
+        startButton.addEventListener(
+            'click',
+            startPractice
+        );
+
+
+        backButton.addEventListener(
+            'click',
+            function () {
+                stopTimer();
+
+                showScreen(
+                    startScreen
+                );
+            }
+        );
+
+
+        resultBackButton.addEventListener(
+            'click',
+            function () {
+                showScreen(
+                    startScreen
+                );
+            }
+        );
+
+
+        retryButton.addEventListener(
+            'click',
+            function () {
+                resetPractice();
+
+                showScreen(
+                    practiceScreen
+                );
+
+                renderText();
+
+                window.setTimeout(
+                    focusTyping,
+                    0
+                );
+            }
+        );
+
+
+        typingArea.addEventListener(
+            'click',
+            focusTyping
+        );
+
+
+        typingInput.addEventListener(
+            'input',
+            handleInput
+        );
+
+
+        window.addEventListener(
+            'keydown',
+            handleKeyDown
+        );
+
+
+        window.addEventListener(
+            'keyup',
+            handleKeyUp
+        );
+
+
+        window.addEventListener(
+            'keydown',
+            function (event) {
+                if (
+                    event.key === 'Escape' &&
+                    practiceScreen.classList.contains(
+                        'active'
+                    )
+                ) {
+                    stopTimer();
+
+                    showScreen(
+                        startScreen
+                    );
+                }
+            }
+        );
+
+
+        createKeyboard();
+
+    })();
+</script>
+
+</body>
+</html>
