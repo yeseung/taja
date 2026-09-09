@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>TypeZen - 타자연습</title>
+
+    <meta
+            name="description"
+            content="텍스트를 직접 입력하거나 파일을 불러와 연습할 수 있는 간단한 웹 타자연습입니다."
+    >
+
+    <style>
+        :root {
+            --background: #f5f6f8;
+            --surface: #ffffff;
+            --surface-subtle: #f8fafc;
+            --border: #e5e7eb;
+            --text: #111827;
+            --text-sub: #6b7280;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --correct: #111827;
+            --wrong: #ef4444;
+            --pending: #c5cad3;
+            --radius: 18px;
+            --shadow: 0 12px 35px rgba(15, 23, 42, 0.07);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100%;
+        }
+
+        body {
+            background: var(--background);
+            color: var(--text);
+            font-family:
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "Segoe UI",
+                    "Noto Sans KR",
+                    Arial,
+                    sans-serif;
+            line-height: 1.6;
+            word-break: keep-all;
+        }
+
+        button,
+        input,
+        textarea {
+            font: inherit;
+        }
+
+        button {
+            border: 0;
+            cursor: pointer;
+        }
+
+        .app {
+            width: min(920px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 50px 0 70px;
+        }
+
+        .header {
+            margin-bottom: 28px;
+            text-align: center;
+        }
+
+        .title {
+            margin: 0;
+            font-size: clamp(30px, 5vw, 44px);
+            font-weight: 800;
+            letter-spacing: -0.04em;
+        }
+
+        .description {
+            margin: 10px 0 0;
+            color: var(--text-sub);
+            font-size: 15px;
+        }
+
+        .card {
+            padding: 28px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--surface);
+            box-shadow: var(--shadow);
+        }
+
+        .setup {
+            display: block;
+        }
+
+        .setup.is-hidden {
+            display: none;
+        }
+
+        .typing-screen {
+            display: none;
+        }
+
+        .typing-screen.is-active {
+            display: block;
+        }
+
+        .setup-title {
+            margin: 0 0 6px;
+            font-size: 21px;
+            font-weight: 800;
+        }
+
+        .setup-description {
+            margin: 0 0 22px;
+            color: var(--text-sub);
+            font-size: 14px;
+        }
+
+        .textarea {
+            display: block;
+            width: 100%;
+            min-height: 230px;
+            padding: 18px;
+            resize: vertical;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            outline: none;
+            background: var(--surface-subtle);
+            color: var(--text);
+            font-size: 16px;
+            line-height: 1.8;
+            transition:
+                    border-color 0.2s ease,
+                    box-shadow 0.2s ease,
+                    background 0.2s ease;
+        }
+
+        .textarea:focus {
+            border-color: var(--primary);
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.08);
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .button {
+            min-height: 46px;
+            padding: 0 18px;
+            border-radius: 12px;
+            font-weight: 700;
+            transition:
+                    background 0.2s ease,
+                    transform 0.1s ease;
+        }
+
+        .button:active {
+            transform: translateY(1px);
+        }
+
+        .button-primary {
+            background: var(--primary);
+            color: #ffffff;
+        }
+
+        .button-primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .button-secondary {
+            border: 1px solid var(--border);
+            background: #ffffff;
+            color: var(--text);
+        }
+
+        .button-secondary:hover {
+            background: var(--surface-subtle);
+        }
+
+        .file-input {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+        }
+
+        .file-label {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 46px;
+            padding: 0 18px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: #ffffff;
+            color: var(--text);
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .file-label:hover {
+            background: var(--surface-subtle);
+        }
+
+        .typing-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 18px;
+        }
+
+        .typing-title {
+            margin: 0;
+            font-size: 19px;
+            font-weight: 800;
+        }
+
+        .progress-text {
+            color: var(--text-sub);
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .progress {
+            height: 8px;
+            margin-bottom: 32px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: #edf0f4;
+        }
+
+        .progress-bar {
+            width: 0;
+            height: 100%;
+            border-radius: inherit;
+            background: var(--primary);
+            transition: width 0.25s ease;
+        }
+
+        .typing-area {
+            min-height: 310px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .previous-line,
+        .next-line {
+            min-height: 42px;
+            color: #d0d4db;
+            font-size: 18px;
+            line-height: 1.8;
+            transition: opacity 0.2s ease;
+        }
+
+        .previous-line {
+            margin-bottom: 14px;
+        }
+
+        .next-line {
+            margin-top: 14px;
+        }
+
+        .current-block {
+            padding: 22px 0;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .target-line {
+            min-height: 39px;
+            margin-bottom: 12px;
+            font-size: clamp(19px, 3vw, 25px);
+            font-weight: 600;
+            line-height: 1.65;
+            letter-spacing: 0.01em;
+            overflow-wrap: anywhere;
+        }
+
+        .target-char {
+            color: var(--pending);
+        }
+
+        .target-char.is-correct {
+            color: var(--correct);
+        }
+
+        .target-char.is-wrong {
+            color: var(--wrong);
+            text-decoration: underline;
+            text-decoration-thickness: 2px;
+            text-underline-offset: 4px;
+        }
+
+        .typing-input {
+            display: block;
+            width: 100%;
+            padding: 12px 0;
+            border: 0;
+            border-bottom: 2px solid var(--border);
+            outline: none;
+            background: transparent;
+            color: var(--text);
+            font-size: clamp(19px, 3vw, 25px);
+            font-weight: 600;
+            line-height: 1.5;
+            transition: border-color 0.2s ease;
+        }
+
+        .typing-input:focus {
+            border-bottom-color: var(--primary);
+        }
+
+        .typing-guide {
+            margin: 24px 0 0;
+            color: var(--text-sub);
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 24px;
+        }
+
+        .stat {
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--surface-subtle);
+            text-align: center;
+        }
+
+        .stat-label {
+            display: block;
+            margin-bottom: 3px;
+            color: var(--text-sub);
+            font-size: 12px;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .result {
+            display: none;
+            padding: 38px 20px;
+            text-align: center;
+        }
+
+        .result.is-active {
+            display: block;
+        }
+
+        .result-icon {
+            margin-bottom: 12px;
+            font-size: 42px;
+        }
+
+        .result-title {
+            margin: 0 0 8px;
+            font-size: 27px;
+        }
+
+        .result-description {
+            margin: 0;
+            color: var(--text-sub);
+        }
+
+        .result-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            max-width: 520px;
+            margin: 28px auto;
+        }
+
+        .result-stat {
+            padding: 18px 10px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: var(--surface-subtle);
+        }
+
+        .result-stat strong {
+            display: block;
+            font-size: 25px;
+        }
+
+        .result-stat span {
+            color: var(--text-sub);
+            font-size: 13px;
+        }
+
+        @media (max-width: 640px) {
+            .app {
+                width: min(100% - 20px, 920px);
+                padding-top: 25px;
+            }
+
+            .card {
+                padding: 20px;
+                border-radius: 15px;
+            }
+
+            .typing-header {
+                align-items: flex-start;
+            }
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .result-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .actions > * {
+                flex: 1 1 calc(50% - 5px);
+            }
+
+            .button,
+            .file-label {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<main class="app">
+    <header class="header">
+        <h1 class="title">⌨️ TypeZen</h1>
+        <p class="description">
+            원하는 문장으로 간단하게 타자연습을 시작해 보세요.
+        </p>
+    </header>
+
+    <section id="setupScreen" class="card setup">
+        <h2 class="setup-title">연습할 문장</h2>
+
+        <p class="setup-description">
+            직접 내용을 입력하거나 TXT 파일을 불러올 수 있습니다.
+        </p>
+
+        <textarea
+                id="sourceText"
+                class="textarea"
+                spellcheck="false"
+        >꾸준한 연습은 정확하고 빠른 타이핑을 만드는 가장 좋은 방법입니다.
+빠르게 입력하려고 하기보다는 정확한 손가락 위치와 리듬을 익혀 보세요.
+처음에는 천천히 입력해도 괜찮습니다. 정확도가 높아지면 속도도 자연스럽게 빨라집니다.
+매일 조금씩 연습하면 어느 순간 키보드를 보지 않고도 편안하게 입력할 수 있습니다.</textarea>
+
+        <div class="actions">
+            <button
+                    id="startButton"
+                    class="button button-primary"
+                    type="button"
+            >
+                연습 시작
+            </button>
+
+            <label for="fileInput" class="file-label">
+                TXT 불러오기
+            </label>
+
+            <input
+                    id="fileInput"
+                    class="file-input"
+                    type="file"
+                    accept=".txt,text/plain,text/*"
+            >
+
+            <button
+                    id="clearButton"
+                    class="button button-secondary"
+                    type="button"
+            >
+                내용 지우기
+            </button>
+        </div>
+    </section>
+
+    <section id="typingScreen" class="card typing-screen">
+        <div class="typing-header">
+            <h2 class="typing-title">타자연습</h2>
+
+            <div id="progressText" class="progress-text">
+                1 / 1
+            </div>
+        </div>
+
+        <div class="progress" aria-hidden="true">
+            <div id="progressBar" class="progress-bar"></div>
+        </div>
+
+        <div class="typing-area">
+            <div
+                    id="previousLine"
+                    class="previous-line"
+                    aria-hidden="true"
+            ></div>
+
+            <div class="current-block">
+                <div
+                        id="targetLine"
+                        class="target-line"
+                        aria-live="polite"
+                ></div>
+
+                <input
+                        id="typingInput"
+                        class="typing-input"
+                        type="text"
+                        autocomplete="off"
+                        autocorrect="off"
+                        autocapitalize="off"
+                        spellcheck="false"
+                        aria-label="타자 입력"
+                >
+            </div>
+
+            <div
+                    id="nextLine"
+                    class="next-line"
+                    aria-hidden="true"
+            ></div>
+        </div>
+
+        <p class="typing-guide">
+            Enter 또는 Tab 키를 누르면 다음 문장으로 이동합니다.
+        </p>
+
+        <div class="stats">
+            <div class="stat">
+                <span class="stat-label">진행률</span>
+                <strong id="progressStat" class="stat-value">0%</strong>
+            </div>
+
+            <div class="stat">
+                <span class="stat-label">정확도</span>
+                <strong id="accuracyStat" class="stat-value">100%</strong>
+            </div>
+
+            <div class="stat">
+                <span class="stat-label">오타</span>
+                <strong id="wrongStat" class="stat-value">0</strong>
+            </div>
+
+            <div class="stat">
+                <span class="stat-label">시간</span>
+                <strong id="timeStat" class="stat-value">0초</strong>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button
+                    id="restartButton"
+                    class="button button-secondary"
+                    type="button"
+            >
+                처음부터
+            </button>
+
+            <button
+                    id="homeButton"
+                    class="button button-secondary"
+                    type="button"
+            >
+                다른 문장 선택
+            </button>
+        </div>
+    </section>
+
+    <section id="resultScreen" class="card result">
+        <div class="result-icon">🎉</div>
+
+        <h2 class="result-title">연습 완료!</h2>
+
+        <p class="result-description">
+            모든 문장을 입력했습니다.
+        </p>
+
+        <div class="result-stats">
+            <div class="result-stat">
+                <strong id="resultAccuracy">100%</strong>
+                <span>정확도</span>
+            </div>
+
+            <div class="result-stat">
+                <strong id="resultWrong">0</strong>
+                <span>오타</span>
+            </div>
+
+            <div class="result-stat">
+                <strong id="resultTime">0초</strong>
+                <span>연습 시간</span>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button
+                    id="resultRestartButton"
+                    class="button button-primary"
+                    type="button"
+            >
+                다시 연습
+            </button>
+
+            <button
+                    id="resultHomeButton"
+                    class="button button-secondary"
+                    type="button"
+            >
+                다른 문장 선택
+            </button>
+        </div>
+    </section>
+</main>
+
+<script>
+    (function () {
+        'use strict';
+
+        const MAX_CHUNK_LENGTH = 52;
+
+        const setupScreen = document.getElementById('setupScreen');
+        const typingScreen = document.getElementById('typingScreen');
+        const resultScreen = document.getElementById('resultScreen');
+
+        const sourceText = document.getElementById('sourceText');
+        const fileInput = document.getElementById('fileInput');
+
+        const startButton = document.getElementById('startButton');
+        const clearButton = document.getElementById('clearButton');
+
+        const typingInput = document.getElementById('typingInput');
+
+        const previousLine = document.getElementById('previousLine');
+        const targetLine = document.getElementById('targetLine');
+        const nextLine = document.getElementById('nextLine');
+
+        const progressText = document.getElementById('progressText');
+        const progressBar = document.getElementById('progressBar');
+
+        const progressStat = document.getElementById('progressStat');
+        const accuracyStat = document.getElementById('accuracyStat');
+        const wrongStat = document.getElementById('wrongStat');
+        const timeStat = document.getElementById('timeStat');
+
+        const restartButton = document.getElementById('restartButton');
+        const homeButton = document.getElementById('homeButton');
+
+        const resultAccuracy = document.getElementById('resultAccuracy');
+        const resultWrong = document.getElementById('resultWrong');
+        const resultTime = document.getElementById('resultTime');
+
+        const resultRestartButton =
+                  document.getElementById('resultRestartButton');
+
+        const resultHomeButton =
+                  document.getElementById('resultHomeButton');
+
+        let chunks = [];
+        let currentIndex = 0;
+
+        let totalCharacters = 0;
+        let totalWrong = 0;
+
+        let startTime = null;
+        let timerId = null;
+
+        function splitTextIntoChunks(text) {
+            const result = [];
+
+            const paragraphs = text
+            .replace(/\r\n/g, '\n')
+            .replace(/\r/g, '\n')
+            .split('\n');
+
+            paragraphs.forEach(function (paragraph) {
+                const line = paragraph.trim();
+
+                if (!line) {
+                    return;
+                }
+
+                const words = line.split(/\s+/);
+                let chunk = '';
+
+                words.forEach(function (word) {
+                    if (word.length > MAX_CHUNK_LENGTH) {
+                        if (chunk) {
+                            result.push(chunk);
+                            chunk = '';
+                        }
+
+                        for (
+                            let i = 0;
+                            i < word.length;
+                            i += MAX_CHUNK_LENGTH
+                        ) {
+                            result.push(
+                                word.slice(i, i + MAX_CHUNK_LENGTH)
+                            );
+                        }
+
+                        return;
+                    }
+
+                    const candidate = chunk
+                        ? chunk + ' ' + word
+                        : word;
+
+                    if (
+                        candidate.length > MAX_CHUNK_LENGTH &&
+                        chunk
+                    ) {
+                        result.push(chunk);
+                        chunk = word;
+                    } else {
+                        chunk = candidate;
+                    }
+                });
+
+                if (chunk) {
+                    result.push(chunk);
+                }
+            });
+
+            return result;
+        }
+
+        function startPractice() {
+            const text = sourceText.value.trim();
+
+            if (!text) {
+                alert('연습할 내용을 입력해 주세요.');
+                sourceText.focus();
+                return;
+            }
+
+            chunks = splitTextIntoChunks(text);
+
+            if (!chunks.length) {
+                alert('연습할 문장이 없습니다.');
+                return;
+            }
+
+            currentIndex = 0;
+            totalCharacters = 0;
+            totalWrong = 0;
+
+            startTime = Date.now();
+
+            setupScreen.classList.add('is-hidden');
+            resultScreen.classList.remove('is-active');
+            typingScreen.classList.add('is-active');
+
+            startTimer();
+            renderCurrentChunk();
+            updateStats();
+
+            typingInput.focus();
+        }
+
+        function renderCurrentChunk() {
+            const current = chunks[currentIndex] || '';
+            const previous = chunks[currentIndex - 1] || '';
+            const next = chunks[currentIndex + 1] || '';
+
+            previousLine.textContent = previous;
+            nextLine.textContent = next;
+
+            typingInput.value = '';
+            typingInput.maxLength = current.length;
+
+            renderTargetText(current, '');
+
+            const currentNumber = Math.min(
+                currentIndex + 1,
+                chunks.length
+            );
+
+            progressText.textContent =
+                currentNumber + ' / ' + chunks.length;
+
+            updateProgress();
+            typingInput.focus();
+        }
+
+        function renderTargetText(target, input) {
+            const fragment = document.createDocumentFragment();
+
+            targetLine.innerHTML = '';
+
+            for (let i = 0; i < target.length; i++) {
+                const span = document.createElement('span');
+
+                span.className = 'target-char';
+                span.textContent = target[i];
+
+                if (i < input.length) {
+                    if (input[i] === target[i]) {
+                        span.classList.add('is-correct');
+                    } else {
+                        span.classList.add('is-wrong');
+                    }
+                }
+
+                fragment.appendChild(span);
+            }
+
+            targetLine.appendChild(fragment);
+        }
+
+        function calculateCurrentWrong(target, input) {
+            let wrong = 0;
+
+            for (let i = 0; i < input.length; i++) {
+                if (input[i] !== target[i]) {
+                    wrong++;
+                }
+            }
+
+            return wrong;
+        }
+
+        function calculateFinalWrong(target, input) {
+            let wrong = Math.max(
+                target.length - input.length,
+                0
+            );
+
+            for (let i = 0; i < input.length; i++) {
+                if (input[i] !== target[i]) {
+                    wrong++;
+                }
+            }
+
+            return wrong;
+        }
+
+        function moveNext() {
+            const target = chunks[currentIndex];
+            const input = typingInput.value;
+
+            totalCharacters += target.length;
+            totalWrong += calculateFinalWrong(target, input);
+
+            if (currentIndex >= chunks.length - 1) {
+                finishPractice();
+                return;
+            }
+
+            currentIndex++;
+            renderCurrentChunk();
+            updateStats();
+        }
+
+        function updateProgress() {
+            const completed =
+                      chunks.length === 0
+                          ? 0
+                          : currentIndex / chunks.length;
+
+            const percentage = Math.round(completed * 100);
+
+            progressBar.style.width = percentage + '%';
+            progressStat.textContent = percentage + '%';
+        }
+
+        function calculateLiveStats() {
+            if (!chunks.length) {
+                return {
+                    characters: 0,
+                    wrong: 0,
+                    accuracy: 100
+                };
+            }
+
+            const target = chunks[currentIndex] || '';
+            const input = typingInput.value;
+
+            const liveCharacters =
+                      totalCharacters + input.length;
+
+            const liveWrong =
+                      totalWrong +
+                      calculateCurrentWrong(target, input);
+
+            let accuracy = 100;
+
+            if (liveCharacters > 0) {
+                accuracy =
+                    ((liveCharacters - liveWrong) /
+                        liveCharacters) *
+                    100;
+            }
+
+            accuracy = Math.max(
+                0,
+                Math.min(100, accuracy)
+            );
+
+            return {
+                characters: liveCharacters,
+                wrong: liveWrong,
+                accuracy: accuracy
+            };
+        }
+
+        function updateStats() {
+            const stats = calculateLiveStats();
+
+            accuracyStat.textContent =
+                stats.accuracy.toFixed(1) + '%';
+
+            wrongStat.textContent = stats.wrong;
+
+            if (chunks.length) {
+                const progress =
+                          (currentIndex / chunks.length) * 100;
+
+                progressStat.textContent =
+                    Math.round(progress) + '%';
+
+                progressBar.style.width =
+                    progress + '%';
+            }
+        }
+
+        function startTimer() {
+            stopTimer();
+
+            updateTimer();
+
+            timerId = window.setInterval(
+                updateTimer,
+                1000
+            );
+        }
+
+        function stopTimer() {
+            if (timerId !== null) {
+                window.clearInterval(timerId);
+                timerId = null;
+            }
+        }
+
+        function getElapsedSeconds() {
+            if (!startTime) {
+                return 0;
+            }
+
+            return Math.floor(
+                (Date.now() - startTime) / 1000
+            );
+        }
+
+        function updateTimer() {
+            timeStat.textContent =
+                getElapsedSeconds() + '초';
+        }
+
+        function finishPractice() {
+            stopTimer();
+
+            typingScreen.classList.remove('is-active');
+            resultScreen.classList.add('is-active');
+
+            const correctCharacters =
+                      Math.max(
+                          totalCharacters - totalWrong,
+                          0
+                      );
+
+            const accuracy =
+                      totalCharacters > 0
+                          ? (
+                              correctCharacters /
+                              totalCharacters *
+                              100
+                          )
+                          : 100;
+
+            resultAccuracy.textContent =
+                accuracy.toFixed(1) + '%';
+
+            resultWrong.textContent =
+                totalWrong;
+
+            resultTime.textContent =
+                getElapsedSeconds() + '초';
+
+            progressBar.style.width = '100%';
+            progressStat.textContent = '100%';
+        }
+
+        function restartPractice() {
+            if (!chunks.length) {
+                startPractice();
+                return;
+            }
+
+            currentIndex = 0;
+            totalCharacters = 0;
+            totalWrong = 0;
+            startTime = Date.now();
+
+            resultScreen.classList.remove('is-active');
+            setupScreen.classList.add('is-hidden');
+            typingScreen.classList.add('is-active');
+
+            startTimer();
+            renderCurrentChunk();
+            updateStats();
+
+            typingInput.focus();
+        }
+
+        function goHome() {
+            stopTimer();
+
+            typingScreen.classList.remove('is-active');
+            resultScreen.classList.remove('is-active');
+            setupScreen.classList.remove('is-hidden');
+
+            fileInput.value = '';
+
+            window.setTimeout(function () {
+                sourceText.focus();
+            }, 0);
+        }
+
+        function loadTextFile(file) {
+            if (!file) {
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = function (event) {
+                sourceText.value =
+                    event.target.result || '';
+
+                fileInput.value = '';
+
+                if (sourceText.value.trim()) {
+                    startPractice();
+                }
+            };
+
+            reader.onerror = function () {
+                alert('파일을 읽을 수 없습니다.');
+                fileInput.value = '';
+            };
+
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        typingInput.addEventListener(
+            'input',
+            function () {
+                if (!chunks.length) {
+                    return;
+                }
+
+                renderTargetText(
+                    chunks[currentIndex],
+                    typingInput.value
+                );
+
+                updateStats();
+            }
+        );
+
+        typingInput.addEventListener(
+            'keydown',
+            function (event) {
+                if (
+                    event.key === 'Enter' ||
+                    event.key === 'Tab'
+                ) {
+                    event.preventDefault();
+                    moveNext();
+                }
+            }
+        );
+
+        fileInput.addEventListener(
+            'change',
+            function () {
+                if (
+                    this.files &&
+                    this.files.length > 0
+                ) {
+                    loadTextFile(this.files[0]);
+                }
+            }
+        );
+
+        startButton.addEventListener(
+            'click',
+            startPractice
+        );
+
+        clearButton.addEventListener(
+            'click',
+            function () {
+                sourceText.value = '';
+                sourceText.focus();
+            }
+        );
+
+        restartButton.addEventListener(
+            'click',
+            restartPractice
+        );
+
+        resultRestartButton.addEventListener(
+            'click',
+            restartPractice
+        );
+
+        homeButton.addEventListener(
+            'click',
+            goHome
+        );
+
+        resultHomeButton.addEventListener(
+            'click',
+            goHome
+        );
+
+        window.addEventListener(
+            'beforeunload',
+            stopTimer
+        );
+    })();
+</script>
+
+</body>
+</html>
