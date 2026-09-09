@@ -54,6 +54,7 @@
 - https://www.jhnsoft.co.kr/keyboard-tester/
 - https://github.com/Seol-JY/SpeedCoder
 - https://github.com/pastel000101/xkwkdustmq
+- https://github.com/bangbang8341-bot/-.html
 <br><br><br>
 
 

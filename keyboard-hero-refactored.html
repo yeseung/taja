@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="한글과 영어를 재미있게 연습하는 키보드 히어로 타자 연습입니다.">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="키보드 히어로">
+    <title>⌨️ 타자 연습 - 키보드 히어로!</title>
+
+    <!-- https://github.com/bangbang8341-bot/-.html -->
+
+    <style>
+        :root {
+            --bg: #ffffff;
+            --panel: #f5f3ff;
+            --card: #ede9fe;
+            --border: #ddd6fe;
+            --text: #1e1b4b;
+            --muted: #6b7280;
+            --yellow: #f59e0b;
+            --pink: #ec4899;
+            --cyan: #06b6d4;
+            --green: #22c55e;
+            --orange: #f97316;
+            --purple: #8b5cf6;
+            --red: #ef4444;
+            --radius-sm: 14px;
+            --radius-md: 18px;
+            --radius-lg: 24px;
+            --shadow: 0 12px 30px rgba(30, 27, 75, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            min-height: 100vh;
+            overflow-x: hidden;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background-image:
+                    radial-gradient(circle, rgba(139, 92, 246, 0.13) 1.5px, transparent 1.5px),
+                    radial-gradient(circle, rgba(236, 72, 153, 0.07) 1.5px, transparent 1.5px);
+            background-size: 40px 40px, 60px 60px;
+            background-position: 0 0, 20px 20px;
+        }
+
+        .app {
+            position: relative;
+            z-index: 1;
+            width: min(100%, 700px);
+            margin: 0 auto;
+            padding: 20px 16px 60px;
+        }
+
+        .screen[hidden] {
+            display: none;
+        }
+
+        @keyframes fade-up {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pop-in {
+            0% { opacity: 0; transform: scale(0.8); }
+            65% { transform: scale(1.05); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.04); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-8px); }
+            40% { transform: translateX(8px); }
+            60% { transform: translateX(-5px); }
+            80% { transform: translateX(5px); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        @keyframes correct-flash {
+            0% { background: rgba(34, 197, 94, 0.22); }
+            100% { background: var(--panel); }
+        }
+
+        @keyframes star-pop {
+            0% { opacity: 1; transform: scale(0) rotate(0deg); }
+            100% { opacity: 0; transform: scale(2) rotate(180deg); }
+        }
+
+        @keyframes count-down {
+            0% { opacity: 0; transform: scale(1.5); }
+            30% { opacity: 1; }
+            100% { opacity: 0; transform: scale(0.8); }
+        }
+
+        .hero {
+            padding: 36px 20px 28px;
+            text-align: center;
+            animation: fade-up 0.6s ease both;
+        }
+
+        .hero-icon {
+            display: block;
+            margin-bottom: 12px;
+            font-size: 4rem;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .hero h1 {
+            margin-bottom: 8px;
+            font-size: clamp(1.8rem, 6vw, 2.8rem);
+            font-weight: 900;
+            line-height: 1.2;
+            background: linear-gradient(135deg, var(--yellow), var(--pink), var(--cyan));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .stats-bar,
+        .live-stats,
+        .result-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .stats-bar {
+            margin: 20px 0;
+            animation: fade-up 0.6s 0.1s ease both;
+        }
+
+        .stat-chip,
+        .live-stat {
+            flex: 1;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .stat-chip {
+            padding: 14px 10px;
+            border-radius: 16px;
+        }
+
+        .stat-value {
+            color: var(--yellow);
+            font-size: 1.5rem;
+            font-weight: 900;
+        }
+
+        .stat-label,
+        .live-label,
+        .result-label {
+            margin-top: 2px;
+            color: var(--muted);
+            font-size: 0.72rem;
+        }
+
+        .mode-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            padding: 6px;
+            background: var(--panel);
+            border-radius: 16px;
+            animation: fade-up 0.6s 0.15s ease both;
+        }
+
+        .mode-tab {
+            flex: 1;
+            padding: 10px 6px;
+            border: 0;
+            border-radius: 11px;
+            background: transparent;
+            color: var(--muted);
+            font-size: 0.85rem;
+            font-weight: 800;
+            transition: 0.2s ease;
+        }
+
+        .mode-tab.is-active {
+            background: var(--card);
+            color: var(--text);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+        }
+
+        .level-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            animation: fade-up 0.6s 0.2s ease both;
+        }
+
+        .level-card {
+            position: relative;
+            overflow: hidden;
+            min-height: 138px;
+            padding: 18px 16px;
+            border: 2px solid var(--border);
+            border-radius: 20px;
+            background: var(--panel);
+            color: inherit;
+            text-align: left;
+            transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .level-card:hover,
+        .level-card:focus-visible {
+            transform: translateY(-4px);
+            border-color: var(--yellow);
+            box-shadow: var(--shadow);
+            outline: none;
+        }
+
+        .level-emoji {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 2.2rem;
+        }
+
+        .level-title {
+            margin-bottom: 4px;
+            font-size: 1rem;
+            font-weight: 900;
+        }
+
+        .level-desc {
+            color: var(--muted);
+            font-size: 0.75rem;
+            line-height: 1.5;
+        }
+
+        .level-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 3px 10px;
+            border-radius: 999px;
+            color: #fff;
+            font-size: 0.65rem;
+            font-weight: 900;
+        }
+
+        .level-badge.easy { background: var(--green); }
+        .level-badge.medium { background: var(--cyan); }
+        .level-badge.hard { background: var(--orange); }
+        .level-badge.free { background: var(--purple); }
+
+        .record-strip {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 14px;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--panel);
+            animation: fade-up 0.6s 0.25s ease both;
+        }
+
+        .record-icon { font-size: 1.5rem; }
+        .record-text { flex: 1; color: var(--muted); font-size: 0.82rem; }
+        .record-value { color: var(--yellow); font-size: 1.1rem; font-weight: 900; }
+
+        .game-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .back-btn {
+            padding: 8px 16px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            background: var(--panel);
+            color: var(--muted);
+            font-size: 0.82rem;
+            font-weight: 800;
+            transition: 0.2s ease;
+        }
+
+        .back-btn:hover,
+        .back-btn:focus-visible {
+            border-color: var(--text);
+            color: var(--text);
+            outline: none;
+        }
+
+        .game-info {
+            display: flex;
+            flex: 1;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .info-chip {
+            padding: 6px 14px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            background: var(--panel);
+            font-size: 0.78rem;
+            font-weight: 800;
+        }
+
+        .info-chip strong { color: var(--yellow); }
+
+        .timer-wrap { margin-bottom: 16px; }
+
+        .timer-bar {
+            height: 8px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: var(--border);
+        }
+
+        .timer-fill {
+            width: 100%;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--cyan), var(--green));
+            transition: width 0.1s linear;
+        }
+
+        .timer-fill.is-warning {
+            background: linear-gradient(90deg, var(--orange), var(--red));
+        }
+
+        .display-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 120px;
+            margin-bottom: 16px;
+            padding: 28px 24px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-lg);
+            background: var(--panel);
+            animation: pop-in 0.4s ease;
+        }
+
+        .display-box.is-correct { animation: correct-flash 0.3s ease; }
+        .display-box.is-wrong { animation: shake 0.3s ease; }
+
+        .target-text {
+            text-align: center;
+            font-size: clamp(1.4rem, 4vw, 2rem);
+            font-weight: 900;
+            line-height: 1.6;
+            letter-spacing: 0.04em;
+            word-break: keep-all;
+        }
+
+        .char { transition: color 0.1s; }
+        .char.done { color: var(--cyan); }
+        .char.current {
+            color: var(--yellow);
+            border-bottom: 3px solid var(--yellow);
+            animation: pulse 1s ease infinite;
+        }
+        .char.wrong {
+            border-radius: 4px;
+            background: rgba(239, 68, 68, 0.12);
+            color: var(--red);
+        }
+        .char.pending { color: rgba(30, 27, 75, 0.28); }
+
+        .countdown-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.94);
+        }
+
+        .countdown-overlay[hidden] { display: none; }
+
+        .countdown-number {
+            color: var(--purple);
+            font-size: 5rem;
+            font-weight: 900;
+            animation: count-down 1s ease forwards;
+        }
+
+        .input-wrap { margin-bottom: 16px; }
+
+        .type-input {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            background: var(--panel);
+            color: var(--text);
+            font-size: 1.1rem;
+            caret-color: var(--orange);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .type-input:focus {
+            border-color: var(--yellow);
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+        }
+
+        .type-input::placeholder { color: #aaa3c7; }
+
+        .progress-dots {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .progress-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--border);
+            transition: 0.3s ease;
+        }
+
+        .progress-dot.done { background: var(--green); }
+        .progress-dot.current { background: var(--yellow); transform: scale(1.3); }
+        .progress-dot.wrong { background: var(--red); }
+
+        .live-stats { animation: fade-up 0.4s ease; }
+
+        .live-stat {
+            padding: 10px;
+            border-radius: var(--radius-sm);
+        }
+
+        .live-value { font-size: 1.2rem; font-weight: 900; }
+        .live-value.correct { color: var(--green); }
+        .live-value.wrong { color: var(--red); }
+        .live-value.accuracy { color: var(--cyan); }
+        .live-value.speed { color: var(--yellow); }
+
+        .result-hero {
+            padding: 32px 20px 24px;
+            text-align: center;
+            animation: pop-in 0.5s ease;
+        }
+
+        .result-emoji {
+            display: block;
+            margin-bottom: 12px;
+            font-size: 5rem;
+        }
+
+        .result-title {
+            margin-bottom: 6px;
+            font-size: 2rem;
+            font-weight: 900;
+        }
+
+        .result-subtitle { color: var(--muted); font-size: 0.9rem; }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .result-card {
+            padding: 18px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            background: var(--panel);
+            text-align: center;
+        }
+
+        .result-card.highlight {
+            border-color: var(--yellow);
+            background: rgba(245, 158, 11, 0.05);
+        }
+
+        .result-value {
+            margin-bottom: 4px;
+            font-size: 2rem;
+            font-weight: 900;
+        }
+
+        .result-value.speed { color: var(--yellow); }
+        .result-value.accuracy { color: var(--cyan); }
+        .result-value.correct { color: var(--green); }
+        .result-value.wrong { color: var(--red); }
+
+        .result-bars { margin-bottom: 20px; }
+
+        .result-bar-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            color: var(--muted);
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .result-bar {
+            height: 12px;
+            overflow: hidden;
+            margin-bottom: 10px;
+            border-radius: 999px;
+            background: var(--border);
+        }
+
+        .result-bar-fill {
+            width: 0;
+            height: 100%;
+            border-radius: inherit;
+            transition: width 1s 0.3s ease;
+        }
+
+        .result-bar-fill.accuracy { background: linear-gradient(90deg, var(--cyan), var(--green)); }
+        .result-bar-fill.speed { background: linear-gradient(90deg, var(--yellow), var(--orange)); }
+
+        .result-actions { margin-top: 4px; }
+
+        .result-btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: 16px;
+            font-size: 0.95rem;
+            font-weight: 900;
+            transition: transform 0.15s;
+        }
+
+        .result-btn:hover { transform: scale(1.02); }
+        .result-btn:active { transform: scale(0.97); }
+
+        .result-btn.secondary {
+            border: 2px solid var(--border);
+            background: var(--panel);
+            color: var(--text);
+        }
+
+        .result-btn.primary {
+            border: 0;
+            background: linear-gradient(135deg, var(--yellow), var(--orange));
+            color: #1a1a1a;
+        }
+
+        .star-burst {
+            position: fixed;
+            inset: 0;
+            z-index: 999;
+            display: none;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .star-piece {
+            position: absolute;
+            animation: star-pop 0.8s ease-out forwards;
+        }
+
+        .pwa-banner {
+            position: fixed;
+            left: 50%;
+            bottom: 20px;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-width: calc(100% - 32px);
+            padding: 12px 20px;
+            border: 0;
+            border-radius: 999px;
+            background: #ff8fab;
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(255, 143, 171, 0.4);
+            font-size: 0.9rem;
+            font-weight: 800;
+            transform: translateX(-50%);
+        }
+
+        .pwa-banner[hidden] { display: none; }
+
+        .pwa-banner-icon { font-size: 1.3rem; }
+
+        .pwa-close {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 24px;
+            width: 24px;
+            height: 24px;
+            border: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            color: #fff;
+        }
+
+        @media (max-width: 520px) {
+            .app { padding-inline: 12px; }
+            .stats-bar { gap: 6px; }
+            .stat-chip { padding-inline: 6px; }
+            .stat-value { font-size: 1.25rem; }
+            .level-grid { grid-template-columns: 1fr; }
+            .game-header { align-items: flex-start; }
+            .game-info { flex-wrap: wrap; }
+            .info-chip { padding-inline: 10px; }
+            .display-box { padding-inline: 16px; }
+            .live-stats { gap: 5px; }
+            .live-stat { padding-inline: 6px; }
+            .result-actions { flex-direction: column; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                scroll-behavior: auto !important;
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="starBurst" class="star-burst" aria-hidden="true"></div>
+
+<main class="app">
+    <section id="homeScreen" class="screen" aria-labelledby="homeTitle">
+        <header class="hero">
+            <span class="hero-icon" aria-hidden="true">⌨️</span>
+            <h1 id="homeTitle">키보드 히어로!</h1>
+            <p>한글 · 영어 타자 연습 🚀</p>
+        </header>
+
+        <div class="stats-bar" aria-label="최고 기록">
+            <div class="stat-chip">
+                <div id="homeBestWpm" class="stat-value">-</div>
+                <div class="stat-label">🏆 최고 속도</div>
+            </div>
+            <div class="stat-chip">
+                <div id="homeBestAccuracy" class="stat-value">-</div>
+                <div class="stat-label">🎯 최고 정확도</div>
+            </div>
+            <div class="stat-chip">
+                <div id="homeTotalGames" class="stat-value">0</div>
+                <div class="stat-label">✅ 완료 횟수</div>
+            </div>
+        </div>
+
+        <div class="mode-tabs" role="tablist" aria-label="연습 언어">
+            <button type="button" class="mode-tab is-active" data-language="ko" role="tab" aria-selected="true">🇰🇷 한글</button>
+            <button type="button" class="mode-tab" data-language="en" role="tab" aria-selected="false">🇺🇸 영어</button>
+        </div>
+
+        <div id="levelGrid" class="level-grid" aria-label="난이도 선택"></div>
+
+        <div class="record-strip">
+            <div class="record-icon" aria-hidden="true">📈</div>
+            <div class="record-text">지금까지 가장 잘한 기록이에요!</div>
+            <div id="homeRecordValue" class="record-value">아직 없어요</div>
+        </div>
+    </section>
+
+    <section id="gameScreen" class="screen" hidden aria-label="타자 연습 게임">
+        <div class="game-header">
+            <button id="backButton" type="button" class="back-btn">← 나가기</button>
+            <div class="game-info">
+                <div class="info-chip">⏱ <strong id="gameTime">60</strong>초</div>
+                <div class="info-chip">💎 <strong id="gameScore">0</strong>점</div>
+            </div>
+        </div>
+
+        <div class="timer-wrap" aria-hidden="true">
+            <div class="timer-bar">
+                <div id="timerFill" class="timer-fill"></div>
+            </div>
+        </div>
+
+        <div id="displayBox" class="display-box">
+            <div id="countdownOverlay" class="countdown-overlay">
+                <div id="countdownNumber" class="countdown-number">3</div>
+            </div>
+            <div id="targetText" class="target-text" aria-live="polite"></div>
+        </div>
+
+        <div id="progressDots" class="progress-dots" aria-label="문제 진행 상황"></div>
+
+        <div class="input-wrap">
+            <input
+                    id="typeInput"
+                    class="type-input"
+                    type="text"
+                    placeholder="여기에 타이핑하세요..."
+                    autocomplete="off"
+                    autocorrect="off"
+                    autocapitalize="off"
+                    spellcheck="false"
+                    aria-label="타자 입력"
+                    disabled
+            >
+        </div>
+
+        <div class="live-stats" aria-label="실시간 기록">
+            <div class="live-stat">
+                <div id="liveCorrect" class="live-value correct">0</div>
+                <div class="live-label">✅ 맞음</div>
+            </div>
+            <div class="live-stat">
+                <div id="liveWrong" class="live-value wrong">0</div>
+                <div class="live-label">❌ 틀림</div>
+            </div>
+            <div class="live-stat">
+                <div id="liveAccuracy" class="live-value accuracy">100%</div>
+                <div class="live-label">🎯 정확도</div>
+            </div>
+            <div class="live-stat">
+                <div id="liveWpm" class="live-value speed">0</div>
+                <div class="live-label">⚡ 타수</div>
+            </div>
+        </div>
+    </section>
+
+    <section id="resultScreen" class="screen" hidden aria-label="연습 결과">
+        <div class="result-hero">
+            <span id="resultEmoji" class="result-emoji" aria-hidden="true">🎉</span>
+            <div id="resultTitle" class="result-title">완료!</div>
+            <div id="resultSubtitle" class="result-subtitle"></div>
+        </div>
+
+        <div class="result-grid">
+            <div class="result-card highlight">
+                <div id="resultWpm" class="result-value speed">0</div>
+                <div class="result-label">⚡ 타수 (타/분)</div>
+            </div>
+            <div class="result-card highlight">
+                <div id="resultAccuracy" class="result-value accuracy">0%</div>
+                <div class="result-label">🎯 정확도</div>
+            </div>
+            <div class="result-card">
+                <div id="resultCorrect" class="result-value correct">0</div>
+                <div class="result-label">✅ 맞은 개수</div>
+            </div>
+            <div class="result-card">
+                <div id="resultWrong" class="result-value wrong">0</div>
+                <div class="result-label">❌ 틀린 개수</div>
+            </div>
+        </div>
+
+        <div class="result-bars">
+            <div class="result-bar-label">
+                <span>정확도</span>
+                <span id="resultAccuracyLabel">0%</span>
+            </div>
+            <div class="result-bar">
+                <div id="resultAccuracyBar" class="result-bar-fill accuracy"></div>
+            </div>
+
+            <div class="result-bar-label">
+                <span>속도 (최고 대비)</span>
+                <span id="resultWpmLabel">0%</span>
+            </div>
+            <div class="result-bar">
+                <div id="resultWpmBar" class="result-bar-fill speed"></div>
+            </div>
+        </div>
+
+        <div class="result-actions">
+            <button id="homeButton" type="button" class="result-btn secondary">🏠 홈으로</button>
+            <button id="retryButton" type="button" class="result-btn primary">🔄 다시 하기!</button>
+        </div>
+    </section>
+</main>
+
+<div id="pwaBanner" class="pwa-banner" hidden>
+    <span class="pwa-banner-icon" aria-hidden="true">📱</span>
+    <span>홈 화면에 앱으로 추가하기!</span>
+    <button id="pwaCloseButton" type="button" class="pwa-close" aria-label="설치 안내 닫기">✕</button>
+</div>
+
+<script>
+    (() => {
+        "use strict";
+
+        const WORDS = {
+            ko: {
+                easy: [
+                    "나는 행복해", "잘했어요", "사랑해", "고마워", "괜찮아",
+                    "할 수 있어", "멋지다", "자랑스러워", "기뻐요", "힘내",
+                    "최고야", "좋아해", "웃어요", "친절해", "용감해",
+                    "나는 소중해", "잘 되고 있어", "믿어요", "함께해요", "응원해",
+                    "편안해", "즐거워", "감사해", "따뜻해", "행복해요"
+                ],
+                medium: [
+                    "나는 할 수 있어", "엄마는 너를 사랑해", "잘하고 있어",
+                    "나는 소중한 사람이야", "오늘도 최선을 다했어", "실수해도 괜찮아",
+                    "나는 용감하게 말할 수 있어", "친구에게 친절하게 말해요",
+                    "나는 내 감정을 말할 수 있어", "화가 나도 말로 표현할 수 있어",
+                    "도움을 요청하는 것은 용기 있는 일이야", "나는 매일 조금씩 성장하고 있어",
+                    "틀려도 괜찮아 다시 해보면 돼", "힘들 때 도움을 청해도 돼",
+                    "나는 이대로 충분히 잘하고 있어", "오늘 하루도 수고했어",
+                    "나는 내 마음을 잘 알고 있어", "기분이 어떤지 말해도 돼"
+                ],
+                hard: [
+                    "나는 내 감정을 말로 표현할 수 있어",
+                    "실수는 배움의 기회이고 나는 계속 성장해",
+                    "나는 화가 날 때 말로 이야기할 수 있어",
+                    "친구가 힘들 때 옆에 있어주는 것이 진짜 우정이야",
+                    "나는 매일 조금씩 더 나아지고 있어",
+                    "어렵더라도 포기하지 않고 끝까지 해낼 수 있어",
+                    "나는 도움을 받아도 되고 도움을 줄 수도 있어",
+                    "내 마음의 소리에 귀 기울이는 것이 중요해",
+                    "나는 억울할 때 당당하게 말할 수 있어",
+                    "슬프거나 화가 나는 감정은 자연스러운 것이야",
+                    "나는 오늘도 충분히 잘하고 있는 멋진 사람이야",
+                    "용기 내어 말하는 연습을 매일 조금씩 해나가요",
+                    "나는 존중받을 자격이 있고 남도 존중할 수 있어",
+                    "실패해도 괜찮아 다음에 더 잘하면 되니까"
+                ]
+            },
+            en: {
+                easy: [
+                    "I am loved", "I am kind", "I am brave", "I am strong", "I am happy",
+                    "I can do it", "I am smart", "I am enough", "I am great", "well done",
+                    "I feel good", "I feel safe", "I am proud", "I am calm", "I am free",
+                    "thank you", "I am okay", "I am me", "I am real", "I am here"
+                ],
+                medium: [
+                    "I can do this", "I am enough just as I am",
+                    "I am proud of myself", "I believe in myself",
+                    "I can use my words", "I am brave and strong",
+                    "I am getting better every day", "It is okay to make mistakes",
+                    "I can ask for help", "I can share my feelings",
+                    "I am kind to myself and others", "I choose to be happy today",
+                    "I can try again when I fail", "My feelings are important too",
+                    "I am loved no matter what", "I can speak up for myself",
+                    "It is okay to feel sad sometimes", "I am a good friend"
+                ],
+                hard: [
+                    "I can express my feelings with words",
+                    "Every day I am becoming a better version of myself",
+                    "It is okay to make mistakes because I learn from them",
+                    "I am brave enough to speak up when something is not fair",
+                    "I can ask for help and that is a sign of strength",
+                    "My feelings matter and I can share them with people I trust",
+                    "I am proud of how hard I try every single day",
+                    "When I feel angry I can take a deep breath and use my words",
+                    "I am loved and supported by the people around me",
+                    "I believe in myself even when things are hard",
+                    "I can do difficult things because I am strong and brave",
+                    "Being kind to others makes me feel happy inside",
+                    "I am enough exactly the way I am right now",
+                    "I can stand up for myself in a calm and kind way"
+                ]
+            }
+        };
+
+        const LEVELS = [
+            { id: "easy", emoji: "⭐", title: "쉬움", description: "짧은 단어", time: 60, badge: "초보" },
+            { id: "medium", emoji: "⭐⭐", title: "보통", description: "짧은 문장", time: 60, badge: "중급" },
+            { id: "hard", emoji: "⭐⭐⭐", title: "어려움", description: "긴 문장", time: 90, badge: "고급" },
+            { id: "free", emoji: "🎮", title: "무한모드", description: "끝없이 연습!", time: Infinity, badge: "자유" }
+        ];
+
+        const STORAGE_KEY = "keyboardHeroRecords";
+        const MAX_NORMAL_QUESTIONS = 20;
+
+        const state = {
+            language: "ko",
+            level: null,
+            words: [],
+            currentIndex: 0,
+            correctCount: 0,
+            wrongCount: 0,
+            startTime: null,
+            timerId: null,
+            countdownId: null,
+            timeLeft: 60,
+            totalTime: 60,
+            active: false,
+            records: loadRecords(),
+            deferredInstallPrompt: null
+        };
+
+        const elements = {
+            screens: {
+                home: document.getElementById("homeScreen"),
+                game: document.getElementById("gameScreen"),
+                result: document.getElementById("resultScreen")
+            },
+            languageTabs: [...document.querySelectorAll("[data-language]")],
+            levelGrid: document.getElementById("levelGrid"),
+            homeBestWpm: document.getElementById("homeBestWpm"),
+            homeBestAccuracy: document.getElementById("homeBestAccuracy"),
+            homeTotalGames: document.getElementById("homeTotalGames"),
+            homeRecordValue: document.getElementById("homeRecordValue"),
+            backButton: document.getElementById("backButton"),
+            gameTime: document.getElementById("gameTime"),
+            gameScore: document.getElementById("gameScore"),
+            timerFill: document.getElementById("timerFill"),
+            displayBox: document.getElementById("displayBox"),
+            countdownOverlay: document.getElementById("countdownOverlay"),
+            countdownNumber: document.getElementById("countdownNumber"),
+            targetText: document.getElementById("targetText"),
+            progressDots: document.getElementById("progressDots"),
+            typeInput: document.getElementById("typeInput"),
+            liveCorrect: document.getElementById("liveCorrect"),
+            liveWrong: document.getElementById("liveWrong"),
+            liveAccuracy: document.getElementById("liveAccuracy"),
+            liveWpm: document.getElementById("liveWpm"),
+            resultEmoji: document.getElementById("resultEmoji"),
+            resultTitle: document.getElementById("resultTitle"),
+            resultSubtitle: document.getElementById("resultSubtitle"),
+            resultWpm: document.getElementById("resultWpm"),
+            resultAccuracy: document.getElementById("resultAccuracy"),
+            resultCorrect: document.getElementById("resultCorrect"),
+            resultWrong: document.getElementById("resultWrong"),
+            resultAccuracyLabel: document.getElementById("resultAccuracyLabel"),
+            resultWpmLabel: document.getElementById("resultWpmLabel"),
+            resultAccuracyBar: document.getElementById("resultAccuracyBar"),
+            resultWpmBar: document.getElementById("resultWpmBar"),
+            homeButton: document.getElementById("homeButton"),
+            retryButton: document.getElementById("retryButton"),
+            starBurst: document.getElementById("starBurst"),
+            pwaBanner: document.getElementById("pwaBanner"),
+            pwaCloseButton: document.getElementById("pwaCloseButton")
+        };
+
+        function loadRecords() {
+            try {
+                const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+                return {
+                    bestWpm: Number(saved?.bestWpm) || 0,
+                    bestAccuracy: Number(saved?.bestAccuracy) || 0,
+                    totalGames: Number(saved?.totalGames) || 0
+                };
+            } catch {
+                return { bestWpm: 0, bestAccuracy: 0, totalGames: 0 };
+            }
+        }
+
+        function saveRecords() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state.records));
+            } catch {
+                // localStorage가 차단된 환경에서는 현재 세션 기록만 유지합니다.
+            }
+        }
+
+        function shuffle(items) {
+            const result = [...items];
+            for (let i = result.length - 1; i > 0; i -= 1) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [result[i], result[j]] = [result[j], result[i]];
+            }
+            return result;
+        }
+
+        function buildWordSet(level) {
+            const sourceLevel = level.id === "free" ? "easy" : level.id;
+            const pool = WORDS[state.language][sourceLevel];
+
+            if (level.id === "free") {
+                const repeated = [];
+                for (let i = 0; i < 50; i += 1) repeated.push(...shuffle(pool));
+                return repeated;
+            }
+
+            const result = [];
+            while (result.length < MAX_NORMAL_QUESTIONS) {
+                result.push(...shuffle(pool));
+            }
+            return result.slice(0, MAX_NORMAL_QUESTIONS);
+        }
+
+        function renderLevels() {
+            elements.levelGrid.replaceChildren();
+
+            LEVELS.forEach((level) => {
+                const card = document.createElement("button");
+                card.type = "button";
+                card.className = "level-card";
+                card.dataset.level = level.id;
+                card.innerHTML = `
+            <span class="level-emoji" aria-hidden="true">${level.emoji}</span>
+            <span class="level-title">${level.title}</span>
+            <span class="level-desc">${level.description} · ${Number.isFinite(level.time) ? `${level.time}초` : "무제한"}</span>
+            <span class="level-badge ${level.id}">${level.badge}</span>
+          `;
+                elements.levelGrid.appendChild(card);
+            });
+        }
+
+        function setLanguage(language) {
+            if (!WORDS[language]) return;
+            state.language = language;
+
+            elements.languageTabs.forEach((tab) => {
+                const active = tab.dataset.language === language;
+                tab.classList.toggle("is-active", active);
+                tab.setAttribute("aria-selected", String(active));
+            });
+
+            renderLevels();
+        }
+
+        function updateHomeStats() {
+            const { bestWpm, bestAccuracy, totalGames } = state.records;
+            elements.homeBestWpm.textContent = bestWpm > 0 ? `${bestWpm}타` : "-";
+            elements.homeBestAccuracy.textContent = bestAccuracy > 0 ? `${bestAccuracy}%` : "-";
+            elements.homeTotalGames.textContent = String(totalGames);
+            elements.homeRecordValue.textContent = bestWpm > 0
+                ? `${bestWpm}타 · ${bestAccuracy}%`
+                : "아직 없어요";
+        }
+
+        function showScreen(name) {
+            Object.entries(elements.screens).forEach(([screenName, screen]) => {
+                screen.hidden = screenName !== name;
+            });
+        }
+
+        function clearTimers() {
+            if (state.timerId) {
+                clearInterval(state.timerId);
+                state.timerId = null;
+            }
+            if (state.countdownId) {
+                clearInterval(state.countdownId);
+                state.countdownId = null;
+            }
+        }
+
+        function resetGameUi() {
+            elements.typeInput.value = "";
+            elements.typeInput.disabled = true;
+            elements.timerFill.style.width = "100%";
+            elements.timerFill.classList.remove("is-warning");
+            elements.displayBox.classList.remove("is-correct", "is-wrong");
+            elements.resultAccuracyBar.style.width = "0%";
+            elements.resultWpmBar.style.width = "0%";
+        }
+
+        function startGame(level) {
+            clearTimers();
+
+            state.level = level;
+            state.words = buildWordSet(level);
+            state.currentIndex = 0;
+            state.correctCount = 0;
+            state.wrongCount = 0;
+            state.startTime = null;
+            state.active = false;
+            state.timeLeft = Number.isFinite(level.time) ? level.time : 0;
+            state.totalTime = Number.isFinite(level.time) ? level.time : 0;
+
+            resetGameUi();
+            showScreen("game");
+            renderTargetText();
+            renderProgressDots();
+            updateLiveStats();
+
+            elements.gameTime.textContent = Number.isFinite(level.time) ? String(level.time) : "∞";
+            runCountdown();
+        }
+
+        function runCountdown() {
+            let count = 3;
+            elements.countdownOverlay.hidden = false;
+            restartAnimation(elements.countdownNumber, "countdown-number");
+            elements.countdownNumber.textContent = String(count);
+
+            state.countdownId = setInterval(() => {
+                count -= 1;
+
+                if (count <= 0) {
+                    clearInterval(state.countdownId);
+                    state.countdownId = null;
+                    elements.countdownOverlay.hidden = true;
+                    elements.typeInput.disabled = false;
+                    elements.typeInput.focus();
+                    state.active = true;
+                    state.startTime = Date.now();
+
+                    if (Number.isFinite(state.level.time)) startTimer();
+                    return;
+                }
+
+                elements.countdownNumber.textContent = String(count);
+                restartAnimation(elements.countdownNumber, "countdown-number");
+            }, 1000);
+        }
+
+        function startTimer() {
+            state.timerId = setInterval(() => {
+                state.timeLeft -= 1;
+                const percent = Math.max(0, (state.timeLeft / state.totalTime) * 100);
+
+                elements.gameTime.textContent = String(state.timeLeft);
+                elements.timerFill.style.width = `${percent}%`;
+                elements.timerFill.classList.toggle("is-warning", percent < 30);
+
+                if (state.timeLeft <= 0) endGame();
+            }, 1000);
+        }
+
+        function renderTargetText() {
+            const word = state.words[state.currentIndex];
+            if (word === undefined) {
+                endGame();
+                return;
+            }
+
+            const fragment = document.createDocumentFragment();
+            [...word].forEach((character, index) => {
+                const span = document.createElement("span");
+                span.className = `char ${index === 0 ? "current" : "pending"}`;
+                span.dataset.charIndex = String(index);
+                span.textContent = character;
+                fragment.appendChild(span);
+            });
+
+            elements.targetText.replaceChildren(fragment);
+        }
+
+        function renderProgressDots() {
+            elements.progressDots.replaceChildren();
+            const total = Math.min(state.words.length, MAX_NORMAL_QUESTIONS);
+
+            for (let i = 0; i < total; i += 1) {
+                const dot = document.createElement("span");
+                dot.className = `progress-dot${i === 0 ? " current" : ""}`;
+                dot.dataset.progressIndex = String(i);
+                elements.progressDots.appendChild(dot);
+            }
+        }
+
+        function updateProgressDots(index, correct) {
+            const previous = elements.progressDots.querySelector(`[data-progress-index="${index - 1}"]`);
+            const current = elements.progressDots.querySelector(`[data-progress-index="${index}"]`);
+
+            if (previous) previous.className = `progress-dot ${correct ? "done" : "wrong"}`;
+            if (current) current.className = "progress-dot current";
+        }
+
+        function calculateAccuracy() {
+            const total = state.correctCount + state.wrongCount;
+            return total > 0 ? Math.round((state.correctCount / total) * 100) : 100;
+        }
+
+        function calculateWpm(minimumElapsedMinutes = 0) {
+            if (!state.startTime) return 0;
+            const elapsedMinutes = Math.max((Date.now() - state.startTime) / 60000, minimumElapsedMinutes);
+            return elapsedMinutes > 0 ? Math.round(state.correctCount / elapsedMinutes) : 0;
+        }
+
+        function updateLiveStats() {
+            const accuracy = calculateAccuracy();
+            const wpm = calculateWpm();
+            const score = Math.max(0, state.correctCount * 10 - state.wrongCount * 3);
+
+            elements.liveCorrect.textContent = String(state.correctCount);
+            elements.liveWrong.textContent = String(state.wrongCount);
+            elements.liveAccuracy.textContent = `${accuracy}%`;
+            elements.liveWpm.textContent = String(wpm);
+            elements.gameScore.textContent = String(score);
+        }
+
+        function handleTyping() {
+            if (!state.active) return;
+
+            const typed = elements.typeInput.value;
+            const word = state.words[state.currentIndex];
+            const characters = elements.targetText.querySelectorAll(".char");
+
+            characters.forEach((element, index) => {
+                if (index < typed.length) {
+                    element.className = `char ${typed[index] === word[index] ? "done" : "wrong"}`;
+                } else if (index === typed.length) {
+                    element.className = "char current";
+                } else {
+                    element.className = "char pending";
+                }
+            });
+
+            if (typed.endsWith(" ") && !word.includes(" ")) {
+                submitCurrentWord(typed.trim());
+                elements.typeInput.value = "";
+            }
+        }
+
+        function submitCurrentWord(typed) {
+            if (!state.active) return;
+
+            const word = state.words[state.currentIndex];
+            const correct = typed === word;
+
+            if (correct) {
+                state.correctCount += 1;
+                animateFeedback("is-correct");
+                fireStars(2);
+            } else {
+                state.wrongCount += 1;
+                animateFeedback("is-wrong");
+            }
+
+            updateLiveStats();
+            state.currentIndex += 1;
+
+            if (state.level.id !== "free" && state.currentIndex >= state.words.length) {
+                endGame();
+                return;
+            }
+
+            renderTargetText();
+            updateProgressDots(state.currentIndex, correct);
+        }
+
+        function animateFeedback(className) {
+            elements.displayBox.classList.remove("is-correct", "is-wrong");
+            void elements.displayBox.offsetWidth;
+            elements.displayBox.classList.add(className);
+        }
+
+        function restartAnimation(element, className) {
+            element.classList.remove(className);
+            void element.offsetWidth;
+            element.classList.add(className);
+        }
+
+        function getResultMessage(accuracy, wpm, isNewBest) {
+            if (isNewBest) {
+                return { emoji: "🥇", title: "신기록!", subtitle: "최고 기록을 세웠어요!! 🎉🎉🎉" };
+            }
+            if (accuracy >= 95 && wpm >= 30) {
+                return { emoji: "🏆", title: "완벽해요!", subtitle: "최고의 타자 실력이에요! 대단해요 👏" };
+            }
+            if (accuracy >= 80) {
+                return { emoji: "🌟", title: "잘했어요!", subtitle: "정확도가 높아요! 속도를 더 높여봐요 💪" };
+            }
+            if (state.correctCount >= 5) {
+                return { emoji: "😊", title: "좋아요!", subtitle: "계속 연습하면 더 잘할 수 있어요!" };
+            }
+            return { emoji: "💪", title: "도전!", subtitle: "천천히 정확하게 연습해봐요!" };
+        }
+
+        function endGame() {
+            if (!state.level) return;
+
+            state.active = false;
+            clearTimers();
+            elements.typeInput.disabled = true;
+
+            const accuracy = calculateAccuracy();
+            const wpm = calculateWpm(0.1);
+            const previousBestWpm = state.records.bestWpm;
+            const isNewBest = wpm > previousBestWpm;
+
+            state.records.totalGames += 1;
+            state.records.bestWpm = Math.max(state.records.bestWpm, wpm);
+            state.records.bestAccuracy = Math.max(state.records.bestAccuracy, accuracy);
+            saveRecords();
+
+            const message = getResultMessage(accuracy, wpm, isNewBest);
+            const bestForComparison = Math.max(state.records.bestWpm, wpm, 1);
+            const wpmPercent = Math.min(100, Math.round((wpm / bestForComparison) * 100));
+
+            elements.resultEmoji.textContent = message.emoji;
+            elements.resultTitle.textContent = message.title;
+            elements.resultSubtitle.textContent = message.subtitle;
+            elements.resultWpm.textContent = `${wpm}타`;
+            elements.resultAccuracy.textContent = `${accuracy}%`;
+            elements.resultCorrect.textContent = String(state.correctCount);
+            elements.resultWrong.textContent = String(state.wrongCount);
+            elements.resultAccuracyLabel.textContent = `${accuracy}%`;
+            elements.resultWpmLabel.textContent = `${wpmPercent}%`;
+
+            showScreen("result");
+
+            requestAnimationFrame(() => {
+                elements.resultAccuracyBar.style.width = `${accuracy}%`;
+                elements.resultWpmBar.style.width = `${wpmPercent}%`;
+            });
+
+            if (isNewBest) setTimeout(() => fireStars(20), 300);
+            updateHomeStats();
+        }
+
+        function retryGame() {
+            if (state.level) startGame(state.level);
+        }
+
+        function goHome() {
+            state.active = false;
+            clearTimers();
+            elements.typeInput.disabled = true;
+            showScreen("home");
+            updateHomeStats();
+        }
+
+        function fireStars(count) {
+            const pieces = ["⭐", "🌟", "✨", "💫", "🎉", "💥"];
+            elements.starBurst.replaceChildren();
+            elements.starBurst.style.display = "block";
+
+            for (let i = 0; i < count; i += 1) {
+                const piece = document.createElement("span");
+                piece.className = "star-piece";
+                piece.textContent = pieces[Math.floor(Math.random() * pieces.length)];
+                piece.style.left = `${10 + Math.random() * 80}%`;
+                piece.style.top = `${10 + Math.random() * 70}%`;
+                piece.style.fontSize = `${1 + Math.random() * 1.5}rem`;
+                piece.style.animationDelay = `${i * 0.05}s`;
+                piece.style.animationDuration = `${0.6 + Math.random() * 0.4}s`;
+                elements.starBurst.appendChild(piece);
+            }
+
+            setTimeout(() => {
+                elements.starBurst.style.display = "none";
+                elements.starBurst.replaceChildren();
+            }, count * 60 + 900);
+        }
+
+        function handleInstallPrompt(event) {
+            event.preventDefault();
+            state.deferredInstallPrompt = event;
+            elements.pwaBanner.hidden = false;
+        }
+
+        async function requestInstall() {
+            if (!state.deferredInstallPrompt) return;
+            await state.deferredInstallPrompt.prompt();
+            await state.deferredInstallPrompt.userChoice;
+            state.deferredInstallPrompt = null;
+            elements.pwaBanner.hidden = true;
+        }
+
+        function bindEvents() {
+            elements.languageTabs.forEach((tab) => {
+                tab.addEventListener("click", () => setLanguage(tab.dataset.language));
+            });
+
+            elements.levelGrid.addEventListener("click", (event) => {
+                const card = event.target.closest("[data-level]");
+                if (!card) return;
+                const level = LEVELS.find((item) => item.id === card.dataset.level);
+                if (level) startGame(level);
+            });
+
+            elements.typeInput.addEventListener("input", handleTyping);
+            elements.typeInput.addEventListener("keydown", (event) => {
+                if (event.key !== "Enter" || !state.active) return;
+                event.preventDefault();
+                submitCurrentWord(elements.typeInput.value.trim());
+                elements.typeInput.value = "";
+            });
+
+            elements.backButton.addEventListener("click", goHome);
+            elements.homeButton.addEventListener("click", goHome);
+            elements.retryButton.addEventListener("click", retryGame);
+
+            elements.pwaBanner.addEventListener("click", (event) => {
+                if (event.target.closest("#pwaCloseButton")) return;
+                requestInstall();
+            });
+
+            elements.pwaCloseButton.addEventListener("click", () => {
+                elements.pwaBanner.hidden = true;
+            });
+
+            window.addEventListener("beforeinstallprompt", handleInstallPrompt);
+            window.addEventListener("appinstalled", () => {
+                state.deferredInstallPrompt = null;
+                elements.pwaBanner.hidden = true;
+            });
+
+            window.addEventListener("beforeunload", clearTimers);
+        }
+
+        function init() {
+            renderLevels();
+            updateHomeStats();
+            bindEvents();
+        }
+
+        init();
+    })();
+</script>
+</body>
+</html>
