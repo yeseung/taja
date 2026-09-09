@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>한글 타자연습</title>
+
+  <meta
+          name="description"
+          content="한글 단어와 문장을 입력하며 타자 속도와 정확도를 연습할 수 있는 웹 타자연습입니다."
+  >
+  <meta
+          name="keywords"
+          content="한글 타자연습, 타자연습, 한글 타자, 타자 속도, 타자 정확도"
+  >
+
+  <style>
+    :root {
+      --background: #ffffff;
+      --surface: #f8f9fa;
+      --border: #e5e7eb;
+      --text: #171717;
+      --muted: #8a8a8a;
+      --correct: #111827;
+      --wrong: #ef4444;
+      --waiting: #c7c7c7;
+      --primary: #111827;
+      --radius: 20px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      background: var(--background);
+      color: var(--text);
+      font-family:
+              -apple-system,
+              BlinkMacSystemFont,
+              "Segoe UI",
+              "Noto Sans KR",
+              Arial,
+              sans-serif;
+      letter-spacing: -0.03em;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .app {
+      width: min(100% - 32px, 960px);
+      margin: 0 auto;
+      padding: 10vh 0 80px;
+    }
+
+    .header {
+      margin-bottom: 60px;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .title {
+      margin: 0;
+      font-size: clamp(34px, 6vw, 62px);
+      font-weight: 800;
+      letter-spacing: -0.06em;
+    }
+
+    .description {
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .record-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #666;
+      font-size: 14px;
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    .record-toggle input {
+      width: 18px;
+      height: 18px;
+    }
+
+    .practice {
+      position: relative;
+    }
+
+    .progress-wrap {
+      margin-bottom: 26px;
+    }
+
+    .progress-info {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .progress {
+      height: 5px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #f0f0f0;
+    }
+
+    .progress-bar {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--primary);
+      transition: width 0.25s ease;
+    }
+
+    .record {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+
+    .record.hidden {
+      display: none;
+    }
+
+    .record-item {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #fff;
+    }
+
+    .record-label {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .record-value {
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .typing-card {
+      position: relative;
+      padding: 32px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: #ffffff;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.04);
+    }
+
+    .text-area {
+      position: relative;
+      min-height: 150px;
+    }
+
+    .target-text {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      font-size: clamp(22px, 4vw, 32px);
+      font-weight: 500;
+      line-height: 1.8;
+      letter-spacing: 0.08em;
+      word-break: keep-all;
+      pointer-events: none;
+    }
+
+    .char {
+      color: var(--waiting);
+    }
+
+    .char.correct {
+      color: var(--correct);
+    }
+
+    .char.wrong {
+      color: var(--wrong);
+    }
+
+    .typing-input {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      width: 100%;
+      height: 100%;
+      padding: 0;
+      resize: none;
+      overflow: hidden;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: transparent;
+      caret-color: #a3a3a3;
+      font-size: clamp(22px, 4vw, 32px);
+      line-height: 1.8;
+      letter-spacing: 0.08em;
+    }
+
+    .typing-input::selection {
+      background: rgba(251, 191, 36, 0.2);
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .button {
+      min-height: 42px;
+      padding: 0 15px;
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      background: #fff;
+      color: #555;
+      font-weight: 600;
+    }
+
+    .button:hover {
+      border-color: #aaa;
+      color: #111;
+    }
+
+    .next-button {
+      display: none;
+      border-color: var(--primary);
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .next-button.show {
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .next-button:hover {
+      color: #fff;
+    }
+
+    .message {
+      min-height: 24px;
+      margin-top: 18px;
+      color: var(--wrong);
+      font-size: 14px;
+      text-align: right;
+    }
+
+    .result {
+      display: none;
+      text-align: center;
+    }
+
+    .result.active {
+      display: block;
+    }
+
+    .practice.hidden {
+      display: none;
+    }
+
+    .result-icon {
+      margin-bottom: 10px;
+      font-size: 48px;
+    }
+
+    .result h2 {
+      margin: 0;
+      font-size: clamp(30px, 5vw, 44px);
+    }
+
+    .result-description {
+      margin: 10px 0 32px;
+      color: var(--muted);
+    }
+
+    .result-record {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      max-width: 520px;
+      margin: 0 auto 30px;
+    }
+
+    .result-item {
+      padding: 24px 15px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--surface);
+    }
+
+    .result-item span {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .result-item strong {
+      font-size: 28px;
+    }
+
+    .retry-button {
+      min-height: 50px;
+      padding: 0 24px;
+      border: 0;
+      border-radius: 13px;
+      background: var(--primary);
+      color: #fff;
+      font-weight: 700;
+    }
+
+    @media (max-width: 640px) {
+      .app {
+        width: min(100% - 24px, 960px);
+        padding-top: 50px;
+      }
+
+      .header {
+        margin-bottom: 40px;
+      }
+
+      .header-top {
+        flex-direction: column;
+      }
+
+      .typing-card {
+        padding: 22px 18px;
+        border-radius: 16px;
+      }
+
+      .record {
+        grid-template-columns: 1fr;
+      }
+
+      .text-area {
+        min-height: 200px;
+      }
+
+      .result-record {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <header class="header">
+    <div class="header-top">
+      <div>
+        <h1 class="title">한글 타자연습</h1>
+        <p class="description">
+          화면에 나타나는 한글을 그대로 입력해 보세요.
+        </p>
+      </div>
+
+      <label class="record-toggle">
+        <input
+                id="showRecord"
+                type="checkbox"
+                checked
+        >
+        기록 보기
+      </label>
+    </div>
+  </header>
+
+
+  <!-- 타자연습 -->
+  <main
+          id="practice"
+          class="practice"
+  >
+
+    <div class="progress-wrap">
+
+      <div class="progress-info">
+        <span>진행률</span>
+        <strong id="roundText">
+          1 / 5
+        </strong>
+      </div>
+
+      <div class="progress">
+        <div
+                id="progressBar"
+                class="progress-bar"
+        ></div>
+      </div>
+
+    </div>
+
+
+    <section
+            id="record"
+            class="record"
+    >
+
+      <div class="record-item">
+                <span class="record-label">
+                    타수
+                </span>
+
+        <strong
+                id="speed"
+                class="record-value"
+        >
+          0
+        </strong>
+      </div>
+
+      <div class="record-item">
+                <span class="record-label">
+                    정확도
+                </span>
+
+        <strong
+                id="accuracy"
+                class="record-value"
+        >
+          100%
+        </strong>
+      </div>
+
+      <div class="record-item">
+                <span class="record-label">
+                    입력 시간
+                </span>
+
+        <strong
+                id="time"
+                class="record-value"
+        >
+          0.0초
+        </strong>
+      </div>
+
+    </section>
+
+
+    <section class="typing-card">
+
+      <div class="text-area">
+
+        <p
+                id="targetText"
+                class="target-text"
+                aria-hidden="true"
+        ></p>
+
+        <textarea
+                id="typingInput"
+                class="typing-input"
+                rows="4"
+                autocomplete="off"
+                autocapitalize="off"
+                autocorrect="off"
+                spellcheck="false"
+                aria-label="한글 타자 입력"
+        ></textarea>
+
+      </div>
+
+
+      <div class="actions">
+
+        <button
+                id="resetButton"
+                class="button"
+                type="button"
+        >
+          ↻ 초기화
+        </button>
+
+        <button
+                id="nextButton"
+                class="button next-button"
+                type="button"
+        >
+          ⏎ Enter
+        </button>
+
+      </div>
+
+      <div
+              id="message"
+              class="message"
+              aria-live="polite"
+      ></div>
+
+    </section>
+
+  </main>
+
+
+  <!-- 결과 -->
+  <section
+          id="result"
+          class="result"
+  >
+
+    <div class="result-icon">
+      ⌨️
+    </div>
+
+    <h2>
+      연습 완료
+    </h2>
+
+    <p class="result-description">
+      모든 타자 연습을 완료했습니다.
+    </p>
+
+    <div class="result-record">
+
+      <div class="result-item">
+        <span>평균 타수</span>
+
+        <strong id="resultSpeed">
+          0
+        </strong>
+      </div>
+
+      <div class="result-item">
+        <span>평균 정확도</span>
+
+        <strong id="resultAccuracy">
+          100%
+        </strong>
+      </div>
+
+    </div>
+
+    <button
+            id="retryButton"
+            class="retry-button"
+            type="button"
+    >
+      다시 연습하기
+    </button>
+
+  </section>
+
+</div>
+
+
+<script>
+  (function () {
+    "use strict";
+
+
+    /*
+     * ========================================
+     * 기본 설정
+     * ========================================
+     */
+
+    const ROUND_COUNT = 5;
+    const WORD_COUNT = 10;
+
+
+    /*
+     * ========================================
+     * 연습용 한글 단어
+     * ========================================
+     */
+
+    const WORDS = [
+      "가을",
+      "겨울",
+      "고양이",
+      "구름",
+      "기쁨",
+      "나무",
+      "노을",
+      "눈꽃",
+      "달빛",
+      "도서관",
+      "마음",
+      "바다",
+      "바람",
+      "별빛",
+      "봄날",
+      "사랑",
+      "산책",
+      "생각",
+      "소나기",
+      "시간",
+      "아침",
+      "여름",
+      "여행",
+      "오늘",
+      "우산",
+      "음악",
+      "이야기",
+      "자전거",
+      "저녁",
+      "창문",
+      "책상",
+      "친구",
+      "커피",
+      "하늘",
+      "햇살",
+      "행복",
+      "호수",
+      "희망",
+      "학교",
+      "가족",
+      "거리",
+      "공원",
+      "꽃길",
+      "나비",
+      "낙엽",
+      "노래",
+      "도시",
+      "마을",
+      "미소",
+      "사진",
+      "새벽",
+      "선물",
+      "숲길",
+      "약속",
+      "연필",
+      "영화",
+      "자연",
+      "추억",
+      "하루",
+      "휴식"
+    ];
+
+
+    /*
+     * ========================================
+     * DOM
+     * ========================================
+     */
+
+    const practice =
+                  document.getElementById("practice");
+
+    const result =
+                  document.getElementById("result");
+
+    const targetText =
+                  document.getElementById("targetText");
+
+    const typingInput =
+                  document.getElementById("typingInput");
+
+    const speed =
+                  document.getElementById("speed");
+
+    const accuracy =
+                  document.getElementById("accuracy");
+
+    const time =
+                  document.getElementById("time");
+
+    const progressBar =
+                  document.getElementById("progressBar");
+
+    const roundText =
+                  document.getElementById("roundText");
+
+    const resetButton =
+                  document.getElementById("resetButton");
+
+    const nextButton =
+                  document.getElementById("nextButton");
+
+    const retryButton =
+                  document.getElementById("retryButton");
+
+    const message =
+                  document.getElementById("message");
+
+    const showRecord =
+                  document.getElementById("showRecord");
+
+    const record =
+                  document.getElementById("record");
+
+    const resultSpeed =
+                  document.getElementById("resultSpeed");
+
+    const resultAccuracy =
+                  document.getElementById("resultAccuracy");
+
+
+    /*
+     * ========================================
+     * 상태값
+     * ========================================
+     */
+
+    let texts = [];
+
+    let currentRound = 0;
+
+    let startTime = 0;
+
+    let timer = null;
+
+    let currentSpeed = 0;
+
+    let currentAccuracy = 1;
+
+    let speedRecords = [];
+
+    let accuracyRecords = [];
+
+    let isComplete = false;
+
+
+    /*
+     * ========================================
+     * 무작위 문장 생성
+     * ========================================
+     */
+
+    function shuffle(array) {
+      const copied = array.slice();
+
+      for (
+              let i = copied.length - 1;
+              i > 0;
+              i--
+      ) {
+        const randomIndex =
+                      Math.floor(
+                              Math.random() * (i + 1)
+                      );
+
+        const temp = copied[i];
+
+        copied[i] =
+                copied[randomIndex];
+
+        copied[randomIndex] =
+                temp;
+      }
+
+      return copied;
+    }
+
+
+    function getRandomWords(count) {
+      return shuffle(WORDS)
+      .slice(0, count);
+    }
+
+
+    function generateTexts() {
+      const result = [];
+
+      for (
+              let i = 0;
+              i < ROUND_COUNT;
+              i++
+      ) {
+        result.push(
+                getRandomWords(WORD_COUNT)
+                .join(" ")
+        );
+      }
+
+      return result;
+    }
+
+
+    /*
+     * ========================================
+     * 연습 시작
+     * ========================================
+     */
+
+    function startPractice() {
+
+      texts = generateTexts();
+
+      currentRound = 0;
+
+      speedRecords = [];
+      accuracyRecords = [];
+
+      practice.classList.remove("hidden");
+      result.classList.remove("active");
+
+      loadRound();
+
+    }
+
+
+    /*
+     * ========================================
+     * 현재 라운드
+     * ========================================
+     */
+
+    function loadRound() {
+
+      stopTimer();
+
+      startTime = 0;
+
+      currentSpeed = 0;
+      currentAccuracy = 1;
+      isComplete = false;
+
+      typingInput.value = "";
+
+      speed.textContent = "0";
+      accuracy.textContent = "100%";
+      time.textContent = "0.0초";
+
+      message.textContent = "";
+
+      nextButton.classList.remove("show");
+
+      updateProgress();
+
+      renderText();
+
+      requestAnimationFrame(function () {
+        typingInput.focus();
+      });
+
+    }
+
+
+    /*
+     * ========================================
+     * 글자 표시
+     * ========================================
+     */
+
+    function renderText() {
+
+      const text =
+                    texts[currentRound];
+
+      const value =
+                    typingInput.value;
+
+      targetText.innerHTML = "";
+
+      Array.from(text).forEach(
+              function (character, index) {
+
+                const span =
+                              document.createElement("span");
+
+                span.className = "char";
+
+                if (index < value.length) {
+
+                  if (
+                          value[index] ===
+                          character
+                  ) {
+                    span.classList.add(
+                            "correct"
+                    );
+                  } else {
+                    span.classList.add(
+                            "wrong"
+                    );
+                  }
+
+                  span.textContent =
+                          value[index];
+
+                } else {
+
+                  span.textContent =
+                          character;
+
+                }
+
+                targetText.appendChild(span);
+
+              }
+      );
+
+    }
+
+
+    /*
+     * ========================================
+     * 입력 처리
+     * ========================================
+     */
+
+    typingInput.addEventListener(
+            "input",
+            function () {
+
+              const text =
+                            texts[currentRound];
+
+              let value =
+                          typingInput.value;
+
+              /*
+               * 한글 연습이므로 영문 차단
+               */
+
+              if (/[a-zA-Z]/.test(value)) {
+
+                value =
+                        value.replace(
+                                /[a-zA-Z]/g,
+                                ""
+                        );
+
+                typingInput.value =
+                        value;
+
+                showMessage(
+                        "한글을 입력해주세요."
+                );
+
+              } else {
+
+                message.textContent = "";
+
+              }
+
+
+              /*
+               * 목표 글자 수 초과 방지
+               */
+
+              if (
+                      value.length >
+                      text.length
+              ) {
+
+                value =
+                        value.substring(
+                                0,
+                                text.length
+                        );
+
+                typingInput.value =
+                        value;
+
+              }
+
+
+              /*
+               * 줄바꿈 방지
+               */
+
+              if (
+                      value.includes("\n")
+              ) {
+
+                value =
+                        value.replace(
+                                /\n/g,
+                                ""
+                        );
+
+                typingInput.value =
+                        value;
+
+              }
+
+
+              startTypingTimer();
+
+              calculateRecord();
+
+              renderText();
+
+              checkComplete();
+
+            }
+    );
+
+
+    /*
+     * ========================================
+     * Enter
+     * ========================================
+     */
+
+    typingInput.addEventListener(
+            "keydown",
+            function (event) {
+
+              if (
+                      event.key !== "Enter"
+              ) {
+                return;
+              }
+
+              event.preventDefault();
+
+              completeRound();
+
+            }
+    );
+
+
+    nextButton.addEventListener(
+            "click",
+            completeRound
+    );
+
+
+    /*
+     * ========================================
+     * 타이머
+     * ========================================
+     */
+
+    function startTypingTimer() {
+
+      if (startTime) {
+        return;
+      }
+
+      startTime = Date.now();
+
+      timer =
+              window.setInterval(
+                      calculateRecord,
+                      100
+              );
+
+    }
+
+
+    function stopTimer() {
+
+      if (!timer) {
+        return;
+      }
+
+      clearInterval(timer);
+
+      timer = null;
+
+    }
+
+
+    /*
+     * ========================================
+     * 기록 계산
+     * ========================================
+     */
+
+    function calculateRecord() {
+
+      if (!startTime) {
+        return;
+      }
+
+      const text =
+                    texts[currentRound];
+
+      const value =
+                    typingInput.value;
+
+      const elapsedMilliseconds =
+                    Date.now() - startTime;
+
+      const elapsedSeconds =
+                    Math.max(
+                            elapsedMilliseconds / 1000,
+                            0.001
+                    );
+
+      let correctCount = 0;
+
+      Array.from(value).forEach(
+              function (character, index) {
+
+                if (
+                        character ===
+                        text[index]
+                ) {
+                  correctCount++;
+                }
+
+              }
+      );
+
+
+      /*
+       * 정확도
+       */
+
+      if (value.length === 0) {
+
+        currentAccuracy = 1;
+
+      } else {
+
+        currentAccuracy =
+                correctCount /
+                value.length;
+
+      }
+
+
+      /*
+       * 분당 타수
+       *
+       * 입력한 글자 수를 기준으로
+       * 1분 동안 입력 가능한 글자 수 계산
+       */
+
+      currentSpeed =
+              Math.round(
+                      value.length /
+                      elapsedSeconds *
+                      60
+              );
+
+
+      speed.textContent =
+              currentSpeed.toLocaleString();
+
+      accuracy.textContent =
+              (
+                      currentAccuracy *
+                      100
+              ).toFixed(1) + "%";
+
+      time.textContent =
+              elapsedSeconds.toFixed(1) +
+              "초";
+
+    }
+
+
+    /*
+     * ========================================
+     * 문장 완료 여부
+     * ========================================
+     */
+
+    function checkComplete() {
+
+      const text =
+                    texts[currentRound];
+
+      const value =
+                    typingInput.value;
+
+      isComplete =
+              value.length ===
+              text.length;
+
+      nextButton.classList.toggle(
+              "show",
+              isComplete
+      );
+
+    }
+
+
+    /*
+     * ========================================
+     * 라운드 완료
+     * ========================================
+     */
+
+    function completeRound() {
+
+      if (!isComplete) {
+        return;
+      }
+
+      calculateRecord();
+
+      stopTimer();
+
+      speedRecords.push(
+              currentSpeed
+      );
+
+      accuracyRecords.push(
+              currentAccuracy
+      );
+
+
+      if (
+              currentRound <
+              ROUND_COUNT - 1
+      ) {
+
+        currentRound++;
+
+        loadRound();
+
+        return;
+
+      }
+
+      finishPractice();
+
+    }
+
+
+    /*
+     * ========================================
+     * 진행률
+     * ========================================
+     */
+
+    function updateProgress() {
+
+      const percent =
+                    (
+                            currentRound /
+                            ROUND_COUNT
+                    ) *
+                    100;
+
+      progressBar.style.width =
+              percent + "%";
+
+      roundText.textContent =
+              (currentRound + 1) +
+              " / " +
+              ROUND_COUNT;
+
+    }
+
+
+    /*
+     * ========================================
+     * 초기화
+     * ========================================
+     */
+
+    resetButton.addEventListener(
+            "click",
+            function () {
+
+              stopTimer();
+
+              startTime = 0;
+
+              currentSpeed = 0;
+              currentAccuracy = 1;
+              isComplete = false;
+
+              typingInput.value = "";
+
+              speed.textContent = "0";
+              accuracy.textContent = "100%";
+              time.textContent = "0.0초";
+
+              nextButton.classList.remove(
+                      "show"
+              );
+
+              message.textContent = "";
+
+              renderText();
+
+              typingInput.focus();
+
+            }
+    );
+
+
+    /*
+     * ========================================
+     * 전체 완료
+     * ========================================
+     */
+
+    function finishPractice() {
+
+      stopTimer();
+
+      progressBar.style.width =
+              "100%";
+
+      const averageSpeed =
+                    getAverage(
+                            speedRecords
+                    );
+
+      const averageAccuracy =
+                    getAverage(
+                            accuracyRecords
+                    );
+
+
+      resultSpeed.textContent =
+              Math.round(
+                      averageSpeed
+              ).toLocaleString();
+
+
+      resultAccuracy.textContent =
+              (
+                      averageAccuracy *
+                      100
+              ).toFixed(2) +
+              "%";
+
+
+      practice.classList.add(
+              "hidden"
+      );
+
+      result.classList.add(
+              "active"
+      );
+
+    }
+
+
+    /*
+     * ========================================
+     * 평균
+     * ========================================
+     */
+
+    function getAverage(values) {
+
+      if (!values.length) {
+        return 0;
+      }
+
+      const total =
+                    values.reduce(
+                            function (
+                                    sum,
+                                    value
+                            ) {
+                              return (
+                                      sum +
+                                      Number(value)
+                              );
+                            },
+                            0
+                    );
+
+      return (
+              total /
+              values.length
+      );
+
+    }
+
+
+    /*
+     * ========================================
+     * 다시 연습
+     * ========================================
+     */
+
+    retryButton.addEventListener(
+            "click",
+            startPractice
+    );
+
+
+    /*
+     * ========================================
+     * 기록 표시 여부
+     * ========================================
+     */
+
+    showRecord.addEventListener(
+            "change",
+            function () {
+
+              record.classList.toggle(
+                      "hidden",
+                      !showRecord.checked
+              );
+
+            }
+    );
+
+
+    /*
+     * ========================================
+     * 메시지
+     * ========================================
+     */
+
+    function showMessage(text) {
+
+      message.textContent =
+              text;
+
+      window.clearTimeout(
+              showMessage.timer
+      );
+
+      showMessage.timer =
+              window.setTimeout(
+                      function () {
+
+                        message.textContent =
+                                "";
+
+                      },
+                      1500
+              );
+
+    }
+
+
+    /*
+     * ========================================
+     * 붙여넣기 방지
+     * ========================================
+     */
+
+    typingInput.addEventListener(
+            "paste",
+            function (event) {
+
+              event.preventDefault();
+
+              showMessage(
+                      "직접 입력해주세요."
+              );
+
+            }
+    );
+
+
+    /*
+     * ========================================
+     * 초기 실행
+     * ========================================
+     */
+
+    startPractice();
+
+  })();
+</script>
+
+</body>
+</html>

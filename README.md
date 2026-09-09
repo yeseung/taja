@@ -57,6 +57,7 @@
 - https://github.com/bangbang8341-bot/-.html
 - https://github.com/fed-gren/Typing-app
 - https://github.com/scn2930/codeTyping
+- https://github.com/custardcream98/han-type
 <br><br><br>
 
 
