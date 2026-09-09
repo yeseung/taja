@@ -52,6 +52,7 @@
 - https://www.jhnsoft.co.kr/korean-typing-practice/
 - https://www.jhnsoft.co.kr/english-typing-practice/
 - https://www.jhnsoft.co.kr/keyboard-tester/
+- https://github.com/Seol-JY/SpeedCoder
 <br><br><br>
 
 
@@ -135,5 +136,7 @@
 ![스크린샷 2026-09-08 오후 4 49 24](https://github.com/user-attachments/assets/0492143e-f79f-4627-b079-997f335f12dd)
 ![스크린샷 2026-09-08 오후 4 56 17](https://github.com/user-attachments/assets/27f47695-60d4-4ae5-a84d-4b2966f77e3f)
 ![스크린샷 2026-09-08 오후 10 05 07](https://github.com/user-attachments/assets/2d861230-650b-495c-a5f1-4bea4e5b4483)
+![스크린샷 2026-09-09 오후 12 48 08](https://github.com/user-attachments/assets/bfa8dd69-e467-4c3c-972e-81b7397565ab)
+
 
 
