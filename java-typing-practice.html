@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>자바프로그래밍 타자연습</title>
+
+    <!-- https://github.com/Choi-T-dev/sungl-i-typing -->
+
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+    <style>
+        :root {
+            --background: #eef1f5;
+            --surface: #ffffff;
+            --surface-soft: #f9fafc;
+            --primary: #4a6cf7;
+            --primary-soft: rgba(74, 108, 247, 0.2);
+            --word-background: #e6ebff;
+            --text: #222222;
+            --text-muted: #666666;
+            --border: #dcdfe6;
+            --success: #2e7d32;
+            --radius: 12px;
+            --shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 30px 16px;
+            font-family: "Noto Sans KR", Arial, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            text-align: center;
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        #captureArea,
+        #finalScreen {
+            width: min(720px, 100%);
+            margin: 0 auto;
+            padding: 25px;
+            background: var(--surface);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        #finalScreen {
+            display: none;
+        }
+
+        .school {
+            margin-bottom: 6px;
+            font-size: 15px;
+            color: #555555;
+        }
+
+        h1,
+        h2 {
+            margin-top: 0;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .info-box {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .info-box input {
+            width: 90px;
+            padding: 8px;
+            text-align: center;
+            border: 1px solid #cccccc;
+            border-radius: var(--radius);
+            outline: none;
+        }
+
+        .info-box input:focus,
+        #input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.12);
+        }
+
+        button {
+            padding: 10px 26px;
+            margin-top: 15px;
+            border: 0;
+            border-radius: var(--radius);
+            background: var(--primary);
+            color: #ffffff;
+            cursor: pointer;
+            font-size: 15px;
+            transition:
+                    opacity 0.2s ease,
+                    transform 0.2s ease;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #game {
+            position: relative;
+            width: min(640px, 100%);
+            height: 320px;
+            margin: 20px auto;
+            overflow: hidden;
+            background: var(--surface-soft);
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+        }
+
+        .word {
+            position: absolute;
+            padding: 4px 8px;
+            background: var(--word-background);
+            border-radius: var(--radius);
+            font-size: 16px;
+            user-select: none;
+        }
+
+        .input-wrap {
+            margin-top: 14px;
+        }
+
+        #input {
+            width: min(360px, 100%);
+            padding: 10px;
+            font-size: 15px;
+            border: 1px solid #cccccc;
+            border-radius: var(--radius);
+            outline: none;
+        }
+
+        .time-box {
+            margin-top: 12px;
+            color: var(--text-muted);
+        }
+
+        #time {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .result-box {
+            display: none;
+            margin-top: 20px;
+            padding: 12px;
+            background: var(--primary-soft);
+            border: 2px solid var(--primary);
+            border-radius: var(--radius);
+            color: #000000;
+            font-size: 16px;
+            font-weight: 700;
+            line-height: 1.6;
+        }
+
+        .explain {
+            margin-top: 20px;
+            text-align: left;
+            line-height: 1.7;
+        }
+
+        .explain p {
+            margin: 8px 0;
+        }
+
+        .praise {
+            margin-top: 22px;
+            color: var(--success);
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1.7;
+        }
+
+        @media (max-width: 700px) {
+            body {
+                padding: 16px 10px;
+            }
+
+            #captureArea,
+            #finalScreen {
+                padding: 20px 14px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            h2 {
+                font-size: 21px;
+            }
+
+            #game {
+                height: 300px;
+            }
+
+            .info-box {
+                flex-direction: column;
+            }
+
+            .info-item {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<main>
+    <section id="captureArea">
+<!--        <div class="school">성일정보고등학교</div>-->
+
+        <h1>자바프로그래밍 타자연습</h1>
+
+        <div class="info-box">
+            <label class="info-item">
+                <span>반</span>
+                <input
+                        id="classNum"
+                        type="number"
+                        min="9"
+                        max="12"
+                        inputmode="numeric"
+                        aria-label="반"
+                >
+            </label>
+
+            <label class="info-item">
+                <span>번호</span>
+                <input
+                        id="studentNum"
+                        type="number"
+                        min="1"
+                        max="25"
+                        inputmode="numeric"
+                        aria-label="번호"
+                >
+            </label>
+
+            <label class="info-item">
+                <span>이름</span>
+                <input
+                        id="studentName"
+                        type="text"
+                        maxlength="4"
+                        autocomplete="off"
+                        aria-label="이름"
+                >
+            </label>
+        </div>
+
+        <button id="startButton" type="button">
+            시작
+        </button>
+
+        <div
+                id="game"
+                aria-label="타자 연습 영역"
+        ></div>
+
+        <div class="input-wrap">
+            <input
+                    id="input"
+                    type="text"
+                    placeholder="단어 입력"
+                    autocomplete="off"
+                    spellcheck="false"
+                    disabled
+            >
+        </div>
+
+        <div class="time-box">
+            남은 시간
+            <span id="time">90</span>초
+        </div>
+
+        <div
+                id="resultBox"
+                class="result-box"
+                aria-live="polite"
+        ></div>
+    </section>
+
+    <section id="finalScreen">
+        <h2>📘 앞으로 배우게 될 자바 명령어들</h2>
+
+        <div class="explain">
+            <p>▶️ <strong>class</strong> : 객체를 만들기 위해 사용하는 틀</p>
+
+            <p>
+                ▶️ <strong>public static void main</strong>
+                : 프로그램이 시작되는 부분
+            </p>
+
+            <p>
+                ▶️ <strong>if / for / while</strong>
+                : 조건을 확인하고 반복할 때 사용하는 명령어
+            </p>
+
+            <p>
+                ▶️ <strong>ArrayList / HashMap</strong>
+                : 데이터를 담아두는 상자
+            </p>
+
+            <p>
+                ▶️ <strong>try / catch</strong>
+                : 프로그램에서 오류가 발생했을 때 안전하게 처리하기 위한 구문
+            </p>
+        </div>
+
+        <div
+                id="praiseText"
+                class="praise"
+        ></div>
+
+        <div
+                id="finalResultBox"
+                class="result-box"
+        ></div>
+
+        <button id="retryButton" type="button">
+            재시도
+        </button>
+    </section>
+</main>
+
+<script>
+    const WORDS = [
+        "class",
+        "public",
+        "static",
+        "void",
+        "int",
+        "double",
+        "boolean",
+        "if",
+        "else",
+        "for",
+        "while",
+        "ArrayList",
+        "HashMap",
+        "Scanner",
+        "try",
+        "catch",
+        "finally",
+        "throw",
+        "Exception",
+        "thread",
+        "Runnable"
+    ];
+
+    const GAME_TIME = 90;
+    const SPAWN_INTERVAL = 900;
+    const MAX_ACTIVE_WORDS = 6;
+
+    const captureArea = document.getElementById("captureArea");
+    const finalScreen = document.getElementById("finalScreen");
+
+    const game = document.getElementById("game");
+    const input = document.getElementById("input");
+
+    const timeElement = document.getElementById("time");
+    const resultBox = document.getElementById("resultBox");
+    const finalResultBox = document.getElementById("finalResultBox");
+    const praiseText = document.getElementById("praiseText");
+
+    const classNum = document.getElementById("classNum");
+    const studentNum = document.getElementById("studentNum");
+    const studentName = document.getElementById("studentName");
+
+    const startButton = document.getElementById("startButton");
+    const retryButton = document.getElementById("retryButton");
+
+    let score = 0;
+    let remainingTime = GAME_TIME;
+    let timerId = null;
+    let spawnerId = null;
+    let startTime = 0;
+    let isPlaying = false;
+
+    const activeWords = new Map();
+
+    function isValidStudentName() {
+        return /^[가-힣]{1,4}$/.test(studentName.value.trim());
+    }
+
+    function resetGameState() {
+        score = 0;
+        remainingTime = GAME_TIME;
+
+        clearInterval(timerId);
+        clearInterval(spawnerId);
+
+        timerId = null;
+        spawnerId = null;
+
+        activeWords.clear();
+
+        game.innerHTML = "";
+        input.value = "";
+
+        timeElement.textContent = remainingTime;
+
+        resultBox.textContent = "";
+        resultBox.style.display = "none";
+    }
+
+    function startGame() {
+        if (isPlaying) {
+            return;
+        }
+
+        studentName.value = studentName.value.trim();
+
+        if (!isValidStudentName()) {
+            alert("이름은 한글 1~4자로 입력하세요.");
+            studentName.focus();
+            return;
+        }
+
+        resetGameState();
+
+        isPlaying = true;
+        startButton.disabled = true;
+
+        input.disabled = false;
+        input.focus();
+
+        startTime = Date.now();
+
+        spawnWord();
+
+        timerId = setInterval(updateTimer, 1000);
+        spawnerId = setInterval(spawnWord, SPAWN_INTERVAL);
+    }
+
+    function updateTimer() {
+        remainingTime -= 1;
+        timeElement.textContent = remainingTime;
+
+        if (remainingTime <= 0) {
+            endGame();
+        }
+    }
+
+    function getRandomWord() {
+        const availableWords = WORDS.filter(
+            word => !activeWords.has(word)
+        );
+
+        if (availableWords.length === 0) {
+            return null;
+        }
+
+        const randomIndex = Math.floor(
+            Math.random() * availableWords.length
+        );
+
+        return availableWords[randomIndex];
+    }
+
+    function getRandomPosition(wordElement) {
+        const gameWidth = game.clientWidth;
+        const gameHeight = game.clientHeight;
+
+        const wordWidth = wordElement.offsetWidth;
+        const wordHeight = wordElement.offsetHeight;
+
+        const maxLeft = Math.max(
+            0,
+            gameWidth - wordWidth - 10
+        );
+
+        const maxTop = Math.max(
+            0,
+            gameHeight - wordHeight - 10
+        );
+
+        return {
+            left: Math.random() * maxLeft,
+            top: Math.random() * maxTop
+        };
+    }
+
+    function spawnWord() {
+        if (
+            !isPlaying ||
+            activeWords.size >= MAX_ACTIVE_WORDS
+        ) {
+            return;
+        }
+
+        const word = getRandomWord();
+
+        if (!word) {
+            return;
+        }
+
+        const wordElement = document.createElement("div");
+
+        wordElement.className = "word";
+        wordElement.textContent = word;
+
+        game.appendChild(wordElement);
+
+        const position = getRandomPosition(wordElement);
+
+        wordElement.style.left = position.left + "px";
+        wordElement.style.top = position.top + "px";
+
+        activeWords.set(word, wordElement);
+    }
+
+    function handleTyping() {
+        if (!isPlaying) {
+            return;
+        }
+
+        const typedWord = input.value.trim();
+
+        if (!activeWords.has(typedWord)) {
+            return;
+        }
+
+        const wordElement = activeWords.get(typedWord);
+
+        wordElement.remove();
+        activeWords.delete(typedWord);
+
+        score += 1;
+        input.value = "";
+
+        spawnWord();
+    }
+
+    function calculateWpm() {
+        const elapsedSeconds =
+                  (Date.now() - startTime) / 1000;
+
+        if (elapsedSeconds <= 0) {
+            return 0;
+        }
+
+        return Math.round(
+            (score / elapsedSeconds) * 60
+        );
+    }
+
+    function createResultText(wpm) {
+        const classText = classNum.value
+            ? classNum.value + "반"
+            : "반 미입력";
+
+        const studentNumberText = studentNum.value
+            ? studentNum.value + "번"
+            : "번호 미입력";
+
+        return [
+            classText,
+            studentNumberText,
+            "이름: " + studentName.value,
+            "점수: " + score + "점",
+            "속도: " + wpm + " WPM"
+        ].join(" | ");
+    }
+
+    async function endGame() {
+        if (!isPlaying) {
+            return;
+        }
+
+        isPlaying = false;
+
+        clearInterval(timerId);
+        clearInterval(spawnerId);
+
+        timerId = null;
+        spawnerId = null;
+
+        input.disabled = true;
+
+        remainingTime = 0;
+        timeElement.textContent = "0";
+
+        const wpm = calculateWpm();
+        const resultText = createResultText(wpm);
+
+        resultBox.textContent = resultText;
+        resultBox.style.display = "block";
+
+        try {
+            await saveResultImage();
+        } catch (error) {
+            console.error("결과 이미지 저장 실패:", error);
+
+            alert(
+                "결과 이미지를 저장하지 못했습니다. " +
+                "결과 화면은 정상적으로 표시됩니다."
+            );
+        }
+
+        showFinalScreen(resultText);
+    }
+
+    async function saveResultImage() {
+        const canvas = await html2canvas(
+            captureArea,
+            {
+                backgroundColor: "#ffffff",
+                scale: 2
+            }
+        );
+
+        const fileName = createFileName();
+
+        const link = document.createElement("a");
+
+        link.download = fileName;
+        link.href = canvas.toDataURL("image/png");
+
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+    }
+
+    function createFileName() {
+        const now = new Date();
+
+        const year = now.getFullYear();
+
+        const month = String(
+            now.getMonth() + 1
+        ).padStart(2, "0");
+
+        const day = String(
+            now.getDate()
+        ).padStart(2, "0");
+
+        const date = year + "-" + month + "-" + day;
+
+        const classText = classNum.value
+            ? classNum.value + "반_"
+            : "";
+
+        const numberText = studentNum.value
+            ? studentNum.value + "번_"
+            : "";
+
+        return (
+            classText +
+            numberText +
+            studentName.value +
+            "_" +
+            date +
+            ".png"
+        );
+    }
+
+    function showFinalScreen(resultText) {
+        captureArea.style.display = "none";
+        finalScreen.style.display = "block";
+
+        finalResultBox.textContent = resultText;
+        finalResultBox.style.display = "block";
+
+        praiseText.textContent =
+            "90초 동안 끝까지 집중하며 도전한 모습이 정말 훌륭합니다! 👏 " +
+            "자바 핵심 키워드를 성실하게 입력하며 학습에 임하는 태도가 인상적이었어요. " +
+            "이런 꾸준함은 분명 큰 실력으로 이어질 것입니다! 🌟";
+    }
+
+    function retryGame() {
+        location.reload();
+    }
+
+    input.addEventListener(
+        "input",
+        handleTyping
+    );
+
+    input.addEventListener(
+        "keydown",
+        event => {
+            if (
+                event.key === "Enter" &&
+                !isPlaying
+            ) {
+                startGame();
+            }
+        }
+    );
+
+    studentName.addEventListener(
+        "keydown",
+        event => {
+            if (event.key === "Enter") {
+                startGame();
+            }
+        }
+    );
+
+    startButton.addEventListener(
+        "click",
+        startGame
+    );
+
+    retryButton.addEventListener(
+        "click",
+        retryGame
+    );
+</script>
+
+</body>
+</html>
