@@ -1,0 +1,1826 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Speed Coder - 개발자 타자연습</title>
+
+    <!-- https://github.com/Seol-JY/SpeedCoder -->
+
+    <meta
+            name="description"
+            content="Python, JavaScript, Java, C 등의 소스코드를 직접 입력하며 연습하는 개발자용 타자연습입니다."
+    >
+    <meta
+            name="keywords"
+            content="Speed Coder, 개발자 타자연습, 코딩 타자연습, 프로그래밍 타자연습, JavaScript, Python, Java"
+    >
+
+    <meta property="og:title" content="Speed Coder - 개발자 타자연습">
+    <meta
+            property="og:description"
+            content="프로그래밍 소스코드를 직접 입력하며 타자 속도와 정확도를 연습해보세요."
+    >
+    <meta property="og:type" content="website">
+
+    <style>
+        :root {
+            --bg: #f6f7f9;
+            --window: #ffffff;
+            --sidebar: #f3f4f6;
+            --sidebar-hover: #e5e7eb;
+            --sidebar-active: #dbeafe;
+            --border: #e5e7eb;
+            --text: #1f2937;
+            --muted: #9ca3af;
+            --accent: #2563eb;
+            --accent-soft: #eff6ff;
+            --correct: #1f2937;
+            --wrong: #ef4444;
+            --code-bg: #ffffff;
+            --line-number: #b6bcc6;
+            --shadow: 0 20px 50px rgba(15, 23, 42, 0.12);
+        }
+
+        [data-theme="dark"] {
+            --bg: #17191d;
+            --window: #202329;
+            --sidebar: #272a30;
+            --sidebar-hover: #32363d;
+            --sidebar-active: #243b5a;
+            --border: #363a42;
+            --text: #e5e7eb;
+            --muted: #6b7280;
+            --accent: #60a5fa;
+            --accent-soft: #1d2e46;
+            --correct: #e5e7eb;
+            --wrong: #f87171;
+            --code-bg: #202329;
+            --line-number: #696f7b;
+            --shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100%;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family:
+                    "SFMono-Regular",
+                    Consolas,
+                    "Liberation Mono",
+                    Menlo,
+                    monospace;
+            transition:
+                    background-color 0.25s,
+                    color 0.25s;
+        }
+
+        button,
+        textarea {
+            font: inherit;
+        }
+
+        button {
+            color: inherit;
+        }
+
+        .page {
+            min-height: 100vh;
+            padding: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .app {
+            width: min(1280px, 100%);
+            height: min(820px, calc(100vh - 64px));
+            min-height: 600px;
+            background: var(--window);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            display: grid;
+            grid-template-rows: 46px 1fr 28px;
+        }
+
+        .titlebar {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid var(--border);
+            background: var(--sidebar);
+            user-select: none;
+        }
+
+        .traffic-lights {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            display: flex;
+            gap: 8px;
+            transform: translateY(-50%);
+        }
+
+        .traffic-light {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .traffic-light.red {
+            background: #ff5f57;
+        }
+
+        .traffic-light.yellow {
+            background: #febc2e;
+        }
+
+        .traffic-light.green {
+            background: #28c840;
+        }
+
+        .titlebar-title {
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .titlebar-actions {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            display: flex;
+            gap: 4px;
+            transform: translateY(-50%);
+        }
+
+        .icon-button {
+            width: 34px;
+            height: 34px;
+            border: 0;
+            border-radius: 8px;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        .icon-button:hover {
+            background: var(--sidebar-hover);
+        }
+
+        .workspace {
+            min-height: 0;
+            display: grid;
+            grid-template-columns: 52px 220px 1fr;
+        }
+
+        .activity-bar {
+            padding: 10px 8px;
+            border-right: 1px solid var(--border);
+            background: var(--sidebar);
+        }
+
+        .activity-button {
+            position: relative;
+            width: 36px;
+            height: 36px;
+            margin-bottom: 6px;
+            border: 0;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .activity-button:hover,
+        .activity-button.active {
+            background: var(--sidebar-hover);
+            color: var(--text);
+        }
+
+        .activity-button.active::before {
+            content: "";
+            position: absolute;
+            left: -8px;
+            top: 5px;
+            bottom: 5px;
+            width: 2px;
+            border-radius: 4px;
+            background: var(--accent);
+        }
+
+        .sidebar {
+            min-width: 0;
+            overflow: auto;
+            border-right: 1px solid var(--border);
+            background: var(--sidebar);
+        }
+
+        .sidebar-header {
+            padding: 13px 14px 10px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+        }
+
+        .folder-title {
+            padding: 7px 12px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .file-list {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .file-button {
+            width: 100%;
+            padding: 7px 12px 7px 24px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 0;
+            background: transparent;
+            text-align: left;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .file-button:hover {
+            background: var(--sidebar-hover);
+        }
+
+        .file-button.active {
+            background: var(--sidebar-active);
+        }
+
+        .file-icon {
+            width: 16px;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .sidebar-info {
+            margin: 16px 12px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--window);
+            font-size: 11px;
+            line-height: 1.7;
+            color: var(--muted);
+        }
+
+        .main {
+            min-width: 0;
+            min-height: 0;
+            display: grid;
+            grid-template-rows: 40px 1fr;
+            background: var(--code-bg);
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            background: var(--sidebar);
+            overflow-x: auto;
+        }
+
+        .tab {
+            min-width: 150px;
+            padding: 0 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-right: 1px solid var(--border);
+            background: var(--code-bg);
+            font-size: 12px;
+        }
+
+        .editor-wrap {
+            position: relative;
+            min-width: 0;
+            min-height: 0;
+            overflow: auto;
+            cursor: text;
+        }
+
+        .editor {
+            position: relative;
+            min-width: 850px;
+            min-height: 100%;
+            padding: 18px 24px 100px 0;
+            display: grid;
+            grid-template-columns: 58px 1fr;
+            font-size: 15px;
+            line-height: 24px;
+        }
+
+        .line-numbers {
+            padding-right: 15px;
+            text-align: right;
+            color: var(--line-number);
+            user-select: none;
+        }
+
+        .line-number {
+            height: 24px;
+        }
+
+        .code-display {
+            position: relative;
+            margin: 0;
+            white-space: pre-wrap;
+            overflow-wrap: normal;
+            tab-size: 4;
+        }
+
+        .char {
+            color: var(--muted);
+        }
+
+        .char.correct {
+            color: var(--correct);
+        }
+
+        .char.wrong {
+            color: var(--wrong);
+            text-decoration: underline;
+            text-decoration-thickness: 2px;
+            text-underline-offset: 3px;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 2px;
+            height: 19px;
+            margin: 2px -1px -4px -1px;
+            background: var(--accent);
+            animation: blink 1s step-end infinite;
+            vertical-align: top;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+
+        .typing-input {
+            position: fixed;
+            left: -9999px;
+            top: -9999px;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+        }
+
+        .start-guide {
+            position: absolute;
+            right: 20px;
+            bottom: 18px;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--sidebar);
+            color: var(--muted);
+            font-size: 11px;
+            pointer-events: none;
+        }
+
+        .statusbar {
+            padding: 0 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            background: var(--accent);
+            color: #fff;
+            font-size: 11px;
+            overflow: hidden;
+        }
+
+        .status-group {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            white-space: nowrap;
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(15, 23, 42, 0.38);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .result-card {
+            width: min(430px, 100%);
+            padding: 28px;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            background: var(--window);
+            box-shadow: var(--shadow);
+        }
+
+        .result-card h2 {
+            margin: 0 0 6px;
+            font-size: 22px;
+        }
+
+        .result-card > p {
+            margin: 0 0 24px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .result-item {
+            padding: 16px 8px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            text-align: center;
+            background: var(--sidebar);
+        }
+
+        .result-value {
+            margin-bottom: 5px;
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .result-label {
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .modal-buttons {
+            margin-top: 20px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .button {
+            flex: 1;
+            height: 42px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--sidebar);
+            cursor: pointer;
+        }
+
+        .button:hover {
+            background: var(--sidebar-hover);
+        }
+
+        .button.primary {
+            border-color: var(--accent);
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .stats-view {
+            display: none;
+            padding: 26px;
+            overflow: auto;
+        }
+
+        .stats-view.show {
+            display: block;
+        }
+
+        .stats-view h2 {
+            margin: 0 0 20px;
+            font-size: 20px;
+        }
+
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stats-card {
+            padding: 18px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: var(--sidebar);
+        }
+
+        .stats-card-label {
+            margin-bottom: 8px;
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        .stats-card-value {
+            font-size: 26px;
+            font-weight: 800;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .history-table th,
+        .history-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+        }
+
+        .history-table th {
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        .empty {
+            padding: 60px 20px;
+            text-align: center;
+            color: var(--muted);
+        }
+
+        @media (max-width: 820px) {
+            .page {
+                padding: 0;
+            }
+
+            .app {
+                height: 100vh;
+                border: 0;
+                border-radius: 0;
+            }
+
+            .workspace {
+                grid-template-columns: 46px 160px 1fr;
+            }
+
+            .sidebar {
+                font-size: 11px;
+            }
+
+            .file-button {
+                padding-left: 14px;
+            }
+
+            .result-grid,
+            .stats-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .workspace {
+                grid-template-columns: 44px 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .activity-bar {
+                grid-column: 1;
+            }
+
+            .main {
+                grid-column: 2;
+            }
+
+            .status-group:last-child {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="page">
+    <div class="app">
+
+        <header class="titlebar">
+            <div class="traffic-lights" aria-hidden="true">
+                <span class="traffic-light red"></span>
+                <span class="traffic-light yellow"></span>
+                <span class="traffic-light green"></span>
+            </div>
+
+            <div class="titlebar-title">
+                Speed Coder
+            </div>
+
+            <div class="titlebar-actions">
+                <button
+                        type="button"
+                        class="icon-button"
+                        id="resetButton"
+                        title="다시 시작"
+                        aria-label="다시 시작"
+                >
+                    ↻
+                </button>
+
+                <button
+                        type="button"
+                        class="icon-button"
+                        id="themeButton"
+                        title="다크 모드"
+                        aria-label="다크 모드"
+                >
+                    🌙
+                </button>
+            </div>
+        </header>
+
+        <div class="workspace">
+
+            <nav class="activity-bar" aria-label="메뉴">
+                <button
+                        type="button"
+                        class="activity-button active"
+                        id="explorerButton"
+                        title="Explorer"
+                        aria-label="파일 탐색기"
+                >
+                    📄
+                </button>
+
+                <button
+                        type="button"
+                        class="activity-button"
+                        id="statsButton"
+                        title="Statistics"
+                        aria-label="연습 기록"
+                >
+                    📊
+                </button>
+            </nav>
+
+            <aside class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    EXPLORER
+                </div>
+
+                <div class="folder-title">
+                    ▾ SPEED-CODER
+                </div>
+
+                <ul class="file-list" id="fileList"></ul>
+
+                <div class="sidebar-info">
+                    코드를 그대로 입력하세요.<br>
+                    Tab은 공백 4칸으로 입력됩니다.<br>
+                    파일을 바꾸면 연습이 초기화됩니다.
+                </div>
+            </aside>
+
+            <main class="main">
+
+                <div class="tabs">
+                    <div class="tab" id="currentTab">
+                        <span id="tabIcon">🐍</span>
+                        <span id="tabFilename">hello.py</span>
+                    </div>
+                </div>
+
+                <div
+                        class="editor-wrap"
+                        id="editorWrap"
+                        tabindex="0"
+                        aria-label="코드 타자연습 영역"
+                >
+
+                    <div class="editor" id="editor">
+                        <div class="line-numbers" id="lineNumbers"></div>
+
+                        <pre class="code-display" id="codeDisplay"></pre>
+                    </div>
+
+                    <textarea
+                            id="typingInput"
+                            class="typing-input"
+                            aria-label="코드 입력"
+                            spellcheck="false"
+                            autocomplete="off"
+                            autocorrect="off"
+                            autocapitalize="off"
+                    ></textarea>
+
+                    <div class="start-guide" id="startGuide">
+                        화면을 클릭하고 코드 입력을 시작하세요
+                    </div>
+
+                    <section class="stats-view" id="statsView">
+                        <h2>Typing Statistics</h2>
+
+                        <div class="stats-cards">
+                            <div class="stats-card">
+                                <div class="stats-card-label">
+                                    BEST
+                                </div>
+                                <div
+                                        class="stats-card-value"
+                                        id="bestCpm"
+                                >
+                                    0
+                                </div>
+                            </div>
+
+                            <div class="stats-card">
+                                <div class="stats-card-label">
+                                    AVERAGE
+                                </div>
+                                <div
+                                        class="stats-card-value"
+                                        id="averageCpm"
+                                >
+                                    0
+                                </div>
+                            </div>
+
+                            <div class="stats-card">
+                                <div class="stats-card-label">
+                                    ATTEMPTS
+                                </div>
+                                <div
+                                        class="stats-card-value"
+                                        id="attemptCount"
+                                >
+                                    0
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="historyContainer"></div>
+                    </section>
+
+                </div>
+
+            </main>
+
+        </div>
+
+        <footer class="statusbar">
+
+            <div class="status-group">
+                <span id="statusFile">hello.py</span>
+                <span id="statusProgress">0 / 0</span>
+            </div>
+
+            <div class="status-group">
+                <span>
+                    CPM:
+                    <strong id="cpmValue">0</strong>
+                </span>
+
+                <span>
+                    Accuracy:
+                    <strong id="accuracyValue">100</strong>%
+                </span>
+
+                <span>
+                    UTF-8
+                </span>
+            </div>
+
+        </footer>
+
+    </div>
+</div>
+
+
+<div
+        class="modal"
+        id="resultModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="resultTitle"
+>
+    <div class="result-card">
+
+        <h2 id="resultTitle">
+            연습 완료 🎉
+        </h2>
+
+        <p id="resultFilename">
+            hello.py
+        </p>
+
+        <div class="result-grid">
+
+            <div class="result-item">
+                <div class="result-value" id="resultCpm">
+                    0
+                </div>
+                <div class="result-label">
+                    CPM
+                </div>
+            </div>
+
+            <div class="result-item">
+                <div class="result-value" id="resultAccuracy">
+                    100%
+                </div>
+                <div class="result-label">
+                    Accuracy
+                </div>
+            </div>
+
+            <div class="result-item">
+                <div class="result-value" id="resultTime">
+                    0s
+                </div>
+                <div class="result-label">
+                    Time
+                </div>
+            </div>
+
+        </div>
+
+        <div class="modal-buttons">
+            <button
+                    type="button"
+                    class="button"
+                    id="closeModalButton"
+            >
+                닫기
+            </button>
+
+            <button
+                    type="button"
+                    class="button primary"
+                    id="retryButton"
+            >
+                다시 연습
+            </button>
+        </div>
+
+    </div>
+</div>
+
+
+<script>
+    (function () {
+        'use strict';
+
+        const files = {
+            'hello.py': {
+                icon: '🐍',
+                content:
+                    `def hello(name):
+    message = "Hello, " + name
+    return message
+
+user_name = input("Your name: ")
+print(hello(user_name))`
+            },
+
+            'fibonacci.py': {
+                icon: '🐍',
+                content:
+                    `def fibonacci(n):
+    if n <= 1:
+        return n
+
+    return fibonacci(n - 1) + fibonacci(n - 2)
+
+for number in range(10):
+    print(fibonacci(number))`
+            },
+
+            'server.js': {
+                icon: '🟨',
+                content:
+                    `const http = require('http');
+
+const server = http.createServer((request, response) => {
+    response.writeHead(200, {
+        'Content-Type': 'text/plain'
+    });
+
+    response.end('Hello, Speed Coder!');
+});
+
+server.listen(3000);`
+            },
+
+            'counter.js': {
+                icon: '🟨',
+                content:
+                    `const button = document.querySelector('#button');
+const output = document.querySelector('#output');
+
+let count = 0;
+
+button.addEventListener('click', () => {
+    count += 1;
+    output.textContent = count;
+});`
+            },
+
+            'print.c': {
+                icon: '🔵',
+                content:
+                    `#include <stdio.h>
+
+int main(void) {
+    for (int i = 1; i <= 10; i++) {
+        printf("Number: %d\\n", i);
+    }
+
+    return 0;
+}`
+            },
+
+            'RectangleArea.java': {
+                icon: '☕',
+                content:
+                    `public class RectangleArea {
+
+    public static void main(String[] args) {
+        int width = 10;
+        int height = 5;
+
+        int area = width * height;
+
+        System.out.println("Area: " + area);
+    }
+}`
+            },
+
+            'Fibonacci.java': {
+                icon: '☕',
+                content:
+                    `public class Fibonacci {
+
+    public static int fibonacci(int number) {
+        if (number <= 1) {
+            return number;
+        }
+
+        return fibonacci(number - 1)
+            + fibonacci(number - 2);
+    }
+}`
+            },
+
+            'index.html': {
+                icon: '🟧',
+                content:
+                    `<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Hello</title>
+</head>
+<body>
+    <h1>Hello, Developer!</h1>
+</body>
+</html>`
+            },
+
+            'style.css': {
+                icon: '🎨',
+                content:
+                    `body {
+    margin: 0;
+    background: #ffffff;
+    color: #222222;
+    font-family: sans-serif;
+}
+
+.container {
+    width: min(100% - 40px, 1200px);
+    margin: 0 auto;
+}`
+            }
+        };
+
+
+        const STORAGE_KEY = 'speedCoderHistory';
+        const THEME_KEY = 'speedCoderTheme';
+
+        const fileList = document.querySelector('#fileList');
+
+        const tabIcon = document.querySelector('#tabIcon');
+        const tabFilename = document.querySelector('#tabFilename');
+
+        const editorWrap = document.querySelector('#editorWrap');
+        const editor = document.querySelector('#editor');
+        const lineNumbers = document.querySelector('#lineNumbers');
+        const codeDisplay = document.querySelector('#codeDisplay');
+        const typingInput = document.querySelector('#typingInput');
+
+        const startGuide = document.querySelector('#startGuide');
+
+        const statusFile = document.querySelector('#statusFile');
+        const statusProgress = document.querySelector('#statusProgress');
+
+        const cpmValue = document.querySelector('#cpmValue');
+        const accuracyValue = document.querySelector('#accuracyValue');
+
+        const themeButton = document.querySelector('#themeButton');
+        const resetButton = document.querySelector('#resetButton');
+
+        const explorerButton = document.querySelector('#explorerButton');
+        const statsButton = document.querySelector('#statsButton');
+
+        const sidebar = document.querySelector('#sidebar');
+
+        const statsView = document.querySelector('#statsView');
+        const bestCpm = document.querySelector('#bestCpm');
+        const averageCpm = document.querySelector('#averageCpm');
+        const attemptCount = document.querySelector('#attemptCount');
+        const historyContainer = document.querySelector('#historyContainer');
+
+        const resultModal = document.querySelector('#resultModal');
+
+        const resultFilename = document.querySelector('#resultFilename');
+        const resultCpm = document.querySelector('#resultCpm');
+        const resultAccuracy = document.querySelector('#resultAccuracy');
+        const resultTime = document.querySelector('#resultTime');
+
+        const retryButton = document.querySelector('#retryButton');
+        const closeModalButton = document.querySelector('#closeModalButton');
+
+
+        let currentFilename = 'hello.py';
+        let currentCode = files[currentFilename].content;
+
+        let userInput = '';
+        let startTime = null;
+        let timerId = null;
+
+        let correctChars = 0;
+        let wrongChars = 0;
+
+        let completed = false;
+        let currentView = 'editor';
+
+
+        function escapeHtml(text) {
+            return text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+        }
+
+
+        function createFileList() {
+            fileList.innerHTML = '';
+
+            Object.entries(files).forEach(([filename, file]) => {
+                const li = document.createElement('li');
+
+                const button = document.createElement('button');
+
+                button.type = 'button';
+                button.className = 'file-button';
+
+                if (filename === currentFilename) {
+                    button.classList.add('active');
+                }
+
+                button.innerHTML =
+                    '<span class="file-icon">' +
+                    file.icon +
+                    '</span>' +
+                    '<span>' +
+                    escapeHtml(filename) +
+                    '</span>';
+
+                button.addEventListener('click', function () {
+                    changeFile(filename);
+                });
+
+                li.appendChild(button);
+                fileList.appendChild(li);
+            });
+        }
+
+
+        function changeFile(filename) {
+            currentFilename = filename;
+            currentCode = files[filename].content;
+
+            tabIcon.textContent = files[filename].icon;
+            tabFilename.textContent = filename;
+
+            statusFile.textContent = filename;
+
+            resetPractice();
+            createFileList();
+            showEditor();
+
+            setTimeout(function () {
+                focusEditor();
+            }, 0);
+        }
+
+
+        function createLineNumbers() {
+            const count = currentCode.split('\n').length;
+
+            lineNumbers.innerHTML = '';
+
+            for (let i = 1; i <= count; i++) {
+                const div = document.createElement('div');
+
+                div.className = 'line-number';
+                div.textContent = i;
+
+                lineNumbers.appendChild(div);
+            }
+        }
+
+
+        function renderCode() {
+            let html = '';
+
+            for (let i = 0; i < currentCode.length; i++) {
+                const targetChar = currentCode[i];
+
+                if (i < userInput.length) {
+                    const inputChar = userInput[i];
+
+                    if (targetChar === inputChar) {
+                        html +=
+                            '<span class="char correct">' +
+                            escapeHtml(targetChar) +
+                            '</span>';
+                    } else {
+                        html +=
+                            '<span class="char wrong">' +
+                            escapeHtml(targetChar) +
+                            '</span>';
+                    }
+                } else {
+                    if (i === userInput.length) {
+                        html += '<span class="cursor"></span>';
+                    }
+
+                    html +=
+                        '<span class="char">' +
+                        escapeHtml(targetChar) +
+                        '</span>';
+                }
+            }
+
+            if (userInput.length >= currentCode.length) {
+                html += '<span class="cursor"></span>';
+            }
+
+            codeDisplay.innerHTML = html;
+
+            updateStats();
+        }
+
+
+        function calculateAccuracy() {
+            const typedLength = userInput.length;
+
+            if (typedLength === 0) {
+                return 100;
+            }
+
+            let correct = 0;
+
+            for (let i = 0; i < typedLength; i++) {
+                if (userInput[i] === currentCode[i]) {
+                    correct++;
+                }
+            }
+
+            return Math.max(
+                0,
+                Math.round((correct / typedLength) * 100)
+            );
+        }
+
+
+        function getElapsedSeconds() {
+            if (!startTime) {
+                return 0;
+            }
+
+            return Math.max(
+                1,
+                (Date.now() - startTime) / 1000
+            );
+        }
+
+
+        function calculateCpm() {
+            if (!startTime || userInput.length === 0) {
+                return 0;
+            }
+
+            const elapsedMinutes = getElapsedSeconds() / 60;
+
+            if (elapsedMinutes <= 0) {
+                return 0;
+            }
+
+            return Math.round(
+                correctChars / elapsedMinutes
+            );
+        }
+
+
+        function updateStats() {
+            correctChars = 0;
+            wrongChars = 0;
+
+            for (let i = 0; i < userInput.length; i++) {
+                if (userInput[i] === currentCode[i]) {
+                    correctChars++;
+                } else {
+                    wrongChars++;
+                }
+            }
+
+            statusProgress.textContent =
+                userInput.length +
+                ' / ' +
+                currentCode.length;
+
+            cpmValue.textContent = calculateCpm();
+
+            accuracyValue.textContent =
+                calculateAccuracy();
+        }
+
+
+        function startTimer() {
+            if (startTime !== null) {
+                return;
+            }
+
+            startTime = Date.now();
+
+            timerId = window.setInterval(function () {
+                updateStats();
+            }, 500);
+        }
+
+
+        function stopTimer() {
+            if (timerId !== null) {
+                window.clearInterval(timerId);
+                timerId = null;
+            }
+        }
+
+
+        function focusEditor() {
+            if (currentView !== 'editor') {
+                return;
+            }
+
+            typingInput.focus();
+        }
+
+
+        function resetPractice() {
+            stopTimer();
+
+            userInput = '';
+            typingInput.value = '';
+
+            startTime = null;
+
+            correctChars = 0;
+            wrongChars = 0;
+
+            completed = false;
+
+            startGuide.style.display = '';
+
+            createLineNumbers();
+            renderCode();
+        }
+
+
+        function checkComplete() {
+            if (
+                completed ||
+                userInput.length < currentCode.length
+            ) {
+                return;
+            }
+
+            completed = true;
+
+            stopTimer();
+
+            const cpm = calculateCpm();
+            const accuracy = calculateAccuracy();
+            const seconds = Math.round(getElapsedSeconds());
+
+            saveHistory({
+                timestamp: new Date().toISOString(),
+                filename: currentFilename,
+                cpm: cpm,
+                accuracy: accuracy,
+                seconds: seconds
+            });
+
+            resultFilename.textContent = currentFilename;
+            resultCpm.textContent = cpm;
+            resultAccuracy.textContent = accuracy + '%';
+            resultTime.textContent = seconds + 's';
+
+            resultModal.classList.add('show');
+        }
+
+
+        function handleInput() {
+            let value = typingInput.value;
+
+            if (value.length > currentCode.length) {
+                value = value.substring(
+                    0,
+                    currentCode.length
+                );
+
+                typingInput.value = value;
+            }
+
+            if (value.length > 0) {
+                startTimer();
+                startGuide.style.display = 'none';
+            }
+
+            userInput = value;
+
+            renderCode();
+            checkComplete();
+        }
+
+
+        function handleKeyDown(event) {
+            if (event.key === 'Tab') {
+                event.preventDefault();
+
+                const position = typingInput.selectionStart;
+
+                const before =
+                          typingInput.value.substring(0, position);
+
+                const after =
+                          typingInput.value.substring(position);
+
+                typingInput.value =
+                    before +
+                    '    ' +
+                    after;
+
+                typingInput.selectionStart =
+                    position + 4;
+
+                typingInput.selectionEnd =
+                    position + 4;
+
+                handleInput();
+
+                return;
+            }
+
+            if (event.key === 'Enter') {
+                const nextIndex =
+                          typingInput.selectionStart;
+
+                if (
+                    currentCode[nextIndex] === '\n'
+                ) {
+                    event.preventDefault();
+
+                    let spaces = 0;
+
+                    for (
+                        let i = nextIndex + 1;
+                        i < currentCode.length;
+                        i++
+                    ) {
+                        if (currentCode[i] === ' ') {
+                            spaces++;
+                        } else {
+                            break;
+                        }
+                    }
+
+                    const before =
+                              typingInput.value.substring(
+                                  0,
+                                  nextIndex
+                              );
+
+                    const after =
+                              typingInput.value.substring(
+                                  typingInput.selectionEnd
+                              );
+
+                    const insertion =
+                              '\n' + ' '.repeat(spaces);
+
+                    typingInput.value =
+                        before +
+                        insertion +
+                        after;
+
+                    const newPosition =
+                              nextIndex +
+                              insertion.length;
+
+                    typingInput.selectionStart =
+                        newPosition;
+
+                    typingInput.selectionEnd =
+                        newPosition;
+
+                    handleInput();
+                }
+            }
+
+            if (event.key === 'Escape') {
+                typingInput.blur();
+            }
+        }
+
+
+        function saveHistory(record) {
+            const history = getHistory();
+
+            history.unshift(record);
+
+            if (history.length > 100) {
+                history.length = 100;
+            }
+
+            localStorage.setItem(
+                STORAGE_KEY,
+                JSON.stringify(history)
+            );
+        }
+
+
+        function getHistory() {
+            try {
+                const data =
+                          localStorage.getItem(STORAGE_KEY);
+
+                if (!data) {
+                    return [];
+                }
+
+                const history = JSON.parse(data);
+
+                return Array.isArray(history)
+                    ? history
+                    : [];
+
+            } catch (error) {
+                return [];
+            }
+        }
+
+
+        function showEditor() {
+            currentView = 'editor';
+
+            editor.style.display = '';
+            statsView.classList.remove('show');
+
+            explorerButton.classList.add('active');
+            statsButton.classList.remove('active');
+
+            sidebar.style.display = '';
+
+            tabIcon.textContent =
+                files[currentFilename].icon;
+
+            tabFilename.textContent =
+                currentFilename;
+
+            focusEditor();
+        }
+
+
+        function showStatistics() {
+            currentView = 'statistics';
+
+            typingInput.blur();
+
+            editor.style.display = 'none';
+            startGuide.style.display = 'none';
+
+            statsView.classList.add('show');
+
+            explorerButton.classList.remove('active');
+            statsButton.classList.add('active');
+
+            tabIcon.textContent = '📊';
+            tabFilename.textContent = 'Statistics';
+
+            renderStatistics();
+        }
+
+
+        function renderStatistics() {
+            const history = getHistory();
+
+            const best = history.length
+                ? Math.max(
+                    ...history.map(function (item) {
+                        return item.cpm || 0;
+                    })
+                )
+                : 0;
+
+            const average = history.length
+                ? Math.round(
+                    history.reduce(
+                        function (sum, item) {
+                            return sum +
+                                (item.cpm || 0);
+                        },
+                        0
+                    ) / history.length
+                )
+                : 0;
+
+            bestCpm.textContent = best;
+            averageCpm.textContent = average;
+            attemptCount.textContent = history.length;
+
+            if (history.length === 0) {
+                historyContainer.innerHTML =
+                    '<div class="empty">' +
+                    '아직 연습 기록이 없습니다.' +
+                    '</div>';
+
+                return;
+            }
+
+            let html =
+                    '<table class="history-table">' +
+                    '<thead>' +
+                    '<tr>' +
+                    '<th>Time</th>' +
+                    '<th>File</th>' +
+                    '<th>CPM</th>' +
+                    '<th>Accuracy</th>' +
+                    '</tr>' +
+                    '</thead>' +
+                    '<tbody>';
+
+            history.forEach(function (record) {
+                const date =
+                          new Date(record.timestamp);
+
+                html +=
+                    '<tr>' +
+                    '<td>' +
+                    escapeHtml(
+                        formatDate(date)
+                    ) +
+                    '</td>' +
+                    '<td>' +
+                    escapeHtml(record.filename) +
+                    '</td>' +
+                    '<td>' +
+                    Number(record.cpm || 0) +
+                    '</td>' +
+                    '<td>' +
+                    Number(record.accuracy || 0) +
+                    '%</td>' +
+                    '</tr>';
+            });
+
+            html +=
+                '</tbody>' +
+                '</table>';
+
+            historyContainer.innerHTML = html;
+        }
+
+
+        function formatDate(date) {
+            const year =
+                      date.getFullYear();
+
+            const month =
+                      String(
+                          date.getMonth() + 1
+                      ).padStart(2, '0');
+
+            const day =
+                      String(
+                          date.getDate()
+                      ).padStart(2, '0');
+
+            const hour =
+                      String(
+                          date.getHours()
+                      ).padStart(2, '0');
+
+            const minute =
+                      String(
+                          date.getMinutes()
+                      ).padStart(2, '0');
+
+            return (
+                year +
+                '.' +
+                month +
+                '.' +
+                day +
+                ' ' +
+                hour +
+                ':' +
+                minute
+            );
+        }
+
+
+        function loadTheme() {
+            const savedTheme =
+                      localStorage.getItem(THEME_KEY);
+
+            if (savedTheme === 'dark') {
+                document.documentElement.dataset.theme =
+                    'dark';
+
+                themeButton.textContent = '☀️';
+            } else {
+                document.documentElement.dataset.theme =
+                    'light';
+
+                themeButton.textContent = '🌙';
+            }
+        }
+
+
+        function toggleTheme() {
+            const currentTheme =
+                      document.documentElement.dataset.theme;
+
+            const newTheme =
+                      currentTheme === 'dark'
+                          ? 'light'
+                          : 'dark';
+
+            document.documentElement.dataset.theme =
+                newTheme;
+
+            localStorage.setItem(
+                THEME_KEY,
+                newTheme
+            );
+
+            themeButton.textContent =
+                newTheme === 'dark'
+                    ? '☀️'
+                    : '🌙';
+        }
+
+
+        typingInput.addEventListener(
+            'input',
+            handleInput
+        );
+
+        typingInput.addEventListener(
+            'keydown',
+            handleKeyDown
+        );
+
+
+        editorWrap.addEventListener(
+            'click',
+            function (event) {
+                if (
+                    currentView === 'editor' &&
+                    !event.target.closest('button')
+                ) {
+                    focusEditor();
+                }
+            }
+        );
+
+
+        resetButton.addEventListener(
+            'click',
+            function () {
+                resultModal.classList.remove('show');
+
+                resetPractice();
+                showEditor();
+            }
+        );
+
+
+        themeButton.addEventListener(
+            'click',
+            toggleTheme
+        );
+
+
+        explorerButton.addEventListener(
+            'click',
+            showEditor
+        );
+
+
+        statsButton.addEventListener(
+            'click',
+            showStatistics
+        );
+
+
+        retryButton.addEventListener(
+            'click',
+            function () {
+                resultModal.classList.remove('show');
+
+                resetPractice();
+                showEditor();
+            }
+        );
+
+
+        closeModalButton.addEventListener(
+            'click',
+            function () {
+                resultModal.classList.remove('show');
+            }
+        );
+
+
+        resultModal.addEventListener(
+            'click',
+            function (event) {
+                if (event.target === resultModal) {
+                    resultModal.classList.remove('show');
+                }
+            }
+        );
+
+
+        window.addEventListener(
+            'keydown',
+            function (event) {
+                if (
+                    event.key === 'Escape' &&
+                    resultModal.classList.contains('show')
+                ) {
+                    resultModal.classList.remove('show');
+                }
+            }
+        );
+
+
+        loadTheme();
+        createFileList();
+        createLineNumbers();
+        renderCode();
+
+    })();
+</script>
+
+</body>
+</html>
