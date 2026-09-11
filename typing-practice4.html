@@ -1,0 +1,1859 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>타자연습 - 무료 온라인 타자 속도 테스트</title>
+
+    <meta
+            name="description"
+            content="회원가입 없이 바로 이용하는 무료 온라인 한글 타자연습. 분당 타수, 정확도, 오타 위치를 확인하고 짧은 문장과 장문을 연습할 수 있습니다."
+    >
+    <meta
+            name="keywords"
+            content="타자연습, 한글타자연습, 타자속도, 분당타수, 타자테스트, 온라인타자연습"
+    >
+
+    <meta property="og:title" content="타자연습 - 무료 온라인 타자 속도 테스트">
+    <meta
+            property="og:description"
+            content="분당 타수와 정확도를 실시간으로 확인하는 무료 온라인 타자연습."
+    >
+    <meta property="og:type" content="website">
+
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="manifest" href="/manifest.webmanifest">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+            href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap"
+            rel="stylesheet"
+    >
+
+    <style>
+        :root {
+            --background: #ffffff;
+            --surface: #ffffff;
+            --surface-soft: #f8fafc;
+
+            --text: #111827;
+            --text-sub: #64748b;
+            --text-light: #94a3b8;
+
+            --border: #e2e8f0;
+            --border-dark: #cbd5e1;
+
+            --primary: #111827;
+            --primary-hover: #1f2937;
+
+            --success: #16a34a;
+            --success-bg: #f0fdf4;
+
+            --danger: #dc2626;
+            --danger-bg: #fef2f2;
+
+            --accent: #2563eb;
+
+            --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+            --radius: 24px;
+            --radius-small: 14px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+
+            background: var(--background);
+            color: var(--text);
+
+            font-family:
+                    "Noto Sans KR",
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "Segoe UI",
+                    sans-serif;
+
+            letter-spacing: -0.04em;
+            line-height: 1.6;
+        }
+
+        button,
+        textarea {
+            font: inherit;
+            letter-spacing: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .page {
+            width: min(100% - 32px, 900px);
+            margin: 0 auto;
+            padding: 64px 0;
+        }
+
+        /* -------------------------
+           Header
+        ------------------------- */
+
+        .hero {
+            margin-bottom: 28px;
+            text-align: center;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            min-height: 34px;
+            margin-bottom: 14px;
+            padding: 6px 14px;
+
+            border: 1px solid var(--border);
+            border-radius: 999px;
+
+            background: #ffffff;
+            color: var(--text-sub);
+
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .hero h1 {
+            margin: 0;
+
+            color: var(--text);
+
+            font-size: clamp(28px, 5vw, 46px);
+            font-weight: 800;
+            line-height: 1.25;
+            word-break: keep-all;
+        }
+
+        .hero-lead {
+            max-width: 700px;
+            margin: 18px auto 0;
+
+            color: var(--text-sub);
+
+            font-size: 17px;
+            word-break: keep-all;
+        }
+
+        .hero-description {
+            max-width: 730px;
+            margin: 10px auto 0;
+
+            color: var(--text-sub);
+
+            font-size: 15px;
+            word-break: keep-all;
+        }
+
+        .hero-count {
+            margin-top: 18px;
+
+            color: var(--text-light);
+
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        /* -------------------------
+           Main card
+        ------------------------- */
+
+        .tool-body {
+            overflow: hidden;
+
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+
+            background: var(--surface);
+            box-shadow: var(--shadow);
+        }
+
+        /* -------------------------
+           Stats
+        ------------------------- */
+
+        .tool-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+
+            padding: 24px;
+
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tool-stats {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(110px, 1fr));
+            gap: 12px;
+
+            width: 100%;
+        }
+
+        .stat {
+            padding: 14px 16px;
+
+            border: 1px solid var(--border);
+            border-radius: var(--radius-small);
+
+            background: var(--surface-soft);
+        }
+
+        .ts-k {
+            display: block;
+
+            margin-bottom: 4px;
+
+            color: var(--text-sub);
+
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .ts-v {
+            display: inline-block;
+
+            min-width: 4ch;
+
+            color: var(--text);
+
+            font-size: 24px;
+            font-weight: 800;
+
+            font-variant-numeric: tabular-nums;
+        }
+
+        #t-time {
+            min-width: 5ch;
+        }
+
+        /* -------------------------
+           Buttons
+        ------------------------- */
+
+        .tool-btn {
+            flex: 0 0 auto;
+
+            min-height: 44px;
+            padding: 10px 16px;
+
+            border: 1px solid var(--border-dark);
+            border-radius: 12px;
+
+            background: #ffffff;
+            color: var(--text);
+
+            font-size: 14px;
+            font-weight: 700;
+
+            transition:
+                    border-color 0.15s ease,
+                    background-color 0.15s ease,
+                    transform 0.15s ease;
+        }
+
+        .tool-btn:hover {
+            border-color: #94a3b8;
+            background: var(--surface-soft);
+        }
+
+        .tool-btn:active {
+            transform: translateY(1px);
+        }
+
+        .tool-btn:focus-visible,
+        .tool-seg button:focus-visible,
+        .ty-input:focus-visible {
+            outline: 3px solid rgba(37, 99, 235, 0.18);
+            outline-offset: 2px;
+        }
+
+        /* -------------------------
+           Options
+        ------------------------- */
+
+        .tool-opts {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+
+            padding: 18px 24px;
+
+            border-bottom: 1px solid var(--border);
+            background: #ffffff;
+        }
+
+        .mode-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .opt-k {
+            color: var(--text-sub);
+
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .tool-seg {
+            display: inline-flex;
+            padding: 4px;
+
+            border: 1px solid var(--border);
+            border-radius: 12px;
+
+            background: var(--surface-soft);
+        }
+
+        .tool-seg button {
+            min-height: 36px;
+            padding: 7px 13px;
+
+            border: 0;
+            border-radius: 9px;
+
+            background: transparent;
+            color: var(--text-sub);
+
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .tool-seg button[aria-pressed="true"] {
+            background: #ffffff;
+            color: var(--text);
+
+            box-shadow:
+                    0 1px 3px rgba(15, 23, 42, 0.08),
+                    0 0 0 1px rgba(15, 23, 42, 0.05);
+        }
+
+        #t-sound.is-off {
+            opacity: 0.55;
+            text-decoration: line-through;
+        }
+
+        /* -------------------------
+           Hint
+        ------------------------- */
+
+        .tool-hint {
+            margin: 0;
+            padding: 18px 24px;
+
+            border-bottom: 1px solid var(--border);
+
+            background: var(--surface-soft);
+            color: var(--text-sub);
+
+            font-size: 14px;
+            text-align: center;
+            word-break: keep-all;
+        }
+
+        .tool-hint strong {
+            color: var(--text);
+        }
+
+        kbd {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            min-width: 46px;
+            padding: 2px 7px;
+
+            border: 1px solid var(--border-dark);
+            border-bottom-width: 2px;
+            border-radius: 6px;
+
+            background: #ffffff;
+            color: var(--text);
+
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        /* -------------------------
+           Typing area
+        ------------------------- */
+
+        .typing {
+            padding: 28px 24px 30px;
+        }
+
+        .ty-target {
+            min-height: 110px;
+            margin: 0;
+            padding: 24px;
+
+            overflow-wrap: anywhere;
+
+            border: 1px solid var(--border);
+            border-radius: 18px;
+
+            background: #ffffff;
+            color: #94a3b8;
+
+            font-size: clamp(18px, 2.7vw, 23px);
+            font-weight: 500;
+            line-height: 1.95;
+            letter-spacing: -0.03em;
+
+            white-space: pre-wrap;
+        }
+
+        .ty-target.is-long {
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .ty-target span {
+            position: relative;
+
+            border-radius: 3px;
+
+            transition:
+                    color 0.08s ease,
+                    background-color 0.08s ease;
+        }
+
+        .ty-target .ty-ok {
+            color: var(--text);
+        }
+
+        .ty-target .ty-bad {
+            background: var(--danger-bg);
+            color: var(--danger);
+
+            text-decoration: underline;
+            text-decoration-color: rgba(220, 38, 38, 0.4);
+            text-underline-offset: 4px;
+        }
+
+        .ty-target .ty-cur {
+            color: var(--text);
+        }
+
+        .ty-target .ty-cur::after {
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+
+            width: 100%;
+            height: 2px;
+
+            border-radius: 999px;
+
+            background: var(--accent);
+
+            content: "";
+        }
+
+        /* -------------------------
+           Progress
+        ------------------------- */
+
+        .ty-prog {
+            width: 100%;
+            height: 5px;
+
+            margin: 18px 0;
+
+            overflow: hidden;
+
+            border-radius: 999px;
+
+            background: #eef2f7;
+        }
+
+        .ty-prog i {
+            display: block;
+
+            width: 0;
+            height: 100%;
+
+            border-radius: inherit;
+
+            background: var(--primary);
+
+            transition: width 0.1s linear;
+        }
+
+        /* -------------------------
+           Input
+        ------------------------- */
+
+        .ty-input {
+            display: block;
+
+            width: 100%;
+            min-height: 120px;
+            padding: 18px 20px;
+
+            resize: vertical;
+
+            border: 1px solid var(--border-dark);
+            border-radius: 18px;
+
+            background: #ffffff;
+            color: var(--text);
+
+            font-size: 18px;
+            font-weight: 500;
+            line-height: 1.75;
+
+            transition:
+                    border-color 0.15s ease,
+                    box-shadow 0.15s ease;
+        }
+
+        .ty-input:hover {
+            border-color: #94a3b8;
+        }
+
+        .ty-input:focus {
+            border-color: var(--text);
+            outline: none;
+
+            box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.06);
+        }
+
+        .ty-input::placeholder {
+            color: #b6c0cd;
+        }
+
+        /* -------------------------
+           Result
+        ------------------------- */
+
+        .ty-result {
+            min-height: 26px;
+            margin: 16px 0 0;
+
+            color: var(--success);
+
+            font-size: 14px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        /* -------------------------
+           Footer
+        ------------------------- */
+
+        .footer-note {
+            margin-top: 20px;
+
+            color: var(--text-light);
+
+            font-size: 12px;
+            text-align: center;
+        }
+
+        /* -------------------------
+           Mobile
+        ------------------------- */
+
+        @media (max-width: 720px) {
+            .page {
+                width: min(100% - 24px, 900px);
+                padding: 32px 0;
+            }
+
+            .hero {
+                margin-bottom: 20px;
+            }
+
+            .hero-lead {
+                font-size: 15px;
+            }
+
+            .hero-description {
+                font-size: 14px;
+            }
+
+            .tool-head {
+                align-items: stretch;
+                flex-direction: column;
+
+                padding: 18px;
+            }
+
+            .tool-stats {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+
+            .stat {
+                padding: 12px 8px;
+
+                text-align: center;
+            }
+
+            .ts-k {
+                font-size: 11px;
+            }
+
+            .ts-v {
+                font-size: 19px;
+            }
+
+            .tool-head .tool-btn {
+                width: 100%;
+            }
+
+            .tool-opts {
+                align-items: stretch;
+                flex-direction: column;
+
+                padding: 16px 18px;
+            }
+
+            .mode-wrap {
+                justify-content: space-between;
+            }
+
+            #t-sound {
+                width: 100%;
+            }
+
+            .tool-hint {
+                padding: 15px 18px;
+
+                font-size: 13px;
+            }
+
+            .typing {
+                padding: 20px 18px 24px;
+            }
+
+            .ty-target {
+                min-height: 120px;
+                padding: 18px;
+
+                font-size: 18px;
+                line-height: 1.9;
+            }
+
+            .ty-target.is-long {
+                max-height: 280px;
+            }
+
+            .ty-input {
+                min-height: 130px;
+                padding: 16px;
+
+                font-size: 16px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .page {
+                width: min(100% - 20px, 900px);
+            }
+
+            .hero h1 {
+                font-size: 27px;
+            }
+
+            .tool-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .stat {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+
+                text-align: left;
+            }
+
+            .ts-k {
+                margin: 0;
+
+                font-size: 12px;
+            }
+
+            .mode-wrap {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .tool-seg {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+
+                width: 100%;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                scroll-behavior: auto !important;
+                transition-duration: 0.01ms !important;
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<main class="page">
+
+    <header class="hero">
+        <div class="hero-badge">
+            ⌨️ 무료 온라인 타자연습
+        </div>
+
+        <h1>
+            타자연습
+        </h1>
+
+        <p class="hero-lead">
+            분당 타수와 정확도를 같이 확인해 보세요.
+            속도뿐 아니라 정확한 입력도 중요합니다.
+        </p>
+
+        <p class="hero-description">
+            회원가입이나 프로그램 설치 없이 바로 사용할 수 있습니다.
+            한글 타자 속도와 정확도, 오타 위치를 실시간으로 확인하며
+            짧은 문장과 장문을 연습할 수 있습니다.
+        </p>
+
+        <div class="hero-count">
+            설치 없음 · 브라우저 안에서 실행 · 데이터 전송 없음
+        </div>
+    </header>
+
+
+    <section class="tool-body" aria-label="타자연습 도구">
+
+        <div class="tool-head">
+
+            <div class="tool-stats">
+
+                <div class="stat">
+                    <span class="ts-k">
+                        분당 타수
+                    </span>
+
+                    <span
+                            class="ts-v"
+                            id="t-cpm"
+                            aria-label="분당 타수"
+                    >
+                        0
+                    </span>
+                </div>
+
+                <div class="stat">
+                    <span class="ts-k">
+                        정확도
+                    </span>
+
+                    <span
+                            class="ts-v"
+                            id="t-acc"
+                            aria-label="정확도"
+                    >
+                        100%
+                    </span>
+                </div>
+
+                <div class="stat">
+                    <span class="ts-k">
+                        경과 시간
+                    </span>
+
+                    <span
+                            class="ts-v"
+                            id="t-time"
+                            aria-label="경과 시간"
+                    >
+                        0.0s
+                    </span>
+                </div>
+
+            </div>
+
+            <button
+                    class="tool-btn"
+                    id="t-reset"
+                    type="button"
+            >
+                ↻ 다시
+            </button>
+
+        </div>
+
+
+        <div class="tool-opts">
+
+            <div class="mode-wrap">
+
+                <span class="opt-k">
+                    연습 모드
+                </span>
+
+                <div
+                        class="tool-seg"
+                        role="group"
+                        aria-label="연습 모드"
+                >
+                    <button
+                            type="button"
+                            id="t-mode-short"
+                            aria-pressed="true"
+                    >
+                        짧은 문장
+                    </button>
+
+                    <button
+                            type="button"
+                            id="t-mode-long"
+                            aria-pressed="false"
+                    >
+                        장문
+                    </button>
+                </div>
+
+            </div>
+
+            <button
+                    class="tool-btn"
+                    id="t-sound"
+                    type="button"
+                    aria-pressed="true"
+            >
+                ⌨️ 타건음 켜짐
+            </button>
+
+        </div>
+
+
+        <p class="tool-hint">
+            아래 글을 그대로 입력하세요.
+            첫 글자를 입력하는 순간 시간이 시작됩니다.
+            <kbd>Enter</kbd>를 누르면
+            <strong>다음 지문</strong>으로 넘어갑니다.
+        </p>
+
+
+        <div class="typing">
+
+            <p
+                    class="ty-target"
+                    id="t-target"
+                    aria-label="타자연습 문장"
+            ></p>
+
+            <div
+                    class="ty-prog"
+                    aria-hidden="true"
+            >
+                <i id="t-prog"></i>
+            </div>
+
+            <textarea
+                    class="ty-input"
+                    id="t-input"
+                    rows="3"
+                    spellcheck="false"
+                    autocomplete="off"
+                    autocorrect="off"
+                    autocapitalize="off"
+                    placeholder="여기에 문장을 입력하세요."
+                    aria-label="타자 입력"
+            ></textarea>
+
+            <p
+                    class="ty-result"
+                    id="t-result"
+                    role="status"
+                    aria-live="polite"
+            ></p>
+
+        </div>
+
+    </section>
+
+
+    <p class="footer-note">
+        입력한 내용은 서버로 전송되지 않습니다.
+    </p>
+
+</main>
+
+
+<script>
+    (function () {
+        "use strict";
+
+
+        /* =========================================================
+           연습 문장
+        ========================================================= */
+
+        const SHORT_SAMPLES = [
+            "책상 위에서 하루 여덟 시간을 함께 보내는 장비는 취향이 아니라 조건으로 고른다.",
+            "키압이 낮은 축은 처음엔 편하지만 오래 치면 바닥을 때리는 감각이 손목에 남는다.",
+            "무선 마우스는 배터리가 절반 아래로 내려가는 지점부터 성격이 달라진다.",
+            "충전 케이블이 책상에 하나 늘지 않는 것, 그게 이 마우스가 하는 일의 전부다.",
+            "오픈형 이어폰은 귀를 막지 않는 대가로 저음과 차음을 내어준다.",
+            "눈은 두 화면의 차이에는 민감하지만 절대값에는 둔하다.",
+            "스펙표의 큰 글씨와 내가 실제로 쓰는 시간은 같은 숫자가 아니다.",
+            "좋은 제품을 찾는 것보다 중요한 것은 나에게 맞는 제품을 찾는 것이다."
+        ];
+
+
+        const LONG_SAMPLES = [
+            "기계식 키보드에서 사람들이 제일 먼저 말하는 건 소리지만, 정작 그 소리는 한 군데서 나지 않는다. 스위치가 내는 소리, 스태빌라이저가 흔들리는 소리, 케이스 안에서 울리는 소리, 그리고 바닥을 때리는 소리가 겹쳐서 하나로 들릴 뿐이다. 축을 바꿨는데 조용해지지 않았다면 원인이 다른 곳에 있는 것이다.",
+
+            "무선 마우스를 고를 때 최대 해상도 숫자는 거의 의미가 없다. 이만 육천이라고 적혀 있어도 실제로 쓰는 구간은 팔백에서 천육백 사이다. 그 구간에서 커서가 튀지 않는지, 천천히 밀 때 손을 따라오는지가 훨씬 중요하다. 숫자는 상한선이지 권장값이 아니다.",
+
+            "이어폰은 착용 방식이 용도를 정한다. 귀를 막는 커널형은 지하철에서 유리하지만 달리기에는 위험하고, 열린 구조는 주변 소리를 들려주는 대신 시끄러운 곳에서 음악이 묻힌다. 어느 쪽이 좋은 제품이냐가 아니라 내가 어디에서 쓸 것이냐가 먼저 정해져야 한다.",
+
+            "두 대의 모니터를 나란히 놓는 순간 색이 다르다는 게 보인다. 한 대만 쓸 때는 아무렇지 않던 화면이, 옆에 다른 화면이 서는 순간 누렇거나 푸르게 느껴진다. 눈은 절대적인 색에는 둔하지만 나란히 놓인 두 색의 차이에는 아주 민감하기 때문이다. 그래서 색은 늘 비교 대상과 함께 이야기해야 한다."
+        ];
+
+
+        const MESSAGE = {
+            soundOn: "⌨️ 타건음 켜짐",
+            soundOff: "⌨️ 타건음 꺼짐",
+            noPaste: "붙여넣기는 사용할 수 없습니다. 직접 입력해 주세요.",
+            done: "완료 — 분당 {speed}타 · 정확도 {accuracy}% · Enter로 다음 지문"
+        };
+
+
+        /* =========================================================
+           DOM
+        ========================================================= */
+
+        const $ = function (id) {
+            return document.getElementById(id);
+        };
+
+
+        const target = $("t-target");
+        const input = $("t-input");
+
+        const speedElement = $("t-cpm");
+        const accuracyElement = $("t-acc");
+        const timeElement = $("t-time");
+
+        const progressElement = $("t-prog");
+        const resultElement = $("t-result");
+
+        const resetButton = $("t-reset");
+        const soundButton = $("t-sound");
+
+        const modeButtons = {
+            short: $("t-mode-short"),
+            long: $("t-mode-long")
+        };
+
+
+        /* =========================================================
+           상태
+        ========================================================= */
+
+        let mode =
+                localStorage.getItem("typing-practice-mode") === "long"
+                    ? "long"
+                    : "short";
+
+        let soundEnabled =
+                localStorage.getItem("typing-practice-sound") !== "off";
+
+        let currentText = "";
+
+        let sampleIndex = 0;
+
+        let startTime = 0;
+
+        let timer = null;
+
+        let previousLength = 0;
+
+        let audioContext = null;
+
+
+        /* =========================================================
+           문장 데이터
+        ========================================================= */
+
+        function getSamplePool() {
+            return mode === "long"
+                ? LONG_SAMPLES
+                : SHORT_SAMPLES;
+        }
+
+
+        function setRandomSampleIndex() {
+            const samples = getSamplePool();
+
+            sampleIndex = Math.floor(
+                Math.random() * samples.length
+            );
+        }
+
+
+        /* =========================================================
+           모드 표시
+        ========================================================= */
+
+        function updateModeUI() {
+            modeButtons.short.setAttribute(
+                "aria-pressed",
+                String(mode === "short")
+            );
+
+            modeButtons.long.setAttribute(
+                "aria-pressed",
+                String(mode === "long")
+            );
+
+            target.classList.toggle(
+                "is-long",
+                mode === "long"
+            );
+        }
+
+
+        modeButtons.short.addEventListener(
+            "click",
+            function () {
+                changeMode("short");
+            }
+        );
+
+
+        modeButtons.long.addEventListener(
+            "click",
+            function () {
+                changeMode("long");
+            }
+        );
+
+
+        function changeMode(newMode) {
+            if (mode === newMode) {
+                input.focus();
+                return;
+            }
+
+            mode = newMode;
+
+            localStorage.setItem(
+                "typing-practice-mode",
+                mode
+            );
+
+            setRandomSampleIndex();
+
+            updateModeUI();
+            loadSample(0);
+
+            input.focus();
+        }
+
+
+        /* =========================================================
+           타건음 표시
+        ========================================================= */
+
+        function updateSoundUI() {
+            soundButton.textContent =
+                soundEnabled
+                    ? MESSAGE.soundOn
+                    : MESSAGE.soundOff;
+
+            soundButton.setAttribute(
+                "aria-pressed",
+                String(soundEnabled)
+            );
+
+            soundButton.classList.toggle(
+                "is-off",
+                !soundEnabled
+            );
+        }
+
+
+        soundButton.addEventListener(
+            "click",
+            function () {
+                soundEnabled = !soundEnabled;
+
+                localStorage.setItem(
+                    "typing-practice-sound",
+                    soundEnabled
+                        ? "on"
+                        : "off"
+                );
+
+                updateSoundUI();
+
+                input.focus();
+            }
+        );
+
+
+        /* =========================================================
+           Web Audio 타건음
+        ========================================================= */
+
+        function playTypingSound(type) {
+            if (!soundEnabled) {
+                return;
+            }
+
+            try {
+                if (!audioContext) {
+                    const AudioContextClass =
+                              window.AudioContext ||
+                              window.webkitAudioContext;
+
+                    if (!AudioContextClass) {
+                        return;
+                    }
+
+                    audioContext =
+                        new AudioContextClass();
+                }
+
+
+                if (audioContext.state === "suspended") {
+                    audioContext.resume();
+                }
+
+
+                const start =
+                          audioContext.currentTime;
+
+
+                function noiseBurst(
+                    frequency,
+                    q,
+                    volume,
+                    length,
+                    delay
+                ) {
+                    delay = delay || 0;
+
+                    const buffer =
+                              audioContext.createBuffer(
+                                  1,
+                                  Math.ceil(
+                                      audioContext.sampleRate *
+                                      length
+                                  ),
+                                  audioContext.sampleRate
+                              );
+
+
+                    const data =
+                              buffer.getChannelData(0);
+
+
+                    for (
+                        let i = 0;
+                        i < data.length;
+                        i++
+                    ) {
+                        data[i] =
+                            (
+                                Math.random() * 2 - 1
+                            ) *
+                            Math.pow(
+                                1 - i / data.length,
+                                2
+                            );
+                    }
+
+
+                    const source =
+                              audioContext.createBufferSource();
+
+                    const filter =
+                              audioContext.createBiquadFilter();
+
+                    const gain =
+                              audioContext.createGain();
+
+
+                    source.buffer = buffer;
+
+                    filter.type = "bandpass";
+                    filter.frequency.value =
+                        frequency;
+                    filter.Q.value = q;
+
+
+                    gain.gain.setValueAtTime(
+                        volume,
+                        start + delay
+                    );
+
+
+                    gain.gain.exponentialRampToValueAtTime(
+                        0.001,
+                        start + delay + length
+                    );
+
+
+                    source
+                    .connect(filter)
+                    .connect(gain)
+                    .connect(
+                        audioContext.destination
+                    );
+
+
+                    source.start(
+                        start + delay
+                    );
+                }
+
+
+                if (type === "bad") {
+                    noiseBurst(
+                        600,
+                        2.5,
+                        0.5,
+                        0.045
+                    );
+
+                    return;
+                }
+
+
+                noiseBurst(
+                    3800 + Math.random() * 900,
+                    0.8,
+                    0.55,
+                    0.014
+                );
+
+
+                noiseBurst(
+                    1100 + Math.random() * 200,
+                    1.5,
+                    0.3,
+                    0.02,
+                    0.008
+                );
+
+
+                if (type === "done") {
+                    playCompleteSound(start);
+                }
+
+            } catch (error) {
+                /* Web Audio 미지원 환경에서는 무시 */
+            }
+        }
+
+
+        function playCompleteSound(start) {
+            [660, 990].forEach(
+                function (frequency, index) {
+                    const oscillator =
+                              audioContext.createOscillator();
+
+                    const gain =
+                              audioContext.createGain();
+
+                    const delay =
+                              index * 0.09;
+
+
+                    oscillator.type = "sine";
+
+                    oscillator.frequency.value =
+                        frequency;
+
+
+                    gain.gain.setValueAtTime(
+                        0.0001,
+                        start + delay
+                    );
+
+
+                    gain.gain.exponentialRampToValueAtTime(
+                        0.22,
+                        start + delay + 0.02
+                    );
+
+
+                    gain.gain.exponentialRampToValueAtTime(
+                        0.001,
+                        start + delay + 0.25
+                    );
+
+
+                    oscillator
+                    .connect(gain)
+                    .connect(
+                        audioContext.destination
+                    );
+
+
+                    oscillator.start(
+                        start + delay
+                    );
+
+
+                    oscillator.stop(
+                        start + delay + 0.3
+                    );
+                }
+            );
+        }
+
+
+        /* =========================================================
+           연습 문장 로드
+        ========================================================= */
+
+        function loadSample(step) {
+            step = step || 0;
+
+            const samples =
+                      getSamplePool();
+
+
+            sampleIndex =
+                (
+                    sampleIndex +
+                    step +
+                    samples.length
+                ) %
+                samples.length;
+
+
+            currentText =
+                samples[sampleIndex];
+
+
+            target.textContent = "";
+
+
+            Array.from(currentText).forEach(
+                function (character) {
+                    const span =
+                              document.createElement("span");
+
+                    span.textContent =
+                        character;
+
+                    target.appendChild(span);
+                }
+            );
+
+
+            input.value = "";
+
+            startTime = 0;
+            previousLength = 0;
+
+
+            if (timer) {
+                clearInterval(timer);
+            }
+
+            timer = null;
+
+
+            speedElement.textContent = "0";
+            accuracyElement.textContent = "100%";
+            timeElement.textContent = "0.0s";
+
+            resultElement.textContent = "";
+
+            progressElement.style.width = "0%";
+
+            target.scrollTop = 0;
+
+
+            updateCurrentCharacter("");
+        }
+
+
+        /* =========================================================
+           타이머
+        ========================================================= */
+
+        function startTimer() {
+            if (startTime) {
+                return;
+            }
+
+
+            startTime =
+                performance.now();
+
+
+            timer =
+                window.setInterval(
+                    function () {
+                        const seconds =
+                                  (
+                                      performance.now() -
+                                      startTime
+                                  ) /
+                                  1000;
+
+
+                        timeElement.textContent =
+                            seconds.toFixed(1) +
+                            "s";
+                    },
+                    100
+                );
+        }
+
+
+        /* =========================================================
+           정확도 계산
+        ========================================================= */
+
+        function getCorrectCount(value) {
+            let correct = 0;
+
+
+            for (
+                let i = 0;
+                i < value.length;
+                i++
+            ) {
+                if (
+                    value[i] ===
+                    currentText[i]
+                ) {
+                    correct++;
+                }
+            }
+
+
+            return correct;
+        }
+
+
+        /* =========================================================
+           문장 상태 표시
+        ========================================================= */
+
+        function updateCurrentCharacter(value) {
+            const characters =
+                      target.children;
+
+            let currentElement =
+                    null;
+
+
+            for (
+                let i = 0;
+                i < characters.length;
+                i++
+            ) {
+                const element =
+                          characters[i];
+
+
+                element.className = "";
+
+
+                if (i < value.length) {
+                    if (
+                        value[i] ===
+                        currentText[i]
+                    ) {
+                        element.className =
+                            "ty-ok";
+                    } else {
+                        element.className =
+                            "ty-bad";
+                    }
+                } else if (
+                    i === value.length
+                ) {
+                    element.className =
+                        "ty-cur";
+
+                    currentElement =
+                        element;
+                }
+            }
+
+
+            if (
+                currentElement &&
+                mode === "long"
+            ) {
+                scrollToCurrentCharacter(
+                    currentElement
+                );
+            }
+        }
+
+
+        /* =========================================================
+           장문 자동 스크롤
+        ========================================================= */
+
+        function scrollToCurrentCharacter(
+            currentElement
+        ) {
+            const boxRect =
+                      target.getBoundingClientRect();
+
+            const characterRect =
+                      currentElement.getBoundingClientRect();
+
+
+            if (
+                characterRect.bottom >
+                boxRect.bottom - 24 ||
+                characterRect.top <
+                boxRect.top + 8
+            ) {
+                target.scrollTop +=
+                    characterRect.top -
+                    boxRect.top -
+                    boxRect.height / 2;
+            }
+        }
+
+
+        /* =========================================================
+           통계
+        ========================================================= */
+
+        function updateStats(value) {
+            if (!startTime) {
+                return;
+            }
+
+
+            const elapsedMinutes =
+                      (
+                          performance.now() -
+                          startTime
+                      ) /
+                      60000;
+
+
+            const correct =
+                      getCorrectCount(value);
+
+
+            if (elapsedMinutes > 0) {
+                const speed =
+                          Math.round(
+                              value.length /
+                              elapsedMinutes
+                          );
+
+
+                speedElement.textContent =
+                    String(speed);
+            }
+
+
+            const accuracy =
+                      value.length
+                          ? Math.round(
+                              correct /
+                              value.length *
+                              100
+                          )
+                          : 100;
+
+
+            accuracyElement.textContent =
+                accuracy + "%";
+        }
+
+
+        /* =========================================================
+           진행률
+        ========================================================= */
+
+        function updateProgress(value) {
+            const percent =
+                      Math.min(
+                          100,
+                          (
+                              value.length /
+                              currentText.length
+                          ) *
+                          100
+                      );
+
+
+            progressElement.style.width =
+                percent + "%";
+        }
+
+
+        /* =========================================================
+           완료
+        ========================================================= */
+
+        function checkComplete(value) {
+            if (
+                value.length <
+                currentText.length
+            ) {
+                return;
+            }
+
+
+            if (timer) {
+                clearInterval(timer);
+            }
+
+            timer = null;
+
+
+            const elapsedMinutes =
+                      (
+                          performance.now() -
+                          startTime
+                      ) /
+                      60000;
+
+
+            const correct =
+                      getCorrectCount(
+                          value.slice(
+                              0,
+                              currentText.length
+                          )
+                      );
+
+
+            const speed =
+                      elapsedMinutes > 0
+                          ? Math.round(
+                              currentText.length /
+                              elapsedMinutes
+                          )
+                          : 0;
+
+
+            const accuracy =
+                      Math.round(
+                          correct /
+                          currentText.length *
+                          100
+                      );
+
+
+            resultElement.textContent =
+                MESSAGE.done
+                .replace(
+                    "{speed}",
+                    speed
+                )
+                .replace(
+                    "{accuracy}",
+                    accuracy
+                );
+
+
+            playTypingSound("done");
+        }
+
+
+        /* =========================================================
+           붙여넣기 방지
+        ========================================================= */
+
+        input.addEventListener(
+            "paste",
+            function (event) {
+                event.preventDefault();
+
+                resultElement.textContent =
+                    MESSAGE.noPaste;
+            }
+        );
+
+
+        /* =========================================================
+           키보드 처리
+        ========================================================= */
+
+        input.addEventListener(
+            "keydown",
+            function (event) {
+
+                if (
+                    event.metaKey ||
+                    event.ctrlKey ||
+                    event.altKey
+                ) {
+                    return;
+                }
+
+
+                /*
+                 * 한글 조합 중 Enter는
+                 * IME 글자 확정용이므로 막지 않습니다.
+                 */
+                if (
+                    event.key === "Enter" &&
+                    !event.isComposing
+                ) {
+                    event.preventDefault();
+
+                    playTypingSound("ok");
+
+                    loadSample(1);
+
+                    return;
+                }
+
+
+                if (
+                    event.key.length === 1 ||
+                    event.key === "Process" ||
+                    event.key === "Backspace" ||
+                    event.isComposing
+                ) {
+                    playTypingSound("ok");
+                }
+            }
+        );
+
+
+        /* =========================================================
+           입력 처리
+        ========================================================= */
+
+        input.addEventListener(
+            "input",
+            function () {
+                const value =
+                          input.value;
+
+
+                /*
+                 * 새 글자가 입력되었을 때
+                 * 오타라면 별도 효과음
+                 */
+                if (
+                    value.length >
+                    previousLength
+                ) {
+                    const index =
+                              value.length - 1;
+
+
+                    if (
+                        value[index] !==
+                        currentText[index]
+                    ) {
+                        playTypingSound("bad");
+                    }
+                }
+
+
+                previousLength =
+                    value.length;
+
+
+                if (
+                    !startTime &&
+                    value.length
+                ) {
+                    startTimer();
+                }
+
+
+                updateCurrentCharacter(
+                    value
+                );
+
+
+                updateProgress(
+                    value
+                );
+
+
+                updateStats(
+                    value
+                );
+
+
+                checkComplete(
+                    value
+                );
+            }
+        );
+
+
+        /* =========================================================
+           다시 시작
+        ========================================================= */
+
+        resetButton.addEventListener(
+            "click",
+            function () {
+                loadSample(0);
+
+                input.focus();
+            }
+        );
+
+
+        /* =========================================================
+           초기화
+        ========================================================= */
+
+        function init() {
+            setRandomSampleIndex();
+
+            updateModeUI();
+
+            updateSoundUI();
+
+            loadSample(0);
+        }
+
+
+        init();
+
+    })();
+</script>
+
+</body>
+</html>

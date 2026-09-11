@@ -65,6 +65,7 @@
 - https://github.com/papered/KeyWar
 - https://github.com/Choi-T-dev/sungl-i-typing
 - https://tajaking.pages.dev/
+- https://deskarmory.co.kr/tools/typing-speed/
 <br><br><br>
 
 
