@@ -67,6 +67,7 @@
 - https://tajaking.pages.dev/
 - https://deskarmory.co.kr/tools/typing-speed/
 - https://deskarmory.co.kr/tools/keyboard-test/
+- https://bibletaja.vercel.app/
 <br><br><br>
 
 
