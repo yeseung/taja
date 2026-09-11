@@ -66,6 +66,7 @@
 - https://github.com/Choi-T-dev/sungl-i-typing
 - https://tajaking.pages.dev/
 - https://deskarmory.co.kr/tools/typing-speed/
+- https://deskarmory.co.kr/tools/keyboard-test/
 <br><br><br>
 
 
