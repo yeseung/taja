@@ -64,6 +64,7 @@
 - https://github.com/inseong01/typing-practice
 - https://github.com/papered/KeyWar
 - https://github.com/Choi-T-dev/sungl-i-typing
+- https://tajaking.pages.dev/
 <br><br><br>
 
 
