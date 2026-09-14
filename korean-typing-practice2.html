@@ -1,0 +1,1909 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="설치 없이 즐기는 한국어 타자 연습. 30초와 60초 모드, 타수, 정확도, 오타 수를 실시간으로 확인할 수 있습니다.">
+    <meta name="keywords" content="한국어 타자연습, 한글 타자연습, 타자 속도, KPM, typing practice">
+    <meta property="og:title" content="한국어 타자 연습">
+    <meta property="og:description" content="한국어 문장을 입력하며 타수와 정확도를 측정하는 무료 웹 타자연습입니다.">
+    <meta property="og:type" content="website">
+    <title>한국어 타자 연습</title>
+
+    <!-- https://hangulspace.com/ko/도구/korean-typing-speed-test/ -->
+
+    <style>
+        :root {
+            --bg: #f7f8fa;
+            --card: #ffffff;
+            --text: #111827;
+            --muted: #6b7280;
+            --line: #e5e7eb;
+            --line-strong: #d1d5db;
+            --primary: #111827;
+            --primary-soft: #f3f4f6;
+            --success: #15803d;
+            --success-bg: #f0fdf4;
+            --danger: #dc2626;
+            --danger-bg: #fef2f2;
+            --focus: #2563eb;
+            --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+            --radius: 24px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            margin: 0;
+            min-width: 320px;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", Arial, sans-serif;
+            letter-spacing: -0.03em;
+            line-height: 1.6;
+        }
+
+        button,
+        textarea,
+        select {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        button:disabled {
+            cursor: not-allowed;
+            opacity: 0.55;
+        }
+
+        .app {
+            width: min(920px, calc(100% - 32px));
+            margin: 40px auto;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 32px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            margin: 0 0 8px;
+            font-size: clamp(28px, 5vw, 40px);
+            line-height: 1.2;
+            font-weight: 800;
+        }
+
+        .header p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 15px;
+        }
+
+        .mode-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 24px;
+        }
+
+        .mode-btn,
+        .secondary-btn,
+        .primary-btn {
+            min-height: 48px;
+            border-radius: 14px;
+            border: 1px solid var(--line-strong);
+            background: #fff;
+            color: var(--text);
+            font-weight: 700;
+            transition: 0.18s ease;
+        }
+
+        .mode-btn:hover,
+        .secondary-btn:hover {
+            background: var(--primary-soft);
+        }
+
+        .mode-btn.active {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .stat-box {
+            padding: 16px;
+            text-align: center;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            background: #fff;
+        }
+
+        .stat-label {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        .prompt-box {
+            margin-top: 24px;
+            min-height: 148px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 18px;
+            padding: 24px;
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            background: #fff;
+        }
+
+        .prompt-text {
+            font-size: clamp(22px, 4vw, 32px);
+            line-height: 1.75;
+            font-weight: 700;
+            word-break: keep-all;
+            overflow-wrap: anywhere;
+        }
+
+        .char {
+            border-radius: 4px;
+        }
+
+        .char.correct {
+            color: var(--success);
+            background: var(--success-bg);
+        }
+
+        .char.incorrect {
+            color: var(--danger);
+            background: var(--danger-bg);
+            text-decoration: underline;
+            text-decoration-thickness: 2px;
+        }
+
+        .char.current {
+            background: #eff6ff;
+            box-shadow: inset 0 -2px 0 var(--focus);
+        }
+
+        .next-btn {
+            align-self: flex-end;
+            border: 0;
+            background: transparent;
+            color: #9ca3af;
+            font-weight: 700;
+            padding: 4px 0;
+        }
+
+        .next-btn.ready {
+            color: var(--text);
+        }
+
+        .learning-bar {
+            margin-top: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .audio-btn,
+        .meaning-btn {
+            min-height: 44px;
+            padding: 0 16px;
+            border-radius: 14px;
+            border: 1px solid var(--line-strong);
+            background: #fff;
+            color: var(--text);
+            font-weight: 700;
+        }
+
+        .audio-btn.playing {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        .lang-select {
+            min-height: 44px;
+            padding: 0 40px 0 14px;
+            border: 1px solid var(--line-strong);
+            border-radius: 14px;
+            background: #fff;
+            color: var(--text);
+            outline: none;
+        }
+
+        .meaning-display {
+            margin-top: 12px;
+            padding: 16px;
+            border-radius: 16px;
+            background: var(--primary-soft);
+            color: #374151;
+            font-weight: 600;
+        }
+
+        .input-wrap {
+            margin-top: 20px;
+        }
+
+        .typing-input {
+            width: 100%;
+            min-height: 104px;
+            resize: vertical;
+            padding: 18px;
+            border: 1px solid var(--line-strong);
+            border-radius: 18px;
+            background: #fff;
+            color: var(--text);
+            outline: none;
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .typing-input:focus {
+            border-color: var(--focus);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+
+        .input-hint {
+            margin-top: 8px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .controls {
+            margin-top: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .personal-best {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .personal-best strong {
+            color: var(--text);
+        }
+
+        .secondary-btn {
+            padding: 0 18px;
+        }
+
+        .result-card {
+            margin-top: 24px;
+            padding: 28px;
+            text-align: center;
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            background: #fff;
+        }
+
+        .result-card[hidden] {
+            display: none;
+        }
+
+        .result-card h2 {
+            margin: 0 0 10px;
+            font-size: 24px;
+        }
+
+        .result-speed {
+            margin: 8px 0 2px;
+            font-size: clamp(48px, 10vw, 72px);
+            line-height: 1;
+            font-weight: 900;
+        }
+
+        .result-unit {
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 24px 0;
+        }
+
+        .result-item {
+            padding: 14px;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+        }
+
+        .result-item span {
+            display: block;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .result-item strong {
+            display: block;
+            margin-top: 3px;
+            font-size: 22px;
+        }
+
+        .primary-btn {
+            padding: 0 24px;
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        .footer-note {
+            margin-top: 16px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        @media (max-width: 720px) {
+            .app {
+                width: min(100% - 20px, 920px);
+                margin: 16px auto;
+            }
+
+            .card {
+                padding: 20px;
+                border-radius: 20px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .prompt-box {
+                padding: 18px;
+            }
+
+            .controls {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .secondary-btn {
+                width: 100%;
+            }
+
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 460px) {
+            .mode-selector {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                gap: 8px;
+            }
+
+            .stat-box {
+                padding: 13px 8px;
+            }
+
+            .stat-value {
+                font-size: 21px;
+            }
+
+            .learning-bar {
+                align-items: stretch;
+            }
+
+            .audio-btn,
+            .meaning-btn,
+            .lang-select {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<main class="app">
+    <section class="card">
+        <header class="header">
+            <h1>⌨️ 한국어 타자 연습</h1>
+            <p>시간 안에 가능한 많은 문장을 입력해 보세요. 문장을 완료하면 다음 문장으로 자동 이동합니다.</p>
+
+            <div class="mode-selector" role="group" aria-label="타자 연습 시간 선택">
+                <button type="button" class="mode-btn active" data-time="30" aria-pressed="true">30초 · 빠른 연습</button>
+                <button type="button" class="mode-btn" data-time="60" aria-pressed="false">60초 · 기본 연습</button>
+            </div>
+        </header>
+
+        <section class="stats-grid" aria-label="타자 통계">
+            <div class="stat-box">
+                <div class="stat-label">남은 시간</div>
+                <div class="stat-value" id="timeDisplay" aria-live="polite">00:30</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">타수 KPM</div>
+                <div class="stat-value" id="speedDisplay" aria-live="polite">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">정확도</div>
+                <div class="stat-value" id="accuracyDisplay" aria-live="polite">100%</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">오타</div>
+                <div class="stat-value" id="mistakesDisplay" aria-live="polite">0</div>
+            </div>
+        </section>
+
+        <section class="prompt-box" id="promptBox" aria-live="polite"></section>
+
+        <section class="learning-bar" aria-label="문장 학습 기능">
+            <button type="button" class="audio-btn" id="audioButton">🔊 <span id="audioLabel">듣기</span></button>
+            <button type="button" class="meaning-btn" id="meaningButton">🌐 뜻 보기</button>
+
+            <select class="lang-select" id="languageSelect" aria-label="번역 언어 선택">
+                <option value="mn">🇲🇳 Монгол</option>
+                <option value="ru">🇷🇺 Русский</option>
+                <option value="es">🇲🇽 Español</option>
+                <option value="id">🇮🇩 Bahasa Indonesia</option>
+                <option value="th">🇹🇭 ไทย</option>
+                <option value="vi">🇻🇳 Tiếng Việt</option>
+                <option value="ja">🇯🇵 日本語</option>
+                <option value="zh">🇨🇳 简体中文</option>
+                <option value="en" selected>🇺🇸 English</option>
+            </select>
+        </section>
+
+        <div class="meaning-display" id="meaningDisplay" hidden></div>
+
+        <div class="input-wrap">
+        <textarea
+                class="typing-input"
+                id="typingInput"
+                rows="2"
+                placeholder="위의 한국어 문장을 입력하세요."
+                autocomplete="off"
+                autocapitalize="none"
+                spellcheck="false"
+                aria-label="타자 입력"
+        ></textarea>
+            <div class="input-hint" id="inputHint">입력을 시작하면 타이머가 작동합니다. Enter를 누르면 다음 문장으로 이동합니다.</div>
+        </div>
+
+        <div class="controls">
+            <div class="personal-best" id="personalBest">
+                개인 최고 기록: <strong>0 KPM</strong>
+            </div>
+            <button type="button" class="secondary-btn" id="restartButton">다시 시작</button>
+        </div>
+
+        <section class="result-card" id="resultCard" hidden>
+            <h2>🎉 연습 완료</h2>
+            <div class="result-speed" id="resultSpeed">0</div>
+            <div class="result-unit">KPM · Korean Keystrokes Per Minute</div>
+
+            <div class="result-grid">
+                <div class="result-item">
+                    <span>정확도</span>
+                    <strong id="resultAccuracy">100%</strong>
+                </div>
+                <div class="result-item">
+                    <span>오타</span>
+                    <strong id="resultMistakes">0</strong>
+                </div>
+                <div class="result-item">
+                    <span>완료 문장</span>
+                    <strong id="resultCompleted">0</strong>
+                </div>
+            </div>
+
+            <button type="button" class="primary-btn" id="tryAgainButton">다시 연습</button>
+        </section>
+    </section>
+
+    <div class="footer-note">광고 · Bootstrap · 랭킹 기능 없이 동작하는 순수 HTML/CSS/JavaScript 버전</div>
+</main>
+
+<script>
+    const SENTENCES = [
+        {
+            "id": 1,
+            "level": "beginner",
+            "text": "안녕하세요. 반갑습니다.",
+            "translations": {
+                "mn": "Сайн байна уу. Уулзсандаа таатай байна.",
+                "ru": "Здравствуйте. Приятно познакомиться.",
+                "es": "Hola. Gusto en conocerte.",
+                "id": "Halo. Senang bertemu dengan Anda.",
+                "th": "สวัสดีครับ ยินดีที่ได้รู้จักครับ",
+                "vi": "Xin chào. Rất vui được gặp bạn.",
+                "ja": "初めまして。お会いできて嬉しいです。",
+                "zh": "你好。很高兴认识你。",
+                "en": "Hello. Nice to meet you."
+            },
+            "audio": "hs_ktt_audio_01.mp3"
+        },
+        {
+            "id": 2,
+            "level": "beginner",
+            "text": "오늘 날씨가 정말 좋습니다.",
+            "translations": {
+                "mn": "Өнөөдөр цаг агаар үнэхээр сайхан байна.",
+                "ru": "Сегодня погода действительно хорошая.",
+                "es": "El clima está realmente agradable hoy.",
+                "id": "Cuaca hari ini sangat bagus.",
+                "th": "วันนี้อากาศดีมากครับ",
+                "vi": "Thời tiết hôm nay thật tuyệt vời.",
+                "ja": "今日は本当に良い天気です。",
+                "zh": "今天天气真的很好。",
+                "en": "The weather is really nice today."
+            },
+            "audio": "hs_ktt_audio_02.mp3"
+        },
+        {
+            "id": 3,
+            "level": "beginner",
+            "text": "저는 한국어를 공부하고 있습니다.",
+            "translations": {
+                "mn": "Би солонгос хэл сурч байна.",
+                "ru": "Я изучаю корейский язык.",
+                "es": "Estoy estudiando coreano.",
+                "id": "Saya sedang belajar bahasa Korea.",
+                "th": "กำลังเรียนภาษาเกาหลีอยู่",
+                "vi": "Tôi đang học tiếng Hàn.",
+                "ja": "私は韓国語を勉強しています。",
+                "zh": "我正在学习韩语。",
+                "en": "I am studying Korean."
+            },
+            "audio": "hs_ktt_audio_03.mp3"
+        },
+        {
+            "id": 4,
+            "level": "beginner",
+            "text": "맛있는 음식을 함께 먹어요.",
+            "translations": {
+                "mn": "Амттай хоол хамтдаа идэцгээе.",
+                "ru": "Давайте поедим вкусную еду вместе.",
+                "es": "Comamos deliciosa comida juntos.",
+                "id": "Mari makan makanan enak bersama.",
+                "th": "มาทานอาหารอร่อยๆ ด้วยกันนะครับ",
+                "vi": "Hãy cùng ăn món ăn ngon nhé.",
+                "ja": "美味しい料理を一緒に食べましょう。",
+                "zh": "一起来吃美食吧。",
+                "en": "Let's eat delicious food together."
+            },
+            "audio": "hs_ktt_audio_04.mp3"
+        },
+        {
+            "id": 5,
+            "level": "beginner",
+            "text": "지하철역이 어디에 있나요?",
+            "translations": {
+                "mn": "Метроны буудал хаана байгаа вэ?",
+                "ru": "Где находится станция метро?",
+                "es": "¿Dónde está la estación de metro?",
+                "id": "Di mana stasiun kereta bawah tanah?",
+                "th": "สถานีรถไฟใต้ดินอยู่ที่ไหนครับ",
+                "vi": "Ga tàu điện ngầm ở đâu vậy?",
+                "ja": "地下鉄の駅はどこにありますか？",
+                "zh": "地铁站在哪里？",
+                "en": "Where is the subway station?"
+            },
+            "audio": "hs_ktt_audio_05.mp3"
+        },
+        {
+            "id": 6,
+            "level": "beginner",
+            "text": "감사합니다. 좋은 하루 보내세요.",
+            "translations": {
+                "mn": "Баярлалаа. Өдрийг сайхан өнгөрүүлээрэй.",
+                "ru": "Спасибо. Хорошего дня.",
+                "es": "Gracias. Que tengas un buen día.",
+                "id": "Terima kasih. Semoga hari Anda menyenangkan.",
+                "th": "ขอบคุณครับ ขอให้เป็นวันที่ดีนะครับ",
+                "vi": "Cảm ơn. Chúc một ngày tốt lành.",
+                "ja": "ありがとうございます。良い一日をお過ごしください。",
+                "zh": "谢谢。祝你今天愉快。",
+                "en": "Thank you. Have a great day."
+            },
+            "audio": "hs_ktt_audio_06.mp3"
+        },
+        {
+            "id": 7,
+            "level": "beginner",
+            "text": "주말에 친구를 만났습니다.",
+            "translations": {
+                "mn": "Амралтын өдрөөр найзтайгаа уулзсан.",
+                "ru": "В выходные я встретился с другом.",
+                "es": "Me encontré con un amigo el fin de semana.",
+                "id": "Saya bertemu teman pada akhir pekan.",
+                "th": "เมื่อวันเสาร์อาทิตย์ได้เจอเพื่อนครับ",
+                "vi": "Tôi đã gặp bạn vào cuối tuần.",
+                "ja": "週末に友達に会いました。",
+                "zh": "周末和朋友见面了。",
+                "en": "I met a friend over the weekend."
+            },
+            "audio": "hs_ktt_audio_07.mp3"
+        },
+        {
+            "id": 8,
+            "level": "beginner",
+            "text": "한국 생활이 즐겁고 재미있습니다.",
+            "translations": {
+                "mn": "Солонгост амьдрах хөгжилтэй бөгөөд сонирхолтой байна.",
+                "ru": "Жизнь в Корее весёлая и интересная.",
+                "es": "La vida en Corea es divertida e interesante.",
+                "id": "Kehidupan di Korea menyenangkan dan seru.",
+                "th": "การใช้ชีวิตในเกาหลีสนุกและน่าสนใจมากครับ",
+                "vi": "Cuộc sống ở Hàn Quốc rất vui vẻ và thú vị.",
+                "ja": "韓国での生活は楽しくて面白いです。",
+                "zh": "在韩国的生活快乐又有意思。",
+                "en": "Life in Korea is fun and enjoyable."
+            },
+            "audio": "hs_ktt_audio_08.mp3"
+        },
+        {
+            "id": 9,
+            "level": "beginner",
+            "text": "도서관에서 책을 읽고 있습니다.",
+            "translations": {
+                "mn": "Номын санд ном уншиж байна.",
+                "ru": "Я читаю книгу в библиотеке.",
+                "es": "Estoy leyendo un libro en la biblioteca.",
+                "id": "Saya sedang membaca buku di perpustakaan.",
+                "th": "กำลังอ่านหนังสืออยู่ในห้องสมุดครับ",
+                "vi": "Tôi đang đọc sách ở thư viện.",
+                "ja": "図書館で本を読んでいます。",
+                "zh": "在图书馆看书。",
+                "en": "I am reading a book in the library."
+            },
+            "audio": "hs_ktt_audio_09.mp3"
+        },
+        {
+            "id": 10,
+            "level": "beginner",
+            "text": "커피 한 잔 주세요.",
+            "translations": {
+                "mn": "Нэг аяга кофе өгөөч.",
+                "ru": "Дайте, пожалуйста, чашку кофе.",
+                "es": "Una taza de café, por favor.",
+                "id": "Tolong beri saya secangkir kopi.",
+                "th": "ขอกาแฟแก้วหนึ่งครับ",
+                "vi": "Cho tôi một ly cà phê.",
+                "ja": "コーヒーを1杯ください。",
+                "zh": "请给我一杯咖啡。",
+                "en": "Please give me a cup of coffee."
+            },
+            "audio": "hs_ktt_audio_10.mp3"
+        },
+        {
+            "id": 11,
+            "level": "beginner",
+            "text": "내일 친구와 영화를 볼 예정입니다.",
+            "translations": {
+                "mn": "Маргааш найзтайгаа кино үзэх төлөвлөгөөтэй байна.",
+                "ru": "Завтра я собираюсь посмотреть фильм с другом.",
+                "es": "Planeo ver una película con un amigo mañana.",
+                "id": "Besok saya berencana menonton film dengan teman.",
+                "th": "พรุ่งนี้มีแผนจะไปดูหนังกับเพื่อนครับ",
+                "vi": "Ngày mai tôi định đi xem phim với bạn.",
+                "ja": "明日友達と映画を見る予定です。",
+                "zh": "明天打算和朋友看电影。",
+                "en": "I plan to watch a movie with a friend tomorrow."
+            },
+            "audio": "hs_ktt_audio_11.mp3"
+        },
+        {
+            "id": 12,
+            "level": "beginner",
+            "text": "시장에서 싱싱한 과일을 샀습니다.",
+            "translations": {
+                "mn": "Зах дээрээс шинэхэн жимс худалдаж авсан.",
+                "ru": "Я купил свежие фрукты на рынке.",
+                "es": "Compré frutas frescas en el mercado.",
+                "id": "Saya membeli buah segar di pasar.",
+                "th": "ได้ซื้อผลไม้สดๆ ที่ตลาดครับ",
+                "vi": "Tôi đã mua trái cây tươi ở chợ.",
+                "ja": "市場で新鮮な果物を買いました。",
+                "zh": "在市场买了新鲜的水果。",
+                "en": "I bought fresh fruit at the market."
+            },
+            "audio": "hs_ktt_audio_12.mp3"
+        },
+        {
+            "id": 13,
+            "level": "beginner",
+            "text": "한국어 듣기 연습을 매일 합니다.",
+            "translations": {
+                "mn": "Өдөр бүр солонгос хэлний сонсох дасгал хийдэг.",
+                "ru": "Я каждый день практикую аудирование по корейскому.",
+                "es": "Practico la escucha en coreano todos los días.",
+                "id": "Saya berlatih mendengarkan bahasa Korea setiap hari.",
+                "th": "ฝึกฟังภาษาเกาหลีทุกวันครับ",
+                "vi": "Tôi luyện nghe tiếng Hàn mỗi ngày.",
+                "ja": "毎日韓国語の聞き取り練習をしています。",
+                "zh": "每天练习韩语听力。",
+                "en": "I practice Korean listening every day."
+            },
+            "audio": "hs_ktt_audio_13.mp3"
+        },
+        {
+            "id": 14,
+            "level": "beginner",
+            "text": "버스 정류장에서 버스를 기다립니다.",
+            "translations": {
+                "mn": "Автобусны буудал дээр автобус хүлээж байна.",
+                "ru": "Я жду автобус на автобусной остановке.",
+                "es": "Espero el autobús en la parada de autobús.",
+                "id": "Saya menunggu bus di halte bus.",
+                "th": "กำลังรอรถบัสอยู่ที่ป้ายรถบัสครับ",
+                "vi": "Tôi đang chờ xe buýt ở trạm xe buýt.",
+                "ja": "バス停でバスを待っています。",
+                "zh": "在公交车站等公交车。",
+                "en": "I am waiting for the bus at the bus stop."
+            },
+            "audio": "hs_ktt_audio_14.mp3"
+        },
+        {
+            "id": 15,
+            "level": "beginner",
+            "text": "자기소개를 해보겠습니다.",
+            "translations": {
+                "mn": "Өөрийгөө танилцуулъя.",
+                "ru": "Я представлюсь.",
+                "es": "Me presentaré.",
+                "id": "Saya akan memperkenalkan diri.",
+                "th": "ขอแนะนำตัวครับ",
+                "vi": "Tôi xin tự giới thiệu.",
+                "ja": "自己紹介をしてみます。",
+                "zh": "下面我来进行自我介绍。",
+                "en": "Let me introduce myself."
+            },
+            "audio": "hs_ktt_audio_15.mp3"
+        },
+        {
+            "id": 16,
+            "level": "beginner",
+            "text": "택시를 타고 서울역으로 갑니다.",
+            "translations": {
+                "mn": "Таксинд сууж Сөүл вокзал руу явна.",
+                "ru": "Я еду на такси на вокзал Сеул.",
+                "es": "Voy a la estación de Seúl en taxi.",
+                "id": "Saya naik taksi ke Stasiun Seoul.",
+                "th": "นั่งแท็กซี่ไปสถานีรถไฟโซลครับ",
+                "vi": "Tôi đi taxi đến Ga Seoul.",
+                "ja": "タクシーに乗ってソウル駅に行きます。",
+                "zh": "打车去首尔站。",
+                "en": "I am taking a taxi to Seoul Station."
+            },
+            "audio": "hs_ktt_audio_16.mp3"
+        },
+        {
+            "id": 17,
+            "level": "beginner",
+            "text": "식당에서 비빔밥을 주문했습니다.",
+            "translations": {
+                "mn": "Ресторанд бибимбап захиалсан.",
+                "ru": "Я заказал пибимпаб в ресторане.",
+                "es": "Pedí bibimbap en el restaurante.",
+                "id": "Saya memesan bibimbap di restoran.",
+                "th": "สั่งบิบิมบับที่ร้านอาหารครับ",
+                "vi": "Tôi đã đặt món bibimbap ở nhà hàng.",
+                "ja": "食堂でビビンバを注文しました。",
+                "zh": "在餐厅点了拌饭。",
+                "en": "I ordered bibimbap at the restaurant."
+            },
+            "audio": "hs_ktt_audio_17.mp3"
+        },
+        {
+            "id": 18,
+            "level": "beginner",
+            "text": "공원에서 운동을 하고 산책합니다.",
+            "translations": {
+                "mn": "Цэцэрлэгт хүрээлэнд дасгал хийж салхинд гаргадаг.",
+                "ru": "Я занимаюсь спортом и гуляю в парке.",
+                "es": "Hago ejercicio y me paseo por el parque.",
+                "id": "Saya berolahraga dan berjalan-jalan di taman.",
+                "th": "ออกกำลังกายและเดินเล่นในสวนสาธารณะครับ",
+                "vi": "Tôi tập thể dục và đi dạo ở công viên.",
+                "ja": "公園で運動をして散歩します。",
+                "zh": "在公园运动并散步。",
+                "en": "I exercise and take a walk in the park."
+            },
+            "audio": "hs_ktt_audio_18.mp3"
+        },
+        {
+            "id": 19,
+            "level": "beginner",
+            "text": "지금 몇 시인지 알려주세요.",
+            "translations": {
+                "mn": "Одоо хэдэн цаг болж байгааг хэлж өгнө үү.",
+                "ru": "Подскажите, пожалуйста, который час.",
+                "es": "Dime qué hora es ahora, por favor.",
+                "id": "Tolong beri tahu saya jam berapa sekarang.",
+                "th": "ช่วยบอกหน่อยครับว่าตอนนี้กี่โมงแล้ว",
+                "vi": "Cho tôi biết bây giờ là mấy giờ.",
+                "ja": "今何時か教えてください。",
+                "zh": "请告诉我现在几点了。",
+                "en": "Please tell me what time it is right now."
+            },
+            "audio": "hs_ktt_audio_19.mp3"
+        },
+        {
+            "id": 20,
+            "level": "beginner",
+            "text": "한국 여행이 정말 기대됩니다.",
+            "translations": {
+                "mn": "Солонгос руу аялах нь үнэхээр сэтгэл догдлуулж байна.",
+                "ru": "Я очень жду поездку в Корею.",
+                "es": "Realmente espero con ansias viajar a Corea.",
+                "id": "Saya sangat menantikan perjalanan ke Korea.",
+                "th": "ตื่นเต้นกับการท่องเที่ยวเกาหลีมากครับ",
+                "vi": "Tôi rất mong chờ chuyến du lịch Hàn Quốc.",
+                "ja": "韓国旅行が本当に楽しみです。",
+                "zh": "非常期待去韩国旅行。",
+                "en": "I am really looking forward to travelling in Korea."
+            },
+            "audio": "hs_ktt_audio_20.mp3"
+        },
+        {
+            "id": 21,
+            "level": "intermediate",
+            "text": "외국인 유학생을 위한 안전하고 쉬운 정착 가이드입니다.",
+            "translations": {
+                "mn": "Гадаад оюутнуудад зориулсан аюулгүй, хялбар суурьших гарын авлага.",
+                "ru": "Безопасное и простое руководство по обустройству для иностранных студентов.",
+                "es": "Una guía de asentamiento segura y fácil para estudiantes internacionales.",
+                "id": "Panduan pemukiman yang aman dan mudah untuk siswa internasional.",
+                "th": "คู่มือการตั้งรกรากที่ปลอดภัยและง่ายดายสำหรับนักศึกษาต่างชาติ",
+                "vi": "Hướng dẫn định cư an toàn và dễ dàng cho du học sinh nước ngoài.",
+                "ja": "外国人留学生のための安全で簡単な定着ガイドです。",
+                "zh": "专为外国留学生打造的安全简便定居指南。",
+                "en": "A safe and easy settlement guide for international students."
+            },
+            "audio": "hs_ktt_audio_21.mp3"
+        },
+        {
+            "id": 22,
+            "level": "intermediate",
+            "text": "주택 임대차 계약을 할 때 보증금 위험을 꼭 확인해야 합니다.",
+            "translations": {
+                "mn": "Орон сууц түрээслэх гэрээ байгуулахдаа барьцаа хөрөнгийн эрсдэлийг заавал шалгах шаардлагатай.",
+                "ru": "При заключении договора аренды жилья обязательно проверьте риски, связанные с залогом.",
+                "es": "Al firmar un contrato de arrendamiento de vivienda, asegúrese de verificar los riesgos del depósito.",
+                "id": "Saat membuat kontrak sewa rumah, pastikan untuk memeriksa risiko deposit.",
+                "th": "เวลาทำสัญญาเช่าบ้าน ต้องตรวจสอบความเสี่ยงเงินประกันให้แน่ใจ",
+                "vi": "Khi ký hợp đồng thuê nhà, nhất định phải kiểm tra rủi ro tiền đặt cọc.",
+                "ja": "住宅賃貸借契約を結ぶ際、保証金の返還リスクを必ず確認しなければなりません。",
+                "zh": "签订房屋租赁合同时，一定要确认押金返还风险。",
+                "en": "When signing a housing lease contract, be sure to verify deposit risks."
+            },
+            "audio": "hs_ktt_audio_22.mp3"
+        },
+        {
+            "id": 23,
+            "level": "intermediate",
+            "text": "외국인등록증 발급 신청 서류를 준비해 주세요.",
+            "translations": {
+                "mn": "Гадаадын иргэний бүртгэлийн картанд мэдүүлэг өгөх бичиг баримтыг бэлтгэнэ үү.",
+                "ru": "Подготовьте документы для подачи заявления на выдачу регистрационной карты иностранца.",
+                "es": "Prepare los documentos de solicitud para la tarjeta de registro de extranjero.",
+                "id": "Harap siapkan dokumen aplikasi untuk kartu registrasi orang asing.",
+                "th": "กรุณาเตรียมเอกสารยื่นขอบัตรประจำตัวคนต่างด้าว",
+                "vi": "Vui lòng chuẩn bị hồ sơ đăng ký cấp thẻ đăng ký người nước ngoài.",
+                "ja": "外国人登録証発行申請書類を準備してください。",
+                "zh": "请准备外国人登录证申请材料。",
+                "en": "Please prepare application documents for an Alien Registration Card (Foreign Residence Card)."
+            },
+            "audio": "hs_ktt_audio_23.mp3"
+        },
+        {
+            "id": 24,
+            "level": "intermediate",
+            "text": "휴대폰 요금제 해지 시 위약금을 사전 계산해 볼 수 있습니다.",
+            "translations": {
+                "mn": "Гар утасны тарифаа цуцлахдаа торгуулийг урьдчилан тооцоолох боломжтой.",
+                "ru": "Вы можете заранее рассчитать штраф за отмену тарифного плана мобильного телефона.",
+                "es": "Puede calcular previamente la multa por cancelación del plan de teléfono celular.",
+                "id": "Anda dapat menghitung biaya pembatalan paket telepon seluler terlebih dahulu.",
+                "th": "สามารถคำนวณค่าปรับล่วงหน้าเมื่อยกเลิกแพ็กเกจมือถือได้",
+                "vi": "Bạn có thể tính trước tiền phạt khi hủy gói cước điện thoại di động.",
+                "ja": "携帯電話の料金プラン解約時、解約違約金を事前計算してみることができます。",
+                "zh": "取消手机套餐时，可以提前计算违约金。",
+                "en": "You can pre-calculate penalty fees when canceling a mobile phone plan."
+            },
+            "audio": "hs_ktt_audio_24.mp3"
+        },
+        {
+            "id": 25,
+            "level": "intermediate",
+            "text": "아르바이트를 시작할 때 근로계약서 작성이 필수입니다.",
+            "translations": {
+                "mn": "Цагийн ажил эхлүүлэхэд хөдөлмөрийн гэрээ байгуулах нь заавал шаардлагатай.",
+                "ru": "При начале подработки обязательно составление трудового договора.",
+                "es": "Al comenzar un trabajo a tiempo parcial, la redacción de un contrato de trabajo es obligatoria.",
+                "id": "Saat memulai pekerjaan paruh waktu, pembuatan kontrak kerja adalah wajib.",
+                "th": "เมื่อเริ่มทำงานพาร์ทไทม์ การทำสัญญาจ้างงานเป็นสิ่งจำเป็น",
+                "vi": "Khi bắt đầu làm thêm, việc lập hợp đồng lao động là bắt buộc.",
+                "ja": "アルバイトを始める際、労働契約書の作成が必須です。",
+                "zh": "开始打工时，必须签订劳动合同。",
+                "en": "Writing a labor contract is mandatory when starting a part-time job."
+            },
+            "audio": "hs_ktt_audio_25.mp3"
+        },
+        {
+            "id": 26,
+            "level": "intermediate",
+            "text": "건강보험 혜택과 병원 이용 방법을 안내해 드립니다.",
+            "translations": {
+                "mn": "Эрүүл мэндийн даатгалын хөнгөлөлт болон эмнэлгийн үйлчилгээний аргыг зааж өгнө.",
+                "ru": "Мы проинформируем вас о льготах медицинского страхования и правилах пользования больницей.",
+                "es": "Le guiamos sobre los beneficios del seguro de salud y el uso del hospital.",
+                "id": "Kami memandu Anda tentang manfaat asuransi kesehatan dan cara menggunakan rumah sakit.",
+                "th": "แนะนำสิทธิประโยชน์ประกันสุขภาพและวิธีการใช้บริการโรงพยาบาล",
+                "vi": "Hướng dẫn quyền lợi bảo hiểm y tế và cách sử dụng bệnh viện.",
+                "ja": "健康保険の特典と病院の利用方法をご案内します。",
+                "zh": "为您介绍健康保险福利及医院就诊方法。",
+                "en": "We guide you on health insurance benefits and hospital usage."
+            },
+            "audio": "hs_ktt_audio_26.mp3"
+        },
+        {
+            "id": 27,
+            "level": "intermediate",
+            "text": "한국 대학교 캠퍼스 생활과 장학금 정보입니다.",
+            "translations": {
+                "mn": "Солонгосын их дээд сургуулийн кампусын амьдрал ба тэтгэлгийн мэдээлэл.",
+                "ru": "Информация о кампусной жизни в корейских университетах и стипендиях.",
+                "es": "Información sobre la vida en el campus universitario coreano y becas.",
+                "id": "Informasi tentang kehidupan kampus universitas Korea dan beasiswa.",
+                "th": "ข้อมูลชีวิตในวิทยาเขตมหาวิทยาลัยเกาหลีและทุนการศึกษา",
+                "vi": "Thông tin về đời sống khuôn viên đại học Hàn Quốc và học bổng.",
+                "ja": "韓国の大学キャンパス生活と奨学金情報です。",
+                "zh": "韩国大学校园生活及奖学金信息。",
+                "en": "Information on Korean university campus life and scholarship opportunities."
+            },
+            "audio": "hs_ktt_audio_27.mp3"
+        },
+        {
+            "id": 28,
+            "level": "intermediate",
+            "text": "은행 계좌 개설과 체크카드 발급 절차입니다.",
+            "translations": {
+                "mn": "Банкны данс нээх болон дебит карт авах шат дараалал.",
+                "ru": "Процедура открытия банковского счета и выдачи дебетовой карты.",
+                "es": "Procedimiento para abrir una cuenta bancaria y emitir una tarjeta de débito.",
+                "id": "Prosedur pembukaan rekening bank dan penerbitan kartu debit.",
+                "th": "ขั้นตอนการเปิดบัญชีธนาคารและการออกบัตรเดบิต",
+                "vi": "Quy trình mở tài khoản ngân hàng và cấp thẻ ghi nợ.",
+                "ja": "銀行口座開設とデビットカード発行の手順です。",
+                "zh": "开设银行账户及办理借记卡的流程。",
+                "en": "Procedures for opening a bank account and issuing a debit card."
+            },
+            "audio": "hs_ktt_audio_28.mp3"
+        },
+        {
+            "id": 29,
+            "level": "intermediate",
+            "text": "출입국관리사무소 방문 예약은 온라인으로 가능합니다.",
+            "translations": {
+                "mn": "Гадаадын иргэний хэрэг эрхлэх газарт очих цаг авахыг цахимаар хийж болно.",
+                "ru": "Запись на визит в иммиграционную службу доступна онлайн.",
+                "es": "La reserva de visita a la oficina de inmigración está disponible en línea.",
+                "id": "Reservasi kunjungan ke kantor imigrasi dapat dilakukan secara online.",
+                "th": "การจองคิวเยี่ยมชมสำนักงานตรวจคนเข้าเมืองสามารถทำได้ทางออนไลน์",
+                "vi": "Bạn có thể đặt lịch hẹn đến Cục Quản lý Xuất nhập cảnh trực tuyến.",
+                "ja": "出入国管理事務所の訪問予約はオンラインで可能です。",
+                "zh": "出入境管理事务所预约访问可在网上办理。",
+                "en": "Online reservations are available for immigration office visits."
+            },
+            "audio": "hs_ktt_audio_29.mp3"
+        },
+        {
+            "id": 30,
+            "level": "intermediate",
+            "text": "쓰레기 분리수거 방법과 종량제 봉투 사용법을 숙지하세요.",
+            "translations": {
+                "mn": "Хог хаягдал ангилан хаях арга ба стандарт уутны хэрэглээг сайн тогтооно уу.",
+                "ru": "Ознакомьтесь с правилами раздельного сбора мусора и использованием специальных пакетов.",
+                "es": "Familiarícese con la clasificación de basura y el uso de bolsas estándar.",
+                "id": "Pahami cara pemilahan sampah dan penggunaan kantong sampah berbayar.",
+                "th": "ศึกษาวิธีการแยกขยะและการใช้ถุงขยะแบบเสียค่าธรรมเนียมให้เข้าใจ",
+                "vi": "Nắm rõ cách phân loại rác và cách sử dụng túi rác tính phí.",
+                "ja": "ゴミ分別方法と有料ゴミ袋の使用方法を熟知してください。",
+                "zh": "请熟知垃圾分类方法和指定垃圾袋的使用方法。",
+                "en": "Learn waste sorting rules and how to use pay-per-bag garbage bags."
+            },
+            "audio": "hs_ktt_audio_30.mp3"
+        },
+        {
+            "id": 31,
+            "level": "intermediate",
+            "text": "한국 문화 체험과 다양한 커뮤니티 행사에 참여해 보세요.",
+            "translations": {
+                "mn": "Солонгосын соёлын туршлага болон олон төрлийн нийгэмлэгийн арга хэмжээнд оролцоорой.",
+                "ru": "Примите участие в познании корейской культуры и различных общественных мероприятиях.",
+                "es": "Participe en experiencias culturales coreanas y diversos eventos comunitarios.",
+                "id": "Berpartisipasilah dalam pengalaman budaya Korea dan berbagai acara komunitas.",
+                "th": "ลองเข้าร่วมการสัมผัสวัฒนธรรมเกาหลีและกิจกรรมชุมชนที่หลากหลาย",
+                "vi": "Hãy tham gia trải nghiệm văn hóa Hàn Quốc và các sự kiện cộng đồng đa dạng.",
+                "ja": "韓国文化体験と多様なコミュニティイベントに参加してみてください。",
+                "zh": "体验韩国文化，积极参与丰富多彩的社区活动。",
+                "en": "Participate in Korean cultural experiences and community events."
+            },
+            "audio": "hs_ktt_audio_31.mp3"
+        },
+        {
+            "id": 32,
+            "level": "intermediate",
+            "text": "TOPIK 시험 준비를 위한 핵심 어휘 모음입니다.",
+            "translations": {
+                "mn": "TOPIK шалгалтанд бэлтгэх гол үгсийн сангийн цуглуулга.",
+                "ru": "Сборник ключевой лексики для подготовки к экзамену TOPIK.",
+                "es": "Colección de vocabulario clave para la preparación del examen TOPIK.",
+                "id": "Kumpulan kosakata kunci untuk persiapan ujian TOPIK.",
+                "th": "รวบรวมคำศัพท์สำคัญสำหรับการเตรียมตัวสอบ TOPIK",
+                "vi": "Bộ từ vựng cốt lõi phục vụ chuẩn bị cho kỳ thi TOPIK.",
+                "ja": "TOPIK試験準備のための核心語彙集です。",
+                "zh": "备考TOPIK考试的核心词汇集。",
+                "en": "A key vocabulary collection for TOPIK test preparation."
+            },
+            "audio": "hs_ktt_audio_32.mp3"
+        },
+        {
+            "id": 33,
+            "level": "intermediate",
+            "text": "교통카드를 충전하면 지하철과 버스를 자유롭게 이용할 수 있습니다.",
+            "translations": {
+                "mn": "Замын картаа цэнэглэвэл метро болон автобусаар чөлөөтэй үйлчлүүлэх боломжтой.",
+                "ru": "Пополнив транспортную карту, вы можете свободно пользоваться метро и автобусами.",
+                "es": "Si recarga la tarjeta de transporte, puede usar el metro y los autobuses libremente.",
+                "id": "Jika Anda mengisi ulang kartu transportasi, Anda dapat menggunakan kereta bawah tanah dan bus secara bebas.",
+                "th": "หากเติมเงินในบัตรคมนาคม จะสามารถใช้บริการรถไฟใต้ดินและรถบัสได้อย่างอิสระ",
+                "vi": "Nạp tiền vào thẻ giao thông để tự do sử dụng tàu điện ngầm và xe buýt.",
+                "ja": "交通カードをチャージすれば地下鉄とバスを自由に使用できます。",
+                "zh": "充值交通卡后，可以自由乘搭地铁和公交车。",
+                "en": "Reloading your transit card lets you use subways and buses conveniently."
+            },
+            "audio": "hs_ktt_audio_33.mp3"
+        },
+        {
+            "id": 34,
+            "level": "intermediate",
+            "text": "응급 상황 발생 시 119 또는 112로 빠르게 신고하세요.",
+            "translations": {
+                "mn": "Аюултай нөхцөл байдал үүсэхэд 119 буюу 112 руу хурдан дуудлага өгнө үү.",
+                "ru": "В чрезвычайной ситуации быстро звоните по номеру 119 или 112.",
+                "es": "En caso de emergencia, llame rápidamente al 119 o 112.",
+                "id": "Dalam situasi darurat, segera laporkan ke 119 atau 112.",
+                "th": "เมื่อเกิดเหตุฉุกเฉิน กรุณาแจ้ง 119 หรือ 112 โดยเร็ว",
+                "vi": "Khi xảy ra tình huống khẩn cấp, hãy nhanh chóng báo cho 119 hoặc 112.",
+                "ja": "緊急時は、119または112に速やかに通報してください。",
+                "zh": "遇到紧急情况，请迅速拨打119或112报警。",
+                "en": "In emergencies, quickly call 119 or 112 to report."
+            },
+            "audio": "hs_ktt_audio_34.mp3"
+        },
+        {
+            "id": 35,
+            "level": "intermediate",
+            "text": "비자 연장 서류 제출 기한을 놓치지 않도록 주의하세요.",
+            "translations": {
+                "mn": "Виз сунгах бичиг баримт өгөх хугацааг хоцроохгүй байхыг анхаарна уу.",
+                "ru": "Будьте осторожны, чтобы не пропустить срок подачи документов на продление визы.",
+                "es": "Tenga cuidado de no perder el plazo de entrega de documentos para la extensión de visa.",
+                "id": "Hati-hati jangan sampai melewatkan tenggat waktu penyerahan dokumen perpanjangan visa.",
+                "th": "ระวังอย่าให้เลยกำหนดเวลายื่นเอกสารต่ออายุวีซ่า",
+                "vi": "Chú ý không bỏ lỡ thời hạn nộp hồ sơ gia hạn visa.",
+                "ja": "ビザ延長書類提出期限を逃さないように注意してください。",
+                "zh": "请注意切勿错过签证延期材料提交截止日期。",
+                "en": "Be careful not to miss the visa extension document submission deadline."
+            },
+            "audio": "hs_ktt_audio_35.mp3"
+        },
+        {
+            "id": 36,
+            "level": "intermediate",
+            "text": "편의점에서 신용카드로 물건을 결제했습니다.",
+            "translations": {
+                "mn": "Дэлгүүрт зээлийн картаар бараа худалдаж авсан.",
+                "ru": "Я оплатил товары кредитной картой в круглосуточном магазине.",
+                "es": "Pagué los productos con tarjeta de crédito en la tienda de conveniencia.",
+                "id": "Saya membayar barang dengan kartu kredit di minimarket.",
+                "th": "ชำระเงินค่าสินค้าด้วยบัตรเครดิตที่ร้านสะดวกซื้อ",
+                "vi": "Tôi đã thanh toán hàng hóa bằng thẻ tín dụng tại cửa hàng tiện lợi.",
+                "ja": "コンビニでクレジットカードで品物を決済しました。",
+                "zh": "在便利店用信用卡支付了商品费用。",
+                "en": "I paid for items with a credit card at the convenience store."
+            },
+            "audio": "hs_ktt_audio_36.mp3"
+        },
+        {
+            "id": 37,
+            "level": "intermediate",
+            "text": "외국인 진료가 가능한 병원 정보를 확인하세요.",
+            "translations": {
+                "mn": "Гадаадын иргэдэд эмнэлгийн тусламж үзүүлэх боломжтой эмнэлгийн мэдээллийг шалгана уу.",
+                "ru": "Проверьте информацию о больницах, где доступно обслуживание иностранных пациентов.",
+                "es": "Consulte la información del hospital disponible para atención de extranjeros.",
+                "id": "Periksa informasi rumah sakit yang menyediakan perawatan untuk orang asing.",
+                "th": "ตรวจสอบข้อมูลโรงพยาบาลที่รองรับการรักษาคนต่างชาติ",
+                "vi": "Kiểm tra thông tin bệnh viện có khám chữa bệnh cho người nước ngoài.",
+                "ja": "外国人診療が可能な病院情報を確認してください。",
+                "zh": "请查看可为外国人提供诊疗服务的医院信息。",
+                "en": "Check hospital information available for foreign patients."
+            },
+            "audio": "hs_ktt_audio_37.mp3"
+        },
+        {
+            "id": 38,
+            "level": "intermediate",
+            "text": "한국어 말하기 수업에서 발표를 마쳤습니다.",
+            "translations": {
+                "mn": "Солонгос хэлээр ярих хичээл дээр илтгэл тавьж дуусгасан.",
+                "ru": "Я завершил презентацию на занятии по корейской разговорной речи.",
+                "es": "Terminé la presentación en la clase de conversación en coreano.",
+                "id": "Saya telah menyelesaikan presentasi di kelas berbicara bahasa Korea.",
+                "th": "นำเสนอรายงานในคลาสพูดภาษาเกาหลีเรียบร้อยแล้ว",
+                "vi": "Tôi đã hoàn thành bài thuyết trình trong giờ học nói tiếng Hàn.",
+                "ja": "韓国語スピーキング授業で発表を終えました。",
+                "zh": "完成了韩语口语课上的发表。",
+                "en": "I completed my presentation in the Korean speaking class."
+            },
+            "audio": "hs_ktt_audio_38.mp3"
+        },
+        {
+            "id": 39,
+            "level": "intermediate",
+            "text": "원룸 월세 계약 기간과 관리비를 확인합니다.",
+            "translations": {
+                "mn": "Нэг өрөө байрны сарын түрээсийн хугацаа ба ашиглалтын зардлыг шалгана.",
+                "ru": "Я проверяю срок договора аренды студии и стоимость коммунальных услуг.",
+                "es": "Verifico el período del contrato de alquiler de estudio y la cuota de mantenimiento.",
+                "id": "Saya memeriksa jangka waktu kontrak sewa studio dan biaya pemeliharaan.",
+                "th": "ตรวจสอบระยะเวลาสัญญาเช่าหอพักและค่าบำรุงรักษา",
+                "vi": "Kiểm tra thời hạn hợp đồng thuê phòng đơn và phí quản lý.",
+                "ja": "ワンルームの賃貸契約期間と管理費を確認します。",
+                "zh": "确认单身公寓月租合同期限及管理费。",
+                "en": "Check studio rental contract period and maintenance fees."
+            },
+            "audio": "hs_ktt_audio_39.mp3"
+        },
+        {
+            "id": 40,
+            "level": "intermediate",
+            "text": "온라인으로 필요한 증명서 발급 방법을 확인했습니다.",
+            "translations": {
+                "mn": "Шаардлагатай лавлагаа цахимаар авах аргыг тодруулсан.",
+                "ru": "Я проверил способ получения необходимых сертификатов онлайн.",
+                "es": "Comprobé cómo emitir los certificados necesarios en línea.",
+                "id": "Saya telah memeriksa cara penerbitan sertifikat yang diperlukan secara online.",
+                "th": "ตรวจสอบวิธีการออกใบรับรองที่จำเป็นทางออนไลน์แล้ว",
+                "vi": "Tôi đã kiểm tra cách cấp các giấy chứng nhận cần thiết trực tuyến.",
+                "ja": "オンラインで必要な証明書の発行方法を確認しました。",
+                "zh": "已在网上确认了所需证明书的办理方法。",
+                "en": "I checked how to obtain the necessary certificates online."
+            },
+            "audio": "hs_ktt_audio_40.mp3"
+        },
+        {
+            "id": 41,
+            "level": "advanced",
+            "text": "한글스페이스는 한국 체류 외국인을 위한 하이브리드 지원 플랫폼입니다.",
+            "translations": {
+                "mn": "HangulSpace нь Солонгост оршин суугаа гадаадын иргэдэд зориулсан гибрид дэмжлэгийн платформ юм.",
+                "ru": "HangulSpace — это гибридная платформа поддержки иностранных граждан, проживающих в Корее.",
+                "es": "HangulSpace es una plataforma de apoyo híbrida para extranjeros que residen en Corea.",
+                "id": "HangulSpace adalah platform dukungan hibrida untuk orang asing yang tinggal di Korea.",
+                "th": "HangulSpace เป็นแพลตฟอร์มสนับสนุนแบบไฮบริดสำหรับคนต่างชาติที่พำนักในเกาหลี",
+                "vi": "HangulSpace là nền tảng hỗ trợ hybrid dành cho người nước ngoài cư trú tại Hàn Quốc.",
+                "ja": "HangulSpaceは韓国滞在外国人のためのハイブリッド支援プラットフォームです。",
+                "zh": "HangulSpace是专为居留韩国的外国人打造的混合型支持平台。",
+                "en": "HangulSpace is a hybrid support platform for foreign residents in Korea."
+            },
+            "audio": "hs_ktt_audio_41.mp3"
+        },
+        {
+            "id": 42,
+            "level": "advanced",
+            "text": "정확한 한글 타자 속도 측정을 위해 두벌식 자모음 분해 알고리즘을 사용합니다.",
+            "translations": {
+                "mn": "Солонгос хэлний шивэх хурдыг үнэн зөв хэмжихийн тулд Dubeolsik гийгүүлэгч ба эгшиг задлах алгоритмыг ашигладаг.",
+                "ru": "Для точного измерения скорости ввода корейского языка используется алгоритм разложения согласных и гласных Dubeolsik.",
+                "es": "Utilizamos un algoritmo de descomposición de consonantes y vocales Dubeolsik para medir con precisión la velocidad de escritura en coreano.",
+                "id": "Kami menggunakan algoritma dekomposisi konsonan dan vokal Dubeolsik untuk mengukur kecepatan mengetik bahasa Korea secara akurat.",
+                "th": "ใช้อัลกอริทึมการแยกพยัญชนะสระแบบ Dubeolsik เพื่อการวัดความเร็วการพิมพ์ภาษาเกาหลีที่แม่นยำ",
+                "vi": "Sử dụng thuật toán phân tách phụ âm nguyên âm Dubeolsik để đo chính xác tốc độ gõ tiếng Hàn.",
+                "ja": "正確な韓国語タイピング速度測定のため、2ボル式子音・母音分解アルゴリズムを使用します。",
+                "zh": "采用Dubeolsik（韩语两套式键盘）拆解算法，以精准测量韩语打字速度。",
+                "en": "We use a Dubeolsik consonant and vowel decomposition algorithm to measure Korean typing speed accurately."
+            },
+            "audio": "hs_ktt_audio_42.mp3"
+        },
+        {
+            "id": 43,
+            "level": "advanced",
+            "text": "글로벌 유학생들의 지속 가능한 한국 정착을 지원합니다.",
+            "translations": {
+                "mn": "Дэлхийн олон орны оюутнуудын Солонгост тогтвортой суурьшихад тусална.",
+                "ru": "Мы поддерживаем устойчивую адаптацию международных студентов в Корее.",
+                "es": "Apoyamos el asentamiento sostenible de estudiantes internacionales en Corea.",
+                "id": "Kami mendukung pemukiman berkelanjutan siswa internasional di Korea.",
+                "th": "สนับสนุนการตั้งรกรากในเกาหลีอย่างยั่งยืนของนักศึกษาต่างชาติทั่วโลก",
+                "vi": "Hỗ trợ du học sinh toàn cầu định cư bền vững tại Hàn Quốc.",
+                "ja": "グローバル留学生の持続可能な韓国定着を支援します。",
+                "zh": "助力全球留学生在韩国实现可持续的顺利定居。",
+                "en": "Supports the sustainable settlement of international students in Korea."
+            },
+            "audio": "hs_ktt_audio_43.mp3"
+        },
+        {
+            "id": 44,
+            "level": "advanced",
+            "text": "부동산 전세 사기를 예방하기 위한 등기부등본 확인 절차입니다.",
+            "translations": {
+                "mn": "Үл хөдлөх хөрөнгийн Чонсэ залилангаас сэргийлэхийн тулд улсын бүртгэлийн лавлагаа шалгах шат дараалал.",
+                "ru": "Процедура проверки выписки из реестра недвижимости для предотвращения мошенничества с Чонсе.",
+                "es": "Procedimiento de verificación del registro de la propiedad para prevenir fraudes de Jeonse.",
+                "id": "Prosedur verifikasi sertifikat pendaftaran properti untuk mencegah penipuan Jeonse.",
+                "th": "ขั้นตอนการตรวจสอบสำเนาทะเบียนอสังหาริมทรัพย์เพื่อป้องกันการฉ้อโกงสัญญาเช่าแบบชอนเซ",
+                "vi": "Quy trình kiểm tra trích lục đăng ký bất động sản nhằm phòng chống lừa đảo Jeonse.",
+                "ja": "不動産チョンセ詐欺を予防するための登記簿謄本確認手順です。",
+                "zh": "为预防不动产全税诈骗而进行的登记簿誊本确认流程。",
+                "en": "Procedure for verifying certified property registry copies to prevent Jeonse fraud."
+            },
+            "audio": "hs_ktt_audio_44.mp3"
+        },
+        {
+            "id": 45,
+            "level": "advanced",
+            "text": "체류 자격 변경 및 취업 비자 발급 가이드라인을 확인하세요.",
+            "translations": {
+                "mn": "Оршин суух зөвшөөрөл өөрчлөх ба ажиллах виз авах зааварчилгааг тодруулна уу.",
+                "ru": "Ознакомьтесь с руководящими принципами изменения статуса пребывания и получения рабочей визы.",
+                "es": "Consulte las directrices para el cambio de estatus de estancia y la emisión de visas de trabajo.",
+                "id": "Periksa pedoman perubahan status tinggal dan penerbitan visa kerja.",
+                "th": "ตรวจสอบแนวทางปฏิบัติการเปลี่ยนสถานะการพำนักและการออกวีซ่าทำงาน",
+                "vi": "Kiểm tra hướng dẫn thay đổi tư cách cư trú và cấp visa làm việc.",
+                "ja": "滞在資格変更および就労ビザ発行ガイドラインを確認してください。",
+                "zh": "请确认居留资格变更及就业签证办理指南。",
+                "en": "Check guidelines for changing stay status and issuing work visas."
+            },
+            "audio": "hs_ktt_audio_45.mp3"
+        },
+        {
+            "id": 46,
+            "level": "advanced",
+            "text": "한국어 능력 시험 6급 합격을 향해 꾸준히 도전해 보세요.",
+            "translations": {
+                "mn": "Солонгос хэлний мэдлэгийн шалгалтын 6-р зэрэгт тэнцэхийн төлөө тууштай хичээгээрэй.",
+                "ru": "Постоянно стремитесь к сдаче 6-го уровня экзамена по корейскому языку TOPIK.",
+                "es": "Desafíese constantemente para aprobar el Nivel 6 del Examen de Dominio del Coreano.",
+                "id": "Teruslah berusaha untuk lulus Tingkat 6 Ujian Kemampuan Bahasa Korea.",
+                "th": "ท้าทายตนเองอย่างสม่ำเสมอเพื่อสอบผ่านระดับ 6 ในการสอบวัดระดับภาษาเกาหลี",
+                "vi": "Hãy kiên trì thử thách bản thân để đạt cấp 6 Kỳ thi Năng lực tiếng Hàn.",
+                "ja": "韓国語能力試験6級合格を目指して地道に挑戦してみてください。",
+                "zh": "向着通过韩语能力考试(TOPIK) 6级持续发起挑战吧。",
+                "en": "Keep challenging yourself toward passing TOPIK Level 6."
+            },
+            "audio": "hs_ktt_audio_46.mp3"
+        },
+        {
+            "id": 47,
+            "level": "advanced",
+            "text": "다문화 사회 속에서 서로 이해하고 존중하는 환경을 만들어 갑니다.",
+            "translations": {
+                "mn": "Олон соёлт нийгэмд бие биенээ ойлгож, хүндэтгэх орчныг бүрдүүлж байна.",
+                "ru": "Мы создаем среду взаимного понимания и уважения в многокультурном обществе.",
+                "es": "Creamos un entorno de entendimiento y respeto mutuo en una sociedad multicultural.",
+                "id": "Kami menciptakan lingkungan saling memahami dan menghormati dalam masyarakat multikultural.",
+                "th": "สร้างสรรค์สภาพแวดล้อมที่เข้าใจและเคารพซึ่งกันและกันในสังคมพหุวัฒนธรรม",
+                "vi": "Xây dựng môi trường hiểu biết và tôn trọng lẫn nhau trong xã hội đa văn hóa.",
+                "ja": "多文化社会の中で互いに理解し尊重し合う環境を作っていきます。",
+                "zh": "在多元文化社会中，共同营造相互理解与尊重的良好环境。",
+                "en": "We are building an environment of mutual understanding and respect in a multicultural society."
+            },
+            "audio": "hs_ktt_audio_47.mp3"
+        },
+        {
+            "id": 48,
+            "level": "advanced",
+            "text": "연말정산 및 소득공제 혜택을 받기 위한 환급 안내서입니다.",
+            "translations": {
+                "mn": "Оны эцсийн татварын тооцоо ба орлогын хөнгөлөлт авах буцаан олголтын заавар.",
+                "ru": "Руководство по возврату средств для получения налоговых вычетов по итогам года.",
+                "es": "Guía de reembolso para recibir beneficios de liquidación de impuestos de fin de año.",
+                "id": "Panduan pengembalian dana untuk mendapatkan manfaat penyelesaian pajak akhir tahun.",
+                "th": "คู่มือการขอคืนเงินเพื่อรับสิทธิประโยชน์การปรับปรุงภาษีสิ้นปีและการหักลดหย่อนรายได้",
+                "vi": "Hướng dẫn hoàn thuế để nhận ưu đãi quyết toán thuế cuối năm.",
+                "ja": "年末調整および所得控除特典を受けるための還付案内書です。",
+                "zh": "获取年末结算及所得扣除福利的退税指南。",
+                "en": "A guide to year-end tax settlement refunds and income tax deductions."
+            },
+            "audio": "hs_ktt_audio_48.mp3"
+        },
+        {
+            "id": 49,
+            "level": "advanced",
+            "text": "스마트폰 앱을 통해 손쉽게 국제 송금을 진행할 수 있습니다.",
+            "translations": {
+                "mn": "Ухаалаг утасны апп-аар дамжуулан олон улсын мөнгөн шилжүүлгийг хялбар хийх боломжтой.",
+                "ru": "Вы можете легко совершать международные денежные переводы через приложение для смартфона.",
+                "es": "Puede realizar transferencias internacionales fácilmente a través de la aplicación del teléfono.",
+                "id": "Anda dapat dengan mudah melakukan transfer uang internasional melalui aplikasi smartphone.",
+                "th": "สามารถโอนเงินระหว่างประเทศได้อย่างง่ายดายผ่านแอปพลิเคชันสมาร์ทโฟน",
+                "vi": "Bạn có thể dễ dàng chuyển tiền quốc tế qua ứng dụng smartphone.",
+                "ja": "スマートフォンアプリを通じて簡単に国際送金できます。",
+                "zh": "可以通过智能手机应用程序轻松进行国际汇款。",
+                "en": "You can easily make international money transfers through a smartphone app."
+            },
+            "audio": "hs_ktt_audio_49.mp3"
+        },
+        {
+            "id": 50,
+            "level": "advanced",
+            "text": "성공적인 한국 생활을 위한 커뮤니티 네트워킹 행사입니다.",
+            "translations": {
+                "mn": "Солонгост амжилттай амьдрахад зориулсан нийгэмлэгийн хамтын ажиллагааны арга хэмжээ.",
+                "ru": "Общественное нетворкинг-мероприятие для успешной жизни в Корее.",
+                "es": "Un evento de networking comunitario para una vida exitosa en Corea.",
+                "id": "Acara jejaring komunitas untuk kehidupan yang sukses di Korea.",
+                "th": "กิจกรรมสร้างเครือข่ายชุมชนเพื่อการใช้ชีวิตในเกาหลีที่ประสบความสำเร็จ",
+                "vi": "Sự kiện kết nối cộng đồng phục vụ cuộc sống thành công tại Hàn Quốc.",
+                "ja": "充実した韓国生活のためのコミュニティネットワーキングイベントです。",
+                "zh": "旨在助力融入成功韩国生活的社区交流活动。",
+                "en": "A community networking event for a successful life in Korea."
+            },
+            "audio": "hs_ktt_audio_50.mp3"
+        }
+    ];
+
+    const CHO = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+    const JUNG = ['ㅏ','ㅐ','ㅑ','ㅒ','ㅓ','ㅔ','ㅕ','ㅖ','ㅗ','ㅘ','ㅙ','ㅚ','ㅛ','ㅜ','ㅝ','ㅞ','ㅟ','ㅠ','ㅡ','ㅢ','ㅣ'];
+    const JONG = ['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+
+    const STROKES = {
+        'ㄱ':1,'ㄲ':2,'ㄴ':1,'ㄷ':1,'ㄸ':2,'ㄹ':1,'ㅁ':1,'ㅂ':1,'ㅃ':2,'ㅅ':1,'ㅆ':2,'ㅇ':1,'ㅈ':1,'ㅉ':2,'ㅊ':1,'ㅋ':1,'ㅌ':1,'ㅍ':1,'ㅎ':1,
+        'ㅏ':1,'ㅐ':1,'ㅑ':1,'ㅒ':2,'ㅓ':1,'ㅔ':1,'ㅕ':1,'ㅖ':2,'ㅗ':1,'ㅘ':2,'ㅙ':2,'ㅚ':2,'ㅛ':1,'ㅜ':1,'ㅝ':2,'ㅞ':2,'ㅟ':2,'ㅠ':1,'ㅡ':1,'ㅢ':2,'ㅣ':1,
+        'ㄳ':2,'ㄵ':2,'ㄶ':2,'ㄺ':2,'ㄻ':2,'ㄼ':2,'ㄽ':2,'ㄾ':2,'ㄿ':2,'ㅀ':2,'ㅄ':2
+    };
+
+    const modeButtons = document.querySelectorAll('.mode-btn');
+    const timeDisplay = document.getElementById('timeDisplay');
+    const speedDisplay = document.getElementById('speedDisplay');
+    const accuracyDisplay = document.getElementById('accuracyDisplay');
+    const mistakesDisplay = document.getElementById('mistakesDisplay');
+    const promptBox = document.getElementById('promptBox');
+    const typingInput = document.getElementById('typingInput');
+    const inputHint = document.getElementById('inputHint');
+    const restartButton = document.getElementById('restartButton');
+    const tryAgainButton = document.getElementById('tryAgainButton');
+    const resultCard = document.getElementById('resultCard');
+    const resultSpeed = document.getElementById('resultSpeed');
+    const resultAccuracy = document.getElementById('resultAccuracy');
+    const resultMistakes = document.getElementById('resultMistakes');
+    const resultCompleted = document.getElementById('resultCompleted');
+    const personalBest = document.getElementById('personalBest');
+    const audioButton = document.getElementById('audioButton');
+    const audioLabel = document.getElementById('audioLabel');
+    const meaningButton = document.getElementById('meaningButton');
+    const languageSelect = document.getElementById('languageSelect');
+    const meaningDisplay = document.getElementById('meaningDisplay');
+
+    let selectedTime = 30;
+    let currentSentenceIndex = 0;
+    let lastSentenceIndex = -1;
+    let sentenceQueue = [];
+
+    let timerId = null;
+    let startTime = 0;
+    let isRunning = false;
+    let isFinished = false;
+    let isComposing = false;
+
+    let sessionTypedStrokes = 0;
+    let sessionCorrectStrokes = 0;
+    let completedMistakes = 0;
+    let currentHighestMistakes = 0;
+    let sentencesCompleted = 0;
+    let previousInput = '';
+
+    let showMeaning = false;
+    let selectedLanguage = 'en';
+    let currentAudio = null;
+
+    function shuffle(items) {
+        const array = items.slice();
+
+        for (let i = array.length - 1; i > 0; i -= 1) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+
+        return array;
+    }
+
+    function escapeHtml(value) {
+        return value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function getCharStrokes(char) {
+        if (!char) return 0;
+
+        const code = char.charCodeAt(0);
+
+        if (code >= 0xAC00 && code <= 0xD7A3) {
+            const index = code - 0xAC00;
+            const choIndex = Math.floor(index / 588);
+            const jungIndex = Math.floor((index % 588) / 28);
+            const jongIndex = index % 28;
+
+            let count = (STROKES[CHO[choIndex]] || 1) + (STROKES[JUNG[jungIndex]] || 1);
+
+            if (jongIndex !== 0) {
+                count += STROKES[JONG[jongIndex]] || 1;
+            }
+
+            return count;
+        }
+
+        return STROKES[char] || 1;
+    }
+
+    function pickNextSentence() {
+        stopAudio();
+
+        if (sentenceQueue.length === 0) {
+            const indexes = SENTENCES
+            .map((sentence, index) => index)
+            .filter((index) => index !== lastSentenceIndex || SENTENCES.length <= 1);
+
+            sentenceQueue = shuffle(indexes);
+        }
+
+        currentSentenceIndex = sentenceQueue.pop();
+        lastSentenceIndex = currentSentenceIndex;
+        currentHighestMistakes = 0;
+
+        renderPrompt('');
+        updateMeaning();
+    }
+
+    function renderPrompt(typedText) {
+        const target = SENTENCES[currentSentenceIndex].text;
+        let html = '<div class="prompt-text">';
+
+        for (let i = 0; i < target.length; i += 1) {
+            const targetChar = target.charAt(i);
+            const typedChar = typedText.charAt(i);
+            const displayChar = targetChar === ' ' ? '&nbsp;' : escapeHtml(targetChar);
+            let className = 'char';
+
+            if (i < typedText.length) {
+                className += typedChar === targetChar ? ' correct' : ' incorrect';
+            } else if (i === typedText.length && !isFinished) {
+                className += ' current';
+            }
+
+            html += `<span class="${className}">${displayChar}</span>`;
+        }
+
+        const ready = !isFinished && typedText.trim().length > 0 ? ' ready' : '';
+
+        html += `</div><button type="button" class="next-btn${ready}" id="nextButton">다음 문장 ↵</button>`;
+        promptBox.innerHTML = html;
+    }
+
+    function normalizeTypedText(value) {
+        return value.replace(/\r?\n|\r/g, '').replace(/\u00A0/g, ' ');
+    }
+
+    function isMatched() {
+        const target = SENTENCES[currentSentenceIndex].text.replace(/\u00A0/g, ' ').trim();
+        const typed = normalizeTypedText(typingInput.value).trim();
+        return typed === target;
+    }
+
+    function countCurrentMistakes(typed, target) {
+        let mistakes = 0;
+        const minLength = Math.min(typed.length, target.length);
+
+        for (let i = 0; i < minLength; i += 1) {
+            if (typed.charAt(i) !== target.charAt(i)) {
+                mistakes += 1;
+            }
+        }
+
+        if (typed.length > target.length) {
+            mistakes += typed.length - target.length;
+        }
+
+        return mistakes;
+    }
+
+    function updateStats() {
+        if (!isRunning && !isFinished) return;
+
+        const elapsedSeconds = Math.max(0.1, (Date.now() - startTime) / 1000);
+        const kpm = Math.round((sessionTypedStrokes / elapsedSeconds) * 60);
+        const accuracy = sessionTypedStrokes > 0
+            ? Math.max(0, Math.round((sessionCorrectStrokes / sessionTypedStrokes) * 100))
+            : 100;
+
+        speedDisplay.textContent = String(kpm);
+        accuracyDisplay.textContent = `${accuracy}%`;
+        mistakesDisplay.textContent = String(completedMistakes + currentHighestMistakes);
+    }
+
+    function handleInput() {
+        if (isFinished) return;
+
+        if (!isRunning) {
+            startTest();
+        }
+
+        const target = SENTENCES[currentSentenceIndex].text;
+        const typed = normalizeTypedText(typingInput.value);
+
+        if (typed.length > previousInput.length) {
+            const added = typed.substring(previousInput.length);
+
+            for (let i = 0; i < added.length; i += 1) {
+                const position = previousInput.length + i;
+                const typedChar = added.charAt(i);
+                const targetChar = target.charAt(position) || '';
+                const strokes = getCharStrokes(typedChar);
+
+                sessionTypedStrokes += strokes;
+
+                if (typedChar === targetChar) {
+                    sessionCorrectStrokes += strokes;
+                }
+            }
+        }
+
+        previousInput = typed;
+
+        if (!isComposing) {
+            const mistakes = countCurrentMistakes(typed, target);
+            currentHighestMistakes = Math.max(currentHighestMistakes, mistakes);
+        }
+
+        renderPrompt(typed);
+
+        if (isMatched()) {
+            advanceSentence();
+        } else {
+            updateStats();
+        }
+    }
+
+    function advanceSentence() {
+        if (isFinished) return;
+
+        completedMistakes += currentHighestMistakes;
+        sentencesCompleted += 1;
+        currentHighestMistakes = 0;
+        previousInput = '';
+        typingInput.value = '';
+
+        pickNextSentence();
+        updateStats();
+        typingInput.focus();
+    }
+
+    function startTest() {
+        if (isRunning || isFinished) return;
+
+        isRunning = true;
+        startTime = Date.now();
+
+        timerId = window.setInterval(() => {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const remaining = Math.max(0, selectedTime - elapsed);
+
+            timeDisplay.textContent = formatTime(remaining);
+            updateStats();
+
+            if (remaining <= 0) {
+                finishTest();
+            }
+        }, 200);
+    }
+
+    function finishTest() {
+        if (timerId) {
+            window.clearInterval(timerId);
+        }
+
+        timerId = null;
+        isRunning = false;
+        isFinished = true;
+
+        typingInput.value = '';
+        typingInput.disabled = true;
+        inputHint.hidden = true;
+
+        stopAudio();
+        renderPrompt('');
+        updateStats();
+
+        const finalSpeed = Number(speedDisplay.textContent) || 0;
+        savePersonalBest(finalSpeed);
+
+        resultSpeed.textContent = String(finalSpeed);
+        resultAccuracy.textContent = accuracyDisplay.textContent;
+        resultMistakes.textContent = mistakesDisplay.textContent;
+        resultCompleted.textContent = String(sentencesCompleted);
+        resultCard.hidden = false;
+    }
+
+    function resetTest() {
+        if (timerId) {
+            window.clearInterval(timerId);
+        }
+
+        timerId = null;
+        isRunning = false;
+        isFinished = false;
+        isComposing = false;
+
+        sessionTypedStrokes = 0;
+        sessionCorrectStrokes = 0;
+        completedMistakes = 0;
+        currentHighestMistakes = 0;
+        sentencesCompleted = 0;
+        previousInput = '';
+        sentenceQueue = [];
+
+        typingInput.disabled = false;
+        typingInput.value = '';
+        inputHint.hidden = false;
+
+        timeDisplay.textContent = formatTime(selectedTime);
+        speedDisplay.textContent = '0';
+        accuracyDisplay.textContent = '100%';
+        mistakesDisplay.textContent = '0';
+        resultCard.hidden = true;
+
+        stopAudio();
+        loadPersonalBest();
+        pickNextSentence();
+
+        window.setTimeout(() => typingInput.focus(), 100);
+    }
+
+    function formatTime(totalSeconds) {
+        const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+        const seconds = String(totalSeconds % 60).padStart(2, '0');
+
+        return `${minutes}:${seconds}`;
+    }
+
+    function getPersonalBestKey() {
+        return `korean_typing_pb_${selectedTime}`;
+    }
+
+    function loadPersonalBest() {
+        let best = 0;
+
+        try {
+            best = Number(localStorage.getItem(getPersonalBestKey())) || 0;
+        } catch (error) {
+            best = 0;
+        }
+
+        personalBest.innerHTML = `개인 최고 기록 (${selectedTime}초): <strong>${best} KPM</strong>`;
+    }
+
+    function savePersonalBest(kpm) {
+        try {
+            const currentBest = Number(localStorage.getItem(getPersonalBestKey())) || 0;
+
+            if (kpm > currentBest) {
+                localStorage.setItem(getPersonalBestKey(), String(kpm));
+            }
+        } catch (error) {
+            // localStorage를 사용할 수 없는 환경에서는 기록 저장을 건너뜁니다.
+        }
+
+        loadPersonalBest();
+    }
+
+    function updateMeaning() {
+        if (!showMeaning) {
+            meaningDisplay.hidden = true;
+            meaningButton.textContent = '🌐 뜻 보기';
+            return;
+        }
+
+        const sentence = SENTENCES[currentSentenceIndex];
+        meaningDisplay.textContent = sentence.translations?.[selectedLanguage] || '';
+        meaningDisplay.hidden = false;
+        meaningButton.textContent = '🙈 뜻 숨기기';
+    }
+
+    function getAudioUrl(filename) {
+        if (!filename) return '';
+
+        if (
+            location.protocol === 'file:' ||
+            location.hostname === 'localhost' ||
+            location.hostname === '127.0.0.1'
+        ) {
+            return `audio/ktt/${filename}`;
+        }
+
+        return `/wp-content/uploads/2026/08/${filename}`;
+    }
+
+    function stopAudio() {
+        if (currentAudio) {
+            currentAudio.pause();
+            currentAudio.currentTime = 0;
+            currentAudio = null;
+        }
+
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+        }
+
+        audioButton.classList.remove('playing');
+        audioLabel.textContent = '듣기';
+    }
+
+    function fallbackSpeech(text) {
+        if (!('speechSynthesis' in window)) {
+            audioLabel.textContent = '재생 불가';
+            return;
+        }
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ko-KR';
+        utterance.rate = 1.1;
+        utterance.onend = stopAudio;
+        utterance.onerror = stopAudio;
+
+        window.speechSynthesis.speak(utterance);
+    }
+
+    function playAudio() {
+        if (audioButton.classList.contains('playing')) {
+            stopAudio();
+            return;
+        }
+
+        stopAudio();
+
+        const sentence = SENTENCES[currentSentenceIndex];
+        const audioUrl = getAudioUrl(sentence.audio);
+
+        audioButton.classList.add('playing');
+        audioLabel.textContent = '재생 중';
+
+        const audio = new Audio(audioUrl);
+        audio.playbackRate = 1.1;
+        currentAudio = audio;
+
+        audio.onended = stopAudio;
+        audio.onerror = () => {
+            currentAudio = null;
+            fallbackSpeech(sentence.text);
+        };
+
+        audio.play().catch(() => {
+            currentAudio = null;
+            fallbackSpeech(sentence.text);
+        });
+    }
+
+    typingInput.addEventListener('compositionstart', () => {
+        isComposing = true;
+    });
+
+    typingInput.addEventListener('compositionend', () => {
+        isComposing = false;
+        handleInput();
+    });
+
+    typingInput.addEventListener('input', handleInput);
+
+    typingInput.addEventListener('keydown', (event) => {
+        if (isFinished) return;
+
+        if (event.key === 'Enter') {
+            event.preventDefault();
+
+            if (typingInput.value.trim().length > 0 || isMatched()) {
+                if (!isRunning) startTest();
+                advanceSentence();
+            }
+        }
+    });
+
+    promptBox.addEventListener('click', (event) => {
+        const button = event.target.closest('#nextButton');
+
+        if (!button || isFinished) return;
+
+        if (typingInput.value.trim().length > 0 || isMatched()) {
+            if (!isRunning) startTest();
+            advanceSentence();
+        }
+    });
+
+    modeButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+            modeButtons.forEach((item) => {
+                item.classList.remove('active');
+                item.setAttribute('aria-pressed', 'false');
+            });
+
+            button.classList.add('active');
+            button.setAttribute('aria-pressed', 'true');
+            selectedTime = Number(button.dataset.time) || 30;
+            resetTest();
+        });
+    });
+
+    restartButton.addEventListener('click', resetTest);
+    tryAgainButton.addEventListener('click', resetTest);
+
+    meaningButton.addEventListener('click', () => {
+        showMeaning = !showMeaning;
+        updateMeaning();
+    });
+
+    languageSelect.addEventListener('change', () => {
+        selectedLanguage = languageSelect.value;
+        updateMeaning();
+    });
+
+    audioButton.addEventListener('click', playAudio);
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden && isRunning) {
+            finishTest();
+        }
+    });
+
+    resetTest();
+</script>
+</body>
+</html>

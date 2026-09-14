@@ -69,6 +69,7 @@
 - https://deskarmory.co.kr/tools/keyboard-test/
 - https://bibletaja.vercel.app/
 - https://github.com/yujingaya/taja
+- https://hangulspace.com/ko/도구/korean-typing-speed-test/
 <br><br><br>
 
 
