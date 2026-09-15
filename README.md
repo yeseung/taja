@@ -72,6 +72,7 @@
 - https://hangulspace.com/ko/도구/korean-typing-speed-test/
 - https://omgtyping.com/typing-test/
 - https://skymetal.kr/typing/
+- https://skymetal.kr/typing-en/
 <br><br><br>
 
 

@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>English Typing Test - WPM & Accuracy</title>
+
+    <meta
+            name="description"
+            content="Free English typing test. Measure your typing speed in WPM and accuracy with a 30 or 60 second typing test."
+    >
+    <meta
+            name="keywords"
+            content="English typing test, typing speed, WPM test, typing practice, words per minute, typing accuracy"
+    >
+
+    <meta property="og:title" content="English Typing Test">
+    <meta
+            property="og:description"
+            content="Test your English typing speed and accuracy in 30 or 60 seconds."
+    >
+    <meta property="og:type" content="website">
+
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="manifest" href="/manifest.webmanifest">
+
+    <style>
+        :root {
+            --background: #f7f8fa;
+            --surface: #ffffff;
+            --text: #171717;
+            --muted: #737373;
+            --border: #e5e7eb;
+            --border-dark: #d1d5db;
+            --soft: #f5f5f5;
+            --success: #15803d;
+            --success-bg: #f0fdf4;
+            --danger: #dc2626;
+            --danger-bg: #fef2f2;
+            --focus: rgba(23, 23, 23, 0.12);
+            --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+            --radius: 24px;
+            --radius-small: 14px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--background);
+            color: var(--text);
+            font-family:
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "Segoe UI",
+                    Roboto,
+                    Helvetica,
+                    Arial,
+                    sans-serif;
+            line-height: 1.6;
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        button {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        .page {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 64px 20px;
+        }
+
+        .page-header {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .page-header h1 {
+            margin: 0 0 12px;
+            font-size: clamp(30px, 5vw, 44px);
+            font-weight: 800;
+            line-height: 1.2;
+            letter-spacing: -0.04em;
+        }
+
+        .lead {
+            max-width: 680px;
+            margin: 0 auto;
+            color: var(--muted);
+            font-size: 16px;
+            line-height: 1.8;
+        }
+
+        .lead strong {
+            color: var(--text);
+            font-weight: 700;
+        }
+
+        .typing-card {
+            padding: 30px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        /* HUD */
+
+        .type-hud {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            overflow: hidden;
+            margin-bottom: 24px;
+            background: var(--soft);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+        }
+
+        .type-hud > span {
+            display: flex;
+            min-height: 82px;
+            padding: 14px 10px;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 2px;
+            border-right: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .type-hud > span:last-child {
+            border-right: 0;
+        }
+
+        .type-hud strong {
+            color: var(--text);
+            font-size: 25px;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        .type-hud small {
+            margin-left: 2px;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        /* Mode */
+
+        .difficulty {
+            display: flex;
+            width: 100%;
+            margin-bottom: 24px;
+            padding: 5px;
+            gap: 5px;
+            background: var(--soft);
+            border-radius: 16px;
+        }
+
+        .diff {
+            flex: 1;
+            min-height: 46px;
+            padding: 10px 14px;
+            background: transparent;
+            color: var(--muted);
+            border: 0;
+            border-radius: 12px;
+            outline: none;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition:
+                    background-color 0.15s ease,
+                    color 0.15s ease,
+                    box-shadow 0.15s ease,
+                    transform 0.15s ease;
+        }
+
+        .diff:hover {
+            background: #ffffff;
+            color: var(--text);
+        }
+
+        .diff:active {
+            transform: scale(0.98);
+        }
+
+        .diff.active {
+            background: #ffffff;
+            color: var(--text);
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+        }
+
+        .diff:focus-visible,
+        button:focus-visible,
+        input:focus-visible {
+            outline: 3px solid var(--focus);
+            outline-offset: 2px;
+        }
+
+        .sound-toggle {
+            flex: 0 0 54px;
+            max-width: 54px;
+            font-size: 18px;
+        }
+
+        /* Words */
+
+        .prompt {
+            min-height: 178px;
+            max-height: 178px;
+            overflow: hidden;
+            padding: 25px;
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            color: #737373;
+            font-size: clamp(20px, 3vw, 25px);
+            font-weight: 600;
+            line-height: 2;
+            text-align: left;
+            word-spacing: 5px;
+        }
+
+        .w {
+            display: inline-block;
+            margin-right: 7px;
+            padding: 0 3px;
+            border-radius: 5px;
+        }
+
+        .w.cur {
+            background: #171717;
+            color: #ffffff;
+        }
+
+        .w.ok {
+            color: var(--success);
+            background: var(--success-bg);
+        }
+
+        .w.no {
+            color: var(--danger);
+            background: var(--danger-bg);
+            text-decoration: line-through;
+        }
+
+        /* Input */
+
+        #input {
+            display: block;
+            width: 100%;
+            height: 62px;
+            margin-top: 18px;
+            padding: 0 20px;
+            background: #ffffff;
+            color: var(--text);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            outline: none;
+            font-size: 18px;
+            font-weight: 500;
+            transition:
+                    border-color 0.15s ease,
+                    box-shadow 0.15s ease;
+        }
+
+        #input::placeholder {
+            color: #a3a3a3;
+        }
+
+        #input:hover {
+            border-color: var(--border-dark);
+        }
+
+        #input:focus {
+            border-color: var(--text);
+            box-shadow: 0 0 0 4px var(--focus);
+        }
+
+        #input:disabled {
+            background: var(--soft);
+            color: var(--muted);
+            cursor: not-allowed;
+        }
+
+        /* Result */
+
+        .result {
+            margin-top: 18px;
+            padding: 24px;
+            background: var(--soft);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            text-align: center;
+        }
+
+        .result-wpm {
+            margin: 0;
+            color: var(--text);
+            font-size: 28px;
+            font-weight: 800;
+            line-height: 1.3;
+        }
+
+        .result-detail {
+            margin: 8px 0 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .result-detail strong {
+            color: var(--text);
+        }
+
+        .result-grade {
+            margin: 10px 0 0;
+            color: var(--text);
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        /* Buttons */
+
+        .btn-row {
+            display: flex;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        .secondary {
+            min-width: 140px;
+            min-height: 46px;
+            padding: 10px 20px;
+            background: #ffffff;
+            color: var(--text);
+            border: 1px solid var(--border-dark);
+            border-radius: var(--radius-small);
+            font-weight: 700;
+            cursor: pointer;
+            transition:
+                    background-color 0.15s ease,
+                    border-color 0.15s ease,
+                    transform 0.15s ease;
+        }
+
+        .secondary:hover {
+            background: var(--soft);
+            border-color: #bdbdbd;
+        }
+
+        .secondary:active {
+            transform: scale(0.98);
+        }
+
+        /* Guide */
+
+        .guide {
+            margin-top: 20px;
+            padding: 20px 22px;
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+        }
+
+        .guide-title {
+            margin: 0 0 8px;
+            font-size: 15px;
+            font-weight: 800;
+        }
+
+        .guide-text {
+            margin: 0;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        /* Mobile */
+
+        @media (max-width: 700px) {
+            .page {
+                padding: 36px 14px;
+            }
+
+            .page-header {
+                margin-bottom: 22px;
+            }
+
+            .lead {
+                font-size: 14px;
+            }
+
+            .typing-card {
+                padding: 18px;
+                border-radius: 20px;
+            }
+
+            .type-hud {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .type-hud > span {
+                min-height: 70px;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .type-hud > span:nth-child(2) {
+                border-right: 0;
+            }
+
+            .type-hud > span:nth-last-child(-n + 2) {
+                border-bottom: 0;
+            }
+
+            .type-hud strong {
+                font-size: 22px;
+            }
+
+            .difficulty {
+                overflow-x: auto;
+            }
+
+            .diff {
+                min-width: max-content;
+                padding-right: 18px;
+                padding-left: 18px;
+            }
+
+            .sound-toggle {
+                min-width: 50px;
+            }
+
+            .prompt {
+                min-height: 164px;
+                max-height: 164px;
+                padding: 18px;
+                font-size: 20px;
+                line-height: 2;
+            }
+
+            #input {
+                height: 58px;
+                font-size: 16px;
+            }
+
+            .result {
+                padding: 20px 14px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .page {
+                padding-right: 10px;
+                padding-left: 10px;
+            }
+
+            .typing-card {
+                padding: 14px;
+            }
+
+            .prompt {
+                padding-right: 14px;
+                padding-left: 14px;
+                font-size: 19px;
+            }
+
+            .secondary {
+                width: 100%;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<main class="page">
+
+    <header class="page-header">
+        <h1>🔤 English Typing Test</h1>
+
+        <p class="lead">
+            How fast can you type? Type the words below for 30 or 60 seconds
+            and get your <strong>WPM (words per minute)</strong> and accuracy.
+            Everything runs in your browser — no sign-up, nothing is uploaded.
+        </p>
+    </header>
+
+    <section class="typing-card" aria-label="English typing test">
+
+        <div class="type-hud">
+
+        <span>
+          WPM
+          <strong id="hud-wpm">0</strong>
+        </span>
+
+            <span>
+          Accuracy
+          <strong>
+            <span id="hud-acc">100</span>
+            <small>%</small>
+          </strong>
+        </span>
+
+            <span>
+          Time
+          <strong>
+            <span id="hud-time">60</span>
+            <small>s</small>
+          </strong>
+        </span>
+
+            <span>
+          Best
+          <strong id="hud-best">0</strong>
+        </span>
+
+        </div>
+
+        <div
+                class="difficulty"
+                id="mode"
+                aria-label="Test duration"
+        >
+
+            <button
+                    class="diff"
+                    data-sec="30"
+                    type="button"
+            >
+                ⏱ 30 seconds
+            </button>
+
+            <button
+                    class="diff active"
+                    data-sec="60"
+                    type="button"
+            >
+                ⏱ 60 seconds
+            </button>
+
+            <button
+                    class="diff sound-toggle"
+                    id="sfx-btn"
+                    type="button"
+                    title="Sound"
+                    aria-label="Toggle sound"
+                    aria-pressed="false"
+            >
+                🔇
+            </button>
+
+        </div>
+
+        <div
+                class="prompt"
+                id="prompt"
+                aria-live="polite"
+                aria-label="Words to type"
+        ></div>
+
+        <input
+                id="input"
+                type="text"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                enterkeyhint="next"
+                placeholder="Start typing here — the timer starts on your first key"
+                aria-label="Typing input"
+        >
+
+        <div
+                id="result"
+                class="result"
+                aria-live="polite"
+                hidden
+        >
+
+            <p class="result-wpm">
+                <span id="r-wpm">0</span> WPM
+            </p>
+
+            <p class="result-detail">
+                Accuracy
+                <strong id="r-acc">100%</strong>
+                · Correct words
+                <strong id="r-words">0</strong>
+                · Keystrokes
+                <strong id="r-keys">0</strong>
+            </p>
+
+            <p
+                    id="r-grade"
+                    class="result-grade"
+            ></p>
+
+        </div>
+
+        <div class="btn-row">
+            <button
+                    id="restart"
+                    class="secondary"
+                    type="button"
+            >
+                ↻ Restart
+            </button>
+        </div>
+
+    </section>
+
+    <section class="guide" aria-label="Typing test guide">
+        <h2 class="guide-title">
+            💡 How it works
+        </h2>
+
+        <p class="guide-text">
+            Choose a 30 or 60 second test and start typing.
+            The timer begins with your first character.
+            Press Space or Enter after each word.
+            Your WPM, accuracy, correct words and keystrokes
+            will be shown when the test ends.
+        </p>
+    </section>
+
+</main>
+
+<script>
+    "use strict";
+
+    const $ = (id) =>
+        document.getElementById(id);
+
+    /* ==============================
+       Common English words
+    ============================== */
+
+    const WORDS = (
+        "the of and to in is you that it he was for on are as with his " +
+        "they at be this have from or one had by word but not what all " +
+        "were we when your can said there use an each which she do how " +
+        "their if will up other about out many then them these so some " +
+        "her would make like him into time has look two more write go see " +
+        "number no way could people my than first water been call who oil " +
+        "its now find long down day did get come made may part over new " +
+        "sound take only little work know place year live me back give " +
+        "most very after thing our just name good sentence man think say " +
+        "great where help through much before line right too mean old any " +
+        "same tell boy follow came want show also around form three small " +
+        "set put end does another well large must big even such because " +
+        "turn here why ask went men read need land different home us move " +
+        "try kind hand picture again change off play spell air away animal " +
+        "house point page letter mother answer found study still learn " +
+        "should world high every near add food between own below country " +
+        "plant last school father keep tree never start city earth eye " +
+        "light thought head under story saw left few while along might " +
+        "close something seem next hard open example begin life always " +
+        "those both paper together got group often run"
+    ).split(" ");
+
+    /* ==============================
+       Settings
+    ============================== */
+
+    const BEST_KEY =
+              "typing_en_best_v1";
+
+    let bests = {};
+
+    try {
+        bests = JSON.parse(
+            localStorage.getItem(BEST_KEY) ||
+            "{}"
+        );
+    } catch (error) {
+        bests = {};
+    }
+
+    let seconds = 60;
+
+    let words = [];
+    let wordIndex = 0;
+
+    let started = false;
+    let over = false;
+
+    let startTime = 0;
+    let timerId = null;
+
+    let correctChars = 0;
+    let correctWords = 0;
+    let typedWords = 0;
+    let keystrokes = 0;
+
+    const promptElement =
+              $("prompt");
+
+    const inputElement =
+              $("input");
+
+    /* ==============================
+       Sound effects
+    ============================== */
+
+    const Sound = (() => {
+        let context = null;
+
+        let enabled =
+                localStorage.getItem(
+                    "typing_en_sound"
+                ) === "on";
+
+        function getContext() {
+            if (!context) {
+                const AudioContext =
+                          window.AudioContext ||
+                          window.webkitAudioContext;
+
+                if (AudioContext) {
+                    context =
+                        new AudioContext();
+                }
+            }
+
+            return context;
+        }
+
+        function beep(
+            frequency,
+            duration = 0.06,
+            type = "sine",
+            volume = 0.04
+        ) {
+            if (!enabled) {
+                return;
+            }
+
+            try {
+                const audioContext =
+                          getContext();
+
+                if (!audioContext) {
+                    return;
+                }
+
+                const oscillator =
+                          audioContext.createOscillator();
+
+                const gain =
+                          audioContext.createGain();
+
+                oscillator.type = type;
+
+                oscillator.frequency.value =
+                    frequency;
+
+                gain.gain.setValueAtTime(
+                    volume,
+                    audioContext.currentTime
+                );
+
+                gain.gain.exponentialRampToValueAtTime(
+                    0.0001,
+                    audioContext.currentTime +
+                    duration
+                );
+
+                oscillator.connect(gain);
+
+                gain.connect(
+                    audioContext.destination
+                );
+
+                oscillator.start();
+
+                oscillator.stop(
+                    audioContext.currentTime +
+                    duration
+                );
+            } catch (error) {
+                // Ignore unsupported audio environments.
+            }
+        }
+
+        return {
+            correct() {
+                beep(
+                    760,
+                    0.05,
+                    "triangle"
+                );
+            },
+
+            wrong() {
+                beep(
+                    180,
+                    0.09,
+                    "sawtooth",
+                    0.035
+                );
+            },
+
+            finish() {
+                beep(
+                    523,
+                    0.08,
+                    "triangle"
+                );
+
+                setTimeout(() => {
+                    beep(
+                        659,
+                        0.08,
+                        "triangle"
+                    );
+                }, 80);
+
+                setTimeout(() => {
+                    beep(
+                        784,
+                        0.12,
+                        "triangle"
+                    );
+                }, 160);
+            },
+
+            toggle() {
+                enabled = !enabled;
+
+                localStorage.setItem(
+                    "typing_en_sound",
+                    enabled
+                        ? "on"
+                        : "off"
+                );
+
+                return enabled;
+            },
+
+            get enabled() {
+                return enabled;
+            }
+        };
+    })();
+
+    /* ==============================
+       Pick random word
+    ============================== */
+
+    function pickWord() {
+        return WORDS[
+            Math.floor(
+                Math.random() *
+                WORDS.length
+            )
+            ];
+    }
+
+    /* ==============================
+       Create word list
+    ============================== */
+
+    function createWords(count) {
+        return Array.from(
+            {
+                length: count
+            },
+            () => ({
+                text: pickWord(),
+                status: ""
+            })
+        );
+    }
+
+    /* ==============================
+       Render words
+    ============================== */
+
+    function renderWords() {
+        const from =
+                  Math.max(
+                      0,
+                      wordIndex - 12
+                  );
+
+        const visibleWords =
+                  words.slice(
+                      from,
+                      wordIndex + 30
+                  );
+
+        const fragment =
+                  document.createDocumentFragment();
+
+        promptElement.replaceChildren();
+
+        visibleWords.forEach(
+            (word, index) => {
+                const realIndex =
+                          from + index;
+
+                const span =
+                          document.createElement(
+                              "span"
+                          );
+
+                span.textContent =
+                    word.text;
+
+                if (word.status) {
+                    span.className =
+                        word.status;
+                } else if (
+                    realIndex ===
+                    wordIndex
+                ) {
+                    span.className =
+                        "w cur";
+                } else {
+                    span.className = "w";
+                }
+
+                fragment.appendChild(span);
+            }
+        );
+
+        promptElement.appendChild(
+            fragment
+        );
+
+        const current =
+                  promptElement.querySelector(
+                      ".cur"
+                  );
+
+        if (current) {
+            current.scrollIntoView({
+                block: "nearest"
+            });
+        }
+    }
+
+    /* ==============================
+       Reset
+    ============================== */
+
+    function reset() {
+        if (timerId) {
+            clearInterval(timerId);
+            timerId = null;
+        }
+
+        started = false;
+        over = false;
+
+        correctChars = 0;
+        correctWords = 0;
+        typedWords = 0;
+        keystrokes = 0;
+
+        wordIndex = 0;
+
+        words =
+            createWords(220);
+
+        $("hud-time").textContent =
+            seconds;
+
+        $("hud-wpm").textContent =
+            "0";
+
+        $("hud-acc").textContent =
+            "100";
+
+        $("hud-best").textContent =
+            bests[seconds] || 0;
+
+        $("result").hidden = true;
+
+        inputElement.value = "";
+        inputElement.disabled = false;
+
+        renderWords();
+    }
+
+    /* ==============================
+       Live statistics
+    ============================== */
+
+    function getLiveStats() {
+        if (!started) {
+            return {
+                wpm: 0,
+                accuracy: 100
+            };
+        }
+
+        const minutes =
+                  (
+                      performance.now() -
+                      startTime
+                  ) / 60000;
+
+        const wpm =
+                  minutes > 0
+                      ? Math.round(
+                          correctChars /
+                          5 /
+                          minutes
+                      )
+                      : 0;
+
+        const accuracy =
+                  typedWords
+                      ? Math.round(
+                          correctWords /
+                          typedWords *
+                          100
+                      )
+                      : 100;
+
+        return {
+            wpm,
+            accuracy
+        };
+    }
+
+    function updateLiveStats() {
+        const stats =
+                  getLiveStats();
+
+        $("hud-wpm").textContent =
+            stats.wpm;
+
+        $("hud-acc").textContent =
+            stats.accuracy;
+
+        return stats.wpm;
+    }
+
+    /* ==============================
+       Result grade
+    ============================== */
+
+    function getGrade(wpm) {
+        if (wpm >= 90) {
+            return "🏆 Top-tier! You fly across the keyboard.";
+        }
+
+        if (wpm >= 65) {
+            return "⚡ Fast — genuine touch-typing speed.";
+        }
+
+        if (wpm >= 45) {
+            return "👍 Solid — above the average office typist.";
+        }
+
+        if (wpm >= 30) {
+            return "🙂 Average — steady practice will push you past 45.";
+        }
+
+        return "🌱 Keep going — focus on accuracy before speed.";
+    }
+
+    /* ==============================
+       Finish
+    ============================== */
+
+    function finish() {
+        if (over) {
+            return;
+        }
+
+        over = true;
+
+        if (timerId) {
+            clearInterval(timerId);
+            timerId = null;
+        }
+
+        inputElement.disabled = true;
+
+        $("hud-time").textContent =
+            "0";
+
+        const minutes =
+                  seconds / 60;
+
+        const wpm =
+                  Math.round(
+                      correctChars /
+                      5 /
+                      minutes
+                  );
+
+        const accuracy =
+                  typedWords
+                      ? Math.round(
+                          correctWords /
+                          typedWords *
+                          100
+                      )
+                      : 100;
+
+        $("hud-wpm").textContent =
+            wpm;
+
+        $("hud-acc").textContent =
+            accuracy;
+
+        $("r-wpm").textContent =
+            wpm;
+
+        $("r-acc").textContent =
+            accuracy + "%";
+
+        $("r-words").textContent =
+            correctWords;
+
+        $("r-keys").textContent =
+            keystrokes;
+
+        $("r-grade").textContent =
+            getGrade(wpm);
+
+        $("result").hidden = false;
+
+        Sound.finish();
+
+        if (
+            !bests[seconds] ||
+            wpm > bests[seconds]
+        ) {
+            bests[seconds] = wpm;
+
+            localStorage.setItem(
+                BEST_KEY,
+                JSON.stringify(bests)
+            );
+
+            $("hud-best").textContent =
+                wpm;
+        }
+    }
+
+    /* ==============================
+       Start timer
+    ============================== */
+
+    function startTest() {
+        if (
+            started ||
+            over
+        ) {
+            return;
+        }
+
+        started = true;
+
+        startTime =
+            performance.now();
+
+        timerId =
+            setInterval(() => {
+                const elapsed =
+                          Math.floor(
+                              (
+                                  performance.now() -
+                                  startTime
+                              ) / 1000
+                          );
+
+                const remaining =
+                          Math.max(
+                              0,
+                              seconds - elapsed
+                          );
+
+                $("hud-time").textContent =
+                    remaining;
+
+                updateLiveStats();
+
+                if (remaining <= 0) {
+                    finish();
+                }
+            }, 200);
+    }
+
+    /* ==============================
+       Commit word
+    ============================== */
+
+    function commitWord() {
+        if (over) {
+            return;
+        }
+
+        const typed =
+                  inputElement.value.trim();
+
+        inputElement.value = "";
+
+        if (!typed) {
+            return;
+        }
+
+        const target =
+                  words[wordIndex];
+
+        typedWords++;
+
+        if (
+            typed === target.text
+        ) {
+            correctWords++;
+
+            /*
+             * Standard WPM:
+             * correct characters
+             * plus the following space.
+             */
+            correctChars +=
+                target.text.length + 1;
+
+            target.status =
+                "w ok";
+
+            Sound.correct();
+        } else {
+            target.status =
+                "w no";
+
+            Sound.wrong();
+        }
+
+        wordIndex++;
+
+        if (
+            wordIndex >
+            words.length - 40
+        ) {
+            words.push(
+                ...createWords(60)
+            );
+        }
+
+        renderWords();
+
+        updateLiveStats();
+    }
+
+    /* ==============================
+       Keyboard
+    ============================== */
+
+    inputElement.addEventListener(
+        "keydown",
+        (event) => {
+            if (over) {
+                return;
+            }
+
+            if (
+                !started &&
+                event.key.length === 1
+            ) {
+                startTest();
+            }
+
+            if (
+                event.key === " " ||
+                event.key === "Enter"
+            ) {
+                event.preventDefault();
+
+                commitWord();
+                return;
+            }
+
+            if (
+                event.key.length === 1
+            ) {
+                keystrokes++;
+            }
+        }
+    );
+
+    /*
+     * Mobile keyboards may not always
+     * report the Space key through keydown.
+     */
+    inputElement.addEventListener(
+        "input",
+        () => {
+            if (over) {
+                return;
+            }
+
+            if (
+                !started &&
+                inputElement.value.trim()
+            ) {
+                startTest();
+            }
+
+            if (
+                inputElement.value.endsWith(
+                    " "
+                )
+            ) {
+                commitWord();
+            }
+        }
+    );
+
+    /* ==============================
+       Prevent paste/drop
+    ============================== */
+
+    inputElement.addEventListener(
+        "paste",
+        (event) => {
+            event.preventDefault();
+        }
+    );
+
+    inputElement.addEventListener(
+        "drop",
+        (event) => {
+            event.preventDefault();
+        }
+    );
+
+    /* ==============================
+       Duration buttons
+    ============================== */
+
+    document
+    .querySelectorAll(
+        "#mode .diff[data-sec]"
+    )
+    .forEach((button) => {
+        button.addEventListener(
+            "click",
+            () => {
+                document
+                .querySelectorAll(
+                    "#mode .diff[data-sec]"
+                )
+                .forEach((item) => {
+                    item.classList.remove(
+                        "active"
+                    );
+                });
+
+                button.classList.add(
+                    "active"
+                );
+
+                seconds =
+                    Number(
+                        button.dataset.sec
+                    );
+
+                reset();
+
+                inputElement.focus();
+            }
+        );
+    });
+
+    /* ==============================
+       Restart
+    ============================== */
+
+    $("restart").addEventListener(
+        "click",
+        () => {
+            reset();
+            inputElement.focus();
+        }
+    );
+
+    /* ==============================
+       Sound button
+    ============================== */
+
+    function updateSoundButton() {
+        $("sfx-btn").textContent =
+            Sound.enabled
+                ? "🔊"
+                : "🔇";
+
+        $("sfx-btn").setAttribute(
+            "aria-pressed",
+            Sound.enabled
+                ? "true"
+                : "false"
+        );
+
+        $("sfx-btn").title =
+            Sound.enabled
+                ? "Sound on"
+                : "Sound off";
+    }
+
+    $("sfx-btn").addEventListener(
+        "click",
+        () => {
+            Sound.toggle();
+            updateSoundButton();
+            inputElement.focus();
+        }
+    );
+
+    /* ==============================
+       Initial state
+    ============================== */
+
+    updateSoundButton();
+    reset();
+
+</script>
+
+</body>
+</html>
