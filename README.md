@@ -74,6 +74,7 @@
 - https://skymetal.kr/typing/
 - https://skymetal.kr/typing-en/
 - https://rapidtyping.com/online-typing-test.html
+- https://www.speedtypingonline.com/typing-test
 <br><br><br>
 
 
