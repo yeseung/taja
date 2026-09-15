@@ -70,6 +70,7 @@
 - https://bibletaja.vercel.app/
 - https://github.com/yujingaya/taja
 - https://hangulspace.com/ko/도구/korean-typing-speed-test/
+- https://omgtyping.com/typing-test/
 <br><br><br>
 
 
