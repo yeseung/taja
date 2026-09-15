@@ -73,6 +73,7 @@
 - https://omgtyping.com/typing-test/
 - https://skymetal.kr/typing/
 - https://skymetal.kr/typing-en/
+- https://rapidtyping.com/online-typing-test.html
 <br><br><br>
 
 
