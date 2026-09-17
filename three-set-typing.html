@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>세벌식 자판 연습 - 신세벌식 P2</title>
+
+  <meta name="description" content="신세벌식 P2 세벌식 자판을 연습할 수 있는 무료 웹 타자연습입니다.">
+  <meta name="keywords" content="세벌식, 신세벌식, 신세벌식 P2, 세벌식 자판, 타자연습, 한글 타자">
+  <meta property="og:title" content="세벌식 자판 연습">
+  <meta property="og:description" content="신세벌식 P2 자판으로 한글 타자를 연습해 보세요.">
+  <meta property="og:type" content="website">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --background: #f7f8fa;
+      --card: #ffffff;
+      --text: #191919;
+      --sub: #777777;
+      --line: #e7e8eb;
+      --primary: #2563eb;
+      --primary-light: #eff6ff;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --radius: 24px;
+      --shadow: 0 10px 35px rgba(0, 0, 0, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      background: var(--background);
+      color: var(--text);
+      font-family: "Noto Sans KR", sans-serif;
+      letter-spacing: -0.04em;
+    }
+
+    button,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .container {
+      width: min(100% - 32px, 1000px);
+      margin: 0 auto;
+      padding: 50px 0 70px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .header-icon {
+      font-size: 42px;
+      margin-bottom: 8px;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 32px;
+      font-weight: 800;
+    }
+
+    .header p {
+      margin: 10px 0 0;
+      color: var(--sub);
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      margin-top: 16px;
+      padding: 7px 14px;
+      border-radius: 999px;
+      background: var(--primary-light);
+      color: var(--primary);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .stat {
+      padding: 18px 10px;
+      text-align: center;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+    }
+
+    .stat-label {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--sub);
+      font-size: 13px;
+    }
+
+    .stat strong {
+      font-size: 25px;
+      font-weight: 800;
+    }
+
+    .stat small {
+      margin-left: 2px;
+      color: var(--sub);
+    }
+
+    .section-title {
+      margin: 0 0 14px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .practice-text {
+      min-height: 95px;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fafafa;
+      font-size: 21px;
+      line-height: 1.9;
+      word-break: keep-all;
+    }
+
+    .practice-text .correct {
+      color: var(--success);
+    }
+
+    .practice-text .wrong {
+      color: var(--danger);
+      background: #fef2f2;
+      border-radius: 3px;
+    }
+
+    .practice-text .current {
+      border-bottom: 2px solid var(--primary);
+    }
+
+    .typing-input {
+      width: 100%;
+      height: 130px;
+      margin-top: 18px;
+      padding: 20px;
+      resize: vertical;
+      outline: none;
+      border: 2px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+      color: var(--text);
+      font-size: 20px;
+      line-height: 1.7;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    .typing-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, .08);
+    }
+
+    .typing-input::placeholder {
+      color: #aaa;
+    }
+
+    .progress-wrap {
+      margin-top: 18px;
+    }
+
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 7px;
+      color: var(--sub);
+      font-size: 13px;
+    }
+
+    .progress {
+      height: 8px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #edf0f3;
+    }
+
+    .progress-bar {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--primary);
+      transition: width .15s;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .btn {
+      min-height: 46px;
+      padding: 0 20px;
+      border: 0;
+      border-radius: 14px;
+      font-weight: 700;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-secondary {
+      background: #f1f3f5;
+      color: #333;
+    }
+
+    .keyboard-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .keyboard-title h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .keyboard-title span {
+      color: var(--sub);
+      font-size: 13px;
+    }
+
+    /*
+     * OHI가 생성하는 화상 자판은 OHI 자체 스타일과 구조를 사용합니다.
+     * 아래 영역은 OHI 화상 자판이 나타날 공간을 고려한 안내 영역입니다.
+     */
+    .keyboard-guide {
+      padding: 18px;
+      border: 1px dashed #d5d8dd;
+      border-radius: 18px;
+      background: #fafafa;
+      text-align: center;
+      color: var(--sub);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .help {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .help-item {
+      padding: 16px;
+      border-radius: 16px;
+      background: #fafafa;
+      text-align: center;
+    }
+
+    .help-item strong {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 14px;
+    }
+
+    .help-item span {
+      color: var(--sub);
+      font-size: 13px;
+    }
+
+    .complete {
+      display: none;
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: 18px;
+      background: #f0fdf4;
+      color: #166534;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .complete.show {
+      display: block;
+    }
+
+    .footer {
+      margin-top: 30px;
+      text-align: center;
+      color: #999;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    @media (max-width: 700px) {
+      .container {
+        width: min(100% - 20px, 1000px);
+        padding-top: 28px;
+      }
+
+      .header h1 {
+        font-size: 26px;
+      }
+
+      .card {
+        padding: 18px;
+        border-radius: 20px;
+      }
+
+      .stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .practice-text {
+        padding: 17px;
+        font-size: 18px;
+      }
+
+      .typing-input {
+        height: 120px;
+        padding: 16px;
+        font-size: 18px;
+      }
+
+      .help {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<main class="container">
+
+  <header class="header">
+    <div class="header-icon">⌨️</div>
+    <h1>세벌식 자판 연습</h1>
+
+    <p>
+      신세벌식 P2 자판으로 한글 타자를 연습해 보세요.<br>
+      입력한 글자를 실시간으로 비교해 타수와 정확도를 계산합니다.
+    </p>
+
+    <div class="badge">
+      신세벌식 P2 · Sin3-P2
+    </div>
+  </header>
+
+
+  <!-- 통계 -->
+  <section class="card">
+
+    <div class="stats">
+
+      <div class="stat">
+        <span class="stat-label">현재 타수</span>
+        <strong id="typingSpeed">0</strong>
+        <small>타/분</small>
+      </div>
+
+      <div class="stat">
+        <span class="stat-label">정확도</span>
+        <strong id="accuracy">100</strong>
+        <small>%</small>
+      </div>
+
+      <div class="stat">
+        <span class="stat-label">진행률</span>
+        <strong id="progressValue">0</strong>
+        <small>%</small>
+      </div>
+
+      <div class="stat">
+        <span class="stat-label">시간</span>
+        <strong id="timer">0</strong>
+        <small>초</small>
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- 타자 연습 -->
+  <section class="card">
+
+    <h2 class="section-title">📝 연습 문장</h2>
+
+    <div
+            id="practiceText"
+            class="practice-text"
+            aria-live="polite">
+    </div>
+
+
+    <!--
+        OHI는 textarea/input에 직접 한글 입력을 처리합니다.
+
+        OHI와의 충돌을 피하기 위해
+        keydown / keypress에서 preventDefault()를 사용하지 않습니다.
+    -->
+
+    <textarea
+            id="typingInput"
+            class="typing-input"
+            placeholder="위 문장을 신세벌식으로 입력해 보세요."
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            aria-label="세벌식 타자 입력"></textarea>
+
+
+    <div class="progress-wrap">
+
+      <div class="progress-info">
+        <span>진행 상황</span>
+        <span id="characterCount">0 / 0</span>
+      </div>
+
+      <div class="progress">
+        <div
+                id="progressBar"
+                class="progress-bar">
+        </div>
+      </div>
+
+    </div>
+
+
+    <div
+            id="completeMessage"
+            class="complete">
+      🎉 연습을 완료했습니다!
+    </div>
+
+
+    <div class="actions">
+
+      <button
+              type="button"
+              class="btn btn-primary"
+              id="newSentenceButton">
+        🔄 새 문장
+      </button>
+
+      <button
+              type="button"
+              class="btn btn-secondary"
+              id="restartButton">
+        ↻ 다시 연습
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- OHI 자판 -->
+  <section class="card">
+
+    <div class="keyboard-title">
+
+      <h2>⌨️ 신세벌식 P2 자판</h2>
+
+      <span>OHI Online HanGeul IME</span>
+
+    </div>
+
+    <div class="keyboard-guide">
+      아래 OHI 화상 자판에서 현재 선택된
+      <strong>신세벌식 P2</strong> 배열을 확인할 수 있습니다.<br>
+      Ctrl + Space 또는 Shift + Space로 한·영 상태를 변경할 수 있습니다.
+    </div>
+
+  </section>
+
+
+  <!-- 도움말 -->
+  <section class="card">
+
+    <div class="help">
+
+      <div class="help-item">
+        <strong>🇰🇷 한글 자판</strong>
+        <span>신세벌식 P2</span>
+      </div>
+
+      <div class="help-item">
+        <strong>🇺🇸 영문 자판</strong>
+        <span>QWERTY</span>
+      </div>
+
+      <div class="help-item">
+        <strong>🔄 한·영 전환</strong>
+        <span>Ctrl + Space / Shift + Space</span>
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <footer class="footer">
+    세벌식 자판 연습 · 신세벌식 P2<br>
+    입력 내용은 서버로 전송되지 않습니다.
+  </footer>
+
+</main>
+
+
+<!-- ==================================================
+     OHI 설정
+================================================== -->
+
+<script>
+  var Ko_type = "Sin3-P2";
+  var En_type = "QWERTY";
+  var ohi_KBD_type = "QWERTY";
+  var ohi_KE = "Ko";
+</script>
+
+
+<!-- OHI -->
+<script src="https://ohi.pat.im/keyboard_layouts.js"></script>
+<script src="https://ohi.pat.im/additional_layouts.js"></script>
+<script src="https://ohi.pat.im/ohi.js"></script>
+
+
+<!-- ==================================================
+     타자 연습
+================================================== -->
+
+<script>
+  (function () {
+    "use strict";
+
+    var sentences = [
+      "오늘도 즐겁게 세벌식 타자 연습을 시작합니다.",
+      "천천히 정확하게 입력하면 자연스럽게 속도가 빨라집니다.",
+      "세벌식 자판은 초성과 중성과 종성을 나누어 입력합니다.",
+      "매일 조금씩 연습하면 손가락이 자판 위치를 기억합니다.",
+      "빠르게 치는 것보다 정확하게 입력하는 습관이 중요합니다.",
+      "익숙하지 않은 글쇠는 천천히 반복해서 연습해 보세요.",
+      "꾸준한 타자 연습은 정확도와 입력 속도를 함께 높여 줍니다.",
+      "처음에는 자판을 보면서 입력하고 점차 손가락 감각을 익혀 보세요.",
+      "신세벌식 자판으로 편안하고 즐겁게 한글을 입력해 봅시다.",
+      "한 글자씩 정확하게 입력하면서 세벌식 자판에 익숙해져 보세요."
+    ];
+
+    var practiceText = document.getElementById("practiceText");
+    var typingInput = document.getElementById("typingInput");
+
+    var typingSpeed = document.getElementById("typingSpeed");
+    var accuracy = document.getElementById("accuracy");
+    var progressValue = document.getElementById("progressValue");
+    var timer = document.getElementById("timer");
+
+    var progressBar = document.getElementById("progressBar");
+    var characterCount = document.getElementById("characterCount");
+
+    var completeMessage = document.getElementById("completeMessage");
+
+    var newSentenceButton =
+                document.getElementById("newSentenceButton");
+
+    var restartButton =
+                document.getElementById("restartButton");
+
+
+    var currentSentence = "";
+
+    var startTime = null;
+    var timerInterval = null;
+
+    var finished = false;
+
+
+    /*
+     * 새 문장 선택
+     */
+    function selectSentence() {
+
+      var previousSentence = currentSentence;
+
+      if (sentences.length === 1) {
+        currentSentence = sentences[0];
+      } else {
+
+        do {
+
+          currentSentence =
+                  sentences[
+                          Math.floor(
+                                  Math.random() * sentences.length
+                          )
+                          ];
+
+        } while (currentSentence === previousSentence);
+
+      }
+
+      resetPractice();
+    }
+
+
+    /*
+     * 연습 초기화
+     */
+    function resetPractice() {
+
+      clearInterval(timerInterval);
+
+      startTime = null;
+      timerInterval = null;
+
+      finished = false;
+
+      typingInput.value = "";
+
+      typingSpeed.textContent = "0";
+      accuracy.textContent = "100";
+      progressValue.textContent = "0";
+      timer.textContent = "0";
+
+      progressBar.style.width = "0%";
+
+      completeMessage.classList.remove("show");
+
+      characterCount.textContent =
+              "0 / " + currentSentence.length;
+
+      renderSentence("");
+
+      typingInput.focus();
+    }
+
+
+    /*
+     * 타이머 시작
+     */
+    function startTimer() {
+
+      if (startTime !== null) {
+        return;
+      }
+
+      startTime = Date.now();
+
+      timerInterval = setInterval(function () {
+
+        if (finished) {
+          return;
+        }
+
+        var seconds =
+                    Math.floor(
+                            (Date.now() - startTime) / 1000
+                    );
+
+        timer.textContent = seconds;
+
+        updateSpeed();
+
+      }, 500);
+    }
+
+
+    /*
+     * 현재 입력 시간
+     */
+    function getElapsedMinutes() {
+
+      if (startTime === null) {
+        return 0;
+      }
+
+      return (
+              (Date.now() - startTime) /
+              1000 /
+              60
+      );
+    }
+
+
+    /*
+     * 타수 계산
+     *
+     * 여기서는 실제 입력된 문자 수를 기준으로
+     * 분당 입력 문자 수를 계산합니다.
+     */
+    function updateSpeed() {
+
+      var minutes = getElapsedMinutes();
+
+      if (minutes <= 0) {
+        typingSpeed.textContent = "0";
+        return;
+      }
+
+      var inputLength =
+                  typingInput.value.length;
+
+      var speed =
+                  Math.round(
+                          inputLength / minutes
+                  );
+
+      typingSpeed.textContent = speed;
+    }
+
+
+    /*
+     * 정확도 계산
+     */
+    function calculateAccuracy(value) {
+
+      if (value.length === 0) {
+        return 100;
+      }
+
+      var correct = 0;
+
+      var compareLength =
+                  Math.min(
+                          value.length,
+                          currentSentence.length
+                  );
+
+      for (var i = 0; i < compareLength; i++) {
+
+        if (
+                value.charAt(i) ===
+                currentSentence.charAt(i)
+        ) {
+          correct++;
+        }
+
+      }
+
+      /*
+       * 목표 문장보다 더 입력한 문자도
+       * 오타로 계산합니다.
+       */
+
+      var total = value.length;
+
+      return Math.round(
+              (correct / total) * 100
+      );
+    }
+
+
+    /*
+     * 문장 색상 표시
+     */
+    function renderSentence(value) {
+
+      practiceText.innerHTML = "";
+
+      for (
+              var i = 0;
+              i < currentSentence.length;
+              i++
+      ) {
+
+        var span =
+                    document.createElement("span");
+
+        span.textContent =
+                currentSentence.charAt(i);
+
+        if (i < value.length) {
+
+          if (
+                  value.charAt(i) ===
+                  currentSentence.charAt(i)
+          ) {
+
+            span.className = "correct";
+
+          } else {
+
+            span.className = "wrong";
+
+          }
+
+        } else if (i === value.length) {
+
+          span.className = "current";
+
+        }
+
+        practiceText.appendChild(span);
+      }
+    }
+
+
+    /*
+     * 진행률
+     */
+    function updateProgress(value) {
+
+      var length =
+                  Math.min(
+                          value.length,
+                          currentSentence.length
+                  );
+
+      var percent =
+                  Math.round(
+                          (length /
+                                  currentSentence.length) *
+                          100
+                  );
+
+      progressValue.textContent =
+              percent;
+
+      progressBar.style.width =
+              percent + "%";
+
+      characterCount.textContent =
+              length +
+              " / " +
+              currentSentence.length;
+    }
+
+
+    /*
+     * 완료 여부
+     */
+    function checkComplete(value) {
+
+      if (
+              value !== currentSentence ||
+              finished
+      ) {
+        return;
+      }
+
+      finished = true;
+
+      clearInterval(timerInterval);
+
+      updateSpeed();
+
+      progressValue.textContent = "100";
+      progressBar.style.width = "100%";
+
+      completeMessage.classList.add("show");
+    }
+
+
+    /*
+     * 입력 처리
+     *
+     * 중요:
+     * OHI와 충돌하지 않도록
+     * keydown/keypress를 가로채지 않습니다.
+     */
+    typingInput.addEventListener(
+            "input",
+            function () {
+
+              var value =
+                          typingInput.value;
+
+              if (
+                      startTime === null &&
+                      value.length > 0
+              ) {
+                startTimer();
+              }
+
+              renderSentence(value);
+
+              accuracy.textContent =
+                      calculateAccuracy(value);
+
+              updateProgress(value);
+
+              updateSpeed();
+
+              checkComplete(value);
+            }
+    );
+
+
+    /*
+     * 새 문장
+     */
+    newSentenceButton.addEventListener(
+            "click",
+            function () {
+              selectSentence();
+            }
+    );
+
+
+    /*
+     * 다시 연습
+     */
+    restartButton.addEventListener(
+            "click",
+            function () {
+              resetPractice();
+            }
+    );
+
+
+    /*
+     * 최초 실행
+     */
+    selectSentence();
+
+  })();
+</script>
+
+</body>
+</html>
