@@ -76,6 +76,7 @@
 - https://rapidtyping.com/online-typing-test.html
 - https://www.speedtypingonline.com/typing-test
 - https://ohi.pat.im/
+- https://workmate.tools/ktype
 <br><br><br>
 
 
