@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>무료 한글·영문 타자연습 | 타수·정확도 측정, 낱말 낙하 게임</title>
+
+    <!-- https://tajaexam.store/ -->
+
+    <meta name="description" content="설치 없이 브라우저에서 바로 하는 무료 타자연습. 한글·영문 문장연습과 위에서 떨어지는 낱말 게임, 타수(타/분)와 정확도를 실시간으로 측정합니다.">
+    <meta name="keywords" content="타자연습,한글타자연습,영문타자연습,타자속도측정,무료타자연습,타자게임,타수측정">
+    <meta name="author" content="gondre.store">
+    <link rel="canonical" href="https://gondre.store/typing/">
+    <meta name="robots" content="index,follow">
+    <meta name="naver-site-verification" content="여기에_네이버_서치어드바이저_인증코드">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="타자연습">
+    <meta property="og:title" content="무료 한글·영문 타자연습 | 타수·정확도 측정">
+    <meta property="og:description" content="문장연습과 낱말 낙하 게임으로 즐기는 무료 타자연습. 타수와 정확도를 바로 확인하세요.">
+    <meta property="og:url" content="https://gondre.store/typing/">
+    <meta property="og:image" content="https://gondre.store/typing/og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:locale" content="ko_KR">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="무료 한글·영문 타자연습">
+    <meta name="twitter:description" content="문장연습과 낱말 낙하 게임. 타수와 정확도를 바로 확인하세요.">
+    <meta name="twitter:image" content="https://gondre.store/typing/og.png">
+
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%231B1D21'/%3E%3Ctext x='32' y='45' font-size='36' text-anchor='middle' fill='%23D9A544' font-family='monospace'%3E%3C/%3E%3C/text%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="https://gondre.store/typing/og.png">
+
+    <script type="application/ld+json">
+        {
+            "@context":"https://schema.org",
+            "@type":"WebApplication",
+            "name":"타자연습",
+            "url":"https://gondre.store/typing/",
+            "applicationCategory":"EducationalApplication",
+            "operatingSystem":"Web",
+            "inLanguage":"ko",
+            "offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},
+            "description":"한글·영문 문장연습과 낱말 낙하 게임으로 타수와 정확도를 측정하는 무료 타자연습 사이트"
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root{
+            --ink:#1B1D21; --ink-2:#24272C;
+            --paper:#F2EAD8; --paper-dim:#E4DAC2;
+            --muted:#8B8375; --brass:#D9A544;
+            --sage:#5C8463; --vermillion:#B23A2F; --line:#3A3D42;
+        }
+        *{box-sizing:border-box;}
+        html,body{margin:0;padding:0;overflow-x:hidden;}
+        body{
+            background:radial-gradient(ellipse at top,#24272C 0%,var(--ink) 55%);
+            color:var(--paper);
+            font-family:'Noto Sans KR',sans-serif;
+            min-height:100vh;
+            display:flex; flex-direction:column; align-items:center;
+            padding:32px 16px 64px;
+        }
+
+        .brand{ text-align:center; margin-bottom:28px; }
+        .brand .mark{
+            font-family:'Special Elite',cursive; font-size:13px;
+            letter-spacing:.35em; color:var(--brass); margin:0 0 6px;
+        }
+        .brand h1{
+            font-family:'Special Elite',cursive; font-size:38px;
+            margin:0; color:var(--paper); font-weight:400;
+        }
+
+        .controls{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-bottom:24px; }
+        .seg{ display:flex; background:var(--ink-2); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+        .seg button{
+            appearance:none; border:none; background:transparent; color:var(--muted);
+            font-family:'Noto Sans KR',sans-serif; font-size:14px; padding:9px 16px;
+            cursor:pointer; transition:background .15s,color .15s;
+        }
+        .seg button+button{ border-left:1px solid var(--line); }
+        .seg button.active{ background:var(--brass); color:var(--ink); font-weight:500; }
+        .seg button:hover:not(.active):not(:disabled){ color:var(--paper); }
+        .seg button:disabled{ opacity:.45; cursor:not-allowed; }
+
+        .sheet{
+            width:100%; max-width:720px;
+            background:var(--paper); color:var(--ink);
+            border-radius:4px;
+            box-shadow:0 24px 60px rgba(0,0,0,.45),0 2px 0 rgba(0,0,0,.15) inset;
+            padding:36px 32px 28px; position:relative; overflow:hidden;
+        }
+        .sheet::before{
+            content:""; position:absolute; top:10px; left:10px; right:10px; bottom:10px;
+            border:1px dashed rgba(27,29,33,.14); pointer-events:none;
+        }
+
+        #startScreen{ text-align:center; padding:40px 20px; }
+        #startScreen p{ color:#5b5647; font-size:14px; line-height:1.7; margin:0 0 28px; }
+        .go-btn{
+            appearance:none; border:none; background:var(--ink); color:var(--brass);
+            font-family:'Special Elite',cursive; font-size:18px;
+            padding:14px 36px; border-radius:3px; cursor:pointer; letter-spacing:.05em;
+        }
+        .go-btn:hover{ background:#000; }
+
+        #practiceScreen{ display:none; }
+        #resultScreen{ display:none; text-align:center; padding:20px; }
+
+        /* --- 입력 영역: 투명 textarea 가 글자 위를 덮는다 (커서 스크롤로 화면이 밀리지 않게) --- */
+        .type-area{ position:relative; margin-bottom:14px; cursor:text; }
+        .target-text{
+            font-family:'JetBrains Mono','Noto Sans KR',monospace;
+            font-size:21px; line-height:1.9; letter-spacing:0;
+            word-break:break-all; white-space:pre-wrap;
+            margin:0; padding:0; border:0;
+            min-height:160px;
+        }
+        /* 입력칸은 글자 영역과 겹치지 않게 아래에 따로 둔다.
+        숨긴 입력칸은 기기에 따라 한글 조합 이벤트가 정상 동작하지 않는다. */
+        .type-input{
+            width:100%;
+            font-family:'JetBrains Mono','Noto Sans KR',monospace;
+            font-size:17px; padding:11px 13px; margin-bottom:10px;
+            border:1px solid rgba(27,29,33,.3); border-radius:4px;
+            background:var(--paper-dim); color:var(--ink); outline:none;
+        }
+        .type-input:focus{ border-color:var(--brass); }
+        .type-input::placeholder{ color:#a49a85; font-size:14px; }
+        .ch.correct{ color:var(--sage); }
+        .ch.wrong{ color:var(--vermillion); border-bottom:2px solid var(--vermillion); }
+        .ch.pending{ color:#b7ae98; }
+        .ch.current{ box-shadow:inset 0 -3px 0 var(--brass); }
+        .ch.composing{ color:var(--ink); font-weight:700; background:rgba(217,165,68,.5); border-radius:2px; box-shadow:inset 0 -3px 0 var(--brass); }
+
+        .composing-view{ display:none;
+            font-family:'JetBrains Mono','Noto Sans KR',monospace;
+            font-size:15px; color:#7a7362; height:26px; overflow:hidden;
+            margin-bottom:12px; white-space:nowrap;
+        }
+        .composing-view b{
+            color:var(--ink); font-weight:500; font-size:19px;
+            background:rgba(217,165,68,.28); border-radius:3px; padding:0 6px;
+        }
+
+        .stats{
+            display:flex; justify-content:space-between;
+            border-top:1px solid rgba(27,29,33,.15); padding-top:16px;
+            font-family:'JetBrains Mono',monospace; font-size:13px; color:#5b5647;
+        }
+        .stats .num{ font-size:20px; color:var(--ink); display:block; margin-bottom:2px; }
+        .stat-item{ text-align:center; flex:1; }
+
+        .action-row{ display:flex; gap:10px; justify-content:center; margin-top:18px; }
+        .action-row button{
+            appearance:none; border:1px solid rgba(27,29,33,.35); background:transparent;
+            color:var(--ink); font-family:'Noto Sans KR',sans-serif; font-size:13px;
+            padding:9px 18px; border-radius:3px; cursor:pointer;
+        }
+        .action-row button:hover{ background:rgba(27,29,33,.07); }
+        .action-row button.stop{ border-color:var(--vermillion); color:var(--vermillion); }
+
+        .hint{ text-align:center; color:var(--muted); font-size:12px; margin-top:14px; }
+
+        #resultScreen h2{ font-family:'Special Elite',cursive; font-size:26px; color:var(--ink); margin:0 0 4px; }
+        #resultScreen .sub{ color:#5b5647; font-size:13px; margin-bottom:24px; }
+        .result-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:24px; }
+        .result-card{ background:var(--paper-dim); border-radius:6px; padding:16px 8px; }
+        .result-card .num{ font-family:'JetBrains Mono',monospace; font-size:26px; color:var(--ink); display:block; }
+        .result-card .label{ font-size:12px; color:#5b5647; margin-top:4px; }
+        .best-note{ font-size:12px; color:var(--sage); margin-bottom:20px; min-height:16px; }
+        .retry-row{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+        .retry-row button{
+            appearance:none; border:1px solid var(--ink); background:transparent; color:var(--ink);
+            font-family:'Noto Sans KR',sans-serif; font-size:14px;
+            padding:11px 22px; border-radius:3px; cursor:pointer;
+        }
+        .retry-row button.primary{ background:var(--ink); color:var(--brass); }
+
+        /* 지문 선택 / 업로드 */
+        .source-box{ margin:0 0 20px; }
+        .source-box .seg{ display:inline-flex; background:rgba(27,29,33,.07); border-color:rgba(27,29,33,.2); }
+        .source-box .seg button{ color:#7a7362; }
+        .source-box .seg button.active{ background:var(--ink); color:var(--brass); }
+        #customBox{ display:none; margin-top:14px; text-align:left; }
+        #fileInput{ display:none; }
+        .cb-chunk{
+            display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+            font-size:12px; color:#5b5647; margin-bottom:12px;
+        }
+        .cb-chunk .seg{ background:rgba(27,29,33,.07); border-color:rgba(27,29,33,.2); }
+        .cb-chunk .seg button{ font-size:12px; padding:6px 12px; color:#7a7362; }
+        .cb-chunk .seg button.active{ background:var(--ink); color:var(--brass); }
+        .cb-row{ display:flex; gap:8px; margin-bottom:10px; }
+        .cb-row button, .cb-save{
+            appearance:none; border:1px solid rgba(27,29,33,.35); background:transparent;
+            color:var(--ink); font-family:'Noto Sans KR',sans-serif; font-size:13px;
+            padding:9px 14px; border-radius:3px; cursor:pointer;
+        }
+        .cb-row button:hover, .cb-save:hover{ background:rgba(27,29,33,.07); }
+        #customText{
+            width:100%; height:110px; resize:vertical;
+            font-family:'Noto Sans KR',sans-serif; font-size:13px; line-height:1.6;
+            padding:10px 12px; border:1px solid rgba(27,29,33,.25); border-radius:4px;
+            background:var(--paper-dim); color:var(--ink); outline:none; margin-bottom:10px;
+        }
+        #customText:focus{ border-color:var(--brass); }
+        .cb-info{ font-size:12px; color:#5b5647; margin:0 0 10px; }
+        .cb-save{ background:var(--ink); color:var(--brass); border-color:var(--ink); width:100%; }
+
+        /* 문장 전환 */
+        .target-text.slide-in{ animation:slidein .22s ease-out; }
+        @keyframes slidein{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:none; } }
+
+        /* 기록 패널 */
+        .stats-panel{
+            background:var(--paper-dim); border-radius:6px;
+            padding:16px 18px; margin:0 0 24px; text-align:left;
+        }
+        .sp-top{
+            display:flex; justify-content:space-between; align-items:baseline;
+            margin-bottom:12px; font-size:13px; color:#5b5647;
+        }
+        .sp-top b{ font-family:'JetBrains Mono',monospace; font-size:18px; color:var(--ink); }
+        .sp-streak{ color:var(--vermillion); font-weight:700; }
+        .rec-row{
+            display:flex; align-items:center; gap:8px;
+            font-size:12px; color:#5b5647; padding:3px 0;
+        }
+        .rec-row .rec-tag{ width:78px; flex:none; }
+        .rec-row .rec-bar{ flex:1; height:7px; background:rgba(27,29,33,.1); border-radius:4px; overflow:hidden; }
+        .rec-row .rec-bar i{ display:block; height:100%; background:var(--brass); }
+        .rec-row .rec-val{ width:74px; flex:none; text-align:right; font-family:'JetBrains Mono',monospace; color:var(--ink); }
+        .sp-empty{ font-size:13px; color:#8b8375; }
+        .share-btn{
+            appearance:none; border:1px dashed rgba(27,29,33,.45); background:transparent;
+            color:#5b5647; font-family:'Noto Sans KR',sans-serif; font-size:13px;
+            padding:9px 18px; border-radius:3px; cursor:pointer; margin-bottom:16px;
+        }
+        .share-btn:hover{ background:rgba(27,29,33,.06); }
+
+        footer{ margin-top:28px; color:var(--muted); font-size:12px; }
+
+        #gameScreen{ display:none; }
+        #gameOverScreen{ display:none; text-align:center; padding:20px; }
+        #gameOverScreen h2{ font-family:'Special Elite',cursive; font-size:26px; color:var(--ink); margin:0 0 4px; }
+        #gameOverScreen .sub{ color:#5b5647; font-size:13px; margin-bottom:24px; }
+
+        .game-bar{
+            display:flex; justify-content:space-between; align-items:center;
+            font-family:'JetBrains Mono',monospace; font-size:13px; color:#5b5647;
+            padding-bottom:10px; border-bottom:1px solid rgba(27,29,33,.15);
+        }
+        .game-bar b{ color:var(--ink); font-size:17px; }
+        #gLives{ color:var(--vermillion); font-size:17px; letter-spacing:2px; }
+
+        .game-field{
+            position:relative; height:320px; overflow:hidden;
+            background:linear-gradient(180deg,rgba(27,29,33,.03),rgba(27,29,33,.09));
+            border-radius:4px; margin:10px 0 12px;
+        }
+        .game-field .ground{
+            position:absolute; left:0; right:0; bottom:0; height:3px;
+            background:repeating-linear-gradient(90deg,var(--vermillion) 0 8px,transparent 8px 16px);
+            opacity:.6;
+        }
+        .word{
+            position:absolute; white-space:nowrap;
+            font-family:'JetBrains Mono','Noto Sans KR',monospace;
+            font-size:19px; color:var(--ink);
+            background:var(--paper); border:1px solid rgba(27,29,33,.25);
+            border-radius:4px; padding:3px 9px;
+            box-shadow:0 2px 0 rgba(27,29,33,.12);
+            will-change:transform;
+        }
+        .word.hit{ border-color:var(--brass); box-shadow:0 0 0 2px rgba(217,165,68,.5); }
+        .word .done{ color:var(--sage); }
+        .word .live{ color:var(--brass); font-weight:700; }
+        .word.pop{ animation:pop .18s ease-out forwards; }
+        @keyframes pop{ to{ transform:scale(1.4); opacity:0; } }
+
+        .game-input{
+            width:100%; font-family:'JetBrains Mono','Noto Sans KR',monospace;
+            font-size:17px; padding:11px 13px;
+            border:1px solid rgba(27,29,33,.3); border-radius:4px;
+            background:var(--paper-dim); color:var(--ink); outline:none;
+        }
+        .game-input:focus{ border-color:var(--brass); }
+        .game-input::placeholder{ color:#a49a85; font-size:14px; }
+
+        @media (max-width:520px){
+            .game-field{ height:260px; }
+            .word{ font-size:16px; }
+        }
+
+        @media (max-width:520px){
+            .brand h1{ font-size:28px; }
+            .sheet{ padding:26px 18px 22px; }
+            .target-text{ font-size:17px; line-height:1.85; }
+            .result-card .num{ font-size:20px; }
+            .action-row button{ padding:9px 12px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="brand">
+    <p class="mark">TYPE · PRACTICE</p>
+    <h1>타자연습</h1>
+</div>
+
+<div class="controls">
+    <div class="seg" id="modeSeg">
+        <button data-mode="practice" class="active">문장연습</button>
+        <button data-mode="game">낱말게임</button>
+    </div>
+    <div class="seg" id="langSeg">
+        <button data-lang="ko" class="active">한글</button>
+        <button data-lang="en">영어</button>
+        <button data-lang="mix">혼합</button>
+    </div>
+    <div class="seg" id="lenSeg">
+        <button data-len="short" class="active">짧게</button>
+        <button data-len="medium">보통</button>
+        <button data-len="long">길게</button>
+    </div>
+</div>
+
+<div class="sheet">
+
+    <div id="startScreen">
+        <p id="startDesc">문장이 끝나면 다음 문장이 곧바로 이어집니다.<br>중지를 누를 때까지 계속되며, 타수와 정확도는 전체 기준으로 누적됩니다.</p>
+        <div class="source-box">
+            <div class="seg" id="sourceSeg" style="justify-content:center">
+                <button data-source="builtin" class="active">기본 문장</button>
+                <button data-source="custom">내 문장</button>
+            </div>
+            <div id="customBox">
+                <p class="cb-info" id="customInfo"></p>
+                <div class="cb-chunk">
+                    <span>한 번에 칠 길이</span>
+                    <div class="seg" id="chunkSeg">
+                        <button data-chunk="60">60자</button>
+                        <button data-chunk="100" class="active">100자</button>
+                        <button data-chunk="150">150자</button>
+                    </div>
+                </div>
+                <div class="cb-row">
+                    <button id="uploadBtn">텍스트 파일 올리기 (.txt)</button>
+                    <button id="clearCustomBtn">지우기</button>
+                </div>
+                <input type="file" id="fileInput" accept=".txt,text/plain">
+                <textarea id="customText" placeholder="여기에 직접 붙여넣어도 됩니다. 줄바꿈과 마침표로 나눈 뒤, 긴 문단은 위에서 고른 길이만큼 공백 단위로 잘라 이어서 연습합니다."></textarea>
+                <button id="saveCustomBtn" class="cb-save">저장하고 사용하기</button>
+            </div>
+        </div>
+        <div class="stats-panel" id="statsPanel"></div>
+        <button class="go-btn" id="startBtn">시작하기</button>
+    </div>
+
+    <div id="practiceScreen">
+        <div class="type-area">
+            <div class="target-text" id="targetText"></div>
+        </div>
+        <input type="text" id="hiddenInput" class="type-input" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="여기에 입력하세요">
+        <div class="composing-view" id="composingView">&nbsp;</div>
+        <div class="stats">
+            <div class="stat-item"><span class="num" id="statTime">0.0s</span>경과시간</div>
+            <div class="stat-item"><span class="num" id="statSpeed">0</span><span id="speedUnitLabel">타/분</span></div>
+            <div class="stat-item"><span class="num" id="statAccuracy">100%</span>정확도</div>
+            <div class="stat-item"><span class="num" id="statCount">0</span>문장</div>
+        </div>
+        <div class="action-row">
+            <button class="stop" id="stopBtn">중지</button>
+            <button id="restartBtn">처음부터</button>
+            <button id="skipBtn">이 문장 건너뛰기</button>
+        </div>
+        <p class="hint">아래 칸에 입력하세요 · 문장이 끝나면 다음 문장이 바로 이어집니다</p>
+    </div>
+
+    <div id="resultScreen">
+        <h2 id="resultTitle">완료!</h2>
+        <p class="sub" id="resultSub"></p>
+        <div class="result-grid">
+            <div class="result-card"><span class="num" id="resSpeed">0</span><span class="label" id="resSpeedLabel">타/분</span></div>
+            <div class="result-card"><span class="num" id="resAccuracy">0%</span><span class="label">정확도</span></div>
+            <div class="result-card"><span class="num" id="resTime">0.0s</span><span class="label">소요시간</span></div>
+        </div>
+        <p class="best-note" id="bestNote"></p>
+        <button class="share-btn" id="shareBtn">기록 복사하기</button>
+        <div class="retry-row">
+            <button class="primary" id="retryNewBtn">다시 연습하기</button>
+            <button id="toHomeBtn">처음 화면</button>
+        </div>
+    </div>
+
+    <div id="gameScreen">
+        <div class="game-bar">
+            <span>레벨 <b id="gLevel">1</b></span>
+            <span>점수 <b id="gScore">0</b></span>
+            <span id="gLives">♥♥♥</span>
+        </div>
+        <div class="game-field" id="gameField"><div class="ground"></div></div>
+        <input type="text" id="gameInput" class="game-input" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="떨어지는 낱말을 입력하세요">
+        <div class="action-row">
+            <button class="stop" id="gStopBtn">중지</button>
+            <button id="gPauseBtn">일시정지</button>
+        </div>
+        <p class="hint">낱말을 다 입력하면 사라집니다 · 바닥에 닿으면 하트가 줄어요</p>
+    </div>
+
+    <div id="gameOverScreen">
+        <h2>게임 종료</h2>
+        <p class="sub" id="goSub"></p>
+        <div class="result-grid">
+            <div class="result-card"><span class="num" id="goScore">0</span><span class="label">점수</span></div>
+            <div class="result-card"><span class="num" id="goLevel">1</span><span class="label">도달 레벨</span></div>
+            <div class="result-card"><span class="num" id="goWords">0</span><span class="label">처리한 낱말</span></div>
+        </div>
+        <p class="best-note" id="goBest"></p>
+        <div class="retry-row">
+            <button class="primary" id="goRetryBtn">다시 하기</button>
+            <button id="goHomeBtn">처음 화면</button>
+        </div>
+    </div>
+
+</div>
+
+<footer>기록은 이 브라우저에만 저장됩니다</footer>
+
+<script>
+    (() => {
+
+        var SENTENCES = {
+            ko:{
+                short:[
+                    "오늘 하루도 수고 많으셨습니다.",
+                    "커피 한 잔의 여유를 즐겨보세요.",
+                    "꾸준함이 실력을 만든다.",
+                    "비 오는 날에는 우산을 챙기세요.",
+                    "작은 습관이 큰 변화를 만든다.",
+                    "웃음은 최고의 명약이다.",
+                    "천천히 걷더라도 멈추지 마라.",
+                    "오늘의 노력이 내일의 나를 만든다.",
+                    "말보다 행동이 중요하다.",
+                    "시작이 반이다.",
+                    "아침 공기가 제법 쌀쌀하다.",
+                    "창밖으로 첫눈이 내린다.",
+                    "바쁠수록 돌아가라는 말이 있다.",
+                    "좋은 책 한 권이 하루를 바꾼다.",
+                    "오늘 저녁은 된장찌개를 끓였다.",
+                    "고양이가 볕이 드는 곳에 누웠다.",
+                    "약속 시간보다 조금 일찍 나섰다.",
+                    "산책은 생각을 정리해 준다.",
+                    "오래된 친구에게 전화를 걸었다.",
+                    "계단을 오르니 숨이 가빠진다.",
+                    "작은 친절이 하루를 바꾼다.",
+                    "물은 하루에 여덟 잔 마시자.",
+                    "서두르지 말고 정확하게 치자.",
+                    "봄바람에 벚꽃이 흩날린다.",
+                    "주말에는 도서관에 다녀왔다.",
+                    "일찍 자고 일찍 일어나자.",
+                    "우체국에서 소포를 부쳤다.",
+                    "창문을 열어 환기를 시켰다.",
+                    "오늘은 하늘이 유난히 맑다.",
+                    "연필을 깎아 필통에 넣었다.",
+                    "모르는 것은 물어보는 것이 낫다.",
+                    "실수는 누구나 할 수 있다.",
+                    "마음이 급할수록 천천히 하자.",
+                    "저녁 노을이 붉게 물들었다.",
+                    "지하철에서 책을 읽는 사람이 많다.",
+                    "화분에 물을 주는 것을 잊었다.",
+                    "오늘 회의는 삼십 분 만에 끝났다.",
+                    "빗소리를 들으며 잠이 들었다.",
+                    "따뜻한 국물이 생각나는 날이다.",
+                    "새로 산 신발이 발에 잘 맞는다.",
+                    "약속은 지키라고 있는 것이다.",
+                    "건강이 가장 큰 재산이다.",
+                    "오늘은 조금 일찍 퇴근했다.",
+                    "김치찌개에 밥 한 공기를 비웠다.",
+                    "버스를 놓쳐 십 분을 기다렸다."
+                ],
+                medium:[
+                    "가는 말이 고와야 오는 말이 곱다는 말이 있듯이, 서로에게 좋은 말을 건네는 습관을 가져보자.",
+                    "실패는 성공의 어머니라는 말처럼, 넘어졌을 때 다시 일어서는 용기가 중요하다.",
+                    "천 리 길도 한 걸음부터라는 말처럼, 큰 목표도 작은 실천에서 시작된다.",
+                    "고생 끝에 낙이 온다는 마음으로 오늘의 어려움을 조금만 더 견뎌보자.",
+                    "티끌 모아 태산이라는 말처럼, 작은 노력들이 모여 큰 결과를 만든다.",
+                    "아는 것이 힘이라고 하니, 오늘도 배움을 게을리하지 말자.",
+                    "시간은 금이라는 말을 기억하며 오늘 하루를 알차게 보내보자.",
+                    "돌다리도 두들겨 보고 건너라는 말처럼 신중함을 잃지 말아야 한다.",
+                    "오늘 할 일을 내일로 미루지 않는 습관이 결국 가장 큰 차이를 만든다.",
+                    "남과 비교하기 시작하면 끝이 없으니, 어제의 나와 비교하는 편이 낫다.",
+                    "좋은 결과보다 좋은 과정을 만드는 데 집중하면 결과는 따라오게 마련이다.",
+                    "하루 삼십 분이라도 책을 읽는 습관은 일 년이면 큰 자산이 된다.",
+                    "계획을 세울 때는 크게, 실천할 때는 아주 작게 시작하는 것이 요령이다.",
+                    "주말 아침에 일찍 일어나 동네를 한 바퀴 걸으면 마음이 한결 가벼워진다.",
+                    "밥을 천천히 꼭꼭 씹어 먹는 습관만으로도 소화가 훨씬 편해진다고 한다.",
+                    "모르는 길을 갈 때는 지도를 보는 것보다 먼저 사람에게 묻는 편이 빠르다.",
+                    "화가 날 때는 열까지 세고 말하라는 조언이 의외로 큰 도움이 된다.",
+                    "하루를 마무리하며 오늘 감사했던 일 세 가지를 적어보는 것도 좋은 습관이다.",
+                    "비 오는 날 창가에 앉아 따뜻한 차를 마시면 마음이 차분해진다.",
+                    "오래 앉아 일할수록 한 시간에 한 번은 일어나 가볍게 몸을 풀어야 한다.",
+                    "약속을 잘 지키는 사람은 작은 일에서도 신뢰를 쌓아 나간다.",
+                    "새로운 일을 시작할 때 완벽을 기다리면 영영 시작하지 못할 수도 있다.",
+                    "여행의 즐거움은 목적지가 아니라 그곳까지 가는 길에 있다고들 한다.",
+                    "정리되지 않은 책상은 정리되지 않은 생각을 그대로 보여준다고 한다.",
+                    "오늘 배운 것을 누군가에게 설명해 보면 내가 무엇을 모르는지 알게 된다.",
+                    "충분한 잠은 어떤 영양제보다 확실한 회복 방법이라는 이야기가 많다.",
+                    "글씨를 또박또박 쓰듯이, 타자도 정확하게 치는 연습이 먼저다.",
+                    "사소해 보이는 인사말 한마디가 하루의 분위기를 완전히 바꿔 놓기도 한다."
+                ],
+                long:[
+                    "빠른 손놀림보다 중요한 것은 정확한 타이핑 습관이다. 처음에는 느리더라도 오타 없이 정확하게 입력하는 연습을 반복하다 보면, 자연스럽게 속도도 함께 늘어나게 된다. 조급해하지 말고 꾸준히 연습해보자.",
+                    "하루 십 분씩 꾸준히 연습하는 것이 하루에 한 시간 몰아서 연습하는 것보다 효과적일 때가 많다. 짧더라도 매일 반복하는 습관이 실력 향상의 지름길이라는 사실을 기억하자.",
+                    "컴퓨터 자판을 보지 않고 입력하는 것을 흔히 블라인드 터치라고 부른다. 처음에는 어색하고 느리게 느껴지겠지만, 손가락이 자판의 위치를 기억하게 되면 화면만 보고도 빠르게 입력할 수 있게 된다.",
+                    "글쓰기와 타이핑은 서로 다른 능력이지만 밀접하게 연결되어 있다. 생각이 손끝을 통해 자연스럽게 흘러나올 수 있도록, 손가락이 자판에 익숙해지는 연습을 게을리하지 않는 것이 중요하다.",
+                    "자세가 나쁘면 아무리 오래 연습해도 속도가 잘 늘지 않는다. 손목은 책상에 붙이지 말고 살짝 띄우며, 어깨의 힘을 빼고 등을 곧게 펴는 것이 기본이다. 목과 허리에 무리가 가지 않는 자세가 결국 오래 연습할 수 있게 해 준다.",
+                    "많은 사람들이 타자를 칠 때 자판을 내려다보는 습관을 버리지 못한다. 처음에는 답답하더라도 화면만 보고 입력하는 연습을 하면, 몇 주 안에 손가락이 자리를 기억하기 시작한다. 그때부터는 속도가 눈에 띄게 달라진다.",
+                    "오타가 났을 때 곧바로 지우고 다시 치는 습관은 생각보다 시간을 많이 잡아먹는다. 처음부터 천천히 정확하게 입력하는 쪽이 전체적으로는 훨씬 빠르다는 사실을, 연습을 오래 해 본 사람들은 대체로 알고 있다.",
+                    "계절이 바뀌는 시기에는 아침저녁으로 기온 차가 크기 때문에 얇은 옷을 여러 겹 겹쳐 입는 편이 좋다. 갑작스러운 기온 변화는 면역력을 떨어뜨리기 쉬우니, 따뜻한 물을 자주 마시고 충분히 자는 것이 무엇보다 중요하다.",
+                    "도시에서 자라 밤하늘의 별을 제대로 본 적이 없던 사람도, 불빛 없는 시골에서 하룻밤을 보내면 생각이 달라진다. 머리 위로 쏟아질 듯 펼쳐진 별들을 보고 있으면, 그동안 크게만 느껴졌던 고민들이 잠시 작아지는 기분이 든다.",
+                    "오래된 물건을 쉽게 버리지 못하는 이유는 물건 자체가 아니라 거기에 얽힌 시간 때문일 것이다. 낡은 필통 하나, 색이 바랜 사진 한 장에도 그때의 공기와 소리가 함께 담겨 있어서, 정리를 하다 말고 한참을 들여다보게 된다.",
+                    "좋은 습관을 만드는 가장 확실한 방법은 목표를 아주 작게 쪼개는 것이라고 한다. 매일 한 시간 운동하겠다는 다짐보다, 운동화를 신고 현관을 나서겠다는 다짐이 훨씬 오래간다. 시작의 문턱을 낮추는 것이 핵심인 셈이다.",
+                    "업무용 문서를 작성할 때는 화려한 표현보다 정확한 전달이 우선이다. 한 문장에 하나의 내용만 담고, 불필요한 수식어를 덜어내면 읽는 사람의 시간을 아낄 수 있다. 결국 좋은 문서란 빠르게 이해되는 문서다."
+                ]
+            },
+            mix:{
+                short:[
+                    "오늘 회의는 Zoom 으로 진행합니다.",
+                    "USB 포트에 케이블을 연결하세요.",
+                    "Wi-Fi 비밀번호를 확인해 주세요.",
+                    "이 파일은 PDF 로 저장했습니다.",
+                    "AI 기술이 빠르게 발전하고 있다.",
+                    "점심은 샌드위치와 coffee 로 해결했다.",
+                    "새 버전은 v2.5 부터 적용됩니다.",
+                    "CPU 온도가 조금 높은 편이다.",
+                    "메일은 gmail 로 보내 주세요.",
+                    "노트북 battery 가 다 되었다.",
+                    "엑셀 파일을 CSV 로 변환했다.",
+                    "오늘 오후 3시에 call 이 잡혀 있다.",
+                    "프린터 driver 를 다시 설치했다.",
+                    "이 기능은 beta 버전입니다.",
+                    "링크는 SNS 에 공유해 주세요.",
+                    "모니터 HDMI 케이블이 헐거웠다.",
+                    "보고서는 A4 두 장으로 정리했다.",
+                    "앱 update 알림이 계속 뜬다.",
+                    "백업은 NAS 에 저장됩니다.",
+                    "회원가입은 email 인증이 필요합니다.",
+                    "VPN 을 켜고 접속해 보세요.",
+                    "이 문서는 Word 로 작성했습니다.",
+                    "서버 IP 를 다시 확인해 주세요.",
+                    "QR 코드를 찍어 입장하세요.",
+                    "오늘 OT 는 7시에 끝났다.",
+                    "자료는 Google Drive 에 올렸습니다.",
+                    "LED 조명을 전부 교체했다.",
+                    "카드 결제는 NFC 로 가능합니다.",
+                    "이 노래는 MP3 로 받아 두었다.",
+                    "점검은 AM 9시에 시작합니다."
+                ],
+                medium:[
+                    "서버 IP 주소는 192.168.0.1 이고, 관리자 계정으로 SSH 접속이 가능합니다.",
+                    "회의록은 Google Docs 에 정리했으니, 수정 사항이 있으면 comment 로 남겨 주세요.",
+                    "이번 update 에서는 로그인 속도가 개선되고 UI 디자인이 전면 변경되었습니다.",
+                    "백업은 매주 금요일 오후 6시에 NAS 로 자동 저장되도록 설정해 두었습니다.",
+                    "엑셀 파일을 CSV 로 변환한 뒤 데이터베이스에 import 하면 작업이 훨씬 빨라진다.",
+                    "고객 문의는 CS 팀으로 전달하고, 기술 이슈는 dev 채널에 공유해 주세요.",
+                    "이 기능은 Chrome 과 Edge 에서는 정상 동작하지만 구형 브라우저에서는 제한됩니다.",
+                    "신규 계정은 email 인증을 마친 뒤에야 로그인 권한이 부여되도록 바뀌었습니다.",
+                    "발표 자료는 PPT 대신 PDF 로 배포하는 편이 글꼴 깨짐을 막는 데 안전합니다.",
+                    "네트워크가 느릴 때는 먼저 공유기를 재부팅하고 LAN 케이블 연결을 확인해 보세요.",
+                    "이번 주 금요일까지 A팀은 QA 를 마치고, B팀은 배포 문서를 정리하기로 했습니다.",
+                    "사진 파일은 JPG 로, 로고처럼 배경이 투명한 이미지는 PNG 로 저장하는 편이 좋습니다.",
+                    "휴대폰 저장 공간이 부족하면 사진을 cloud 에 올린 뒤 기기에서 삭제하면 됩니다.",
+                    "보안을 위해 비밀번호는 영문 대소문자와 숫자, 특수문자를 섞어 10자 이상으로 설정하세요.",
+                    "결제 내역은 앱의 My 메뉴에서 확인할 수 있고, 영수증은 email 로도 발송됩니다.",
+                    "원격 근무가 늘면서 화상회의 도구와 메신저 사용이 크게 증가했다고 한다.",
+                    "이 프로그램은 Windows 와 macOS 모두 지원하지만 설치 방법이 조금 다릅니다.",
+                    "검색 결과 상위에 노출되려면 제목과 본문에 keyword 를 자연스럽게 배치해야 한다.",
+                    "USB 메모리는 반드시 안전하게 제거를 누른 뒤 뽑아야 파일 손상을 막을 수 있습니다.",
+                    "전기요금을 아끼려면 대기전력을 차단하는 멀티탭을 쓰는 것이 가장 확실한 방법이다."
+                ],
+                long:[
+                    "정보통신 설비를 점검할 때는 UPS 의 배터리 상태와 HVAC 온습도를 함께 확인해야 한다. 특히 서버실 온도가 25도를 넘어가면 장비 수명이 급격히 줄어들기 때문에, 모니터링 시스템에 alert 를 걸어 두는 것이 안전하다.",
+                    "웹 개발을 처음 배울 때는 HTML 과 CSS 로 구조와 디자인을 익히고, 그다음 JavaScript 로 동작을 붙이는 순서가 일반적이다. 기본기가 쌓이면 React 나 Vue 같은 framework 로 넘어가는 것이 훨씬 수월해진다.",
+                    "네트워크 장애가 발생하면 먼저 ping 과 traceroute 로 경로를 확인하고, 문제가 되는 구간을 좁혀 나가는 것이 기본이다. 스위치 포트의 LED 상태나 케이블 접촉 불량처럼 단순한 원인인 경우도 의외로 많다.",
+                    "클라우드 서비스를 쓰더라도 중요한 자료는 별도의 외장 하드나 NAS 에 한 번 더 백업해 두는 것이 안전하다. 계정이 잠기거나 서비스가 중단되는 상황은 드물지만, 실제로 벌어지면 복구할 방법이 마땅치 않기 때문이다.",
+                    "스마트폰 배터리를 오래 쓰려면 완전히 방전시키는 대신 20% 에서 80% 사이를 유지하는 편이 좋다고 알려져 있다. 고온 환경도 수명을 크게 줄이므로 여름철 차 안에 두는 습관은 피하는 것이 좋다.",
+                    "업무용 메일을 쓸 때는 제목에 핵심을 담고, 본문 첫 줄에 요청 사항을 먼저 적는 편이 좋다. 상대가 스크롤을 내리지 않고도 무엇을 해야 하는지 알 수 있어야 하며, 첨부파일은 용량을 확인한 뒤 보내야 반송을 막을 수 있다.",
+                    "원격 데스크톱으로 사무실 PC 에 접속할 때는 VPN 을 먼저 연결하고, 공용 Wi-Fi 에서는 가급적 작업을 피하는 것이 안전하다. 편의를 위해 보안을 낮추면 결국 더 큰 시간을 쓰게 되는 경우가 많다.",
+                    "엑셀에서 데이터가 많아질수록 수식보다 표 기능과 피벗 테이블을 쓰는 편이 관리하기 쉽다. VLOOKUP 대신 XLOOKUP 을 쓰면 오류도 줄고, 나중에 다른 사람이 파일을 열었을 때 구조를 이해하기도 훨씬 수월하다.",
+                    "AI 도구가 빠르게 늘고 있지만, 결과를 그대로 쓰기보다 초안으로 활용하는 편이 현실적이다. 사실관계를 확인하고 문장을 다듬는 과정은 여전히 사람의 몫이며, 그 과정에서 오히려 이해가 깊어지는 경우도 많다.",
+                    "사무실 네트워크를 새로 구성할 때는 유선과 무선의 역할을 미리 나눠 두는 편이 좋다. 고정된 자리에서 큰 파일을 다루는 PC 는 LAN 으로 연결하고, 이동이 잦은 노트북과 모바일 기기는 Wi-Fi 로 묶으면 전체 속도가 안정된다."
+                ]
+            },
+            en:{
+                short:[
+                    "Practice makes perfect.",
+                    "Every expert was once a beginner.",
+                    "Small steps lead to big results.",
+                    "Keep calm and keep typing.",
+                    "Speed comes with practice.",
+                    "Focus on accuracy first.",
+                    "A good habit is worth building.",
+                    "Slow and steady wins the race.",
+                    "Type with confidence today.",
+                    "Consistency beats intensity.",
+                    "The morning air feels crisp today.",
+                    "She opened the window for fresh air.",
+                    "He poured another cup of tea.",
+                    "The library closes at six.",
+                    "Rain tapped against the glass.",
+                    "A quiet room helps you focus.",
+                    "Take a short walk after lunch.",
+                    "The cat sleeps in the sunlight.",
+                    "Good tools make good work.",
+                    "Read one page before bed.",
+                    "Answer the easy questions first.",
+                    "Save your work before closing.",
+                    "The bus arrived five minutes late.",
+                    "Check the list one more time.",
+                    "Simple words carry more weight.",
+                    "He learned to cook last winter.",
+                    "Turn off the lights when you leave.",
+                    "The map was folded in the drawer.",
+                    "Write it down before you forget.",
+                    "A warm meal ends a cold day.",
+                    "Ask questions when you are unsure.",
+                    "Rest is part of the work.",
+                    "Try again tomorrow morning.",
+                    "The garden needs water tonight.",
+                    "Keep your desk clear and calm.",
+                    "Send the file before noon."
+                ],
+                medium:[
+                    "The quick brown fox jumps over the lazy dog, and this simple sentence has helped typists practice for generations.",
+                    "Learning to type without looking at the keyboard takes time, but the effort pays off with much greater speed later on.",
+                    "A short daily practice session is often more effective than one long session crammed into a single day.",
+                    "Good typing habits start with proper finger placement and a relaxed, steady rhythm rather than raw speed.",
+                    "Accuracy should always come before speed, because fixing mistakes later takes longer than typing carefully at first.",
+                    "Many people find that typing practice also improves their focus and their patience over time.",
+                    "Setting a small daily goal makes it easier to stay motivated during long stretches of practice.",
+                    "If your shoulders feel tense while typing, stop for a moment and let your arms hang loosely at your sides.",
+                    "Reading a sentence fully before typing it often turns out to be faster than reading word by word.",
+                    "The best time to start something difficult is usually right now, before the excuse has time to form.",
+                    "Keeping a glass of water on your desk is a small habit that quietly improves the whole afternoon.",
+                    "A clear message is almost always shorter than the first draft you wrote of it.",
+                    "Walking for twenty minutes after a meal can do more for your mood than an extra cup of coffee.",
+                    "When you feel stuck on a problem, explaining it out loud often reveals the answer on its own.",
+                    "Most skills look like talent from the outside and feel like patience from the inside.",
+                    "He kept a notebook by the bed because the best ideas rarely waited until morning.",
+                    "The old bookstore on the corner smelled of paper and dust, and nobody ever seemed to be in a hurry there.",
+                    "Learning a new language is less about memory than about being willing to sound foolish for a while.",
+                    "A well organized desk will not write the report for you, but it removes one excuse for not starting.",
+                    "The train was late again, so she finished the chapter she had been carrying around for weeks.",
+                    "Rain fell steadily all afternoon, and by evening the streets had emptied into a quiet gray hush.",
+                    "Nothing improves a difficult morning quite like finishing one small task before anyone else arrives."
+                ],
+                long:[
+                    "Touch typing is the skill of typing without looking at the keyboard, relying instead on muscle memory built through repeated practice. At first it feels slow and awkward, but with steady effort the fingers begin to find each key almost automatically.",
+                    "Improving typing speed is less about rushing and more about building a smooth, consistent rhythm. Typists who focus on accuracy early tend to reach higher speeds later, because they spend less time correcting mistakes.",
+                    "Many writers and programmers spend hours each day at a keyboard, so even small improvements in typing efficiency can save a surprising amount of time over a year. Regular short sessions produce the most lasting improvement.",
+                    "Posture matters more than most beginners expect. Keep your wrists floating rather than resting on the desk, let your shoulders drop, and sit with your back straight but not stiff. A comfortable position is what allows you to practice long enough to actually improve.",
+                    "The hardest part of learning any skill is the stretch between knowing what to do and being able to do it without thinking. During that period progress feels invisible, which is exactly when most people quit. Those who continue usually find that the breakthrough arrives quietly.",
+                    "A good habit is rarely built through willpower alone. It is built by making the first step so small that refusing it feels absurd, and by repeating that step until skipping it feels stranger than doing it.",
+                    "Writing clearly is mostly a matter of removing things. Long sentences hide their own meaning, and clever phrasing often costs the reader more attention than it returns. The plainest version is usually the strongest one.",
+                    "The old house stood at the end of a narrow lane, half hidden by trees that had grown far past anyone's intentions. In summer the leaves made the windows dark, and in winter the bare branches let in a thin, unfamiliar light.",
+                    "Travel changes people less through the places they see than through the small inconveniences they survive. A missed connection, an unreadable sign, a meal ordered by pointing at a picture. These are the things remembered years later.",
+                    "Every craft has a stage where progress stops feeling dramatic. The early leaps are gone, and what remains is the slow work of refining small details nobody else will notice. This is the stage where real skill is actually built."
+                ]
+            }
+        };
+
+        var state = {
+            mode:'practice', lang:'ko', len:'short', source:'builtin', custom:[], chunk:100,
+            doneChars:0, wrongTotal:0, sentences:0, text:'', spans:[],
+            pos:0, wrongSet:{}, keystrokes:0,
+            startedAt:null, running:false, composing:false, timerId:null
+        };
+
+        var el = {};
+        ['langSeg','lenSeg','startScreen','practiceScreen','resultScreen','startBtn',
+            'targetText','composingView','hiddenInput','statTime','statSpeed','statAccuracy',
+            'speedUnitLabel','resSpeed','resSpeedLabel','resAccuracy','resTime','resultSub',
+            'resultTitle','bestNote','retryNewBtn','toHomeBtn',
+            'stopBtn','restartBtn','skipBtn',
+            'modeSeg','startDesc','gameScreen','gameOverScreen','gameField','gameInput',
+            'gLevel','gScore','gLives','gStopBtn','gPauseBtn',
+            'goScore','goLevel','goWords','goSub','goBest','goRetryBtn','goHomeBtn',
+            'statsPanel','shareBtn','statCount','sourceSeg','customBox','customInfo','customText',
+            'uploadBtn','clearCustomBtn','saveCustomBtn','fileInput','chunkSeg'].forEach(function(id){ el[id]=document.getElementById(id); });
+
+        function isKo(){ return state.lang==='ko'; }
+// 내 문장은 한/영이 섞일 수 있어 '타/분'(실제 누른 키 수) 으로 통일한다
+        function isMixed(){ return state.source==='custom' || state.lang==='mix'; }
+        function speedUnit(){ return (isMixed()||isKo())?'타/분':'WPM'; }
+        function currentPool(){
+            if(state.source==='custom' && state.custom.length) return state.custom;
+            return SENTENCES[state.lang][state.len];
+        }
+        function pickText(){
+            var pool=currentPool(), t;
+            if(!pool.length) return '연습할 문장이 없습니다.';
+            do{ t=pool[Math.floor(Math.random()*pool.length)]; }while(pool.length>1 && t===state.text);
+            return t;
+        }
+        function bestKey(){ return 'typing_best_'+state.lang+'_'+state.len; }
+        function loadBest(){ try{ return JSON.parse(localStorage.getItem(bestKey())); }catch(e){ return null; } }
+
+        function setActive(seg,attr,v){
+            Array.prototype.forEach.call(seg.querySelectorAll('button'),function(b){
+                b.classList.toggle('active', b.getAttribute(attr)===v);
+            });
+        }
+        function lockControls(lock){
+            Array.prototype.forEach.call(document.querySelectorAll('.seg button'),function(b){ b.disabled=lock; });
+        }
+
+        el.langSeg.addEventListener('click',function(e){
+            var b=e.target.closest('button'); if(!b||b.disabled) return;
+            state.lang=b.getAttribute('data-lang'); setActive(el.langSeg,'data-lang',state.lang);
+        });
+        el.lenSeg.addEventListener('click',function(e){
+            var b=e.target.closest('button'); if(!b||b.disabled) return;
+            state.len=b.getAttribute('data-len'); setActive(el.lenSeg,'data-len',state.len);
+        });
+
+// 문장 span 을 한 번만 만들어 두고 클래스만 바꾼다 → 글자 위치가 절대 움직이지 않음
+        function buildSpans(){
+            el.targetText.textContent='';
+            state.spans=[];
+            var frag=document.createDocumentFragment();
+            for(var i=0;i<state.text.length;i++){
+                var s=document.createElement('span');
+                s.className='ch pending';
+                s.textContent=state.text[i];
+                frag.appendChild(s);
+                state.spans.push(s);
+            }
+            el.targetText.appendChild(frag);
+        }
+
+// 마지막 글자가 아직 완성 전일 수 있는지 판정.
+// 일부 안드로이드 IME 는 한 자모마다 조합을 끝내버리므로(마 → 말),
+// 마지막 글자가 한글(완성형 또는 단독 자모)이면 무조건 "아직 만드는 중"으로 본다.
+        var HANGUL=/[\uAC00-\uD7A3\u3130-\u318F\u1100-\u11FF]/;
+        function judgedLength(){
+            var v=el.hiddenInput.value;
+            if(!v.length) return 0;
+            if(state.composing || HANGUL.test(v[v.length-1])) return v.length-1;
+            return v.length;
+        }
+
+// ----- 한글 자모 분해 -----
+        var CHO=['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+        var JUNG=['ㅏ','ㅐ','ㅑ','ㅒ','ㅓ','ㅔ','ㅕ','ㅖ','ㅗ','ㅘ','ㅙ','ㅚ','ㅛ','ㅜ','ㅝ','ㅞ','ㅟ','ㅠ','ㅡ','ㅢ','ㅣ'];
+        var JONG=['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+        var JONG_SPLIT={'ㄳ':['ㄱ','ㅅ'],'ㄵ':['ㄴ','ㅈ'],'ㄶ':['ㄴ','ㅎ'],'ㄺ':['ㄹ','ㄱ'],'ㄻ':['ㄹ','ㅁ'],
+            'ㄼ':['ㄹ','ㅂ'],'ㄽ':['ㄹ','ㅅ'],'ㄾ':['ㄹ','ㅌ'],'ㄿ':['ㄹ','ㅍ'],'ㅀ':['ㄹ','ㅎ'],'ㅄ':['ㅂ','ㅅ']};
+
+        function jamo(ch){
+            if(!ch) return [];
+            var code=ch.charCodeAt(0);
+            if(code>=0xAC00 && code<=0xD7A3){
+                var s=code-0xAC00;
+                var arr=[CHO[Math.floor(s/588)], JUNG[Math.floor((s%588)/28)]];
+                var jong=JONG[s%28];
+                if(jong) arr=arr.concat(JONG_SPLIT[jong]||[jong]);
+                return arr;
+            }
+            return [ch];
+        }
+
+        function evaluate(){
+            var v=el.hiddenInput.value;
+            if(v.indexOf('\n')>=0){ v=v.replace(/\n/g,''); el.hiddenInput.value=v; }
+            if(v.length>state.text.length+1){ v=v.slice(0,state.text.length+1); el.hiddenInput.value=v; }
+
+            var committed = judgedLength();                                    // 조합이 끝나 확정된 글자 수
+            var compChar  = (v.length>committed) ? v[committed] : null;        // 지금 만들어지는 중인 글자
+
+// 조합 중인 글자가 이미 목표 글자를 다 포함하는지 판단
+// 예) 목표 "하" 를 치고 다음 "루" 의 ㄹ 을 누르면 IME 는 "할" 로 만든다 → "하" 는 완성, "ㄹ" 은 다음 글자 몫
+            var done=false, rest='';
+            if(compChar){
+                var jc=jamo(compChar), jt=jamo(state.text[committed]);
+                if(jc.length>=jt.length){
+                    var pre=true;
+                    for(var k=0;k<jt.length;k++){ if(jc[k]!==jt[k]){ pre=false; break; } }
+                    if(pre){ done=true; rest=jc.slice(jt.length).join(''); }
+                }
+            }
+
+            var compIdx = compChar ? (done ? committed+1 : committed) : -1;   // 지금 만들어지는 중인 칸
+            var cursorIdx = done ? committed+1 : committed;
+            state.pos = done ? committed+1 : committed;
+
+            for(var i=0;i<state.spans.length;i++){
+                var span=state.spans[i], cls, txt=state.text[i];
+                if(i<committed){
+                    var ok = v[i]===state.text[i];
+                    if(!ok) state.wrongSet[i]=true;
+                    cls = ok ? 'ch correct' : 'ch wrong';
+                } else if(i===committed && done){
+                    cls='ch correct';
+                } else if(i===compIdx && (!done || rest)){
+                    cls='ch composing';
+                    txt = done ? rest : compChar;     // ㄱ → 가 → 각 : 친 그대로 그 칸에 표시
+                } else if(i===cursorIdx){
+                    cls='ch pending current';
+                } else {
+                    cls='ch pending';
+                }
+                if(span.textContent!==txt) span.textContent=txt;
+                if(span.className!==cls) span.className=cls;
+            }
+
+            var showing = done ? rest : compChar;
+            el.composingView.innerHTML = showing
+                ? '입력 중 <b>'+showing.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</b>'
+                : '&nbsp;';
+
+            updateStats();
+
+            if(committed>=state.text.length){ nextSentence(true); return; }
+            if(done && !rest && committed+1>=state.text.length){ nextSentence(true); }
+        }
+
+// 세션(중지할 때까지) 누적 집계
+        function sessionStats(){
+            var sec=state.startedAt?(Date.now()-state.startedAt)/1000:0;
+            var typed=state.doneChars+state.pos;
+            var wrong=state.wrongTotal+Object.keys(state.wrongSet).length;
+            var min=sec/60, speed=0;
+            if(min>0) speed = (isMixed()||isKo())?Math.round(state.keystrokes/min)
+                :Math.round((typed/5)/min);
+            return {
+                sec:sec, typed:typed, wrong:wrong, speed:speed,
+                acc: typed>0?Math.max(0,Math.round(((typed-wrong)/typed)*100)):100
+            };
+        }
+
+        function updateStats(){
+            var st=sessionStats();
+            el.statTime.textContent=st.sec.toFixed(1)+'s';
+            el.speedUnitLabel.textContent = speedUnit();
+            el.statSpeed.textContent = st.speed;
+            el.statAccuracy.textContent = st.acc+'%';
+            el.statCount.textContent = state.sentences;
+        }
+
+        function show(which){
+            el.startScreen.style.display    = which==='start' ?'block':'none';
+            el.practiceScreen.style.display = which==='run'   ?'block':'none';
+            el.resultScreen.style.display   = which==='result'?'block':'none';
+            el.gameScreen.style.display     = which==='game'  ?'block':'none';
+            el.gameOverScreen.style.display = which==='over'  ?'block':'none';
+        }
+
+// 새 문장을 화면에 건다 (세션 통계는 그대로 이어짐)
+        function loadSentence(newText){
+            if(newText) state.text=pickText();
+            state.pos=0; state.wrongSet={}; state.composing=false;
+            el.hiddenInput.value='';
+            buildSpans();
+            if(state.spans[0]) state.spans[0].className='ch pending current';
+            el.composingView.innerHTML='&nbsp;';
+            el.targetText.classList.remove('slide-in');
+            void el.targetText.offsetWidth;          // 애니메이션 재시작
+            el.targetText.classList.add('slide-in');
+        }
+
+// 문장을 끝내면 멈추지 않고 바로 다음 문장으로
+        function nextSentence(countIt){
+            if(countIt){
+                state.doneChars += state.text.length;
+                state.wrongTotal += Object.keys(state.wrongSet).length;
+                state.sentences++;
+            }
+            loadSentence(true);
+            updateStats();
+            el.hiddenInput.focus();
+        }
+
+// 세션 시작
+        function start(){
+            state.doneChars=0; state.wrongTotal=0; state.sentences=0;
+            state.keystrokes=0; state.startedAt=null;
+            state.running=true; state.text='';
+            lockControls(true);
+            show('run');
+            loadSentence(true);
+            updateStats();
+            setTimeout(function(){ el.hiddenInput.focus(); },30);
+            if(state.timerId) clearInterval(state.timerId);
+            state.timerId=setInterval(function(){ if(state.startedAt&&state.running) updateStats(); },100);
+        }
+
+        function finish(completed){
+            if(!state.running) return;
+            state.running=false;
+            if(state.timerId) clearInterval(state.timerId);
+            lockControls(false);
+            el.hiddenInput.blur();
+
+            var st=sessionStats();
+            var unit=speedUnit();
+            var enough = state.sentences>0;          // 한 문장이라도 끝냈는가
+
+            show('result');
+            el.resultTitle.textContent='연습 종료';
+            el.resSpeed.textContent=st.speed;
+            el.resSpeedLabel.textContent=unit;
+            el.resAccuracy.textContent=st.acc+'%';
+            el.resTime.textContent=st.sec.toFixed(1)+'s';
+            el.resultSub.textContent=(state.source==='custom'?'내 문장':(state.lang==='mix'?'한/영 혼합':isKo()?'한글':'영어'))+
+                (isMixed()?'':' · '+(state.len==='short'?'짧게':state.len==='medium'?'보통':'길게'))+
+                ' · 문장 '+state.sentences+'개 · '+st.typed+'자';
+
+            if(enough){
+                var best=loadBest();
+                if(!best||st.speed>best.speed){
+                    try{ localStorage.setItem(bestKey(),JSON.stringify({speed:st.speed,accuracy:st.acc})); }catch(e){}
+                    el.bestNote.textContent='새로운 최고 기록입니다';
+                } else {
+                    el.bestNote.textContent='최고 기록 '+best.speed+' '+unit+' (정확도 '+best.accuracy+'%)';
+                }
+                addRecord({kind:'practice', lang:state.lang, src:state.source, len:state.len, speed:st.speed, acc:st.acc});
+            } else {
+                el.bestNote.textContent='문장을 한 개 이상 끝내야 기록으로 남습니다';
+            }
+        }
+
+        el.hiddenInput.addEventListener('compositionstart',function(){ state.composing=true; });
+        el.hiddenInput.addEventListener('compositionend',function(){ state.composing=false; evaluate(); });
+        el.hiddenInput.addEventListener('input',function(e){
+            if(!state.running) return;
+            if(e.isComposing) state.composing=true;
+            if(!state.startedAt) state.startedAt=Date.now();
+            evaluate();
+        });
+        el.hiddenInput.addEventListener('keydown',function(e){
+            if(e.key==='Escape'){ e.preventDefault(); finish(false); return; }
+            if(e.key==='Enter'){ e.preventDefault(); return; }
+            if(!state.running) return;
+            if(e.key.length===1||e.key==='Process'||e.keyCode===229) state.keystrokes++;
+        });
+
+// 입력칸 자체는 그대로 두고, 글자 영역을 눌러도 입력칸으로 포커스가 가게 한다
+        el.targetText.addEventListener('mousedown',function(e){
+            e.preventDefault(); el.hiddenInput.focus();
+        });
+        el.targetText.addEventListener('touchend',function(){ el.hiddenInput.focus(); });
+
+// ================= 내 문장 (텍스트 파일 업로드) =================
+        var MAX_SENTENCES=5000, MAX_CHARS=500000;
+
+// 긴 문단은 버리지 않고 공백 단위로 잘라 연속 조각으로 만든다
+        function chunkLong(text, limit){
+            if(text.length<=limit) return [text];
+            var out=[], words=text.split(' '), cur='';
+            for(var i=0;i<words.length;i++){
+                var w=words[i];
+// 한 단어가 한도보다 길면(긴 URL 등) 강제로 자른다
+                while(w.length>limit){
+                    if(cur){ out.push(cur); cur=''; }
+                    out.push(w.slice(0,limit));
+                    w=w.slice(limit);
+                }
+                if(!cur) cur=w;
+                else if((cur+' '+w).length<=limit) cur+=' '+w;
+                else { out.push(cur); cur=w; }
+            }
+            if(cur) out.push(cur);
+            return out;
+        }
+
+        function splitSentences(raw){
+            var limit=state.chunk||100;
+            var parts = raw
+            .replace(/\r/g,'')
+            .split(/\n+|(?<=[.!?。])\s+/)
+            .map(function(t){ return t.replace(/\s+/g,' ').trim(); })
+            .filter(function(t){ return t.length>=2; });
+
+            var out=[];
+            for(var i=0;i<parts.length && out.length<MAX_SENTENCES;i++){
+                out=out.concat(chunkLong(parts[i], limit));
+            }
+            return out.slice(0, MAX_SENTENCES);
+        }
+
+        function loadCustom(){
+            state.custom = lsGet('typing_custom', []);
+            el.customText.value = lsGet('typing_custom_raw', '');
+            state.chunk = lsGet('typing_chunk', 100);
+            setActive(el.chunkSeg,'data-chunk',String(state.chunk));
+            renderCustomInfo();
+        }
+
+        function renderCustomInfo(){
+            el.customInfo.textContent = state.custom.length
+                ? '저장된 문장 '+state.custom.length+'개 — 연습에 사용됩니다.'
+                : '아직 저장된 문장이 없습니다. 파일을 올리거나 직접 붙여넣으세요. 한글·영문·숫자를 섞어도 됩니다. (최대 50만 자 / 5000문장)';
+        }
+
+        function saveCustom(raw){
+            var list=splitSentences(raw);
+            if(!list.length){
+                el.customInfo.textContent='문장을 찾지 못했습니다. 내용을 확인해주세요.';
+                return;
+            }
+            var trimmed = raw.length>MAX_CHARS;
+            state.custom=list;
+            try{
+                lsSet('typing_custom', list);
+                lsSet('typing_custom_raw', raw.slice(0,MAX_CHARS));
+            }catch(e){
+                el.customInfo.textContent='저장 공간이 부족합니다. 글을 조금 줄여주세요.';
+                return;
+            }
+            state.source='custom';
+            setActive(el.sourceSeg,'data-source','custom');
+            applySource();
+            el.customInfo.textContent='문장 '+list.length+'개('+raw.length.toLocaleString()+'자)를 저장했습니다.'+
+                (trimmed?' 50만 자를 넘는 부분은 잘렸습니다.':'')+
+                (list.length>=MAX_SENTENCES?' 최대 '+MAX_SENTENCES+'개까지만 사용합니다.':'');
+        }
+
+// .txt 는 UTF-8 이 아닌 경우(EUC-KR)가 많아 두 번 시도한다
+        function readTextFile(file){
+            var reader=new FileReader();
+            reader.onload=function(){
+                var buf=reader.result, text='';
+                try{ text=new TextDecoder('utf-8',{fatal:false}).decode(buf); }catch(e){}
+                if(!text || text.indexOf('\uFFFD')>=0){
+                    try{ text=new TextDecoder('euc-kr').decode(buf); }catch(e){}
+                }
+                el.customText.value=text;
+                saveCustom(text);
+            };
+            reader.onerror=function(){ el.customInfo.textContent='파일을 읽지 못했습니다.'; };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function applySource(){
+            var custom = state.source==='custom';
+            el.customBox.style.display = custom?'block':'none';
+            el.lenSeg.style.display = (custom || state.mode==='game')?'none':'flex';
+// 내 문장은 한/영이 섞일 수 있으므로 언어 선택이 의미 없다
+            el.langSeg.style.display = (custom && state.mode!=='game')?'none':'flex';
+        }
+
+        el.sourceSeg.addEventListener('click',function(e){
+            var b=e.target.closest('button'); if(!b||b.disabled) return;
+            state.source=b.getAttribute('data-source');
+            setActive(el.sourceSeg,'data-source',state.source);
+            applySource();
+        });
+        el.chunkSeg.addEventListener('click',function(e){
+            var b=e.target.closest('button'); if(!b||b.disabled) return;
+            state.chunk=parseInt(b.getAttribute('data-chunk'),10);
+            setActive(el.chunkSeg,'data-chunk',String(state.chunk));
+            lsSet('typing_chunk', state.chunk);
+            var raw=el.customText.value;
+            if(raw.trim()) saveCustom(raw);           // 새 길이로 즉시 다시 나눔
+        });
+        el.uploadBtn.addEventListener('click',function(){ el.fileInput.click(); });
+        el.fileInput.addEventListener('change',function(e){
+            var f=e.target.files&&e.target.files[0];
+            if(f) readTextFile(f);
+            e.target.value='';
+        });
+        el.saveCustomBtn.addEventListener('click',function(){ saveCustom(el.customText.value); });
+        el.clearCustomBtn.addEventListener('click',function(){
+            state.custom=[]; el.customText.value='';
+            lsSet('typing_custom',[]); lsSet('typing_custom_raw','');
+            renderCustomInfo();
+        });
+
+// ================= 기록 누적 · 연속 접속 =================
+        function lsGet(k,def){ try{ var v=localStorage.getItem(k); return v?JSON.parse(v):def; }catch(e){ return def; } }
+        function lsSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+        function dayStr(d){ return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2); }
+
+        function touchStreak(){
+            var st=lsGet('typing_streak',{last:'',count:0,best:0});
+            var today=dayStr(new Date());
+            if(st.last!==today){
+                var yest=dayStr(new Date(Date.now()-86400000));
+                st.count = (st.last===yest) ? st.count+1 : 1;
+                st.last=today;
+                if(st.count>(st.best||0)) st.best=st.count;
+                lsSet('typing_streak',st);
+            }
+            return st;
+        }
+
+        function addRecord(rec){
+            rec.date=dayStr(new Date());
+            rec.ts=Date.now();
+            var h=lsGet('typing_history',[]);
+            h.unshift(rec);
+            if(h.length>30) h=h.slice(0,30);
+            lsSet('typing_history',h);
+            renderStatsPanel();
+        }
+
+        function renderStatsPanel(){
+            var st=lsGet('typing_streak',{count:1,best:1});
+            var h=lsGet('typing_history',[]);
+            var today=dayStr(new Date());
+            var todayRecs=h.filter(function(r){ return r.date===today && r.kind==='practice'; });
+            var todayBest=todayRecs.reduce(function(a,r){ return Math.max(a,r.speed); },0);
+
+            var html='<div class="sp-top">'+
+                '<span>연속 접속 <span class="sp-streak">'+st.count+'일째</span>'+
+                (st.best>st.count?' <span style="color:#8b8375">(최고 '+st.best+'일)</span>':'')+'</span>'+
+                '<span>오늘 최고 <b>'+(todayBest||'-')+'</b></span>'+
+                '</div>';
+
+            var recent=h.filter(function(r){ return r.kind==='practice'; }).slice(0,5);
+            if(!recent.length){
+                html+='<p class="sp-empty">아직 기록이 없습니다. 첫 연습을 시작해보세요.</p>';
+            } else {
+                var max=recent.reduce(function(a,r){ return Math.max(a,r.speed); },1);
+                recent.forEach(function(r){
+                    html+='<div class="rec-row">'+
+                        '<span class="rec-tag">'+(r.src==='custom'?'내 문장':r.lang==='mix'?'혼합':r.lang==='ko'?'한글':'영어')+' '+r.date.slice(5)+'</span>'+
+                        '<span class="rec-bar"><i style="width:'+Math.round(r.speed/max*100)+'%"></i></span>'+
+                        '<span class="rec-val">'+r.speed+' '+((r.src==='custom'||r.lang!=='en')?'타':'wpm')+'</span>'+
+                        '</div>';
+                });
+            }
+            el.statsPanel.innerHTML=html;
+        }
+
+        function copyResult(){
+            var t=el.resSpeed.textContent+' '+el.resSpeedLabel.textContent+
+                ' / 정확도 '+el.resAccuracy.textContent+
+                ' / '+el.resultSub.textContent+
+                '\n타자연습 https://gondre.store/typing/';
+            var done=function(){
+                el.shareBtn.textContent='복사했습니다';
+                setTimeout(function(){ el.shareBtn.textContent='기록 복사하기'; },1600);
+            };
+            if(navigator.clipboard && navigator.clipboard.writeText){
+                navigator.clipboard.writeText(t).then(done,function(){ fallbackCopy(t,done); });
+            } else { fallbackCopy(t,done); }
+        }
+        function fallbackCopy(t,cb){
+            var ta=document.createElement('textarea');
+            ta.value=t; ta.style.position='fixed'; ta.style.opacity='0';
+            document.body.appendChild(ta); ta.select();
+            try{ document.execCommand('copy'); cb(); }catch(e){}
+            document.body.removeChild(ta);
+        }
+        el.shareBtn.addEventListener('click',copyResult);
+
+// ================= 낱말 낙하 게임 =================
+        var WORDS = {
+            ko:{
+                1:['하늘','바다','구름','나무','사랑','친구','바람','노래','아침','저녁','시간','마음','가족','행복','여행','커피','우산','연필','창문','계단','골목','강물','노을','눈길','새벽','햇살','바위','들판','도시','편지'],
+                2:['컴퓨터','자동차','도서관','운동장','바이올린','신호등','아이스크림','우편함','손목시계','기차역','냉장고','청소기','전화기','사진첩','가로수','지하철','횡단보도','자전거','우체통','세탁기','에어컨','책가방','운동화','손난로'],
+                3:['정보통신','유지보수','시설관리','네트워크','데이터베이스','프로그래밍','키보드연습','원격제어','전산실무','보안점검','자료백업','장비교체','회선점검','전력공급','통신설비'],
+                4:['가는말이고와야','티끌모아태산','천리길도한걸음','고생끝에낙이온다','시작이반이다','발없는말이천리간다','백지장도맞들면낫다','호랑이도제말하면온다']
+            },
+            mix:{
+                1:['AI','PC방','TV뉴스','USB','와이파이','메일','파일','링크','포털','앱','폴더','서버','마우스','모니터','SNS','QR코드','MP3','PDF'],
+                2:['노트북','키보드','프린터','브라우저','다운로드','업데이트','비밀번호','네트워크','바이러스','블루투스','스마트폰','충전기','이어폰','공유기'],
+                3:['SSD 교체','IP 주소','Wi-Fi 설정','PDF 변환','CPU 온도','USB 포트','DNS 서버','LAN 케이블','HDMI 연결','VPN 접속'],
+                4:['클라우드 백업','데이터베이스 관리','네트워크 트래픽','보안 업데이트 적용','원격 접속 프로그램','서버실 온습도 점검']
+            },
+            en:{
+                1:['sky','road','tree','book','rain','fire','moon','star','wind','song','blue','hand','door','time','cake','ship','gold','leaf','desk','lamp','rock','bird','snow','wave'],
+                2:['garden','window','pencil','coffee','purple','silver','forest','planet','bridge','candle','mirror','rocket','summer','island','pocket','ticket','shadow','button'],
+                3:['keyboard','umbrella','elephant','mountain','computer','notebook','sandwich','birthday','triangle','vacation','hospital','sunlight','password','yesterday'],
+                4:['programming','information','construction','communication','extraordinary','responsibility','understanding','neighborhood']
+            }
+        };
+
+        var game = {
+            running:false, paused:false,
+            words:[], score:0, level:1, lives:3, cleared:0,
+            lastSpawn:0, lastFrame:0, raf:null, fieldH:0, seq:0
+        };
+
+        function levelConf(){
+            var L = game.level;
+            return {
+                speed: 26 + (L-1)*11,                       // px/초
+                spawn: Math.max(700, 2300 - (L-1)*160),     // 낱말 생성 간격(ms)
+                maxTier: L<3 ? 1 : L<6 ? 2 : L<10 ? 3 : 4   // 길이 등급
+            };
+        }
+
+        function pickWord(){
+            var conf=levelConf(), pool=[];
+            for(var t=1;t<=conf.maxTier;t++){
+                var list=WORDS[state.lang][t];
+                var weight = (t===conf.maxTier)?2:1;        // 최근 해금된 등급이 더 자주
+                for(var w=0;w<weight;w++) pool=pool.concat(list);
+            }
+            return pool[Math.floor(Math.random()*pool.length)];
+        }
+
+        function spawnWord(){
+            var text=pickWord();
+            var node=document.createElement('div');
+            node.className='word';
+            node.textContent=text;
+            node.style.top='-40px';
+            el.gameField.appendChild(node);
+            var maxLeft = Math.max(4, el.gameField.clientWidth - node.offsetWidth - 8);
+            node.style.left = Math.floor(Math.random()*maxLeft)+'px';
+            game.words.push({text:text, y:-36, node:node, id:++game.seq});
+        }
+
+        function renderWordProgress(){
+            var typed = el.gameInput.value;
+            game.words.forEach(function(w){
+                var hit = typed.length>0 && w.text.indexOf(typed)===0;
+                w.node.classList.toggle('hit', hit);
+                if(hit){
+                    w.node.innerHTML = '<span class="done">'+esc(typed)+'</span>'+esc(w.text.slice(typed.length));
+                } else if(w.node.textContent!==w.text){
+                    w.node.textContent=w.text;
+                }
+            });
+        }
+
+        function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+        function clearWord(w, index){
+            w.node.classList.add('pop');
+            var node=w.node;
+            setTimeout(function(){ if(node.parentNode) node.parentNode.removeChild(node); },180);
+            game.words.splice(index,1);
+            game.score += w.text.length*10 + game.level*5;
+            game.cleared++;
+            var newLevel = 1 + Math.floor(game.cleared/7);
+            if(newLevel>game.level){ game.level=newLevel; flashLevel(); }
+            updateGameBar();
+        }
+
+        function flashLevel(){
+            el.gLevel.style.color='var(--brass)';
+            setTimeout(function(){ el.gLevel.style.color=''; },600);
+        }
+
+        function loseLife(w, index){
+            if(w.node.parentNode) w.node.parentNode.removeChild(w.node);
+            game.words.splice(index,1);
+            game.lives--;
+            updateGameBar();
+            el.gameField.style.background='rgba(178,58,47,.14)';
+            setTimeout(function(){ el.gameField.style.background=''; },160);
+            if(game.lives<=0) endGame();
+        }
+
+        function updateGameBar(){
+            el.gLevel.textContent=game.level;
+            el.gScore.textContent=game.score;
+            el.gLives.textContent = new Array(Math.max(0,game.lives)+1).join('♥') || '·';
+        }
+
+        function gameLoop(ts){
+            if(!game.running){ return; }
+            game.raf=requestAnimationFrame(gameLoop);
+            if(game.paused){ game.lastFrame=ts; return; }
+            if(!game.lastFrame) game.lastFrame=ts;
+            var dt=Math.min(100, ts-game.lastFrame)/1000;
+            game.lastFrame=ts;
+
+            var conf=levelConf();
+            if(ts-game.lastSpawn > conf.spawn){ spawnWord(); game.lastSpawn=ts; }
+
+            var limit = el.gameField.clientHeight - 30;
+            for(var i=game.words.length-1;i>=0;i--){
+                var w=game.words[i];
+                w.y += conf.speed*dt;
+                w.node.style.transform='translateY('+w.y+'px)';
+                if(w.y>limit) loseLife(w,i);
+            }
+        }
+
+        function startGame(){
+            game.running=true; game.paused=false;
+            game.words=[]; game.score=0; game.level=1; game.lives=3; game.cleared=0;
+            game.lastSpawn=0; game.lastFrame=0; game.seq=0;
+            el.gameField.innerHTML='<div class="ground"></div>';
+            el.gameInput.value='';
+            el.gPauseBtn.textContent='일시정지';
+            lockControls(true);
+            show('game');
+            updateGameBar();
+            setTimeout(function(){ el.gameInput.focus(); },40);
+            if(game.raf) cancelAnimationFrame(game.raf);
+            game.raf=requestAnimationFrame(gameLoop);
+        }
+
+        function endGame(){
+            if(!game.running) return;
+            game.running=false;
+            if(game.raf) cancelAnimationFrame(game.raf);
+            lockControls(false);
+            el.gameInput.blur();
+            show('over');
+            el.goScore.textContent=game.score;
+            el.goLevel.textContent=game.level;
+            el.goWords.textContent=game.cleared;
+            el.goSub.textContent=(state.lang==='mix'?'한/영 혼합':isKo()?'한글':'영어')+' 낱말게임';
+            var key='typing_game_best_'+state.lang, best=0;
+            try{ best=parseInt(localStorage.getItem(key)||'0',10); }catch(e){}
+            if(game.score>best){
+                try{ localStorage.setItem(key,String(game.score)); }catch(e){}
+                el.goBest.textContent='새로운 최고 점수입니다';
+            } else {
+                el.goBest.textContent='최고 점수 '+best+'점';
+            }
+            addRecord({kind:'game', lang:state.lang, speed:game.score, level:game.level});
+        }
+
+        el.gameInput.addEventListener('input',function(){
+            if(!game.running||game.paused) return;
+            var typed=el.gameInput.value.trim();
+            if(typed){
+                for(var i=game.words.length-1;i>=0;i--){
+                    if(game.words[i].text===typed){
+                        clearWord(game.words[i],i);
+                        el.gameInput.value='';
+                        break;
+                    }
+                }
+            }
+            renderWordProgress();
+        });
+        el.gameInput.addEventListener('keydown',function(e){
+            if(e.key==='Enter'){ e.preventDefault(); el.gameInput.value=''; renderWordProgress(); }
+            if(e.key==='Escape'){ e.preventDefault(); endGame(); }
+        });
+
+        el.gStopBtn.addEventListener('click',function(){ endGame(); });
+        el.gPauseBtn.addEventListener('click',function(){
+            if(!game.running) return;
+            game.paused=!game.paused;
+            el.gPauseBtn.textContent = game.paused?'계속하기':'일시정지';
+            if(!game.paused) el.gameInput.focus();
+        });
+        el.goRetryBtn.addEventListener('click',function(){ startGame(); });
+        el.goHomeBtn.addEventListener('click',function(){ renderStatsPanel(); show('start'); lockControls(false); });
+
+// ---- 모드 전환 ----
+        function applyMode(){
+            var isGame = state.mode==='game';
+            el.sourceBoxEl = el.sourceSeg.parentNode;
+            el.sourceBoxEl.style.display = isGame?'none':'block';
+            el.lenSeg.style.display = (isGame || state.source==='custom')?'none':'flex';
+            el.startDesc.innerHTML = isGame
+                ? '위에서 떨어지는 낱말을 입력해 없애세요.<br>레벨이 오를수록 빨라지고 낱말도 길어집니다. 하트 3개를 모두 잃으면 종료됩니다.'
+                : '문장이 끝나면 다음 문장이 곧바로 이어집니다.<br>중지를 누를 때까지 계속되며, 타수와 정확도는 전체 기준으로 누적됩니다.';
+        }
+        el.modeSeg.addEventListener('click',function(e){
+            var b=e.target.closest('button'); if(!b||b.disabled) return;
+            state.mode=b.getAttribute('data-mode');
+            setActive(el.modeSeg,'data-mode',state.mode);
+            applyMode();
+            show('start');
+        });
+
+        el.startBtn.addEventListener('click',function(){
+            if(state.mode==='game') startGame(); else start();
+        });
+        el.stopBtn.addEventListener('click',function(){ finish(false); });
+        el.restartBtn.addEventListener('click',function(){ start(); });
+        el.skipBtn.addEventListener('click',function(){ nextSentence(false); });
+        el.retryNewBtn.addEventListener('click',function(){ start(); });
+        el.toHomeBtn.addEventListener('click',function(){ renderStatsPanel(); show('start'); lockControls(false); });
+
+        touchStreak();
+        loadCustom();
+        applySource();
+        renderStatsPanel();
+        applyMode();
+        show('start');
+    })();;
+</script>
+
+</body>
+</html>
