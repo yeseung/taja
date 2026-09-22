@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>어린이를 위한 타자 연습</title>
+
+    <!-- https://m.blog.naver.com/artifend/224376391050 -->
+
+    <link rel="manifest" href="https://kids-taja.netlify.app/manifest.json">
+    <meta name="theme-color" content="#8ec5fc">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" href="https://kids-taja.netlify.app/icon-192.png">
+    <link rel="apple-touch-icon" href="https://kids-taja.netlify.app/icon-192.png">
+    <!--
+    ★ 개선판 안내 ★
+    - 외부 라이브러리(Tailwind, confetti CDN) 의존 제거: 인터넷이 없어도 완전히 동작합니다.
+    - 폰트(Jua)만 온라인일 때 예쁘게 적용되고, 오프라인이면 기본 한글 글꼴로 자동 대체됩니다.
+    - 한글 조합(IME) 처리, 자모 기준 타수 계산, 기록 백업/복원 기능이 추가되었습니다.
+    -->
+    <link href="https://fonts.googleapis.com/css2?family=Jua\&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Jua', 'Apple SD Gothic Neo', 'Malgun Gothic', '맑은 고딕', sans-serif;
+            min-height: 100vh;
+            background-color: #fdfbfb;
+            background-image: linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%);
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 20px;
+            color: #334155;
+        }
+
+        /* 폭죽 캔버스 (화면 전체를 덮되 클릭은 통과) */
+        #fx {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        .wrap {
+            display: flex;
+            gap: 22px;
+            width: 100%;
+            max-width: 1200px;
+            align-items: flex-start;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, .92);
+            border: 1px solid rgba(255, 255, 255, .6);
+            border-radius: 26px;
+            box-shadow: 0 12px 30px rgba(80, 70, 160, .18);
+            padding: 26px;
+        }
+
+        .game {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .game header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .game h1 {
+            font-size: 2.4rem;
+            color: #1e293b;
+            letter-spacing: 1px;
+        }
+
+        .game header p {
+            color: #64748b;
+            margin-top: 4px;
+            font-size: 1.05rem;
+        }
+
+        /* 시간/난이도 선택 패널 */
+        .panels {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .panel {
+            border-radius: 18px;
+            padding: 14px;
+        }
+
+        .panel h2 {
+            font-size: 1.1rem;
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: normal;
+        }
+
+        .panel.time {
+            background: #eff6ff;
+            border: 1px solid #dbeafe;
+        }
+
+        .panel.time h2 {
+            color: #1d4ed8;
+        }
+
+        .panel.level {
+            background: #fff7ed;
+            border: 1px solid #ffedd5;
+        }
+
+        .panel.level h2 {
+            color: #c2410c;
+        }
+
+        .btns {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btns button {
+            font: inherit;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 8px 14px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .12);
+            transition: transform .1s, filter .1s;
+        }
+
+        .btns button:focus-visible {
+            outline: 3px solid #6366f1;
+            outline-offset: 2px;
+        }
+
+        .panel.time .btns button {
+            background: #60a5fa;
+        }
+
+        .panel.time .btns button:hover {
+            background: #3b82f6;
+        }
+
+        .panel.level .btns button {
+            background: #fb923c;
+        }
+
+        .panel.level .btns button:hover {
+            background: #f97316;
+        }
+
+        .btns button.on {
+            transform: translateY(2px);
+            filter: brightness(.9);
+            box-shadow: inset 0 3px 5px rgba(0, 0, 0, .25), 0 0 0 4px rgba(99, 102, 241, .35);
+        }
+
+        /* 상태 표시줄 */
+        .status {
+            display: flex;
+            justify-content: space-between;
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 14px 20px;
+            margin-bottom: 20px;
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, .06);
+            font-size: 1.25rem;
+            color: #475569;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .status b {
+            font-size: 1.35rem;
+        }
+
+        #timeDisplay {
+            color: #ef4444;
+        }
+
+        #scoreDisplay {
+            color: #3b82f6;
+        }
+
+        #speedDisplay {
+            color: #16a34a;
+        }
+
+        /* 타자 입력 무대 */
+        .stage {
+            background: #fff;
+            border: 2px solid #f1f5f9;
+            border-radius: 18px;
+            min-height: 260px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 28px 20px;
+            gap: 26px;
+        }
+
+        #targetWord {
+            font-size: clamp(1.6rem, 3.5vw, 2.6rem);
+            font-weight: normal; /* 얇은 글씨: ㄹ, ㅂ 등 획 구분이 쉬움 */
+            line-height: 1.9;
+            text-align: center;
+            color: #1f2937;
+            word-break: keep-all;
+        }
+
+        .ch {
+            display: inline-block;
+            min-width: .55em;
+            margin: 0 2px;
+            border-bottom: 3px solid #e2e8f0;
+            text-align: center;
+        }
+
+        .ch.sp {
+            min-width: .8em;
+            border-bottom-style: dashed;
+            border-bottom-color: #cbd5e1;
+        }
+
+        .ch.ok {
+            color: #3b82f6;
+            border-bottom-color: #3b82f6;
+        }
+
+        .ch.bad {
+            color: #ef4444;
+            border-bottom-color: #ef4444;
+        }
+
+        .ch.sp.bad {
+            background: #fecaca;
+            border-bottom-style: solid;
+        }
+
+        .ch.cur {
+            border-bottom-color: #ec4899;
+        }
+
+        .extra {
+            display: inline-block;
+            margin-left: 8px;
+            padding: 0 10px;
+            border-radius: 10px;
+            background: #fee2e2;
+            color: #dc2626;
+            font-size: .55em;
+            vertical-align: middle;
+        }
+
+        #inputWrap {
+            width: 100%;
+            max-width: 520px;
+        }
+
+        #inputField {
+            width: 100%;
+            font: inherit;
+            font-size: clamp(1.4rem, 3vw, 2rem);
+            font-weight: normal;
+            text-align: center;
+            padding: 14px;
+            border: 4px solid #c7d2fe;
+            border-radius: 16px;
+            color: #1f2937;
+        }
+
+        #inputField::placeholder {
+            color: #cbd5e1;
+        }
+
+        #inputField:focus {
+            outline: none;
+            border-color: #818cf8;
+            box-shadow: 0 0 0 5px rgba(129, 140, 248, .25);
+        }
+
+        #inputField:disabled {
+            background: #f8fafc;
+        }
+
+        .stage-btns {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .stage-btns button {
+            font: inherit;
+            border: none;
+            cursor: pointer;
+            border-radius: 999px;
+            transition: transform .12s, box-shadow .12s;
+        }
+
+        .stage-btns button:focus-visible {
+            outline: 3px solid #6366f1;
+            outline-offset: 2px;
+        }
+
+        #startButton {
+            background: #6366f1;
+            color: #fff;
+            font-size: 1.4rem;
+            padding: 14px 42px;
+            box-shadow: 0 8px 18px rgba(99, 102, 241, .4);
+        }
+
+        #startButton:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 22px rgba(99, 102, 241, .45);
+        }
+
+        #startButton.playing {
+            background: #3b82f6;
+        }
+
+        #skipButton {
+            background: #e2e8f0;
+            color: #475569;
+            font-size: 1.05rem;
+            padding: 12px 22px;
+        }
+
+        #skipButton:hover {
+            background: #cbd5e1;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        /* 명예의 전당 */
+        .rank {
+            width: 360px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            max-height: 860px;
+        }
+
+        .rank h2 {
+            font-size: 1.5rem;
+            text-align: center;
+            color: #1e293b;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 12px;
+            font-weight: normal;
+        }
+
+        .rank h2 small {
+            color: #94a3b8;
+            font-size: .95rem;
+        }
+
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        .tabs button {
+            font: inherit;
+            font-size: .85rem;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            color: #64748b;
+            border-radius: 999px;
+            padding: 5px 12px;
+            cursor: pointer;
+        }
+
+        .tabs button.on {
+            background: #6366f1;
+            border-color: #6366f1;
+            color: #fff;
+        }
+
+        .tabs button:focus-visible {
+            outline: 3px solid #6366f1;
+            outline-offset: 2px;
+        }
+
+        #rankingList {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-right: 6px;
+            min-height: 200px;
+        }
+
+        #rankingList::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #rankingList::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+
+        #rankingList::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .rank-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f8fafc;
+            border: 1px solid #f1f5f9;
+            border-radius: 16px;
+            padding: 10px 12px;
+        }
+
+        .rank-item .medal {
+            width: 64px;
+            flex-shrink: 0;
+            font-size: 1rem;
+            color: #64748b;
+            white-space: nowrap;
+        }
+
+        .rank-item.r1 .medal {
+            color: #d97706;
+        }
+
+        .rank-item.r2 .medal {
+            color: #94a3b8;
+        }
+
+        .rank-item.r3 .medal {
+            color: #b45309;
+        }
+
+        .rank-item .mid {
+            flex: 1;
+            min-width: 0;
+            text-align: center;
+        }
+
+        .rank-item .mid .pts {
+            font-size: 1.05rem;
+            color: #1f2937;
+        }
+
+        .rank-item .mid .sub {
+            font-size: .72rem;
+            color: #94a3b8;
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .rank-item .date {
+            flex-shrink: 0;
+            font-size: .78rem;
+            color: #94a3b8;
+            white-space: nowrap;
+        }
+
+        .empty {
+            text-align: center;
+            color: #94a3b8;
+            margin-top: 40px;
+            line-height: 1.7;
+        }
+
+        .backup {
+            display: flex;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .backup button {
+            flex: 1;
+            font: inherit;
+            font-size: .9rem;
+            border: 1px dashed #cbd5e1;
+            background: #fff;
+            color: #64748b;
+            border-radius: 12px;
+            padding: 9px 0;
+            cursor: pointer;
+        }
+
+        .backup button:hover {
+            background: #f1f5f9;
+        }
+
+        .backup button:focus-visible {
+            outline: 3px solid #6366f1;
+            outline-offset: 2px;
+        }
+
+        /* 화면이 좁을 때: 세로 배치 (태블릿 세로모드 대응) */
+        @media (max-width: 940px) {
+            .wrap {
+                flex-direction: column;
+            }
+
+            .rank {
+                width: 100%;
+                max-height: 520px;
+            }
+
+            .panels {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                transition: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+<canvas id="fx"></canvas>
+
+<div class="wrap">
+
+    <!-- 왼쪽: 게임 영역 -->
+    <main class="card game">
+        <header>
+            <h1>🎮 어린이를 위한 타자 연습</h1>
+            <p>게임을 하듯 즐겁게 타자를 쳐 보자!</p>
+        </header>
+
+        <div class="panels">
+            <section class="panel time">
+                <h2>⏰ 연습 시간 선택</h2>
+                <div class="btns" id="timeBtns">
+                    <button data-time="30">30초</button>
+                    <button data-time="60">1분</button>
+                    <button data-time="120">2분</button>
+                    <button data-time="180">3분</button>
+                    <button data-time="300">5분</button>
+                </div>
+            </section>
+            <section class="panel level">
+                <h2>🔥 난이도 선택</h2>
+                <div class="btns" id="levelBtns">
+                    <button data-level="1">1단계</button>
+                    <button data-level="2">2단계</button>
+                    <button data-level="3">3단계</button>
+                    <button data-level="4">4단계</button>
+                    <button data-level="5">5단계</button>
+                    <button data-level="6">6단계</button>
+                    <button data-level="7">7단계</button>
+                </div>
+            </section>
+        </div>
+
+        <div class="status">
+            <div>남은 시간: <b id="timeDisplay">60</b>초</div>
+            <div>점수: <b id="scoreDisplay">0</b>점</div>
+            <div>속도: <b id="speedDisplay">0</b>타</div>
+        </div>
+
+        <div class="stage">
+            <div id="targetWord" aria-live="polite"></div>
+            <div id="inputWrap">
+                <input type="text" id="inputField" autocomplete="off" placeholder="시작 버튼을 누르세요!" disabled aria-label="타자 입력창">
+            </div>
+            <div class="stage-btns">
+                <button id="startButton">🚀 게임 시작!</button>
+                <button id="skipButton" hidden>어려우면 건너뛰기 ➡️</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- 오른쪽: 명예의 전당 -->
+    <aside class="card rank">
+        <h2>🏆 명예의 전당 <small>(Top 10)</small></h2>
+        <div class="tabs" id="rankTabs">
+            <button data-filter="all" class="on">전체</button>
+            <button data-filter="30">30초</button>
+            <button data-filter="60">1분</button>
+            <button data-filter="120">2분</button>
+            <button data-filter="180">3분</button>
+            <button data-filter="300">5분</button>
+        </div>
+        <div id="rankingList"></div>
+        <div class="backup">
+            <button id="exportBtn">💾 기록 백업하기</button>
+            <button id="importBtn">📂 기록 불러오기</button>
+            <input type="file" id="importFile" accept="application/json,.json" hidden>
+        </div>
+    </aside>
+
+</div>
+
+<script>
+    // ============================================================
+    // 1. 단어장 (1~3단계: 단어 / 4~7단계: 문장)
+    //    - '히읕' → '히읗' 표기 오류 수정
+    //    - 4~7단계 문장 대폭 확충
+    // ============================================================
+    const wordDictionary = {
+        1: [
+            "사과", "포도", "기차", "나무", "우유", "바다", "하늘", "친구", "학교", "가방",
+            "피카츄", "파이리", "꼬부기", "뮤츠", "루카리오", "잠만보", "이브이", "리자몽",
+            "좀비", "스켈레톤", "크리퍼", "엔더맨", "곡괭이", "블록", "철광석",
+            "쉘리", "콜트", "불", "엘프리모", "포코", "스파이크", "크로우",
+            "나트륨", "마그네슘", "칼륨", "티타늄", "우라늄", "바륨", "헬륨", "리튬",
+            "새벽녘", "동녘", "해질녘", "부엌", "티읕", "히읗", "그릇", "버섯", "로봇",
+            "그믐", "나쁨", "차풰", "수탉", "치읓", "라듐", "모듈", "뒤꼍", "무웟", "함끠",
+            "두왑", "님잫", "기쁨", "구듫", "인듐", "드릏", "스쾃", "판밲", "소듐", "기빰",
+            "시톄", "무릎", "야듧", "거먕", "손뜹", "돌꼇"
+        ],
+        2: [
+            "아이스크림", "자전거", "컴퓨터", "햄버거", "피자", "스마트폰", "도서관", "놀이터",
+            "이상해씨", "버터플", "피죤투", "라이츄", "삐삐", "푸린", "나옹", "고라파덕",
+            "다이아몬드", "네더라이트", "인챈트", "마을주민", "슬라임", "위더", "엔더드래곤",
+            "니타", "다이너마이크", "보", "틱", "8비트", "에무즈", "스튜",
+            "티라노사우루스", "트리케라톱스", "스테고사우루스", "벨로키랍토르",
+            "알루미늄", "플루토늄", "네오디뮴", "베릴륨", "프랑슘", "폴로늄",
+            "해질무렵", "아궁이", "기슭", "산기슭", "오솔길", "나뭇잎", "꽃잎", "수탉",
+            "동틀녘", "시보귬", "악티늄", "셀레늄", "제라늄", "넵투늄", "이리듐", "팔라듐",
+            "바나듐", "카드뮴", "오스뮴", "사마륨", "텔루륨", "테르븀", "이터븀", "에르븀",
+            "더브늄", "로듐", "유로퓸", "트리튬", "로렌슘", "노벨륨", "버클륨", "페르뮴",
+            "밝아울녘", "시루볜", "상추쌈", "끄룽텝", "숨가쁨", "왕거뮈", "신시튬", "군버릇",
+            "냥쳑", "차모늄", "크로뮴", "기동돓", "치마긶", "다래쨤", "사과쨤", "닥울녘", "마음껏"
+        ],
+        3: [
+            "우리나라대한민국", "아름다운금수강산", "즐거운타자연습", "나는야타자왕", "백두산천지",
+            "메가리자몽X", "원시그란돈", "가이오가", "레쿠쟈", "아르세우스", "무한다이노", "자시안",
+            "다이아몬드검", "철곡괭이", "황금사과", "불사의토템", "네더월드", "엔더시티", "겉날개",
+            "프랭크", "파이퍼", "팸", "비비", "타라", "진", "맥스", "미스터P",
+            "아이언맨", "스파이더맨", "캡틴아메리카", "헐크", "토르", "블랙팬서",
+            "이리듐", "오스뮴", "루테늄", "로듐", "팔라듐", "카드뮴", "인듐", "탈륨",
+            "심부름꾼", "사냥꾼", "장사꾼", "구름조각", "바다거북", "무지개빛", "달빛",
+            "스트론튬", "발가락오그라듦", "아메리슘", "가돌리늄", "마이크로모듈",
+            "중첩모듈", "레몬제라늄", "벌매듭", "허픈더픈", "장구매듭"
+        ],
+        4: [
+            "사랑이는 타자왕이다.", "코딱지 파서 튕기기!", "내 똥은 바나나 똥이야.", "방귀 소리가 뿡뿡뿡.",
+            "피카츄 백만볼트 발사!", "리자몽의 화염방사!", "잠만보는 하루종일 잔다.", "뮤츠는 너무 강력해.",
+            "크리퍼가 터지면 아프다.", "다이아몬드를 발견했다!", "용암에 빠지면 아이템 다 탄다.",
+            "브롤스타즈 트로피 올리기.", "전설 브롤러 뽑고 싶다.", "상자 깠는데 코인만 나옴.",
+            "티라노사우루스는 고기를 좋아해.", "로블록스 친구 추가해줘.", "점프맵은 너무 어려워.",
+            "엄마 몰래 게임하기.", "아빠랑 축구하는 날.", "오늘 저녁은 치킨이다!", "숙제는 내일로 미루자.",
+            "튼튼이의 파워 펀치!", "우주로 날아가는 로켓.", "블랙홀에 빠지면 어떻게 될까?",
+            "이브이는 진화가 여덟 가지다.", "고오스는 벽을 통과한다.", "몬스터볼을 힘껏 던졌다.",
+            "전설의 포켓몬을 만났다!", "파이리 꼬리에 불이 붙었다.", "꼬부기는 등껍질에 숨는다.",
+            "좀비가 문을 쾅쾅 두드린다.", "스켈레톤 화살을 피해라!", "엔더맨과 눈을 마주치지 마.",
+            "철광석을 캐서 검을 만들자.", "마을 주민과 거래를 했다.", "슬라임이 통통 튀어 다닌다.",
+            "네더 요새를 찾아라!", "황금 사과는 정말 맛있다.", "낚싯대로 보물을 낚았다.",
+            "늑대를 길들여 친구가 됐다.", "브롤볼 골인 성공!", "젬을 모아서 상자를 사자.",
+            "쇼다운 일등 먹었다!", "스파이크는 선인장 폭탄을 던진다.", "로블록스에서 집을 지었다.",
+            "타워 꼭대기까지 올라가자.", "벨로키랍토르는 발톱이 무기다.", "공룡 화석을 발견했다!",
+            "프테라노돈이 하늘을 난다.", "운석이 떨어지면 큰일이다.", "화성에 감자를 심어 볼까?",
+            "토성 고리는 얼음 조각이다.", "달에서는 몸이 가벼워진다.", "유성우가 쏟아지는 밤하늘.",
+            "방귀 뀌고 시치미 떼기.", "내 실내화에서 냄새가 난다.", "급식에 돈가스 나오는 날!",
+            "쉬는 시간은 왜 이렇게 짧지?", "알림장 쓰기 귀찮아.", "딱지치기 한 판 붙자!",
+            "젤리는 말랑말랑 맛있다.", "라면은 후루룩 먹어야 맛있다.", "떡볶이는 맵지만 멈출 수 없다.",
+            "아이스크림은 겨울에도 최고다.", "삼겹살은 바삭하게 구워야지.", "치즈가 쭉쭉 늘어난다.",
+            "만렙까지 얼마 안 남았다.", "오늘은 내가 술래다!", "무궁화 꽃이 피었습니다.",
+            "가위바위보에서 또 졌다."
+        ],
+        5: [
+            "가는 말이 고와야 오는 말이 곱다.", "개구리 올챙이 적 생각 못 한다.", "고래 싸움에 새우 등 터진다.",
+            "공든 탑이 무너지랴.", "꿩 대신 닭.", "돌다리도 두들겨 보고 건너라.", "등잔 밑이 어둡다.",
+            "발 없는 말이 천 리 간다.", "백지장도 맞들면 낫다.", "서당 개 삼 년이면 풍월을 읊는다.",
+            "소 잃고 외양간 고친다.", "원숭이도 나무에서 떨어진다.", "티끌 모아 태산.", "핑계 없는 무덤 없다.",
+            "낮말은 새가 듣고 밤말은 쥐가 듣는다.", "가랑비에 옷 젖는 줄 모른다.", "굼벵이도 구르는 재주가 있다.",
+            "금강산도 식후경.", "김칫국부터 마시지 마라.", "누워서 떡 먹기.", "도둑이 제 발 저리다.",
+            "될성부른 나무는 떡잎부터 알아본다.", "뛰는 놈 위에 나는 놈 있다.", "말 한마디에 천 냥 빚도 갚는다.",
+            "목마른 사람이 우물 판다.", "바늘 도둑이 소도둑 된다.", "배보다 배꼽이 더 크다.",
+            "벼는 익을수록 고개를 숙인다.", "빈 수레가 요란하다.", "사공이 많으면 배가 산으로 간다.",
+            "세 살 버릇 여든까지 간다.", "쇠뿔도 단김에 빼라.", "수박 겉 핥기.", "아니 땐 굴뚝에 연기 나랴.",
+            "우물 안 개구리.", "울며 겨자 먹기.", "웃는 낯에 침 못 뱉는다.", "지렁이도 밟으면 꿈틀한다.",
+            "천 리 길도 한 걸음부터.", "하늘이 무너져도 솟아날 구멍이 있다.", "호랑이도 제 말 하면 온다.",
+            "호랑이 굴에 가야 호랑이 새끼를 잡는다.", "믿는 도끼에 발등 찍힌다.", "돼지 목에 진주 목걸이.",
+            "새 발의 피.", "식은 죽 먹기.",
+            "크리퍼 곁에서는 절대 방심하지 마라.", "렉 걸렸을 때는 키보드를 탓하지 마라.",
+            "세이브를 안 하면 모든 것을 잃는다.", "트롤러와는 싸우지 말고 차단해라.",
+            "게임 오버는 끝이 아니라 새로운 시작이다.", "다이아몬드 앞에서는 친구도 없다.",
+            "부쉬 속에 숨은 불을 조심해라.", "한 판만 더 하고 진짜 잔다.",
+            "포션은 아낄수록 먼저 죽는다.", "좋은 팀원은 다이아보다 귀하다.",
+            "자동 저장을 믿지 말고 직접 저장해라.", "튜토리얼을 건너뛴 자, 길을 헤매리라.",
+            "최고의 방어는 일단 도망치는 것이다.", "보스전 전에는 꼭 세이브를 해라.",
+            "인벤토리 정리는 미루면 후회한다.", "채팅으로 싸울 시간에 연습을 해라."
+        ],
+        6: [
+            "밤하늘에 반짝이는 별들을 보며 하늘이는 우주 비행사가 되는 꿈을 꾸었습니다.",
+            "스티브는 나무를 캐고 작업대를 만들어 첫 번째 나무 곡괭이를 완성했습니다.",
+            "깊은 동굴 속에서 쉭쉭거리는 거미 소리와 스켈레톤의 화살 소리가 들려옵니다.",
+            "전설의 포켓몬을 잡기 위해 마스터볼을 던졌고, 마침내 포획에 성공했습니다!",
+            "쇼다운에서 마지막까지 살아남아 당당하게 일 등 트로피를 들어 올렸습니다.",
+            "로블록스 입양하세요에서 네온 펫을 만들기 위해 똑같은 펫 네 마리를 모았습니다.",
+            "용감한 어벤져스 영웅들이 타노스의 위협으로부터 지구를 지켜내기 위해 모였습니다.",
+            "비가 오는 날에는 집에서 따뜻한 코코아를 마시며 닌텐도 스위치 게임을 하는 것이 최고입니다.",
+            "학교에서 친구들과 점심시간에 운동장으로 뛰어나가 신나게 축구를 하며 땀을 흘렸습니다.",
+            "타자 연습을 열심히 해서 누구보다 빠르게 키보드를 칠 수 있는 프로게이머가 될 것입니다.",
+            "아침 햇살이 창문으로 들어오면 고소한 토스트 냄새가 온 집 안에 퍼집니다.",
+            "주말 아침에는 늦잠을 자고 일어나 가족과 함께 맛있는 브런치를 먹습니다.",
+            "도서관에서 빌린 공룡 백과사전을 읽다 보면 시간 가는 줄을 모릅니다.",
+            "여름 방학에는 바다에 가서 모래성을 쌓고 파도와 술래잡기를 하고 싶습니다.",
+            "겨울에 첫눈이 내리면 친구들과 눈사람을 만들고 신나게 눈싸움을 할 것입니다.",
+            "자전거 페달을 힘차게 밟으면 시원한 바람이 얼굴을 스치고 지나갑니다.",
+            "열심히 연습한 끝에 드디어 두발자전거를 혼자서 탈 수 있게 되었습니다.",
+            "피카츄는 볼주머니에 전기를 모아 두었다가 위험할 때 번개처럼 내뿜습니다.",
+            "리자몽의 등에 올라타고 구름 위를 나는 상상을 하면 가슴이 두근거립니다.",
+            "체육관 관장을 모두 이기고 포켓몬 리그 챔피언이 되는 것이 저의 꿈입니다.",
+            "풀숲에서 갑자기 야생 포켓몬이 튀어나와서 깜짝 놀라고 말았습니다.",
+            "밤이 되기 전에 서둘러 침대를 만들지 않으면 좀비 떼가 몰려옵니다.",
+            "다이아몬드 광산을 발견하고 신이 나서 곡괭이를 쉬지 않고 휘둘렀습니다.",
+            "레드스톤 회로를 연결해서 자동으로 열리는 비밀의 문을 만들었습니다.",
+            "엔더 드래곤을 물리치고 드디어 마인크래프트의 끝을 보고야 말았습니다.",
+            "정성껏 지은 나무 집이 번개에 맞아 홀랑 타 버려서 너무 슬펐습니다.",
+            "브롤스타즈에서 삼 대 삼 팀전을 할 때는 친구와의 호흡이 가장 중요합니다.",
+            "마지막 일 초를 남기고 골을 넣어서 짜릿한 역전승을 거두었습니다.",
+            "로블록스에서 친구와 함께 거대한 놀이공원을 만들어 보기로 했습니다.",
+            "티라노사우루스는 이빨이 바나나만큼 크고 무는 힘이 어마어마했습니다.",
+            "목이 긴 브라키오사우루스는 높은 나무 꼭대기의 잎을 뜯어 먹었습니다.",
+            "공룡들은 아주 먼 옛날 커다란 운석이 떨어지면서 지구에서 사라졌습니다.",
+            "우주 비행사가 되려면 몸도 튼튼해야 하고 공부도 열심히 해야 합니다.",
+            "로켓이 굉음을 내며 발사되어 순식간에 구름을 뚫고 올라갔습니다.",
+            "국제 우주 정거장에서는 물이 방울방울 공중에 둥둥 떠다닙니다.",
+            "어두운 밤하늘을 올려다보면 수많은 별이 보석처럼 반짝이고 있습니다.",
+            "아빠와 함께 캠핑장에 가서 텐트를 치고 마시멜로를 구워 먹었습니다.",
+            "엄마가 끓여 주신 김치찌개는 세상에서 제일 맛있는 음식입니다.",
+            "줄넘기 이단 뛰기를 연습해서 드디어 열 개를 연속으로 성공했습니다.",
+            "우리 반 대항 축구 시합에서 제가 결승골을 넣어 영웅이 되었습니다.",
+            "매일 꾸준히 연습하면 어제의 나보다 더 멋진 내가 될 수 있습니다.",
+            "실수를 두려워하지 않는 사람이 결국 가장 크게 성장하는 법입니다.",
+            "갓 구운 붕어빵을 호호 불어 가며 먹으면 겨울 추위도 무섭지 않습니다.",
+            "컴퓨터를 오래 하면 눈이 나빠지니까 삼십 분마다 먼 곳을 봐야 합니다.",
+            "형형색색의 열기구가 두둥실 떠올라 노을 진 하늘을 수놓았습니다."
+        ],
+        7: [
+            "간장 공장 공장장은 강 공장장이고 된장 공장 공장장은 공 공장장이다.",
+            "내가 그린 기린 그림은 잘 그린 기린 그림이고 네가 그린 기린 그림은 잘못 그린 기린 그림이다.",
+            "경찰청 철창살은 외철창살이고 검찰청 철창살은 쌍철창살이다.",
+            "서울특별시 특허허가과 허가과장 허과장.",
+            "저기 있는 말뚝이 맬 말뚝이냐 안 맬 말뚝이냐.",
+            "들의 콩깍지는 깐 콩깍지인가 안 깐 콩깍지인가.",
+            "저기 계신 저 분이 박 법학박사이시고 여기 계신 이 분이 백 법학박사이시다.",
+            "앞집 팥죽은 붉은 팥 풋팥죽이고 뒷집 콩죽은 햇콩 단콩 콩죽이다.",
+            "신진 샹송 가수의 신춘 샹송 쇼.",
+            "상표 붙인 큰 깡통은 깐 깡통인가 안 깐 깡통인가.",
+            "한양 양장점 옆 한영 양장점 한영 양장점 옆 한양 양장점.",
+            "강낭콩 옆 빈 콩깍지는 완두콩 깐 빈 콩깍지.",
+            "멍멍이네 꿀꿀이는 멍멍해도 꿀꿀하고 꿀꿀이네 멍멍이는 꿀꿀해도 멍멍한다.",
+            "피카츄가 피카피카 울면서 피자 피클을 피식피식 먹고 피구공을 피융피융 던진다.",
+            "마인크래프트 마스터 마이클은 마그마 큐브를 막고 마녀의 마법을 마구마구 막아낸다.",
+            "브롤스타즈 브록은 브이로그를 보며 브로콜리를 바삭바삭 베어 먹는다.",
+            "루카리오가 루비 반지를 루루루 노래하며 루기아에게 룰루랄라 건네준다.",
+            "크리퍼가 크르렁거리며 크리스탈을 크랙내고 크레이지하게 터진다.",
+            "잠만보가 잠만 자면 잠꾸러기 잠만보, 잠 안 자면 잠 못 드는 잠만보.",
+            "꼬부기가 꼬불꼬불 꼬부라진 꼬랑길을 꼬박꼬박 걸어간다.",
+            "스켈레톤이 스르륵 스치며 슉슉 화살을 쏘니 스티브가 슝슝 피한다.",
+            "엔더맨이 엔더 진주를 은근슬쩍 옮기다 언덕 아래로 데굴데굴 굴렸다.",
+            "로블록스 로봇이 로켓을 로비로 옮기며 룰루랄라 노래한다.",
+            "트리케라톱스 세 마리가 트램펄린 타며 트로피 세 개를 탐낸다.",
+            "파이리가 파릇파릇한 풀밭에서 파닥파닥 팔딱팔딱 뛰논다.",
+            "슬라임이 슬금슬금 슬라임 늪을 스멀스멀 넘어간다.",
+            "좀비 좀 보소 좀처럼 잠 못 자는 좀비 좀 보소.",
+            "골렘이 골목골목 골고루 골판지를 골라 놓는다.",
+            "위더가 윙윙 울면 마을 위 하늘이 웅웅 울린다.",
+            "이브이 여덟 형제가 여덟 가지 열매를 여덟 개씩 얻었다."
+        ]
+    };
+
+    // ============================================================
+    // 2. 자체 제작 폭죽 효과 (외부 라이브러리 없이 동작)
+    // ============================================================
+    const fxCanvas = document.getElementById('fx');
+    const fxCtx = fxCanvas.getContext('2d');
+    let fxParticles = [];
+    let fxRunning = false;
+    const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function fxResize() {
+        fxCanvas.width = window.innerWidth;
+        fxCanvas.height = window.innerHeight;
+    }
+
+    window.addEventListener('resize', fxResize);
+    fxResize();
+
+    function burst(xRatio, yRatio, count, colors) {
+        if (REDUCED_MOTION) return;
+        const cx = fxCanvas.width * xRatio;
+        const cy = fxCanvas.height * yRatio;
+        for (let i = 0; i < count; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 3 + Math.random() * 6;
+            fxParticles.push({
+                x    : cx, y: cy,
+                vx   : Math.cos(angle) * speed,
+                vy   : Math.sin(angle) * speed - 3,
+                size : 4 + Math.random() * 5,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                life : 60 + Math.random() * 40,
+                rot  : Math.random() * Math.PI,
+                vr   : (Math.random() - 0.5) * 0.3
+            });
+        }
+        if (!fxRunning) {
+            fxRunning = true;
+            requestAnimationFrame(fxLoop);
+        }
+    }
+
+    function fxLoop() {
+        fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
+        fxParticles = fxParticles.filter(p => p.life > 0 && p.y < fxCanvas.height + 20);
+        for (const p of fxParticles) {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.15;          // 중력
+            p.vx *= 0.99;
+            p.rot += p.vr;
+            p.life--;
+            fxCtx.save();
+            fxCtx.translate(p.x, p.y);
+            fxCtx.rotate(p.rot);
+            fxCtx.globalAlpha = Math.min(1, p.life / 30);
+            fxCtx.fillStyle = p.color;
+            fxCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+            fxCtx.restore();
+        }
+        if (fxParticles.length > 0) requestAnimationFrame(fxLoop);
+        else {
+            fxRunning = false;
+            fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
+        }
+    }
+
+    const HAPPY_COLORS = ['#3b82f6', '#ec4899', '#eab308', '#22c55e', '#a855f7'];
+
+    function smallConfetti() {
+        burst(0.5, 0.55, 35, HAPPY_COLORS);
+    }
+
+    function bigFinale() {
+        if (REDUCED_MOTION) return;
+        let shots = 0;
+        const iv = setInterval(() => {
+            burst(0.15 + Math.random() * 0.2, 0.3, 40, HAPPY_COLORS);
+            burst(0.65 + Math.random() * 0.2, 0.3, 40, HAPPY_COLORS);
+            if (++shots >= 8) clearInterval(iv);
+        }, 280);
+    }
+
+    // ============================================================
+    // 3. 한글 자모 기준 타수 계산 (두벌식 키보드 기준)
+    //    - 예: '무릎' = ㅁ+ㅜ+ㄹ+ㅡ+ㅍ = 5타
+    //    - 복모음(ㅘ,ㅙ,ㅚ,ㅝ,ㅞ,ㅟ,ㅢ)은 2타, 겹받침(ㄳ,ㄵ 등)도 2타로 계산
+    // ============================================================
+    const COMPOUND_JUNG = new Set([9, 10, 11, 14, 15, 16, 19]);            // ㅘㅙㅚㅝㅞㅟㅢ
+    const COMPOUND_JONG = new Set([3, 5, 6, 9, 10, 11, 12, 13, 14, 15, 18]); // ㄳㄵㄶㄺㄻㄼㄽㄾㄿㅀㅄ
+
+    function countKeystrokes(str) {
+        let n = 0;
+        for (const ch of str) {
+            const code = ch.charCodeAt(0);
+            if (code >= 0xAC00 && code <= 0xD7A3) {          // 완성형 한글 음절
+                const idx = code - 0xAC00;
+                const jong = idx % 28;
+                const jung = Math.floor(idx / 28) % 21;
+                n += 1;                                         // 초성
+                n += COMPOUND_JUNG.has(jung) ? 2 : 1;           // 중성
+                if (jong > 0) n += COMPOUND_JONG.has(jong) ? 2 : 1; // 종성
+            } else {
+                n += 1;                                         // 공백, 문장부호, 영문 등
+            }
+        }
+        return n;
+    }
+
+    // ============================================================
+    // 4. 안전한 기록 저장소 (localStorage 손상 시에도 게임이 멈추지 않음)
+    //    - 기존 파일과 같은 저장 키를 사용하므로 이전 기록이 그대로 유지됩니다.
+    // ============================================================
+    const STORAGE_KEY = 'typing_records';
+
+    function isValidRecord(r) {
+        return r && typeof r === 'object'
+            && typeof r.score === 'number' && isFinite(r.score)
+            && typeof r.time === 'number';
+    }
+
+    function loadRecords() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return [];
+            const parsed = JSON.parse(raw);
+            return Array.isArray(parsed) ? parsed.filter(isValidRecord) : [];
+        } catch (e) {
+            console.warn('기록을 읽는 중 문제가 발생하여 빈 목록으로 시작합니다.', e);
+            return [];
+        }
+    }
+
+    function persistRecords(records) {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+        } catch (e) {
+            console.warn('기록 저장에 실패했습니다. (저장 공간 부족 등)', e);
+        }
+    }
+
+    // 연습 시간별로 각각 Top 10 까지만 보관 (30초 기록과 5분 기록이 공정하게 공존)
+    function trimRecords(records) {
+        const sorted = [...records].sort((a, b) => b.score - a.score);
+        const countByTime = {};
+        const kept = [];
+        for (const r of sorted) {
+            countByTime[r.time] = (countByTime[r.time] || 0);
+            if (countByTime[r.time] < 10) {
+                kept.push(r);
+                countByTime[r.time]++;
+            }
+        }
+        return kept;
+    }
+
+    function addRecord(record) {
+        const records = trimRecords([...loadRecords(), record]);
+        persistRecords(records);
+        renderRanking();
+    }
+
+    // ============================================================
+    // 5. 게임 상태
+    // ============================================================
+    let currentLevel = 1;
+    let gameDuration = 60;
+    let currentWord = '';
+    let score = 0;
+    let totalKeystrokes = 0;
+    let timeLeft = 0;
+    let gameStartTime = 0;
+    let isGameRunning = false;
+    let timerInterval = null;
+    let wordPool = {};
+    let rankFilter = 'all';
+    let isResettingInput = false;   // IME 리셋 중 발생하는 유령 입력을 무시하기 위한 안전장치
+
+    // --- DOM 요소 ---
+    const targetWordEl = document.getElementById('targetWord');
+    const inputWrap = document.getElementById('inputWrap');
+    let inputField = document.getElementById('inputField');
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    const speedDisplay = document.getElementById('speedDisplay');
+    const timeDisplay = document.getElementById('timeDisplay');
+    const startButton = document.getElementById('startButton');
+    const skipButton = document.getElementById('skipButton');
+    const rankingList = document.getElementById('rankingList');
+
+    // ============================================================
+    // 6. 시간/난이도 선택
+    // ============================================================
+    document.getElementById('timeBtns').addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        if (!btn || isGameRunning) return;
+        document.querySelectorAll('#timeBtns button').forEach(b => b.classList.remove('on'));
+        btn.classList.add('on');
+        gameDuration = parseInt(btn.dataset.time, 10);
+        timeDisplay.textContent = gameDuration;
+    });
+
+    document.getElementById('levelBtns').addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        if (!btn || isGameRunning) return;
+        document.querySelectorAll('#levelBtns button').forEach(b => b.classList.remove('on'));
+        btn.classList.add('on');
+        currentLevel = parseInt(btn.dataset.level, 10);
+    });
+
+    // ============================================================
+    // 7. 단어 덱(중복 방지)과 화면 렌더링
+    // ============================================================
+    function nextWord() {
+        if (!wordPool[currentLevel] || wordPool[currentLevel].length === 0) {
+            wordPool[currentLevel] = [...wordDictionary[currentLevel]].sort(() => Math.random() - 0.5);
+        }
+        currentWord = wordPool[currentLevel].pop();
+        renderTargetWord();
+    }
+
+    function renderTargetWord() {
+        targetWordEl.textContent = '';
+        const typed = inputField.value;
+
+        for (let i = 0; i < currentWord.length; i++) {
+            const ch = currentWord[i];
+            const span = document.createElement('span');
+            span.textContent = ch === ' ' ? '\u00A0' : ch;
+            span.className = 'ch' + (ch === ' ' ? ' sp' : '');
+
+            if (i < typed.length) {
+                span.classList.add(typed[i] === ch ? 'ok' : 'bad');
+            } else if (i === typed.length) {
+                span.classList.add('cur');
+            }
+            targetWordEl.appendChild(span);
+        }
+
+// 제시어보다 길게 입력한 경우, 초과 글자 수를 표시해 혼란을 방지
+        if (typed.length > currentWord.length) {
+            const extra = document.createElement('span');
+            extra.className = 'extra';
+            extra.textContent = '+' + (typed.length - currentWord.length) + ' 지우세요!';
+            targetWordEl.appendChild(extra);
+        }
+    }
+
+    // ============================================================
+    // 8. 한글 IME(조합) 처리
+    //    - 정답 완성 순간 입력창을 새것으로 교체해 조합 상태를 초기화합니다.
+    //    - 이벤트는 입력창이 아니라 바깥 상자(inputWrap)에 연결(이벤트 위임)하므로
+    //      입력창을 교체해도 이벤트가 끊어지지 않습니다.
+    //    - 교체 도중 발생하는 유령 입력은 isResettingInput 플래그로 걸러냅니다.
+    // ============================================================
+    function resetInputField() {
+        isResettingInput = true;
+        const fresh = inputField.cloneNode(false);
+        fresh.value = '';
+        inputField.replaceWith(fresh);
+        inputField = fresh;
+        inputField.focus();
+        isResettingInput = false;
+    }
+
+    inputWrap.addEventListener('input', (e) => {
+        if (isResettingInput) {
+            e.target.value = '';
+            return;
+        }
+        if (!isGameRunning) {
+            e.target.value = '';
+            return;
+        }
+
+        renderTargetWord();
+
+        if (inputField.value === currentWord) {
+            completeWord();
+        }
+    });
+
+    function completeWord() {
+// 점수: 기존 방식 유지 (글자 수 x 단계 x 5) — 예전 기록과의 공정한 비교를 위해
+        score += currentWord.length * currentLevel * 5;
+        totalKeystrokes += countKeystrokes(currentWord);
+        scoreDisplay.textContent = score;
+        updateSpeed();
+        smallConfetti();
+
+        resetInputField();
+        nextWord();
+    }
+
+    function updateSpeed() {
+        const elapsedMin = (Date.now() - gameStartTime) / 60000;
+        if (elapsedMin > 0.01) {
+            speedDisplay.textContent = Math.round(totalKeystrokes / elapsedMin);
+        }
+    }
+
+    // ============================================================
+    // 9. 게임 진행 (시작 / 건너뛰기 / 종료)
+    // ============================================================
+    function startGame() {
+        if (timerInterval) clearInterval(timerInterval);
+
+        isGameRunning = true;
+        score = 0;
+        totalKeystrokes = 0;
+        timeLeft = gameDuration;
+        gameStartTime = Date.now();
+        wordPool[currentLevel] = null;   // 매 게임 새로 섞기
+
+        scoreDisplay.textContent = '0';
+        speedDisplay.textContent = '0';
+        timeDisplay.textContent = timeLeft;
+
+        inputField.disabled = false;
+        inputField.value = '';
+        inputField.placeholder = '여기에 입력!';
+        inputField.focus();
+
+        startButton.textContent = '🔄 다시 시작';
+        startButton.classList.add('playing');
+        skipButton.hidden = false;
+
+        nextWord();
+
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            timeDisplay.textContent = Math.max(0, timeLeft);
+            updateSpeed();
+            if (timeLeft <= 0) endGame();
+        }, 1000);
+    }
+
+    function skipWord() {
+        if (!isGameRunning) return;
+        resetInputField();
+        nextWord();
+    }
+
+    function endGame() {
+        isGameRunning = false;
+        clearInterval(timerInterval);
+        timerInterval = null;
+
+        inputField.value = '';
+        inputField.disabled = true;
+        inputField.placeholder = '수고했어요!';
+        skipButton.hidden = true;
+
+        targetWordEl.textContent = '';
+        const done = document.createElement('span');
+        done.style.color = '#64748b';
+        done.textContent = '🎉 게임 종료! 점수: ' + score + '점';
+        targetWordEl.appendChild(done);
+
+        if (score > 0) {
+            const today = new Date();
+            const dateStr = String(today.getFullYear()).slice(2) + '.'
+                + String(today.getMonth() + 1).padStart(2, '0') + '.'
+                + String(today.getDate()).padStart(2, '0');
+            addRecord({
+                score: score,
+                speed: parseInt(speedDisplay.textContent, 10) || 0,
+                level: currentLevel,
+                time : gameDuration,
+                date : dateStr
+            });
+            bigFinale();
+        }
+
+        startButton.textContent = '🚀 게임 시작!';
+        startButton.classList.remove('playing');
+    }
+
+    startButton.addEventListener('click', startGame);
+    skipButton.addEventListener('click', skipWord);
+
+    // ============================================================
+    // 10. 명예의 전당 (시간별 필터 + 안전한 화면 출력)
+    //     - textContent만 사용하므로 저장 데이터에 이상한 문자가 있어도 안전합니다.
+    // ============================================================
+    function formatTime(sec) {
+        return sec >= 60 ? (sec / 60) + '분' : sec + '초';
+    }
+
+    document.getElementById('rankTabs').addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        document.querySelectorAll('#rankTabs button').forEach(b => b.classList.remove('on'));
+        btn.classList.add('on');
+        rankFilter = btn.dataset.filter;
+        renderRanking();
+    });
+
+    function renderRanking() {
+        const all = loadRecords();
+        const filtered = (rankFilter === 'all')
+            ? all
+            : all.filter(r => String(r.time) === rankFilter);
+        const top = [...filtered].sort((a, b) => b.score - a.score).slice(0, 10);
+
+        rankingList.textContent = '';
+
+        if (top.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'empty';
+            empty.textContent = '아직 기록이 없습니다. 첫 번째 챔피언이 되어 보세요!';
+            rankingList.appendChild(empty);
+            return;
+        }
+
+        const MEDALS = ['🥇', '🥈', '🥉'];
+        top.forEach((r, i) => {
+            const item = document.createElement('div');
+            item.className = 'rank-item' + (i < 3 ? ' r' + (i + 1) : '');
+
+            const medal = document.createElement('div');
+            medal.className = 'medal';
+            medal.textContent = (i < 3 ? MEDALS[i] + ' ' : '') + (i + 1) + '위';
+
+            const mid = document.createElement('div');
+            mid.className = 'mid';
+            const pts = document.createElement('div');
+            pts.className = 'pts';
+            pts.textContent = r.score.toLocaleString() + '점';
+            const sub = document.createElement('div');
+            sub.className = 'sub';
+            sub.textContent = '속도 ' + (r.speed || 0) + '타 | ' + (r.level || '?') + '단계 | ' + formatTime(r.time);
+            mid.appendChild(pts);
+            mid.appendChild(sub);
+
+            const date = document.createElement('div');
+            date.className = 'date';
+            date.textContent = r.date || '';
+
+            item.appendChild(medal);
+            item.appendChild(mid);
+            item.appendChild(date);
+            rankingList.appendChild(item);
+        });
+    }
+
+    // ============================================================
+    // 11. 기록 백업(내보내기) / 복원(가져오기)
+    //     - 브라우저 데이터를 지워도 기록을 잃지 않도록 파일로 보관할 수 있습니다.
+    // ============================================================
+    document.getElementById('exportBtn').addEventListener('click', () => {
+        const records = loadRecords();
+        if (records.length === 0) {
+            alert('아직 백업할 기록이 없습니다.');
+            return;
+        }
+        const blob = new Blob([JSON.stringify(records, null, 2)], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const d = new Date();
+        a.href = url;
+        a.download = '타자연습_기록_'
+            + String(d.getFullYear()).slice(2)
+            + String(d.getMonth() + 1).padStart(2, '0')
+            + String(d.getDate()).padStart(2, '0') + '.json';
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+
+    const importFile = document.getElementById('importFile');
+    document.getElementById('importBtn').addEventListener('click', () => importFile.click());
+
+    importFile.addEventListener('change', () => {
+        const file = importFile.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+            try {
+                const parsed = JSON.parse(reader.result);
+                if (!Array.isArray(parsed)) throw new Error('형식 오류');
+                const incoming = parsed.filter(isValidRecord);
+                if (incoming.length === 0) throw new Error('유효한 기록 없음');
+
+// 기존 기록과 합치되, 완전히 같은 기록은 한 번만 남깁니다.
+                const merged = [...loadRecords(), ...incoming];
+                const seen = new Set();
+                const unique = merged.filter(r => {
+                    const key = JSON.stringify([r.score, r.speed, r.level, r.time, r.date]);
+                    if (seen.has(key)) return false;
+                    seen.add(key);
+                    return true;
+                });
+                persistRecords(trimRecords(unique));
+                renderRanking();
+                alert('기록 ' + incoming.length + '개를 불러와 합쳤습니다!');
+            } catch (e) {
+                alert('기록 파일을 읽을 수 없습니다. 백업하기로 만든 파일이 맞는지 확인해 주세요.');
+            }
+            importFile.value = '';
+        };
+        reader.readAsText(file);
+    });
+
+    // ============================================================
+    // 12. 초기화
+    // ============================================================
+    inputField.disabled = true;
+    renderRanking();
+
+    // ============================================================
+    // 13. 앱(PWA) 등록 — 인터넷 주소로 열었을 때만 작동하며,
+    //     파일로 직접 열면 자동으로 건너뛰므로 기존 사용법에도 영향이 없습니다.
+    // ============================================================
+    if ('serviceWorker' in navigator && location.protocol === 'https:') {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js').catch(() => {
+            });
+        });
+    }
+</script>
+</body>
+</html>

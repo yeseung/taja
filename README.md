@@ -79,6 +79,7 @@
 - https://workmate.tools/ktype
 - https://www.typing-practice.com/
 - https://tajaexam.store/
+- https://blog.naver.com/artifend/224376391050
 <br><br><br>
 
 
