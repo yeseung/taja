@@ -80,6 +80,7 @@
 - https://www.typing-practice.com/
 - https://tajaexam.store/
 - https://blog.naver.com/artifend/224376391050
+- https://blog.naver.com/sue3565/224343781708
 <br><br><br>
 
 
