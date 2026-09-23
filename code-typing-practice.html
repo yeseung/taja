@@ -1,0 +1,2167 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>코드 타자연습 - 프로그래밍 타이핑 테스트</title>
+
+    <meta name="description" content="JavaScript, Python, HTML, CSS 등 다양한 프로그래밍 코드를 입력하며 타자 속도와 정확도를 측정하는 무료 코드 타자연습입니다.">
+
+    <style>
+        :root {
+            --bg: #f7f8fa;
+            --card: #ffffff;
+            --text: #172033;
+            --sub: #64748b;
+            --line: #e5e7eb;
+            --line-dark: #cbd5e1;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --warning: #d97706;
+            --radius: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family:
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "Segoe UI",
+                    "Noto Sans KR",
+                    Arial,
+                    sans-serif;
+            line-height: 1.6;
+        }
+
+        button,
+        select,
+        textarea {
+            font: inherit;
+        }
+
+        button,
+        select {
+            min-height: 44px;
+        }
+
+        /* 전체 영역 */
+
+        .container {
+            width: min(1100px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 50px 0 80px;
+        }
+
+        /* 제목 */
+
+        .header {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0 0 10px;
+            font-size: clamp(28px, 5vw, 42px);
+            letter-spacing: -0.04em;
+        }
+
+        .header p {
+            margin: 0;
+            color: var(--sub);
+            font-size: 16px;
+        }
+
+        /* 카드 */
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        /* 설정 */
+
+        .settings {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .field label {
+            display: block;
+            margin-bottom: 7px;
+            color: #475569;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        select {
+            width: 100%;
+            padding: 0 12px;
+            background: #fff;
+            color: var(--text);
+            border: 1px solid var(--line-dark);
+            border-radius: 10px;
+            outline: none;
+        }
+
+        select:focus {
+            border-color: var(--primary);
+        }
+
+        /* HUD */
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+        }
+
+        .stat {
+            padding: 18px 10px;
+            background: #f8fafc;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            display: block;
+            margin-bottom: 3px;
+            font-size: 27px;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        .stat-label {
+            color: var(--sub);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* 진행률 */
+
+        .progress {
+            width: 100%;
+            height: 8px;
+            margin-top: 20px;
+            overflow: hidden;
+            background: #e5e7eb;
+            border-radius: 999px;
+        }
+
+        .progress-bar {
+            width: 0;
+            height: 100%;
+            background: var(--primary);
+            border-radius: inherit;
+            transition: width 0.15s ease;
+        }
+
+        /* 코드 영역 */
+
+        .code-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .code-title {
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .code-language {
+            color: var(--sub);
+            font-size: 13px;
+        }
+
+        .code-display {
+            min-height: 270px;
+            padding: 22px;
+            overflow: auto;
+
+            background: #fbfcfd;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+
+            color: #334155;
+
+            font-family:
+                    "SFMono-Regular",
+                    Consolas,
+                    "Liberation Mono",
+                    Menlo,
+                    monospace;
+
+            font-size: 15px;
+            line-height: 1.8;
+
+            white-space: pre-wrap;
+            overflow-wrap: normal;
+            tab-size: 4;
+        }
+
+        .char {
+            border-radius: 2px;
+        }
+
+        .char.correct {
+            color: #15803d;
+            background: #dcfce7;
+        }
+
+        .char.incorrect {
+            color: #b91c1c;
+            background: #fee2e2;
+        }
+
+        .char.current {
+            background: #dbeafe;
+            box-shadow: inset 0 -2px 0 var(--primary);
+        }
+
+        /* 입력창 */
+
+        .input-label {
+            display: block;
+            margin-bottom: 9px;
+            font-weight: 700;
+        }
+
+        #typingInput {
+            width: 100%;
+            min-height: 150px;
+            resize: vertical;
+
+            padding: 18px;
+
+            background: #fff;
+            color: var(--text);
+
+            border: 2px solid var(--line-dark);
+            border-radius: 12px;
+            outline: none;
+
+            font-family:
+                    "SFMono-Regular",
+                    Consolas,
+                    "Liberation Mono",
+                    Menlo,
+                    monospace;
+
+            font-size: 15px;
+            line-height: 1.7;
+
+            tab-size: 4;
+        }
+
+        #typingInput:focus {
+            border-color: var(--primary);
+        }
+
+        #typingInput:disabled {
+            background: #f8fafc;
+            cursor: not-allowed;
+        }
+
+        /* 버튼 */
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .btn {
+            min-height: 44px;
+            padding: 0 18px;
+
+            border: 0;
+            border-radius: 10px;
+
+            cursor: pointer;
+            font-weight: 700;
+
+            transition:
+                    background 0.15s,
+                    transform 0.05s;
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-secondary {
+            background: #eef2f7;
+            color: #334155;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        /* 결과 */
+
+        .result {
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result-title {
+            margin: 0 0 20px;
+            text-align: center;
+            font-size: 25px;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .result-box {
+            padding: 20px 10px;
+            background: #f8fafc;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .result-box strong {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 27px;
+        }
+
+        .result-box span {
+            color: var(--sub);
+            font-size: 13px;
+        }
+
+        .result-message {
+            margin-top: 20px;
+            color: #475569;
+            text-align: center;
+        }
+
+        /* 설명 */
+
+        .help h2 {
+            margin: 0 0 12px;
+            font-size: 20px;
+        }
+
+        .help p {
+            margin: 0;
+            color: var(--sub);
+        }
+
+        .help ul {
+            margin: 15px 0 0;
+            padding-left: 22px;
+            color: #475569;
+        }
+
+        kbd {
+            padding: 2px 7px;
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-bottom-width: 2px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+
+        /* 반응형 */
+
+        @media (max-width: 800px) {
+
+            .settings {
+                grid-template-columns: 1fr;
+            }
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .result-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 520px) {
+
+            .container {
+                width: min(100% - 20px, 1100px);
+                padding-top: 25px;
+            }
+
+            .card {
+                padding: 16px;
+                border-radius: 13px;
+            }
+
+            .code-display {
+                min-height: 230px;
+                padding: 15px;
+                font-size: 13px;
+            }
+
+            #typingInput {
+                min-height: 130px;
+                padding: 14px;
+                font-size: 14px;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<main class="container">
+
+    <header class="header">
+        <h1>⌨️ 코드 타자연습</h1>
+        <p>
+            실제 프로그래밍 코드를 입력하며
+            타자 속도와 정확도를 측정해 보세요.
+        </p>
+    </header>
+
+
+    <!-- 설정 -->
+
+    <section class="card">
+
+        <div class="settings">
+
+            <div class="field">
+                <label for="languageSelect">
+                    프로그래밍 언어
+                </label>
+
+                <select id="languageSelect">
+                    <option value="javascript">JavaScript</option>
+                    <option value="python">Python</option>
+                    <option value="html">HTML</option>
+                    <option value="css">CSS</option>
+                    <option value="php">PHP</option>
+                    <option value="java">Java</option>
+                    <option value="cpp">C++</option>
+                    <option value="csharp">C#</option>
+                    <option value="sql">SQL</option>
+                    <option value="json">JSON</option>
+                </select>
+            </div>
+
+
+            <div class="field">
+                <label for="timeSelect">
+                    제한 시간
+                </label>
+
+                <select id="timeSelect">
+                    <option value="30">30초</option>
+                    <option value="60" selected>60초</option>
+                    <option value="120">120초</option>
+                    <option value="300">5분</option>
+                    <option value="0">시간 제한 없음</option>
+                </select>
+            </div>
+
+
+            <div class="field">
+                <label for="difficultySelect">
+                    난이도
+                </label>
+
+                <select id="difficultySelect">
+                    <option value="easy">초급</option>
+                    <option value="normal" selected>중급</option>
+                    <option value="hard">고급</option>
+                </select>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- 통계 -->
+
+    <section class="card">
+
+        <div class="stats">
+
+            <div class="stat">
+                <span
+                        class="stat-value"
+                        id="cpm"
+                >0</span>
+
+                <span class="stat-label">
+                    CPM
+                </span>
+            </div>
+
+
+            <div class="stat">
+                <span
+                        class="stat-value"
+                        id="wpm"
+                >0</span>
+
+                <span class="stat-label">
+                    WPM
+                </span>
+            </div>
+
+
+            <div class="stat">
+                <span
+                        class="stat-value"
+                        id="accuracy"
+                >100%</span>
+
+                <span class="stat-label">
+                    정확도
+                </span>
+            </div>
+
+
+            <div class="stat">
+                <span
+                        class="stat-value"
+                        id="errors"
+                >0</span>
+
+                <span class="stat-label">
+                    오타
+                </span>
+            </div>
+
+
+            <div class="stat">
+                <span
+                        class="stat-value"
+                        id="timer"
+                >60</span>
+
+                <span class="stat-label">
+                    남은 시간
+                </span>
+            </div>
+
+        </div>
+
+
+        <div
+                class="progress"
+                aria-label="진행률"
+        >
+            <div
+                    class="progress-bar"
+                    id="progressBar"
+            ></div>
+        </div>
+
+    </section>
+
+
+    <!-- 코드 -->
+
+    <section class="card">
+
+        <div class="code-header">
+
+            <span class="code-title">
+                입력할 코드
+            </span>
+
+            <span
+                    class="code-language"
+                    id="codeLanguage"
+            >
+                JavaScript
+            </span>
+
+        </div>
+
+
+        <div
+                class="code-display"
+                id="codeDisplay"
+                aria-live="polite"
+        ></div>
+
+    </section>
+
+
+    <!-- 입력 -->
+
+    <section class="card">
+
+        <label
+                class="input-label"
+                for="typingInput"
+        >
+            코드 입력
+        </label>
+
+        <textarea
+                id="typingInput"
+                spellcheck="false"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                placeholder="시작 버튼을 누른 후 위 코드를 그대로 입력하세요."
+                disabled
+        ></textarea>
+
+
+        <div class="actions">
+
+            <button
+                    class="btn btn-primary"
+                    id="startButton"
+                    type="button"
+            >
+                시작
+            </button>
+
+            <button
+                    class="btn btn-secondary"
+                    id="restartButton"
+                    type="button"
+            >
+                다시 시작
+            </button>
+
+            <button
+                    class="btn btn-secondary"
+                    id="newCodeButton"
+                    type="button"
+            >
+                다른 코드
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- 결과 -->
+
+    <section
+            class="card result"
+            id="result"
+    >
+
+        <h2 class="result-title">
+            연습 결과
+        </h2>
+
+
+        <div class="result-grid">
+
+            <div class="result-box">
+                <strong id="resultCpm">
+                    0
+                </strong>
+
+                <span>
+                    CPM
+                </span>
+            </div>
+
+
+            <div class="result-box">
+                <strong id="resultWpm">
+                    0
+                </strong>
+
+                <span>
+                    WPM
+                </span>
+            </div>
+
+
+            <div class="result-box">
+                <strong id="resultAccuracy">
+                    100%
+                </strong>
+
+                <span>
+                    정확도
+                </span>
+            </div>
+
+
+            <div class="result-box">
+                <strong id="resultErrors">
+                    0
+                </strong>
+
+                <span>
+                    오타
+                </span>
+            </div>
+
+        </div>
+
+
+        <div
+                class="result-message"
+                id="resultMessage"
+        ></div>
+
+    </section>
+
+
+    <!-- 설명 -->
+
+    <section class="card help">
+
+        <h2>
+            코드 타자연습 사용 방법
+        </h2>
+
+        <p>
+            화면에 표시되는 프로그래밍 코드를
+            가능한 정확하고 빠르게 입력하세요.
+        </p>
+
+        <ul>
+            <li>첫 입력부터 시간이 측정됩니다.</li>
+            <li>CPM은 1분 동안 입력한 문자 수입니다.</li>
+            <li>WPM은 5글자를 한 단어로 계산합니다.</li>
+            <li>잘못 입력한 문자는 빨간색으로 표시됩니다.</li>
+            <li>
+                입력창에서
+                <kbd>Tab</kbd>
+                키를 누르면 공백 4칸이 입력됩니다.
+            </li>
+            <li>코드를 모두 입력하면 자동으로 종료됩니다.</li>
+        </ul>
+
+    </section>
+
+</main>
+
+
+<script>
+    (function () {
+        "use strict";
+
+        /*
+         * 코드 샘플
+         *
+         * 서버나 외부 API 없이 브라우저에서
+         * 바로 실행할 수 있도록 자체 샘플을 사용합니다.
+         */
+
+        const codeSamples = {
+
+            javascript: {
+
+                easy: [
+                    `const message = "Hello, world!";
+
+console.log(message);`,
+
+                    `const numbers = [1, 2, 3, 4, 5];
+
+numbers.forEach(function (number) {
+    console.log(number);
+});`
+                ],
+
+                normal: [
+                    `function calculateAverage(numbers) {
+    if (!numbers.length) {
+        return 0;
+    }
+
+    const total = numbers.reduce(function (sum, number) {
+        return sum + number;
+    }, 0);
+
+    return total / numbers.length;
+}
+
+console.log(calculateAverage([10, 20, 30, 40]));`,
+
+                    `const users = [
+    { name: "Alice", age: 24 },
+    { name: "Bob", age: 31 },
+    { name: "Charlie", age: 28 }
+];
+
+const adults = users
+    .filter(user => user.age >= 25)
+    .map(user => user.name);
+
+console.log(adults);`
+                ],
+
+                hard: [
+                    `async function fetchUsers(url) {
+    try {
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error("Request failed: " + response.status);
+        }
+
+        const data = await response.json();
+
+        return data
+            .filter(user => user.active)
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+    } catch (error) {
+        console.error("Unable to load users:", error);
+        return [];
+    }
+}`
+                ]
+            },
+
+
+            python: {
+
+                easy: [
+                    `name = "CodeRush"
+
+print("Hello, " + name)`,
+
+                    `numbers = [1, 2, 3, 4, 5]
+
+for number in numbers:
+    print(number)`
+                ],
+
+                normal: [
+                    `def calculate_average(numbers):
+    if not numbers:
+        return 0
+
+    total = sum(numbers)
+
+    return total / len(numbers)
+
+
+values = [10, 20, 30, 40]
+
+print(calculate_average(values))`
+                ],
+
+                hard: [
+                    `def group_users_by_role(users):
+    groups = {}
+
+    for user in users:
+        role = user.get("role", "guest")
+
+        if role not in groups:
+            groups[role] = []
+
+        groups[role].append({
+            "name": user["name"],
+            "active": user.get("active", False)
+        })
+
+    return groups`
+                ]
+            },
+
+
+            html: {
+
+                easy: [
+                    `<!DOCTYPE html>
+<html>
+<head>
+    <title>Hello</title>
+</head>
+<body>
+    <h1>Hello, world!</h1>
+</body>
+</html>`
+                ],
+
+                normal: [
+                    `<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Practice</title>
+</head>
+<body>
+
+<main class="container">
+    <h1>Code Typing Practice</h1>
+    <p>Practice makes perfect.</p>
+</main>
+
+</body>
+</html>`
+                ],
+
+                hard: [
+                    `<section class="user-list" aria-labelledby="user-title">
+    <header>
+        <h2 id="user-title">Active Users</h2>
+    </header>
+
+    <ul>
+        <li data-user-id="101">
+            <strong>Alice</strong>
+            <span>Administrator</span>
+        </li>
+
+        <li data-user-id="102">
+            <strong>Bob</strong>
+            <span>Developer</span>
+        </li>
+    </ul>
+</section>`
+                ]
+            },
+
+
+            css: {
+
+                easy: [
+                    `body {
+    margin: 0;
+    font-family: sans-serif;
+}
+
+h1 {
+    color: #2563eb;
+}`
+                ],
+
+                normal: [
+                    `.container {
+    width: min(100% - 32px, 1200px);
+    margin: 0 auto;
+}
+
+.card {
+    padding: 24px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+}`
+                ],
+
+                hard: [
+                    `.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: clamp(16px, 3vw, 32px);
+}
+
+.grid > article {
+    min-width: 0;
+    padding: 24px;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    transition: transform 0.2s ease;
+}
+
+.grid > article:hover {
+    transform: translateY(-4px);
+}`
+                ]
+            },
+
+
+            php: {
+
+                easy: [
+                    `<?php
+
+$name = "CodeRush";
+
+echo "Hello, " . $name;
+
+?>`
+                ],
+
+                normal: [
+                    `<?php
+
+function calculateAverage($numbers)
+{
+    if (count($numbers) === 0) {
+        return 0;
+    }
+
+    $total = array_sum($numbers);
+
+    return $total / count($numbers);
+}
+
+$values = array(10, 20, 30, 40);
+
+echo calculateAverage($values);
+
+?>`
+                ],
+
+                hard: [
+                    `<?php
+
+function getActiveUsers($users)
+{
+    $result = array();
+
+    foreach ($users as $user) {
+        if (!isset($user['active']) || !$user['active']) {
+            continue;
+        }
+
+        $result[] = array(
+            'name' => $user['name'],
+            'email' => $user['email']
+        );
+    }
+
+    return $result;
+}
+
+?>`
+                ]
+            },
+
+
+            java: {
+
+                easy: [
+                    `public class Main {
+
+    public static void main(String[] args) {
+        System.out.println("Hello, world!");
+    }
+
+}`
+                ],
+
+                normal: [
+                    `public class Calculator {
+
+    public static double average(int[] numbers) {
+
+        if (numbers.length == 0) {
+            return 0;
+        }
+
+        int total = 0;
+
+        for (int number : numbers) {
+            total += number;
+        }
+
+        return (double) total / numbers.length;
+    }
+
+}`
+                ],
+
+                hard: [
+                    `import java.util.ArrayList;
+import java.util.List;
+
+public class UserService {
+
+    public List<String> getActiveUsers(List<User> users) {
+
+        List<String> result = new ArrayList<>();
+
+        for (User user : users) {
+
+            if (user.isActive()) {
+                result.add(user.getName());
+            }
+        }
+
+        return result;
+    }
+}`
+                ]
+            },
+
+
+            cpp: {
+
+                easy: [
+                    `#include <iostream>
+
+int main() {
+    std::cout << "Hello, world!" << std::endl;
+
+    return 0;
+}`
+                ],
+
+                normal: [
+                    `#include <iostream>
+#include <vector>
+
+double average(const std::vector<int>& numbers) {
+
+    if (numbers.empty()) {
+        return 0;
+    }
+
+    int total = 0;
+
+    for (int number : numbers) {
+        total += number;
+    }
+
+    return static_cast<double>(total) / numbers.size();
+}`
+                ],
+
+                hard: [
+                    `#include <algorithm>
+#include <string>
+#include <vector>
+
+std::vector<std::string> filterNames(
+    const std::vector<std::string>& names,
+    std::size_t minimumLength
+) {
+    std::vector<std::string> result;
+
+    std::copy_if(
+        names.begin(),
+        names.end(),
+        std::back_inserter(result),
+        [minimumLength](const std::string& name) {
+            return name.size() >= minimumLength;
+        }
+    );
+
+    return result;
+}`
+                ]
+            },
+
+
+            csharp: {
+
+                easy: [
+                    `using System;
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine("Hello, world!");
+    }
+}`
+                ],
+
+                normal: [
+                    `using System;
+
+class Calculator
+{
+    public static double Average(int[] numbers)
+    {
+        if (numbers.Length == 0)
+        {
+            return 0;
+        }
+
+        int total = 0;
+
+        foreach (int number in numbers)
+        {
+            total += number;
+        }
+
+        return (double)total / numbers.Length;
+    }
+}`
+                ],
+
+                hard: [
+                    `using System.Collections.Generic;
+using System.Linq;
+
+public class UserService
+{
+    public IEnumerable<string> GetActiveNames(
+        IEnumerable<User> users)
+    {
+        return users
+            .Where(user => user.IsActive)
+            .OrderBy(user => user.Name)
+            .Select(user => user.Name);
+    }
+}`
+                ]
+            },
+
+
+            sql: {
+
+                easy: [
+                    `SELECT
+    id,
+    name,
+    email
+FROM users
+ORDER BY name;`
+                ],
+
+                normal: [
+                    `SELECT
+    u.id,
+    u.name,
+    COUNT(o.id) AS order_count
+FROM users AS u
+LEFT JOIN orders AS o
+    ON o.user_id = u.id
+GROUP BY
+    u.id,
+    u.name
+ORDER BY
+    order_count DESC;`
+                ],
+
+                hard: [
+                    `SELECT
+    department_id,
+    employee_name,
+    salary,
+    RANK() OVER (
+        PARTITION BY department_id
+        ORDER BY salary DESC
+    ) AS salary_rank
+FROM employees
+WHERE active = 1
+ORDER BY
+    department_id,
+    salary_rank;`
+                ]
+            },
+
+
+            json: {
+
+                easy: [
+                    `{
+    "name": "CodeRush",
+    "active": true,
+    "version": 1
+}`
+                ],
+
+                normal: [
+                    `{
+    "application": {
+        "name": "Code Typing Practice",
+        "version": "1.0.0"
+    },
+    "settings": {
+        "language": "javascript",
+        "duration": 60,
+        "difficulty": "normal"
+    }
+}`
+                ],
+
+                hard: [
+                    `{
+    "users": [
+        {
+            "id": 101,
+            "name": "Alice",
+            "roles": [
+                "admin",
+                "developer"
+            ],
+            "settings": {
+                "theme": "light",
+                "notifications": true
+            }
+        }
+    ]
+}`
+                ]
+            }
+
+        };
+
+
+        const languageNames = {
+            javascript: "JavaScript",
+            python: "Python",
+            html: "HTML",
+            css: "CSS",
+            php: "PHP",
+            java: "Java",
+            cpp: "C++",
+            csharp: "C#",
+            sql: "SQL",
+            json: "JSON"
+        };
+
+
+        /*
+         * DOM
+         */
+
+        const languageSelect =
+                  document.getElementById("languageSelect");
+
+        const timeSelect =
+                  document.getElementById("timeSelect");
+
+        const difficultySelect =
+                  document.getElementById("difficultySelect");
+
+        const codeDisplay =
+                  document.getElementById("codeDisplay");
+
+        const codeLanguage =
+                  document.getElementById("codeLanguage");
+
+        const typingInput =
+                  document.getElementById("typingInput");
+
+        const startButton =
+                  document.getElementById("startButton");
+
+        const restartButton =
+                  document.getElementById("restartButton");
+
+        const newCodeButton =
+                  document.getElementById("newCodeButton");
+
+        const cpmElement =
+                  document.getElementById("cpm");
+
+        const wpmElement =
+                  document.getElementById("wpm");
+
+        const accuracyElement =
+                  document.getElementById("accuracy");
+
+        const errorsElement =
+                  document.getElementById("errors");
+
+        const timerElement =
+                  document.getElementById("timer");
+
+        const progressBar =
+                  document.getElementById("progressBar");
+
+        const result =
+                  document.getElementById("result");
+
+        const resultCpm =
+                  document.getElementById("resultCpm");
+
+        const resultWpm =
+                  document.getElementById("resultWpm");
+
+        const resultAccuracy =
+                  document.getElementById("resultAccuracy");
+
+        const resultErrors =
+                  document.getElementById("resultErrors");
+
+        const resultMessage =
+                  document.getElementById("resultMessage");
+
+
+        /*
+         * 상태
+         */
+
+        let currentCode = "";
+
+        let running = false;
+
+        let started = false;
+
+        let finished = false;
+
+        let startTime = null;
+
+        let timerInterval = null;
+
+        let selectedDuration = 60;
+
+        let remainingTime = 60;
+
+        let lastSampleIndex = -1;
+
+
+        /*
+         * HTML Escape
+         */
+
+        function escapeHtml(value) {
+
+            return value
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+        }
+
+
+        /*
+         * 코드 선택
+         */
+
+        function getSamples() {
+
+            const language =
+                      languageSelect.value;
+
+            const difficulty =
+                      difficultySelect.value;
+
+            return codeSamples[language][difficulty];
+        }
+
+
+        function chooseCode() {
+
+            const samples = getSamples();
+
+            let index =
+                    Math.floor(
+                        Math.random() * samples.length
+                    );
+
+            if (
+                samples.length > 1 &&
+                index === lastSampleIndex
+            ) {
+
+                index =
+                    (index + 1) % samples.length;
+            }
+
+            lastSampleIndex = index;
+
+            currentCode = samples[index];
+
+            codeLanguage.textContent =
+                languageNames[languageSelect.value];
+
+            renderCode("");
+
+            resetStatistics();
+        }
+
+
+        /*
+         * 코드 화면
+         */
+
+        function renderCode(input) {
+
+            let html = "";
+
+            for (
+                let index = 0;
+                index < currentCode.length;
+                index++
+            ) {
+
+                const character =
+                          currentCode[index];
+
+                let className = "char";
+
+                if (index < input.length) {
+
+                    if (
+                        input[index] ===
+                        currentCode[index]
+                    ) {
+
+                        className += " correct";
+
+                    } else {
+
+                        className += " incorrect";
+                    }
+
+                } else if (
+                    index === input.length &&
+                    running
+                ) {
+
+                    className += " current";
+                }
+
+                html +=
+                    '<span class="' +
+                    className +
+                    '">' +
+                    escapeHtml(character) +
+                    "</span>";
+            }
+
+            codeDisplay.innerHTML = html;
+
+            scrollCurrentCharacter();
+        }
+
+
+        /*
+         * 현재 입력 위치 자동 스크롤
+         */
+
+        function scrollCurrentCharacter() {
+
+            const current =
+                      codeDisplay.querySelector(".current");
+
+            if (!current) {
+                return;
+            }
+
+            const displayRect =
+                      codeDisplay.getBoundingClientRect();
+
+            const currentRect =
+                      current.getBoundingClientRect();
+
+            if (
+                currentRect.bottom >
+                displayRect.bottom - 30
+            ) {
+
+                codeDisplay.scrollTop +=
+                    currentRect.bottom -
+                    displayRect.bottom +
+                    50;
+            }
+        }
+
+
+        /*
+         * 시작
+         */
+
+        function startPractice() {
+
+            clearInterval(timerInterval);
+
+            running = true;
+            started = false;
+            finished = false;
+
+            startTime = null;
+
+            selectedDuration =
+                Number(timeSelect.value);
+
+            remainingTime =
+                selectedDuration;
+
+            typingInput.value = "";
+
+            typingInput.disabled = false;
+
+            result.classList.remove("show");
+
+            resetStatistics();
+
+            renderCode("");
+
+            typingInput.focus();
+
+            startButton.textContent =
+                "연습 중";
+        }
+
+
+        /*
+         * 실제 타이머 시작
+         */
+
+        function beginTimer() {
+
+            if (started) {
+                return;
+            }
+
+            started = true;
+
+            startTime = Date.now();
+
+            if (selectedDuration === 0) {
+
+                timerElement.textContent =
+                    "∞";
+
+                return;
+            }
+
+            timerInterval =
+                setInterval(function () {
+
+                    const elapsed =
+                              (Date.now() - startTime) / 1000;
+
+                    remainingTime =
+                        Math.max(
+                            0,
+                            selectedDuration -
+                            Math.floor(elapsed)
+                        );
+
+                    timerElement.textContent =
+                        remainingTime;
+
+                    updateStatistics();
+
+                    if (
+                        elapsed >=
+                        selectedDuration
+                    ) {
+
+                        finishPractice();
+                    }
+
+                }, 200);
+        }
+
+
+        /*
+         * 통계
+         */
+
+        function calculateStatistics() {
+
+            const input =
+                      typingInput.value;
+
+            let correct = 0;
+            let errors = 0;
+
+            for (
+                let index = 0;
+                index < input.length;
+                index++
+            ) {
+
+                if (
+                    input[index] ===
+                    currentCode[index]
+                ) {
+
+                    correct++;
+
+                } else {
+
+                    errors++;
+                }
+            }
+
+            let elapsedSeconds = 0;
+
+            if (startTime) {
+
+                elapsedSeconds =
+                    (Date.now() - startTime) /
+                    1000;
+            }
+
+            elapsedSeconds =
+                Math.max(
+                    elapsedSeconds,
+                    0.01
+                );
+
+            const minutes =
+                      elapsedSeconds / 60;
+
+            /*
+             * 정확히 입력된 문자를 기준으로 CPM 계산
+             */
+
+            const cpm =
+                      Math.round(
+                          correct / minutes
+                      );
+
+            /*
+             * 일반적인 영문 타자 WPM 방식:
+             * 5 characters = 1 word
+             */
+
+            const wpm =
+                      Math.round(
+                          correct /
+                          5 /
+                          minutes
+                      );
+
+            const accuracy =
+                      input.length === 0
+                          ? 100
+                          : Math.max(
+                              0,
+                              Math.round(
+                                  (correct /
+                                      input.length) *
+                                  100
+                              )
+                          );
+
+            const progress =
+                      currentCode.length === 0
+                          ? 0
+                          : Math.min(
+                              100,
+                              (input.length /
+                                  currentCode.length) *
+                              100
+                          );
+
+            return {
+                correct: correct,
+                errors: errors,
+                cpm: cpm,
+                wpm: wpm,
+                accuracy: accuracy,
+                progress: progress,
+                elapsedSeconds: elapsedSeconds
+            };
+        }
+
+
+        function updateStatistics() {
+
+            const stats =
+                      calculateStatistics();
+
+            cpmElement.textContent =
+                stats.cpm;
+
+            wpmElement.textContent =
+                stats.wpm;
+
+            accuracyElement.textContent =
+                stats.accuracy + "%";
+
+            errorsElement.textContent =
+                stats.errors;
+
+            progressBar.style.width =
+                stats.progress + "%";
+        }
+
+
+        /*
+         * 초기 통계
+         */
+
+        function resetStatistics() {
+
+            cpmElement.textContent =
+                "0";
+
+            wpmElement.textContent =
+                "0";
+
+            accuracyElement.textContent =
+                "100%";
+
+            errorsElement.textContent =
+                "0";
+
+            progressBar.style.width =
+                "0%";
+
+            selectedDuration =
+                Number(timeSelect.value);
+
+            timerElement.textContent =
+                selectedDuration === 0
+                    ? "∞"
+                    : selectedDuration;
+        }
+
+
+        /*
+         * 종료
+         */
+
+        function finishPractice() {
+
+            if (
+                finished ||
+                !running
+            ) {
+
+                return;
+            }
+
+            finished = true;
+            running = false;
+
+            clearInterval(timerInterval);
+
+            typingInput.disabled = true;
+
+            updateStatistics();
+
+            renderCode(
+                typingInput.value
+            );
+
+            const stats =
+                      calculateStatistics();
+
+            resultCpm.textContent =
+                stats.cpm;
+
+            resultWpm.textContent =
+                stats.wpm;
+
+            resultAccuracy.textContent =
+                stats.accuracy + "%";
+
+            resultErrors.textContent =
+                stats.errors;
+
+
+            let message = "";
+
+            if (
+                stats.accuracy >= 98
+            ) {
+
+                message =
+                    "매우 정확하게 입력했습니다.";
+
+            } else if (
+                stats.accuracy >= 90
+            ) {
+
+                message =
+                    "좋은 기록입니다. 정확도를 조금 더 높여보세요.";
+
+            } else if (
+                stats.accuracy >= 80
+            ) {
+
+                message =
+                    "속도보다 정확한 입력에 조금 더 집중해 보세요.";
+
+            } else {
+
+                message =
+                    "천천히 정확하게 입력하는 것부터 연습해 보세요.";
+            }
+
+            resultMessage.textContent =
+                message;
+
+            result.classList.add("show");
+
+            startButton.textContent =
+                "시작";
+
+            result.scrollIntoView({
+                behavior: "smooth",
+                block: "nearest"
+            });
+        }
+
+
+        /*
+         * 입력 이벤트
+         */
+
+        typingInput.addEventListener(
+            "input",
+            function () {
+
+                if (!running) {
+                    return;
+                }
+
+                if (
+                    !started &&
+                    typingInput.value.length > 0
+                ) {
+
+                    beginTimer();
+                }
+
+                /*
+                 * 원본 코드보다 길게 입력하지 못하게 제한
+                 */
+
+                if (
+                    typingInput.value.length >
+                    currentCode.length
+                ) {
+
+                    typingInput.value =
+                        typingInput.value.substring(
+                            0,
+                            currentCode.length
+                        );
+                }
+
+                renderCode(
+                    typingInput.value
+                );
+
+                updateStatistics();
+
+
+                /*
+                 * 코드 완성 검사
+                 */
+
+                if (
+                    typingInput.value ===
+                    currentCode
+                ) {
+
+                    finishPractice();
+                }
+            }
+        );
+
+
+        /*
+         * TAB 입력
+         */
+
+        typingInput.addEventListener(
+            "keydown",
+            function (event) {
+
+                if (
+                    event.key !== "Tab"
+                ) {
+
+                    return;
+                }
+
+                event.preventDefault();
+
+                const start =
+                          typingInput.selectionStart;
+
+                const end =
+                          typingInput.selectionEnd;
+
+                const value =
+                          typingInput.value;
+
+                const spaces = "    ";
+
+                typingInput.value =
+                    value.substring(0, start) +
+                    spaces +
+                    value.substring(end);
+
+                typingInput.selectionStart =
+                    typingInput.selectionEnd =
+                        start + spaces.length;
+
+                typingInput.dispatchEvent(
+                    new Event("input")
+                );
+            }
+        );
+
+
+        /*
+         * 버튼
+         */
+
+        startButton.addEventListener(
+            "click",
+            function () {
+
+                startPractice();
+            }
+        );
+
+
+        restartButton.addEventListener(
+            "click",
+            function () {
+
+                startPractice();
+            }
+        );
+
+
+        newCodeButton.addEventListener(
+            "click",
+            function () {
+
+                clearInterval(
+                    timerInterval
+                );
+
+                running = false;
+                started = false;
+                finished = false;
+
+                typingInput.value = "";
+                typingInput.disabled = true;
+
+                result.classList.remove(
+                    "show"
+                );
+
+                startButton.textContent =
+                    "시작";
+
+                chooseCode();
+            }
+        );
+
+
+        /*
+         * 설정 변경
+         */
+
+        languageSelect.addEventListener(
+            "change",
+            function () {
+
+                stopAndLoadCode();
+            }
+        );
+
+
+        difficultySelect.addEventListener(
+            "change",
+            function () {
+
+                stopAndLoadCode();
+            }
+        );
+
+
+        timeSelect.addEventListener(
+            "change",
+            function () {
+
+                if (!running) {
+
+                    selectedDuration =
+                        Number(
+                            timeSelect.value
+                        );
+
+                    timerElement.textContent =
+                        selectedDuration === 0
+                            ? "∞"
+                            : selectedDuration;
+                }
+            }
+        );
+
+
+        function stopAndLoadCode() {
+
+            clearInterval(
+                timerInterval
+            );
+
+            running = false;
+            started = false;
+            finished = false;
+
+            typingInput.value = "";
+            typingInput.disabled = true;
+
+            result.classList.remove(
+                "show"
+            );
+
+            startButton.textContent =
+                "시작";
+
+            lastSampleIndex = -1;
+
+            chooseCode();
+        }
+
+
+        /*
+         * 붙여넣기 방지하지 않음.
+         *
+         * 일반적인 웹 사용성을 위해
+         * paste / contextmenu 이벤트를
+         * 별도로 제한하지 않습니다.
+         */
+
+
+        /*
+         * 초기 실행
+         */
+
+        chooseCode();
+
+    })();
+</script>
+
+</body>
+</html>
