@@ -82,6 +82,7 @@
 - https://blog.naver.com/artifend/224376391050
 - https://blog.naver.com/sue3565/224343781708
 - https://github.com/encap/coderush
+- https://www.typingcore.com/test
 <br><br><br>
 
 

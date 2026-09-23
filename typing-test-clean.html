@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Typing Test</title>
+    <style>
+        :root {
+            --bg: #f6f7f9;
+            --card: #fff;
+            --text: #172033;
+            --muted: #687386;
+            --line: #e4e8ee;
+            --primary: #2563eb;
+            --primary-soft: #eff6ff;
+            --good: #15803d;
+            --bad: #dc2626;
+            --shadow: 0 14px 40px rgba(15, 23, 42, .07);
+            --radius: 20px
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html {
+            font-family: Arial, "Noto Sans", sans-serif;
+            background: var(--bg);
+            color: var(--text)
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh
+        }
+
+        button, select, textarea, input {
+            font: inherit
+        }
+
+        .page {
+            width: min(100% - 32px, 1000px);
+            margin: 0 auto;
+            padding: 56px 0
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 28px
+        }
+
+        .header h1 {
+            margin: 0 0 10px;
+            font-size: clamp(30px, 5vw, 48px);
+            letter-spacing: -.04em
+        }
+
+        .header p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.7
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 24px
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns:1fr 1fr;
+            gap: 14px;
+            margin-bottom: 20px
+        }
+
+        .field label {
+            display: block;
+            margin: 0 0 7px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--muted)
+        }
+
+        select, textarea, input {
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: #fff;
+            color: var(--text);
+            outline: none;
+            transition: .2s
+        }
+
+        select, input {
+            height: 46px;
+            padding: 0 13px
+        }
+
+        textarea {
+            padding: 14px;
+            resize: vertical;
+            line-height: 1.65
+        }
+
+        select:focus, textarea:focus, input:focus {
+            border-color: #93b4ff;
+            box-shadow: 0 0 0 4px var(--primary-soft)
+        }
+
+        .hud {
+            display: grid;
+            grid-template-columns:repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 18px
+        }
+
+        .stat {
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 14px;
+            text-align: center
+        }
+
+        .stat span {
+            display: block;
+            color: var(--muted);
+            font-size: 12px;
+            margin-bottom: 5px
+        }
+
+        .stat strong {
+            font-size: 24px
+        }
+
+        .typing-box {
+            position: relative
+        }
+
+        .text-to-type {
+            height: 245px;
+            overflow: auto;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            background: #fbfcfe;
+            padding: 22px;
+            font-size: 24px;
+            line-height: 1.9;
+            letter-spacing: .01em;
+            cursor: text;
+            scroll-behavior: smooth
+        }
+
+        .char {
+            border-radius: 3px
+        }
+
+        .char.current {
+            background: #dbeafe;
+            box-shadow: inset 0 -2px var(--primary)
+        }
+
+        .char.correct {
+            color: var(--good)
+        }
+
+        .char.incorrect {
+            color: #fff;
+            background: var(--bad)
+        }
+
+        .space {
+            display: inline-block;
+            width: .35em
+        }
+
+        .typing-input {
+            position: absolute;
+            left: -9999px;
+            width: 1px;
+            height: 1px;
+            opacity: 0
+        }
+
+        .custom-wrap {
+            display: none;
+            margin-top: 16px
+        }
+
+        .custom-wrap.active {
+            display: block
+        }
+
+        .custom-wrap textarea {
+            min-height: 150px
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 18px
+        }
+
+        .button {
+            border: 0;
+            border-radius: 12px;
+            padding: 12px 17px;
+            font-weight: 700;
+            cursor: pointer
+        }
+
+        .button.primary {
+            background: var(--primary);
+            color: #fff
+        }
+
+        .button.secondary {
+            background: #fff;
+            color: var(--text);
+            border: 1px solid var(--line)
+        }
+
+        .button:disabled {
+            opacity: .45;
+            cursor: not-allowed
+        }
+
+        .notice {
+            display: none;
+            margin-top: 16px;
+            border: 1px solid #fed7aa;
+            background: #fff7ed;
+            color: #9a3412;
+            border-radius: 12px;
+            padding: 12px 14px
+        }
+
+        .notice.show {
+            display: block
+        }
+
+        .result {
+            display: none;
+            margin-top: 18px;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 20px;
+            background: #fff
+        }
+
+        .result.show {
+            display: block
+        }
+
+        .result h2 {
+            margin: 0 0 14px;
+            font-size: 22px
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns:repeat(4, 1fr);
+            gap: 10px
+        }
+
+        .result-item {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 14px;
+            text-align: center
+        }
+
+        .result-item span {
+            display: block;
+            color: var(--muted);
+            font-size: 12px;
+            margin-bottom: 5px
+        }
+
+        .result-item strong {
+            font-size: 22px
+        }
+
+        .help {
+            margin-top: 14px;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.6
+        }
+
+        .footer {
+            text-align: center;
+            color: var(--muted);
+            font-size: 13px;
+            margin-top: 18px
+        }
+
+        @media (max-width: 700px) {
+            .page {
+                width: min(100% - 20px, 1000px);
+                padding: 24px 0
+            }
+
+            .card {
+                padding: 16px
+            }
+
+            .controls {
+                grid-template-columns:1fr
+            }
+
+            .hud, .result-grid {
+                grid-template-columns:repeat(2, 1fr)
+            }
+
+            .text-to-type {
+                height: 280px;
+                padding: 16px;
+                font-size: 20px
+            }
+        }
+    </style>
+</head>
+<body>
+<main class="page">
+    <header class="header">
+        <h1>Typing Test</h1>
+        <p>Practice text, words, alphabet, numbers, 10-key, data entry, or your own custom text.</p>
+    </header>
+
+    <section class="card" aria-label="Typing test">
+        <div class="controls">
+            <div class="field">
+                <label for="testType">Test type</label>
+                <select id="testType">
+                    <option value="text">Text</option>
+                    <option value="words">Words</option>
+                    <option value="alphabet">Alphabet</option>
+                    <option value="numbers">Numbers</option>
+                    <option value="10-key">10 key</option>
+                    <option value="data-entry">Data entry</option>
+                    <option value="custom">Custom</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="testTimer">Test timer</label>
+                <select id="testTimer">
+                    <option value="0">No Timer</option>
+                    <option value="15">15 Seconds</option>
+                    <option value="30">30 Seconds</option>
+                    <option value="60" selected>1 Minute</option>
+                    <option value="120">2 Minutes</option>
+                    <option value="180">3 Minutes</option>
+                    <option value="300">5 Minutes</option>
+                    <option value="600">10 Minutes</option>
+                    <option value="900">15 Minutes</option>
+                    <option value="1800">30 Minutes</option>
+                    <option value="custom">Custom</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="hud" aria-live="polite">
+            <div class="stat"><span>WPM</span><strong id="wpm">0</strong></div>
+            <div class="stat"><span>Accuracy</span><strong id="accuracy">100%</strong></div>
+            <div class="stat"><span>Time</span><strong id="time">01:00</strong></div>
+            <div class="stat"><span>Progress</span><strong id="progress">0 / 0</strong></div>
+        </div>
+
+        <div id="textToType" class="text-to-type" tabindex="0" aria-label="Text to type"></div>
+        <textarea id="typingInput" class="typing-input" aria-label="Typing input" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false"></textarea>
+
+        <div id="customWrap" class="custom-wrap">
+            <div class="field">
+                <label for="customText">Custom text</label>
+                <textarea id="customText" placeholder="Put your text here." maxlength="10000"></textarea>
+            </div>
+        </div>
+
+        <div id="capsNotice" class="notice">Caps Lock is on.</div>
+
+        <div class="actions">
+            <button id="newTest" class="button primary" type="button">New test</button>
+            <button id="restartTest" class="button secondary" type="button">Restart test</button>
+            <button id="startCustom" class="button primary" type="button" hidden>Start custom test</button>
+        </div>
+
+        <div id="result" class="result" aria-live="polite">
+            <h2>Test result</h2>
+            <div class="result-grid">
+                <div class="result-item"><span>WPM</span><strong id="resultWpm">0</strong></div>
+                <div class="result-item"><span>KPM</span><strong id="resultKpm">0</strong></div>
+                <div class="result-item"><span>Accuracy</span><strong id="resultAccuracy">0%</strong></div>
+                <div class="result-item"><span>Mistakes</span><strong id="resultMistakes">0</strong></div>
+            </div>
+        </div>
+        <p class="help">Click the practice text and start typing. Backspace is supported. The test ends when the text is completed or the timer reaches zero.</p>
+    </section>
+    <footer class="footer">Runs entirely in your browser. No ads, Bootstrap, or ranking features.</footer>
+</main>
+
+<script>
+    (() => {
+        'use strict';
+
+        const TEXT_SAMPLES = [
+            'Technology is constantly evolving, with innovations and advancements happening every day. From smartphones and laptops to virtual reality and artificial intelligence, there is always something new and exciting on the horizon.',
+            'The world of travel is full of endless possibilities and adventures. Exploring a new city, walking through a quiet village, or hiking across a mountain trail can create memories that last a lifetime.',
+            'The ocean is a vast and mysterious place, full of wonder and untold secrets. The sound of the waves and the feeling of the salty sea air are all part of the magic of the ocean.',
+            'Music is a universal language that connects people around the world. From classical symphonies to modern pop songs, every style can express emotion and create memorable moments.',
+            'Learning a new skill takes patience and steady practice. Small improvements made every day can become meaningful progress over time, especially when you focus on accuracy before speed.'
+        ];
+
+        const COMMON_WORDS = 'the be and of a in to have it that for you he with on do say this they at but we his from not by she or as what go their can who get if would her all my make about know will up one time there year so think when which them some me people take out into just see him your come could now than like other how then its our two more these want way look first also new because day use no man find here thing give many well only those tell very even back any good woman through us life child work down may after should call world over school still try last ask need feel three state never become between high really something most another much family own leave put old while mean keep student why let great same big group begin seem country help talk where turn problem every start hand might show part against place such again few case week company system each right program hear question during play run small number off always move night live point believe hold today bring happen next without before large must home under water room write mother area money story young fact month different lot study book eye job word business issue side kind four head far black long both little house yes since provide service around friend important father sit away until power hour game often yet line end among ever stand bad lose member pay law meet car city almost include continue set later community name five once white least learn real change team minute best several idea kid body information nothing ago lead social understand watch together follow parent stop face anything create public already speak others read level allow add office spend door person art sure history grow result open morning walk reason low win research girl guy early food moment air teacher force offer enough education remember foot second boy maybe able age everything love process music consider appear actually buy probably human wait serve market send expect sense build stay fall nation plan cut college interest course someone experience behind reach local six remain effect suggest class control raise care late hard field pass sell major sometimes require along development report role better effort decide rate strong possible heart leader light voice whole mind finally pull return free price less decision explain son hope develop view relationship carry town road drive break difference thank receive value building action full model join season society position player agree especially record pick wear paper special space ground form support event matter everyone center couple site project activity star table produce eat teach half situation easy cost figure street image phone data cover picture clear practice piece land recent describe product wall worker news test movie certain personal simply third technology step computer type attention draw film tree source red nearly organization choose cause hair century evidence window difficult listen soon culture chance brother energy period summer realize hundred available plant likely opportunity term short letter condition choice single rule daughter floor material economy close risk current future anyone increase security bank myself west sport board seek subject private rest behavior deal performance fight throw top quickly past goal bed order author fill represent focus drop blood push nature color recently store reduce sound note fine near movement page enter share common poor natural concern series significant similar hot language usually response rise animal factor decade article east save seven artist scene stock career central eight happy exactly protect approach size dog serious occur media ready sign thought list individual simple quality pressure accept answer resource identify left meeting determine prepare whatever success cup particularly amount ability staff recognize indicate character growth loss degree wonder region box training pretty general feeling standard message fail outside arrive analysis benefit forward present section glass skill sister operation stage ok compare miss design sort act ten knowledge station blue strategy clearly discuss truth song example check environment dark various rather laugh guess prove hang entire rock forget claim remove manager enjoy network cold final main science green memory card above seat cell establish nice spring radio visit management avoid imagine tonight huge ball finish yourself theory impact respond statement maintain charge popular traditional reveal direction cultural contain peace pain apply measure wide shake fly interview manage chair fish particular camera structure perform bit weight suddenly discover production treat trip evening affect inside conference unit style adult worry range mention deep front edge specific writer trouble necessary throughout challenge fear shoulder middle sea dream bar beautiful property instead improve stuff'.split(' ');
+
+        const $ = (selector) => document.querySelector(selector);
+        const ui = {
+            testType  : $('#testType'), testTimer: $('#testTimer'), text: $('#textToType'), input: $('#typingInput'),
+            customWrap: $('#customWrap'), customText: $('#customText'), startCustom: $('#startCustom'),
+            newTest   : $('#newTest'), restartTest: $('#restartTest'), capsNotice: $('#capsNotice'),
+            wpm       : $('#wpm'), accuracy: $('#accuracy'), time: $('#time'), progress: $('#progress'), result: $('#result'),
+            resultWpm : $('#resultWpm'), resultKpm: $('#resultKpm'), resultAccuracy: $('#resultAccuracy'), resultMistakes: $('#resultMistakes')
+        };
+
+        const state = {source: '', typed: '', startedAt: 0, finished: false, timerId: null, duration: 60, remaining: 60};
+
+        function randomItem(items) {
+            return items[Math.floor(Math.random() * items.length)];
+        }
+
+        function shuffle(items) {
+            const a = [...items];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        function formatTime(seconds) {
+            const s = Math.max(0, Math.floor(seconds));
+            return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+        }
+
+        function normalizeCustom(value) {
+            return value.replace(/[“”„]/g, '"').replace(/[’]/g, "'").replace(/–/g, '-').replace(/\s+/g, ' ').trim();
+        }
+
+        function makeSource(type) {
+            if (type === 'text') return randomItem(TEXT_SAMPLES);
+            if (type === 'words') return shuffle(COMMON_WORDS).slice(0, 90).join(' ');
+            if (type === 'alphabet') return Array.from({length: 8}, () => shuffle('abcdefghijklmnopqrstuvwxyz'.split('')).join(' ')).join(' ');
+            if (type === 'numbers') return Array.from({length: 70}, () => Math.floor(Math.random() * 10000)).join(' ');
+            if (type === '10-key') return Array.from({length: 90}, () => String(Math.floor(Math.random() * 10))).join(' ');
+            if (type === 'data-entry') return Array.from({length: 36}, () => {
+                const code = String(Math.floor(Math.random() * 90000) + 10000);
+                const amount = (Math.random() * 9999).toFixed(2);
+                return code + ' ' + amount;
+            }).join('  ');
+            return normalizeCustom(ui.customText.value);
+        }
+
+        function renderText() {
+            const fragment = document.createDocumentFragment();
+            [...state.source].forEach((char, index) => {
+                const span = document.createElement('span');
+                span.className = 'char' + (char === ' ' ? ' space' : '');
+                span.dataset.index = index;
+                span.textContent = char === ' ' ? '\u00a0' : char;
+                fragment.appendChild(span);
+            });
+            ui.text.replaceChildren(fragment);
+            updateCharacters();
+        }
+
+        function updateCharacters() {
+            const chars = ui.text.querySelectorAll('.char');
+            let correct = 0;
+            chars.forEach((span, index) => {
+                span.classList.remove('correct', 'incorrect', 'current');
+                if (index < state.typed.length) {
+                    if (state.typed[index] === state.source[index]) {
+                        span.classList.add('correct');
+                        correct++;
+                    } else span.classList.add('incorrect');
+                } else if (index === state.typed.length && !state.finished) span.classList.add('current');
+            });
+            const current = chars[state.typed.length];
+            if (current) current.scrollIntoView({block: 'center', behavior: 'smooth'});
+            updateStats(correct);
+        }
+
+        function updateStats(correctCount) {
+            const elapsedMs = state.startedAt ? Date.now() - state.startedAt : 0;
+            const minutes = Math.max(elapsedMs / 60000, 1 / 60);
+            const wpm = state.startedAt ? Math.round((correctCount / 5) / minutes) : 0;
+            const accuracy = state.typed.length ? Math.round((correctCount / state.typed.length) * 100) : 100;
+            ui.wpm.textContent = String(wpm);
+            ui.accuracy.textContent = accuracy + '%';
+            ui.progress.textContent = state.typed.length + ' / ' + state.source.length;
+            if (state.duration === 0) ui.time.textContent = formatTime(elapsedMs / 1000);
+        }
+
+        function resetTest(useSameText = false) {
+            clearInterval(state.timerId);
+            state.timerId = null;
+            state.typed = '';
+            state.startedAt = 0;
+            state.finished = false;
+            state.duration = Number(ui.testTimer.value) || 0;
+            state.remaining = state.duration;
+            if (!useSameText) state.source = makeSource(ui.testType.value);
+            ui.input.value = '';
+            ui.result.classList.remove('show');
+            ui.capsNotice.classList.remove('show');
+            ui.time.textContent = state.duration ? formatTime(state.duration) : '00:00';
+            renderText();
+            if (ui.testType.value !== 'custom') focusTyping();
+        }
+
+        function focusTyping() {
+            if (!state.finished && ui.testType.value !== 'custom') ui.input.focus();
+        }
+
+        function startTimer() {
+            if (state.timerId || state.duration === 0) return;
+            state.timerId = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - state.startedAt) / 1000);
+                state.remaining = Math.max(0, state.duration - elapsed);
+                ui.time.textContent = formatTime(state.remaining);
+                if (state.remaining <= 0) finishTest();
+            }, 200);
+        }
+
+        function finishTest() {
+            if (state.finished) return;
+            state.finished = true;
+            clearInterval(state.timerId);
+            state.timerId = null;
+            ui.input.blur();
+            const elapsedMs = Math.max(1, Date.now() - state.startedAt);
+            let correct = 0;
+            for (let i = 0; i < state.typed.length; i++) if (state.typed[i] === state.source[i]) correct++;
+            const mistakes = Math.max(0, state.typed.length - correct);
+            const minutes = elapsedMs / 60000;
+            const wpm = Math.round((correct / 5) / minutes);
+            const kpm = Math.round(correct / minutes);
+            const accuracy = state.typed.length ? Math.round(correct / state.typed.length * 100) : 0;
+            ui.resultWpm.textContent = String(wpm);
+            ui.resultKpm.textContent = String(kpm);
+            ui.resultAccuracy.textContent = accuracy + '%';
+            ui.resultMistakes.textContent = String(mistakes);
+            ui.result.classList.add('show');
+            updateCharacters();
+        }
+
+        ui.input.addEventListener('input', () => {
+            if (state.finished) return;
+            if (!state.startedAt) {
+                state.startedAt = Date.now();
+                startTimer();
+            }
+            state.typed = ui.input.value.slice(0, state.source.length);
+            if (ui.input.value !== state.typed) ui.input.value = state.typed;
+            updateCharacters();
+            if (state.typed.length >= state.source.length) finishTest();
+        });
+
+        ui.text.addEventListener('click', focusTyping);
+        ui.text.addEventListener('keydown', (event) => {
+            if (event.key.length === 1 || event.key === 'Backspace') focusTyping();
+        });
+        document.addEventListener('keydown', (event) => {
+            if (typeof event.getModifierState === 'function') ui.capsNotice.classList.toggle('show', event.getModifierState('CapsLock'));
+            if (ui.testType.value !== 'custom' && document.activeElement !== ui.input && !event.ctrlKey && !event.metaKey && !event.altKey && (event.key.length === 1 || event.key === 'Backspace')) focusTyping();
+        });
+
+        ui.testType.addEventListener('change', () => {
+            const custom = ui.testType.value === 'custom';
+            ui.customWrap.classList.toggle('active', custom);
+            ui.startCustom.hidden = !custom;
+            if (custom) {
+                clearInterval(state.timerId);
+                state.timerId = null;
+                state.source = '';
+                state.typed = '';
+                ui.text.textContent = 'Enter custom text below, then press “Start custom test”.';
+                ui.progress.textContent = '0 / 0';
+                ui.customText.focus();
+            } else resetTest(false);
+        });
+
+        ui.testTimer.addEventListener('change', () => {
+            if (ui.testTimer.value === 'custom') {
+                const minutes = prompt('How many minutes should the test last?');
+                if (minutes === null) {
+                    ui.testTimer.value = String(state.duration || 60);
+                    return;
+                }
+                const value = Number(minutes);
+                if (!Number.isInteger(value) || value < 1 || value > 59999) {
+                    alert('Enter a whole number between 1 and 59999.');
+                    ui.testTimer.value = String(state.duration || 60);
+                    return;
+                }
+                const seconds = value * 60;
+                let option = [...ui.testTimer.options].find(item => item.dataset.custom === 'true');
+                if (!option) {
+                    option = document.createElement('option');
+                    option.dataset.custom = 'true';
+                    ui.testTimer.insertBefore(option, ui.testTimer.lastElementChild);
+                }
+                option.value = String(seconds);
+                option.textContent = value + ' Minutes';
+                ui.testTimer.value = String(seconds);
+            }
+            if (ui.testType.value !== 'custom') resetTest(true);
+        });
+
+        ui.startCustom.addEventListener('click', () => {
+            state.source = normalizeCustom(ui.customText.value);
+            if (!state.source) {
+                alert('Please enter custom text.');
+                ui.customText.focus();
+                return;
+            }
+            clearInterval(state.timerId);
+            state.timerId = null;
+            state.typed = '';
+            state.startedAt = 0;
+            state.finished = false;
+            state.duration = Number(ui.testTimer.value) || 0;
+            state.remaining = state.duration;
+            ui.input.value = '';
+            ui.time.textContent = state.duration ? formatTime(state.duration) : '00:00';
+            ui.result.classList.remove('show');
+            renderText();
+            ui.input.focus();
+        });
+
+        ui.newTest.addEventListener('click', () => {
+            if (ui.testType.value === 'custom') {
+                ui.customText.value = '';
+                ui.customText.focus();
+            } else resetTest(false);
+        });
+        ui.restartTest.addEventListener('click', () => {
+            if (state.source) resetTest(true);
+        });
+        window.addEventListener('beforeunload', () => clearInterval(state.timerId));
+
+        resetTest(false);
+    })();
+</script>
+</body>
+</html>
