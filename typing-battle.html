@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>타자 배틀</title>
+
+    <!-- https://blog.naver.com/vsafe/224419232282 -->
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Gothic+A1:wght@400;500;700&display=swap">
+    <style>
+        :root {
+            box-sizing: border-box;
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+            --bg: #171231;
+            --panel: #241d4a;
+            --line: #3b3273;
+            --ink: #f2eeff;
+            --dim: #9b93c9;
+            --enemy: #ff4655;
+            --player: #3ee6c4;
+            --gold: #ffc93c;
+        }
+
+        html {
+            scroll-padding-top: env(safe-area-inset-top, 0px);
+            height: 100%
+        }
+
+        *, *::before, *::after {
+            box-sizing: inherit
+        }
+
+        body {
+            margin: 0;
+            height: 100%;
+            background: var(--bg);
+            background-image: radial-gradient(ellipse 80% 55% at 50% 108%, #4a2a6e 0%, transparent 60%);
+            color: var(--ink);
+            font-family: "Gothic A1", sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .stage {
+            width: min(680px, 100vw);
+            height: 100%;
+            max-height: 820px;
+            display: flex;
+            flex-direction: column;
+            padding: 16px 18px;
+            position: relative;
+        }
+
+        .stage.shake {
+            animation: shake .28s
+        }
+
+        @keyframes shake {
+            0%, 100% {
+                transform: translate(0, 0)
+            }
+            20% {
+                transform: translate(-7px, 3px)
+            }
+            40% {
+                transform: translate(6px, -4px)
+            }
+            60% {
+                transform: translate(-4px, 2px)
+            }
+            80% {
+                transform: translate(3px, -2px)
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: .01ms !important;
+                transition-duration: .01ms !important
+            }
+        }
+
+        /* ── 상단 HUD: 격투게임식 체력바 ── */
+        .hud {
+            display: flex;
+            align-items: center;
+            gap: 12px
+        }
+
+        .fighter {
+            flex: 1;
+            min-width: 0
+        }
+
+        .fighter .name {
+            font-family: "Black Han Sans", sans-serif;
+            font-size: 15px;
+            letter-spacing: .5px;
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .fighter .name small {
+            font-family: "Gothic A1";
+            font-weight: 500;
+            color: var(--dim);
+            font-size: 12px
+        }
+
+        .hpbar {
+            height: 20px;
+            border: 2px solid var(--line);
+            background: #120e26;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hpbar .fill {
+            position: absolute;
+            inset: 0;
+            transform-origin: left;
+            transition: transform .25s ease-out;
+        }
+
+        .p1 .hpbar .fill {
+            background: linear-gradient(180deg, #6ffbe0, var(--player));
+        }
+
+        .p2 .hpbar {
+            direction: rtl
+        }
+
+        .p2 .hpbar .fill {
+            transform-origin: right;
+            background: linear-gradient(180deg, #ff8a94, var(--enemy));
+        }
+
+        .p2 .name {
+            flex-direction: row-reverse
+        }
+
+        .vs {
+            font-family: "Black Han Sans", sans-serif;
+            font-size: 22px;
+            color: var(--gold);
+            text-shadow: 0 2px 0 #7a5200;
+            flex: none;
+        }
+
+        /* ── 전장 ── */
+        .arena {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            min-height: 0;
+        }
+
+        .monster {
+            font-size: clamp(72px, 16vh, 120px);
+            line-height: 1;
+            filter: drop-shadow(0 10px 18px rgba(0, 0, 0, .5));
+            transition: transform .1s;
+            user-select: none;
+        }
+
+        .monster.hit {
+            animation: hitflash .22s
+        }
+
+        @keyframes hitflash {
+            0% {
+                transform: scale(1) translateX(0);
+                filter: brightness(3) drop-shadow(0 0 14px var(--gold))
+            }
+            50% {
+                transform: scale(.92) translateX(10px)
+            }
+            100% {
+                transform: scale(1) translateX(0)
+            }
+        }
+
+        .monster.dead {
+            animation: die .6s forwards
+        }
+
+        @keyframes die {
+            to {
+                transform: scale(.2) rotate(50deg);
+                opacity: 0
+            }
+        }
+
+        .monster-label {
+            margin-top: 6px;
+            color: var(--dim);
+            font-size: 13px;
+            font-weight: 500
+        }
+
+        /* 적 공격 게이지 */
+        .atkwrap {
+            width: min(320px, 80%);
+            margin-top: 14px;
+            text-align: center
+        }
+
+        .atkwrap .cap {
+            font-size: 11px;
+            color: var(--dim);
+            margin-bottom: 3px
+        }
+
+        .atkgauge {
+            height: 7px;
+            background: #120e26;
+            border: 1px solid var(--line);
+            overflow: hidden
+        }
+
+        .atkgauge .fill {
+            height: 100%;
+            background: var(--enemy);
+            width: 0%
+        }
+
+        /* 떠오르는 데미지 숫자 */
+        .float-dmg {
+            position: absolute;
+            font-family: "Black Han Sans", sans-serif;
+            pointer-events: none;
+            animation: rise .8s ease-out forwards;
+            text-shadow: 0 2px 0 rgba(0, 0, 0, .6);
+        }
+
+        @keyframes rise {
+            0% {
+                opacity: 0;
+                transform: translateY(6px) scale(.6)
+            }
+            15% {
+                opacity: 1;
+                transform: translateY(0) scale(1.15)
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-52px) scale(1)
+            }
+        }
+
+        /* ── 단어 + 입력 ── */
+        .combat {
+            padding-bottom: 10px
+        }
+
+        .word {
+            font-family: "Black Han Sans", sans-serif;
+            font-size: clamp(20px, 3.6vh, 30px);
+            text-align: center;
+            letter-spacing: 1px;
+            line-height: 1.5;
+            word-break: keep-all;
+            margin-bottom: 12px;
+            min-height: 1.5em;
+            user-select: none;
+        }
+
+        .word .ok {
+            color: var(--player)
+        }
+
+        .word .bad {
+            color: var(--enemy)
+        }
+
+        .inputrow {
+            display: flex;
+            gap: 8px
+        }
+
+        input[type=text] {
+            flex: 1;
+            min-width: 0;
+            background: #120e26;
+            border: 2px solid var(--line);
+            color: var(--ink);
+            font-family: "Gothic A1";
+            font-size: 20px;
+            font-weight: 700;
+            padding: 12px 14px;
+            text-align: center;
+            outline: none;
+        }
+
+        input[type=text]:focus {
+            border-color: var(--player)
+        }
+
+        input.wrong {
+            animation: wrongshake .25s;
+            border-color: var(--enemy)
+        }
+
+        @keyframes wrongshake {
+            25% {
+                transform: translateX(-6px)
+            }
+            50% {
+                transform: translateX(6px)
+            }
+            75% {
+                transform: translateX(-3px)
+            }
+        }
+
+        .meta {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 4px 12px;
+            margin-top: 8px;
+            font-size: 13px;
+            color: var(--dim);
+            font-weight: 500;
+        }
+
+        .meta .speed b {
+            color: var(--player)
+        }
+
+        .combo {
+            color: var(--gold);
+            font-family: "Black Han Sans";
+            font-size: 15px
+        }
+
+        .combo.pop {
+            animation: pop .2s
+        }
+
+        @keyframes pop {
+            50% {
+                transform: scale(1.4)
+            }
+        }
+
+        /* ── 오버레이 (시작/승리/패배) ── */
+        .overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(13, 10, 28, .9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 24px;
+            gap: 14px;
+            z-index: 5;
+        }
+
+        .overlay h1 {
+            font-family: "Black Han Sans", sans-serif;
+            font-size: clamp(38px, 8vw, 58px);
+            margin: 0;
+            line-height: 1.1;
+            color: var(--gold);
+            text-shadow: 0 3px 0 #7a5200;
+        }
+
+        .overlay h1.lose {
+            color: var(--enemy);
+            text-shadow: 0 3px 0 #6e0f18
+        }
+
+        .overlay p {
+            margin: 0;
+            color: var(--dim);
+            font-size: 15px;
+            line-height: 1.7;
+            max-width: 40ch
+        }
+
+        .overlay .stats {
+            color: var(--ink);
+            font-weight: 700
+        }
+
+        button {
+            font-family: "Black Han Sans", sans-serif;
+            font-size: 20px;
+            letter-spacing: 1px;
+            background: var(--gold);
+            color: #2a1e00;
+            border: 0;
+            padding: 13px 34px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #8a6a00;
+        }
+
+        button:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #8a6a00
+        }
+
+        button:focus-visible {
+            outline: 3px solid var(--player);
+            outline-offset: 2px
+        }
+
+        .hidden {
+            display: none !important
+        }
+    </style>
+</head>
+<body>
+<div class="stage" id="stage">
+
+    <div class="hud">
+        <div class="fighter p1">
+            <div class="name"><span>YOU</span><small id="pHpTxt">100</small></div>
+            <div class="hpbar">
+                <div class="fill" id="pHp"></div>
+            </div>
+        </div>
+        <div class="vs">VS</div>
+        <div class="fighter p2">
+            <div class="name"><span id="eName">몬스터</span><small id="eHpTxt">0</small></div>
+            <div class="hpbar">
+                <div class="fill" id="eHp"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="arena" id="arena">
+        <div class="monster" id="monster">👾</div>
+        <div class="monster-label" id="mLabel"></div>
+        <div class="atkwrap">
+            <div class="cap">적의 공격 준비</div>
+            <div class="atkgauge">
+                <div class="fill" id="atkFill"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="combat">
+        <div class="word" id="word"></div>
+        <div class="inputrow">
+            <input type="text" id="input" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="문장을 입력하세요" aria-label="문장 입력">
+        </div>
+        <div class="meta">
+            <span>STAGE <b id="stageNo">1</b>/10</span>
+            <span class="speed"><b id="cpm">0</b> 타/분</span>
+            <span class="combo" id="comboTxt">COMBO ×1</span>
+            <span>완성한 문장 <b id="wordCount">0</b></span>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay">
+        <h1 id="ovTitle">타자 배틀</h1>
+        <p id="ovDesc">문장을 끝까지 입력한 뒤 <span class="stats">스페이스바</span>를 누르면 공격합니다.<br>
+            연속으로 성공하면 <span class="stats">콤보 배수</span>가 올라가고,<br>
+            Enter로 오답을 제출하면 콤보가 끊깁니다.<br>
+            적의 공격 게이지가 차기 전에 쓰러뜨리세요!</p>
+        <button id="startBtn">전투 시작</button>
+    </div>
+
+</div>
+
+<script>
+    (function () {
+        "use strict";
+
+        // 고정 문장 (기본 풀)
+        var FIXED = [
+            "오늘은 날씨가 정말 좋다",
+            "고양이가 창밖을 바라본다",
+            "따뜻한 커피 한 잔이 필요해",
+            "바람이 불어와 나뭇잎이 흔들린다",
+            "저녁 노을이 하늘을 붉게 물들였다",
+            "빗소리를 들으며 책을 읽는다",
+            "달콤한 딸기 케이크를 먹고 싶다",
+            "강아지가 꼬리를 흔들며 달려온다",
+            "밤하늘에 별이 반짝반짝 빛난다",
+            "새벽 공기가 시원하고 상쾌하다",
+            "골목길 끝에 작은 서점이 있다",
+            "파도 소리가 귓가에 맴돈다",
+            "숲속에서 새소리가 들려온다",
+            "따끈한 국물이 몸을 녹여준다",
+            "기차를 타고 바다를 보러 간다",
+            "무지개가 다리처럼 걸려 있다",
+            "눈이 소복소복 쌓이는 겨울밤",
+            "자전거를 타고 강변을 달린다",
+            "봄비가 내려 꽃이 피어난다",
+            "친구와 함께 웃으며 걸어간다",
+            "고소한 빵 냄새가 골목에 퍼진다",
+            "보름달이 환하게 떠올랐다",
+            "우산을 쓰고 물웅덩이를 건넌다",
+            "노란 은행잎이 길을 덮었다",
+            "첫눈이 내리면 소원을 빌어야지",
+            "아침 햇살이 커튼 사이로 스며든다",
+            "매미 소리가 여름을 알린다",
+            "도서관은 언제나 조용하고 아늑하다",
+            "귤을 까먹으며 겨울밤을 보낸다",
+            "작은 화분에 새싹이 돋아났다"
+        ];
+
+        // ── 조합형 랜덤 문장 생성기 ──
+        // 단어 은행을 문장 틀에 끼워 넣어 수천 가지 조합을 만든다.
+        var SUBJ = ["고양이", "강아지", "다람쥐", "꼬마 탐정", "할머니", "요리사", "우체부 아저씨", "펭귄", "아기 곰", "마법사", "꼬마 로봇", "단짝 친구", "거북이", "참새", "여우", "도서관 사서", "막내 삼촌", "눈사람"];
+        var PLACE = ["공원", "시장", "바닷가", "도서관", "골목길", "놀이터", "부엌", "숲속", "지붕 위", "버스 정류장", "옥상 텃밭", "빵집 앞", "운동장", "계곡", "마을 회관", "기차역"];
+        var OBJ = ["사과", "우산", "풍선", "편지", "김밥", "밀짚모자", "축구공", "동화책", "아이스크림", "단팥빵", "보물 지도", "도시락", "목도리", "조약돌", "쿠키", "물감"];
+        var ADJ = ["달콤한", "커다란", "반짝이는", "낡은", "노란", "조그만", "말랑말랑한", "수상한", "따끈따끈한", "알록달록한", "묵직한", "향긋한"];
+        var TIME = ["아침마다", "오늘도", "해 질 무렵", "비 오는 날", "한밤중에", "주말마다", "점심시간에", "소나기가 그치자", "방학이 되면", "첫눈 오는 날"];
+        var ACTION = ["춤을 춘다", "낮잠을 잔다", "크게 웃는다", "빙글빙글 돈다", "살금살금 걷는다", "소풍을 간다", "별을 센다", "숨바꼭질을 한다", "콧노래를 부른다", "기지개를 켠다", "보물을 찾는다", "줄넘기를 한다"];
+        var TVERB = ["맛있게 먹는다", "한참 찾고 있다", "소중히 안고 있다", "번쩍 들어 올린다", "살며시 내려놓는다", "친구에게 건넨다", "가방에 넣는다", "조심조심 옮긴다", "몰래 숨겨 둔다", "자랑스럽게 보여 준다"];
+
+        function pick(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        // 받침 유무에 따라 조사 선택 (이/가, 을/를, 은/는)
+        function josa(word, a, b) {
+            var c = word.charCodeAt(word.length - 1);
+            var hasJong = (c >= 0xAC00 && c <= 0xD7A3) && ((c - 0xAC00) % 28 > 0);
+            return word + (hasJong ? a : b);
+        }
+
+        var TEMPLATES = [
+            function () {
+                return pick(TIME) + " " + pick(PLACE) + "에서 " + josa(pick(SUBJ), "이", "가") + " " + pick(ACTION);
+            },
+            function () {
+                return josa(pick(SUBJ), "이", "가") + " " + pick(ADJ) + " " + josa(pick(OBJ), "을", "를") + " " + pick(TVERB);
+            },
+            function () {
+                return pick(TIME) + " " + josa(pick(SUBJ), "이", "가") + " " + josa(pick(OBJ), "을", "를") + " " + pick(TVERB);
+            },
+            function () {
+                return pick(ADJ) + " " + josa(pick(SUBJ), "이", "가") + " " + pick(PLACE) + "로 달려간다";
+            },
+            function () {
+                return josa(pick(SUBJ), "은", "는") + " " + pick(PLACE) + "에서 " + pick(ACTION);
+            },
+            function () {
+                return pick(PLACE) + "에서 " + pick(ADJ) + " " + josa(pick(OBJ), "을", "를") + " 발견했다";
+            },
+            function () {
+                return josa(pick(SUBJ), "이", "가") + " " + josa(pick(SUBJ), "과", "와") + " 함께 " + pick(ACTION);
+            }
+        ];
+
+        function genSentence() {
+            for (var i = 0; i < 8; i++) {
+                var s = pick(TEMPLATES)();
+                if (s.length <= 24) return s;
+            }
+            return pick(FIXED);
+        }
+
+        var MONSTERS = [
+            {emoji: "🟢", name: "슬라임", hp: 90, atk: 8, gauge: 18000},
+            {emoji: "🦇", name: "동굴 박쥐", hp: 140, atk: 10, gauge: 16500},
+            {emoji: "👾", name: "고블린", hp: 200, atk: 13, gauge: 15000},
+            {emoji: "🐺", name: "들개 늑대", hp: 270, atk: 16, gauge: 14000},
+            {emoji: "👻", name: "심술 유령", hp: 350, atk: 19, gauge: 13000},
+            {emoji: "🧟", name: "좀비 기사", hp: 440, atk: 22, gauge: 12000},
+            {emoji: "👹", name: "붉은 도깨비", hp: 550, atk: 26, gauge: 11200},
+            {emoji: "🐍", name: "거대 독사", hp: 650, atk: 29, gauge: 10400},
+            {emoji: "🗿", name: "바위 골렘", hp: 780, atk: 33, gauge: 9700},
+            {emoji: "🐲", name: "마왕 드래곤", hp: 950, atk: 38, gauge: 9000}
+        ];
+
+        var $ = function (id) {
+            return document.getElementById(id);
+        };
+        var stageEl = $("stage"), arena = $("arena"), monsterEl = $("monster"), mLabel = $("mLabel");
+        var pHp = $("pHp"), eHp = $("eHp"), pHpTxt = $("pHpTxt"), eHpTxt = $("eHpTxt"), eName = $("eName");
+        var wordEl = $("word"), input = $("input"), comboTxt = $("comboTxt"), wordCount = $("wordCount");
+        var stageNo = $("stageNo"), atkFill = $("atkFill"), cpmEl = $("cpm");
+        var overlay = $("overlay"), ovTitle = $("ovTitle"), ovDesc = $("ovDesc"), startBtn = $("startBtn");
+
+        // 한글 타수 계산: 음절을 자모 타건 수로 환산 (복모음 2타, 겹받침 2타)
+        var DOUBLE_JUNG = {9: 1, 10: 1, 11: 1, 14: 1, 15: 1, 16: 1, 19: 1};           // ㅘㅙㅚㅝㅞㅟㅢ
+        var DOUBLE_JONG = {3: 1, 5: 1, 6: 1, 9: 1, 10: 1, 11: 1, 12: 1, 13: 1, 14: 1, 15: 1, 18: 1}; // ㄳㄵㄶㄺㄻㄼㄽㄾㄿㅀㅄ
+        function strokesOf(str) {
+            var n = 0;
+            for (var i = 0; i < str.length; i++) {
+                var c = str.charCodeAt(i);
+                if (c >= 0xAC00 && c <= 0xD7A3) {
+                    var s = c - 0xAC00;
+                    var jong = s % 28, jung = Math.floor(s / 28) % 21;
+                    n += 1;                                  // 초성
+                    n += DOUBLE_JUNG[jung] ? 2 : 1;              // 중성
+                    if (jong) n += DOUBLE_JONG[jong] ? 2 : 1;     // 종성
+                } else {
+                    n += 1;                                  // 공백·문장부호·영문 등
+                }
+            }
+            return n;
+        }
+
+        var G = null;
+        var loopId = null;
+
+        function pickWord(prev) {
+            var w;
+            do {
+                // 40%는 고정 문장, 60%는 즉석 조합 문장 → 매번 새로운 문장
+                w = Math.random() < .4 ? pick(FIXED) : genSentence();
+            } while (w === prev);
+            return w;
+        }
+
+        function newGame() {
+            G = {
+                stage      : 0, playerHp: 100, playerMax: 100,
+                enemyHp    : 0, enemyMax: 0,
+                combo      : 1, streak: 0, words: 0,
+                target     : "", atkElapsed: 0, lastT: 0,
+                doneStrokes: 0, typingStart: 0,
+                running    : true, transitioning: false
+            };
+            loadStage(0);
+            render();
+            overlay.classList.add("hidden");
+            input.value = "";
+            input.focus();
+            G.lastT = performance.now();
+            if (loopId) cancelAnimationFrame(loopId);
+            loopId = requestAnimationFrame(tick);
+        }
+
+        function loadStage(i) {
+            G.stage = i;
+            var m = MONSTERS[i];
+            G.enemyMax = m.hp;
+            G.enemyHp = m.hp;
+            G.atkElapsed = 0;
+            G.transitioning = false;
+            if (i > 0) { // 스테이지 클리어 보상: 체력 20 회복
+                G.playerHp = Math.min(G.playerMax, G.playerHp + 20);
+                floatDmg("+20", "var(--player)", 20, 20, 26);
+            }
+            monsterEl.textContent = m.emoji;
+            monsterEl.classList.remove("dead");
+            eName.textContent = m.name;
+            mLabel.textContent = "Lv." + (i + 1) + " " + m.name;
+            stageNo.textContent = i + 1;
+            nextWord();
+        }
+
+        function nextWord() {
+            G.target = pickWord(G.target);
+            input.value = "";
+            paintWord("");
+        }
+
+        function paintWord(typed) {
+            var html = "";
+            for (var i = 0; i < G.target.length; i++) {
+                var ch = G.target[i];
+                if (i < typed.length) {
+                    html += '<span class="' + (typed[i] === ch ? "ok" : "bad") + '">' + ch + '</span>';
+                } else {
+                    html += '<span>' + ch + '</span>';
+                }
+            }
+            wordEl.innerHTML = html;
+        }
+
+        function comboMult() {
+            return Math.min(1 + Math.floor(G.streak / 3), 5);
+        }
+
+        function floatDmg(text, color, x, y, size) {
+            var d = document.createElement("div");
+            d.className = "float-dmg";
+            d.textContent = text;
+            d.style.color = color;
+            d.style.fontSize = (size || 30) + "px";
+            d.style.left = x + "px";
+            d.style.top = y + "px";
+            arena.appendChild(d);
+            setTimeout(function () {
+                d.remove();
+            }, 800);
+        }
+
+        function hitEnemy() {
+            var dmg = G.target.length * 3 * comboMult();
+            G.enemyHp = Math.max(0, G.enemyHp - dmg);
+            G.streak++;
+            G.combo = comboMult();
+            G.words++;
+            G.doneStrokes += strokesOf(G.target);
+
+            monsterEl.classList.remove("hit");
+            void monsterEl.offsetWidth;
+            monsterEl.classList.add("hit");
+            comboTxt.classList.remove("pop");
+            void comboTxt.offsetWidth;
+            comboTxt.classList.add("pop");
+
+            var r = monsterEl.getBoundingClientRect(), a = arena.getBoundingClientRect();
+            floatDmg("-" + dmg, "var(--gold)", r.left - a.left + r.width * 0.5 + (Math.random() * 50 - 25), r.top - a.top, 32);
+
+            render();
+
+            if (G.enemyHp <= 0) {
+                G.transitioning = true;
+                monsterEl.classList.add("dead");
+                setTimeout(function () {
+                    if (!G.running) return;
+                    if (G.stage + 1 >= MONSTERS.length) {
+                        win();
+                    } else {
+                        loadStage(G.stage + 1);
+                        render();
+                        input.focus();
+                    }
+                }, 650);
+            } else {
+                nextWord();
+            }
+        }
+
+        function enemyAttack() {
+            var m = MONSTERS[G.stage];
+            G.playerHp = Math.max(0, G.playerHp - m.atk);
+            stageEl.classList.remove("shake");
+            void stageEl.offsetWidth;
+            stageEl.classList.add("shake");
+            floatDmg("-" + m.atk, "var(--enemy)", 20, 20, 26);
+            render();
+            if (G.playerHp <= 0) lose();
+        }
+
+        function wrongSubmit() {
+            G.streak = 0;
+            G.combo = 1;
+            input.classList.remove("wrong");
+            void input.offsetWidth;
+            input.classList.add("wrong");
+            render();
+        }
+
+        function render() {
+            pHp.style.transform = "scaleX(" + (G.playerHp / G.playerMax) + ")";
+            eHp.style.transform = "scaleX(" + (G.enemyMax ? G.enemyHp / G.enemyMax : 0) + ")";
+            pHpTxt.textContent = G.playerHp;
+            eHpTxt.textContent = G.enemyHp;
+            comboTxt.textContent = "COMBO ×" + comboMult();
+            wordCount.textContent = G.words;
+        }
+
+        function currentCpm(now) {
+            if (!G.typingStart) return 0;
+            var min = (now - G.typingStart) / 60000;
+            if (min <= 0) return 0;
+            return Math.round((G.doneStrokes + strokesOf(input.value)) / min);
+        }
+
+        function tick(t) {
+            if (!G || !G.running) return;
+            var dt = t - G.lastT;
+            G.lastT = t;
+            if (!G.transitioning) {
+                G.atkElapsed += dt;
+                var need = MONSTERS[G.stage].gauge;
+                if (G.atkElapsed >= need) {
+                    G.atkElapsed = 0;
+                    enemyAttack();
+                }
+                atkFill.style.width = Math.min(100, G.atkElapsed / need * 100) + "%";
+            }
+            cpmEl.textContent = currentCpm(t);
+            if (G.running) loopId = requestAnimationFrame(tick);
+        }
+
+        function endScreen(title, cls, desc, btn) {
+            G.running = false;
+            ovTitle.textContent = title;
+            ovTitle.className = cls;
+            ovDesc.innerHTML = desc;
+            startBtn.textContent = btn;
+            overlay.classList.remove("hidden");
+            startBtn.focus();
+        }
+
+        function win() {
+            endScreen("VICTORY!", "",
+                "모든 몬스터를 물리쳤습니다!<br>완성한 문장: <span class='stats'>" + G.words + "개</span> · 평균 타수: <span class='stats'>" + currentCpm(performance.now()) + " 타/분</span> · 남은 체력: <span class='stats'>" + G.playerHp + "</span>",
+                "한 번 더");
+        }
+
+        function lose() {
+            endScreen("GAME OVER", "lose",
+                MONSTERS[G.stage].name + "에게 쓰러졌습니다...<br>완성한 문장: <span class='stats'>" + G.words + "개</span> · 평균 타수: <span class='stats'>" + currentCpm(performance.now()) + " 타/분</span>",
+                "다시 도전");
+        }
+
+        // 입력 처리 — 자동 판정 없이, 문장을 다 친 뒤 스페이스바(또는 Enter)로 제출
+        function paintOnly() {
+            if (!G || !G.running || G.transitioning) return;
+            if (!G.typingStart && input.value.length > 0) G.typingStart = performance.now();
+            paintWord(input.value);
+        }
+
+        input.addEventListener("input", paintOnly);
+        input.addEventListener("compositionend", paintOnly);
+        input.addEventListener("keydown", function (e) {
+            if (!G || !G.running || G.transitioning) return;
+            if (e.key === " ") {
+                // 문장이 완성된 상태에서만 스페이스바가 '공격'으로 동작. 그 외에는 일반 공백 입력.
+                if (input.value === G.target) {
+                    e.preventDefault();
+                    hitEnemy();
+                }
+            } else if (e.key === "Enter") {
+                e.preventDefault();
+                if (input.value === G.target) {
+                    hitEnemy();
+                } else {
+                    wrongSubmit();
+                }
+            }
+        });
+
+        startBtn.addEventListener("click", newGame);
+    })();
+</script>
+</body>
+</html>

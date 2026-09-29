@@ -83,6 +83,7 @@
 - https://blog.naver.com/sue3565/224343781708
 - https://github.com/encap/coderush
 - https://www.typingcore.com/test
+- https://blog.naver.com/vsafe/224419232282
 <br><br><br>
 
 
