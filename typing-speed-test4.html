@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>타자 속도 측정 | 한글·영문 타자 테스트</title>
+    <meta name="description" content="무료 한글·영문 타자 속도 측정. 분당 타수, 정확도, 시간, 최고 기록과 친구 비교를 확인하세요.">
+    <style>
+        :root {
+            color-scheme: light;
+            --ink: #182338;
+            --muted: #68758a;
+            --line: #e1e7ef;
+            --blue: #2563eb;
+            --bg: #f6f8fc;
+            --good: #078b55;
+            --bad: #dc3545
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--ink);
+            font-family: system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+            line-height: 1.6
+        }
+
+        button, textarea {
+            font: inherit
+        }
+
+        button {
+            cursor: pointer
+        }
+
+        button:focus-visible, textarea:focus-visible, input:focus-visible {
+            outline: 3px solid #93c5fd;
+            outline-offset: 2px
+        }
+
+        .wrap {
+            max-width: 860px;
+            margin: 48px auto;
+            padding: 0 18px
+        }
+
+        .panel {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 12px 40px #25324b0b
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 24px
+        }
+
+        .home {
+            display: grid;
+            place-items: center;
+            width: 42px;
+            height: 42px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            color: var(--ink);
+            text-decoration: none
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin: 0
+        }
+
+        .desc {
+            color: var(--muted);
+            font-size: 14px;
+            margin: 4px 0 0
+        }
+
+        .segmented {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px
+        }
+
+        .segmented input {
+            position: absolute;
+            opacity: 0;
+            width: 1px;
+            height: 1px
+        }
+
+        .segmented label {
+            flex: 1;
+            text-align: center;
+            padding: 11px;
+            border: 1px solid var(--line);
+            border-radius: 11px;
+            cursor: pointer;
+            font-weight: 600
+        }
+
+        .segmented input:checked + label {
+            background: #eaf1ff;
+            color: #1d4ed8;
+            border-color: #93b4ff
+        }
+
+        .segmented input:focus-visible + label {
+            outline: 3px solid #93c5fd
+        }
+
+        .target {
+            font-size: 20px;
+            line-height: 2.2;
+            letter-spacing: .01em;
+            min-height: 105px;
+            padding: 18px;
+            border: 1px solid var(--line);
+            background: #fbfcff;
+            border-radius: 13px;
+            overflow-wrap: anywhere;
+            user-select: none
+        }
+
+        .target span.ok {
+            color: var(--good);
+            background: #e9f9f0
+        }
+
+        .target span.bad {
+            color: var(--bad);
+            background: #fff0f1
+        }
+
+        .target span.cur {
+            border-bottom: 2px solid var(--blue)
+        }
+
+        .input {
+            width: 100%;
+            resize: vertical;
+            min-height: 112px;
+            padding: 16px;
+            border: 1px solid #cbd5e1;
+            border-radius: 13px;
+            background: #fff;
+            color: var(--ink);
+            font-size: 17px
+        }
+
+        .input:focus {
+            border-color: var(--blue)
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns:repeat(3, 1fr);
+            gap: 12px;
+            margin: 18px 0
+        }
+
+        .stat {
+            text-align: center;
+            background: #f8faff;
+            border: 1px solid var(--line);
+            padding: 15px 8px;
+            border-radius: 13px
+        }
+
+        .stat span {
+            display: block;
+            color: var(--muted);
+            font-size: 13px
+        }
+
+        .stat b {
+            display: block;
+            font-size: 25px;
+            font-variant-numeric: tabular-nums
+        }
+
+        .btn {
+            border: 1px solid var(--line);
+            background: #fff;
+            border-radius: 11px;
+            padding: 11px 17px;
+            font-weight: 650;
+            color: var(--ink)
+        }
+
+        .btn:hover {
+            background: #f3f6fc
+        }
+
+        .primary {
+            background: var(--blue);
+            border-color: var(--blue);
+            color: #fff
+        }
+
+        .primary:hover {
+            background: #1d4ed8
+        }
+
+        .full {
+            width: 100%
+        }
+
+        .result {
+            margin-top: 22px;
+            padding: 23px;
+            border: 1px solid var(--line);
+            border-radius: 15px;
+            background: #fcfdff
+        }
+
+        .result h2 {
+            margin: 0;
+            font-size: 17px
+        }
+
+        .lead {
+            font-weight: 700;
+            margin: 10px 0
+        }
+
+        .tier {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 12px 0
+        }
+
+        .emoji {
+            font-size: 33px
+        }
+
+        .tier strong {
+            font-size: 21px
+        }
+
+        .sub {
+            color: var(--muted);
+            font-size: 13px
+        }
+
+        .gauge {
+            height: 13px;
+            border-radius: 99px;
+            background: linear-gradient(90deg, #e2e8f0, #bfdbfe, #86efac);
+            position: relative;
+            margin: 23px 0 7px
+        }
+
+        .mark {
+            position: absolute;
+            top: -5px;
+            width: 5px;
+            height: 23px;
+            border-radius: 4px;
+            background: #111827;
+            transform: translateX(-50%)
+        }
+
+        .friendmark {
+            background: #f97316
+        }
+
+        .scale {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--muted)
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px
+        }
+
+        .actions .btn {
+            flex: 1
+        }
+
+        .note {
+            color: var(--muted);
+            font-size: 13px;
+            margin-top: 16px
+        }
+
+        .info {
+            margin-top: 24px;
+            color: #4b5563
+        }
+
+        .info h2 {
+            font-size: 19px
+        }
+
+        .info p {
+            margin: 8px 0
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #182338;
+            color: #fff;
+            padding: 11px 19px;
+            border-radius: 10px;
+            box-shadow: 0 8px 25px #0003;
+            z-index: 10
+        }
+
+        [hidden] {
+            display: none !important
+        }
+
+        @media (max-width: 600px) {
+            .wrap {
+                margin: 15px auto
+            }
+
+            .panel {
+                padding: 18px
+            }
+
+            .header h1 {
+                font-size: 20px
+            }
+
+            .target {
+                font-size: 17px;
+                min-height: 125px
+            }
+
+            .stat b {
+                font-size: 20px
+            }
+
+            .stat {
+                padding: 12px 4px
+            }
+
+            .actions {
+                flex-direction: column
+            }
+        }
+    </style>
+</head>
+<body>
+<main class="wrap">
+    <section class="panel" aria-label="타자 속도 측정">
+        <header class="header"><a class="home" href="/" aria-label="홈으로">⌂</a>
+            <div><h1>타자 속도 측정</h1>
+                <p class="desc">한글·영문 문장으로 타자 속도와 정확도를 측정하세요.</p></div>
+        </header>
+        <div class="segmented" role="group" aria-label="문장 언어"><input type="radio" name="tt-lang" id="tt-ko" value="ko" checked><label for="tt-ko">한글 문장</label><input type="radio" name="tt-lang" id="tt-en" value="en"><label for="tt-en">영문 문장</label></div>
+        <p class="target" id="tt-target" aria-label="따라 입력할 문장"></p>
+        <textarea class="input" id="tt-input" rows="3" placeholder="위 문장을 그대로 입력하세요. 첫 글자를 입력하면 시간이 측정됩니다." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="타자 입력"></textarea>
+        <div class="stats" aria-live="off">
+            <div class="stat"><span>타수 (분당)</span><b id="tt-cpm">0</b></div>
+            <div class="stat"><span>정확도</span><b id="tt-acc">100%</b></div>
+            <div class="stat"><span>시간</span><b id="tt-time">0.0초</b></div>
+        </div>
+        <button type="button" class="btn primary full" id="tt-next">새 문장</button>
+        <section class="result" id="tt-rc" aria-live="polite"><h2>내 기록</h2>
+            <div class="lead" id="tt-lead">문장을 완성해 보세요</div>
+            <div id="tt-vs" class="sub"></div>
+            <div class="tier"><span class="emoji" id="tt-tier-emoji">⌨️</span>
+                <div><strong id="tt-tier-name">연습 중</strong>
+                    <div class="sub" id="tt-tier-sub">첫 글자를 입력해 시작하세요.</div>
+                </div>
+            </div>
+            <div class="gauge"><span class="mark friendmark" id="tt-mark-friend" hidden></span><span class="mark" id="tt-mark" style="left:0%"></span></div>
+            <div class="scale"><span>연습 중</span><span>타神</span></div>
+            <div class="actions">
+                <button class="btn" id="tt-save" type="button">이미지 저장</button>
+                <button class="btn" id="tt-link" type="button">결과 링크 복사</button>
+            </div>
+        </section>
+        <p class="note">※ 분당 타수(CPM)는 완성된 글자 수 기준입니다. 정확도 80% 이상인 결과만 최고 기록으로 저장됩니다.</p>
+    </section>
+    <section class="panel info"><h2>사용법</h2>
+        <p>한글 또는 영문을 선택하고 제시된 문장을 그대로 입력하세요. 첫 입력부터 시간이 흐르며 문장 길이만큼 입력하면 결과가 표시됩니다.</p>
+        <p>결과 링크를 공유하면 친구의 타수와 내 기록을 비교할 수 있습니다. 최고 기록은 사용 중인 브라우저에 저장됩니다.</p></section>
+</main>
+<div id="tt-toast" class="toast" role="status" hidden></div>
+<script>
+    (function () {
+        'use strict';
+        var $ = function (id) {
+            return document.getElementById(id);
+        };
+        var sentences = {
+            ko: ['끝까지 해내는 사람이 결국 이긴다.', '멀리 가려면 함께 가야 한다.', '갓생 살기 오늘부터 1일.', '가끔은 아무것도 안 하는 게 낫다.', '월요일은 왜 이렇게 빨리 오지.', '작은 습관이 큰 변화를 만든다.', '좋은 질문이 좋은 답을 만든다.', '배달비가 밥값보다 비싸네.', '작은 친절 하나가 하루를 바꾼다.', '오늘도 야근각이네 진짜.', '킹받네 진짜 킹받아.', '이 구역의 타자왕은 나야.', '읽지 않은 책은 종이 뭉치일 뿐이다.', '이거 완전 럭키비키잖아.', '커피 한 잔이 오후의 피로를 씻는다.', '책상을 정리하면 생각도 정리된다.', '실패는 성공으로 가는 디딤돌이다.', '맑은 하늘 아래 오래 걸으면 좋다.', '남과 비교하면 내 속도를 잃는다.', '어제보다 나은 사람이 되고 싶다.', '오늘도 무사히 지나가기를 바란다.', '알람 5개 맞춰도 못 일어남.', '이건 못 참지, 그 잡채.', '봄바람에 벚꽃 잎이 흩날린다.', '지금 이 순간에 집중하는 것이 답이다.', '서두르지 말고 멈추지도 말자.', '해야 할 일을 적으면 머리가 가볍다.', '비 그친 거리는 유난히 깨끗하다.', '겨울이 길어도 봄은 반드시 온다.', '주말이 3일이면 좋겠다.', '점심 뭐 먹지 고민만 30분.', '커피 없이는 못 살아 진심.', '오운완! 오늘 운동 완료.', '오늘 할 수 있는 일에 집중하자.', '문이 닫히면 다른 문이 열린다.'],
+            en: ['Focus on progress, not on perfection.', 'The best time to start was yesterday.', 'Every expert was once a total beginner.', 'Type with care and speed will follow.', 'Good habits are hard to form but worth it.', 'Curiosity keeps a tired mind moving.', 'Kindness changes the shape of a day.', 'A calm mind brings inner strength.', 'The quick brown fox jumps over the dog.', 'Practice a little every day and improve.', 'You need fewer half finished things.', 'Small steps add up to a long distance.', 'Write the idea down before it slips away.', 'Do the boring work first, then rest.', 'A warm cup can fix almost anything.', 'Rain leaves the whole city looking new.', 'Winter always feels endless at the end.', 'Slow is smooth and smooth is fast.']
+        };
+        var tiers = {ko: [{min: 650, emoji: '⌨️', name: '타神', sub: '상위 3%'}, {min: 500, emoji: '⚡', name: '숙련자', sub: '상위 15%'}, {min: 380, emoji: '🔥', name: '능숙', sub: '상위 35%'}, {min: 270, emoji: '👍', name: '평균 이상', sub: ''}, {min: 170, emoji: '🙂', name: '평균', sub: ''}, {min: 0, emoji: '🐢', name: '연습 중', sub: ''}], en: [{min: 450, emoji: '⌨️', name: '타神', sub: '≈ 90 wpm · 상위 3%'}, {min: 350, emoji: '⚡', name: '숙련자', sub: '≈ 70 wpm'}, {min: 250, emoji: '🔥', name: '능숙', sub: '≈ 50 wpm'}, {min: 175, emoji: '👍', name: '평균 이상', sub: '≈ 35 wpm'}, {min: 110, emoji: '🙂', name: '평균', sub: '≈ 22 wpm'}, {min: 0, emoji: '🐢', name: '연습 중', sub: ''}]};
+        var target = '', started = 0, finished = false, timer = null, lastSentence = {ko: '', en: ''}, result = null, friend = null, toastTimer = null;
+        var input = $('tt-input');
+
+        function lang() {
+            return document.querySelector('input[name="tt-lang"]:checked').value;
+        }
+
+        function tier(cpm, l) {
+            return tiers[l].find(function (t) {
+                return cpm >= t.min;
+            }) || tiers[l][tiers[l].length - 1];
+        }
+
+        function gauge(cpm, l) {
+            return Math.max(0, Math.min(100, cpm / (l === 'en' ? 500 : 700) * 100));
+        }
+
+        function seconds() {
+            return started ? (performance.now() - started) / 1000 : 0;
+        }
+
+        function accuracy(value) {
+            if (!value.length) return 100;
+            var correct = 0;
+            for (var i = 0; i < value.length; i++) if (value[i] === target[i]) correct++;
+            return Math.round(correct / value.length * 100);
+        }
+
+        function metrics() {
+            var elapsed = Math.max(seconds(), .001), value = input.value;
+            return {cpm: started ? Math.round(value.length / elapsed * 60) : 0, acc: accuracy(value), elapsed: started ? elapsed : 0, lang: lang()};
+        }
+
+        function renderTarget(value) {
+            var fragment = document.createDocumentFragment();
+            for (var i = 0; i < target.length; i++) {
+                var span = document.createElement('span');
+                span.textContent = target[i] === ' ' ? '\u00a0' : target[i];
+                if (i < value.length) span.className = value[i] === target[i] ? 'ok' : 'bad'; else if (i === value.length) span.className = 'cur';
+                fragment.appendChild(span);
+            }
+            var el = $('tt-target');
+            el.replaceChildren(fragment);
+        }
+
+        function renderStats(data) {
+            $('tt-cpm').textContent = data.cpm.toLocaleString();
+            $('tt-acc').textContent = data.acc + '%';
+            $('tt-time').textContent = data.elapsed.toFixed(1) + '초';
+        }
+
+        function showResult(data, isBest) {
+            var t = tier(data.cpm, data.lang);
+            $('tt-tier-emoji').textContent = t.emoji;
+            $('tt-tier-name').textContent = t.name;
+            $('tt-tier-sub').textContent = data.cpm + ' 타/분 · 정확도 ' + data.acc + '%' + (t.sub ? ' · ' + t.sub : '');
+            $('tt-mark').style.left = gauge(data.cpm, data.lang) + '%';
+            $('tt-lead').textContent = data.acc < 80 ? '오타가 많아 최고 기록 제외' : isBest ? '🎉 최고 기록 갱신!' : '측정 완료';
+            if (friend) {
+                $('tt-mark-friend').hidden = false;
+                $('tt-mark-friend').style.left = gauge(friend.cpm, friend.lang) + '%';
+                var diff = data.cpm - friend.cpm;
+                $('tt-lead').textContent = diff > 0 ? '🏆 내가 이겼다' : diff < 0 ? '😢 친구가 더 빨랐다' : '🤝 무승부';
+                $('tt-vs').textContent = '나 ' + data.cpm + ' 타/분 · 친구 ' + friend.cpm + ' 타/분';
+            } else {
+                $('tt-mark-friend').hidden = true;
+                $('tt-vs').textContent = '';
+            }
+        }
+
+        function showFriend() {
+            if (!friend) return;
+            var t = tier(friend.cpm, friend.lang);
+            $('tt-lead').textContent = '👀 친구의 타자 속도 — 도전해 보세요!';
+            $('tt-vs').textContent = '친구 ' + friend.cpm + ' 타/분';
+            $('tt-tier-emoji').textContent = t.emoji;
+            $('tt-tier-name').textContent = friend.cpm + ' 타/분';
+            $('tt-tier-sub').textContent = t.name + (t.sub ? ' · ' + t.sub : '');
+            $('tt-mark').style.left = gauge(friend.cpm, friend.lang) + '%';
+            $('tt-mark-friend').hidden = true;
+        }
+
+        function newSentence() {
+            clearInterval(timer);
+            timer = null;
+            started = 0;
+            finished = false;
+            result = null;
+            var l = lang(), pool = sentences[l], choices = pool.filter(function (s) {
+                return s !== lastSentence[l];
+            });
+            target = choices[Math.floor(Math.random() * choices.length)];
+            lastSentence[l] = target;
+            input.value = '';
+            input.disabled = false;
+            input.maxLength = target.length;
+            renderTarget('');
+            renderStats({cpm: 0, acc: 100, elapsed: 0});
+            $('tt-tier-emoji').textContent = '⌨️';
+            $('tt-tier-name').textContent = '문장을 완성해 보세요';
+            $('tt-tier-sub').textContent = '첫 글자를 입력해 시작하세요.';
+            $('tt-lead').textContent = '내 기록';
+            $('tt-vs').textContent = '';
+            $('tt-mark').style.left = '0%';
+            $('tt-mark-friend').hidden = true;
+            if (friend) showFriend();
+            input.focus();
+        }
+
+        function finish() {
+            if (finished) return;
+            finished = true;
+            clearInterval(timer);
+            timer = null;
+            input.disabled = true;
+            result = metrics();
+            renderStats(result);
+            var key = 'tt_best_' + result.lang, old = 0;
+            try {
+                old = parseInt(localStorage.getItem(key), 10) || 0;
+            } catch (e) {
+            }
+            var isBest = result.acc >= 80 && result.cpm > old;
+            if (isBest) try {
+                localStorage.setItem(key, String(result.cpm));
+            } catch (e) {
+            }
+            showResult(result, isBest);
+        }
+
+        function onInput(event) {
+            if (finished || event.isComposing) return;
+            if (input.value.length > target.length) input.value = input.value.slice(0, target.length);
+            if (!started && input.value.length) {
+                started = performance.now();
+                timer = setInterval(function () {
+                    if (!finished) renderStats(metrics());
+                }, 100);
+            }
+            renderTarget(input.value);
+            renderStats(metrics());
+            if (input.value.length >= target.length) finish();
+        }
+
+        function toast(message) {
+            var el = $('tt-toast');
+            el.textContent = message;
+            el.hidden = false;
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(function () {
+                el.hidden = true;
+            }, 2000);
+        }
+
+        function getShareResult() {
+            return result || friend;
+        }
+
+        function shareUrl(data) {
+            var url = new URL(location.href);
+            url.search = '';
+            url.hash = '';
+            url.searchParams.set('cpm', data.cpm);
+            url.searchParams.set('acc', data.acc);
+            url.searchParams.set('l', data.lang);
+            return url.toString();
+        }
+
+        function copyText(value) {
+            if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(value);
+            var temp = document.createElement('textarea');
+            temp.value = value;
+            temp.style.position = 'fixed';
+            temp.style.opacity = '0';
+            document.body.appendChild(temp);
+            temp.select();
+            var ok = document.execCommand('copy');
+            temp.remove();
+            return ok ? Promise.resolve() : Promise.reject(new Error('복사 실패'));
+        }
+
+        function saveImage() {
+            var data = getShareResult();
+            if (!data) {
+                toast('문장을 먼저 완성해 주세요.');
+                return;
+            }
+            var canvas = document.createElement('canvas');
+            canvas.width = 1000;
+            canvas.height = 650;
+            var ctx = canvas.getContext('2d'), t = tier(data.cpm, data.lang);
+            ctx.fillStyle = '#f6f8fc';
+            ctx.fillRect(0, 0, 1000, 650);
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.roundRect(45, 45, 910, 560, 28);
+            ctx.fill();
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#475569';
+            ctx.font = 'bold 30px sans-serif';
+            ctx.fillText('타자 속도 측정 · ' + (data.lang === 'en' ? '영문' : '한글'), 500, 125);
+            ctx.fillStyle = '#1d4ed8';
+            ctx.font = 'bold 130px sans-serif';
+            ctx.fillText(String(data.cpm), 500, 315);
+            ctx.fillStyle = '#475569';
+            ctx.font = '30px sans-serif';
+            ctx.fillText('타/분 · 정확도 ' + data.acc + '%', 500, 380);
+            ctx.fillStyle = '#182338';
+            ctx.font = 'bold 45px sans-serif';
+            ctx.fillText(t.emoji + ' ' + t.name, 500, 465);
+            ctx.fillStyle = '#64748b';
+            ctx.font = '22px sans-serif';
+            ctx.fillText('Typing Speed Test', 500, 548);
+            var a = document.createElement('a');
+            a.href = canvas.toDataURL('image/png');
+            a.download = 'typing-speed-' + data.cpm + '.png';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
+        input.addEventListener('input', onInput);
+        input.addEventListener('compositionend', function () {
+            onInput({isComposing: false});
+        });
+        input.addEventListener('paste', function (e) {
+            e.preventDefault();
+            toast('붙여넣기는 안 돼요 — 직접 입력하세요.');
+        });
+        input.addEventListener('drop', function (e) {
+            e.preventDefault();
+            toast('드래그 입력은 지원하지 않습니다.');
+        });
+        input.addEventListener('beforeinput', function (e) {
+            if (/^insertFrom(Paste|Drop|YankOrDrop)$/.test(e.inputType)) {
+                e.preventDefault();
+                toast('직접 입력해 주세요.');
+            }
+        });
+        $('tt-next').addEventListener('click', newSentence);
+        document.querySelectorAll('input[name="tt-lang"]').forEach(function (el) {
+            el.addEventListener('change', function () {
+                try {
+                    localStorage.setItem('tt_lang', lang());
+                } catch (e) {
+                }
+                friend = null;
+                newSentence();
+            });
+        });
+        $('tt-save').addEventListener('click', saveImage);
+        $('tt-link').addEventListener('click', function () {
+            var data = getShareResult();
+            if (!data) {
+                toast('문장을 먼저 완성해 주세요.');
+                return;
+            }
+            copyText(shareUrl(data)).then(function () {
+                toast('결과 링크가 복사되었습니다.');
+            }).catch(function () {
+                toast('링크 복사에 실패했습니다.');
+            });
+        });
+        try {
+            var saved = localStorage.getItem('tt_lang');
+            if (saved === 'ko' || saved === 'en') $('tt-' + saved).checked = true;
+        } catch (e) {
+        }
+        var params = new URLSearchParams(location.search), sharedCpm = Number(params.get('cpm')), sharedAcc = Number(params.get('acc'));
+        if (Number.isInteger(sharedCpm) && sharedCpm > 0 && sharedCpm < 3000) {
+            var sharedLang = params.get('l') === 'en' ? 'en' : 'ko';
+            friend = {cpm: sharedCpm, acc: Number.isFinite(sharedAcc) && sharedAcc >= 0 && sharedAcc <= 100 ? sharedAcc : 100, lang: sharedLang};
+            $('tt-' + sharedLang).checked = true;
+        }
+        newSentence();
+    })();
+</script>
+</body>
+</html>
