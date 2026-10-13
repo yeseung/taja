@@ -88,6 +88,7 @@
 - https://sites.google.com/view/hangeultype/%ED%99%88
 - https://app.mgunexcel.com/typing-practice
 - https://app.mgunexcel.com/typing-test
+- https://www.edited.kr/p/typing.html
 <br><br><br>
 
 

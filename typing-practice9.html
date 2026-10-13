@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>한글 타자연습 — 오늘의 명언</title>
+
+    <!-- https://www.edited.kr/p/typing.html -->
+
+    <meta name="description" content="매일 바뀌는 명언 한 줄을 따라 치며 한글 타자 속도(타수)와 정확도를 확인하는 타자연습입니다. 설치 없이 브라우저에서 할 수 있습니다.">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+    <style>
+        /* ── 토큰 ── */
+        :root {
+            --bg: #ffffff; /* 페이지 배경 */
+            --surface: #ffffff; /* 카드 */
+            --soft: #f6f7f9; /* 옅은 면 (문장 박스, 통계) */
+            --line: #e6e8eb; /* 구분선 */
+            --ink: #111418; /* 제목·강조 글자 */
+            --text: #3b4148; /* 본문 */
+            --sub: #6b727b; /* 보조 글자 */
+            --point: #2563eb; /* 포인트 색 */
+            --ok: #16a34a; /* 맞은 글자 */
+            --bad: #dc2626; /* 틀린 글자 */
+            --pri: #111418; /* 커서·버튼 */
+            --pri2: #f1f5ff; /* 결과 박스 배경 */
+            --radius: 14px;
+        }
+
+        /* ── 기본 ── */
+        *, *::before, *::after {
+            box-sizing: border-box
+        }
+
+        html {
+            -webkit-text-size-adjust: 100%
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
+            font-size: 16px;
+            line-height: 1.65;
+            word-break: keep-all;
+            overflow-wrap: anywhere;
+        }
+
+        a {
+            color: var(--point);
+            text-decoration: none
+        }
+
+        a:hover {
+            text-decoration: underline;
+            text-underline-offset: 3px
+        }
+
+        h1, h2 {
+            color: var(--ink);
+            letter-spacing: -.025em;
+            line-height: 1.3;
+            margin: 0
+        }
+
+        p {
+            margin: 0
+        }
+
+        button {
+            font: inherit
+        }
+
+        [hidden] {
+            display: none !important
+        }
+
+        /* ── 레이아웃 ── */
+        .wrap {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 0 20px
+        }
+
+        .site-header {
+            border-bottom: 1px solid var(--line)
+        }
+
+        .site-header .wrap {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px
+        }
+
+        .brand {
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: var(--ink);
+            letter-spacing: -.03em
+        }
+
+        .brand:hover {
+            text-decoration: none
+        }
+
+        main.wrap {
+            padding-top: 36px;
+            padding-bottom: 56px
+        }
+
+        .site-footer {
+            border-top: 1px solid var(--line);
+            color: var(--sub);
+            font-size: .82rem
+        }
+
+        .site-footer .wrap {
+            padding-top: 24px;
+            padding-bottom: 40px
+        }
+
+        /* ── 머리 ── */
+        .ed-head {
+            margin-bottom: 28px
+        }
+
+        .ed-label {
+            font-size: .78rem;
+            font-weight: 600;
+            letter-spacing: .06em;
+            color: var(--point);
+            margin-bottom: 8px
+        }
+
+        .ed-h1 {
+            font-size: clamp(1.6rem, 5vw, 2rem);
+            font-weight: 700;
+            margin-bottom: 10px
+        }
+
+        .ed-lead {
+            font-size: 1rem;
+            color: var(--text);
+            margin-bottom: 8px
+        }
+
+        .ed-meta {
+            font-size: .76rem;
+            color: var(--sub)
+        }
+
+        /* ── 카드 ── */
+        .ed-card {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 24px;
+            box-shadow: 0 1px 2px rgba(17, 20, 24, .04)
+        }
+
+        /* ── 공통 부품 (타자 스크립트가 만드는 요소 포함) ── */
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            margin-top: 16px
+        }
+
+        .chip {
+            min-height: 38px;
+            padding: 0 16px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: #fff;
+            color: var(--text);
+            font-size: .88rem;
+            cursor: pointer;
+            transition: border-color .15s, background .15s;
+        }
+
+        .chip:hover {
+            border-color: var(--ink)
+        }
+
+        .chip.sel {
+            background: var(--ink);
+            border-color: var(--ink);
+            color: #fff;
+            font-weight: 600
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 48px;
+            padding: 0 24px;
+            border: 1px solid var(--ink);
+            border-radius: 999px;
+            background: var(--ink);
+            color: #fff;
+            font-size: .95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity .15s;
+        }
+
+        .btn:hover {
+            opacity: .86
+        }
+
+        .btn.sub {
+            background: #fff;
+            color: var(--ink)
+        }
+
+        .note {
+            font-size: .84rem;
+            color: var(--sub);
+            margin-top: 10px;
+            line-height: 1.6
+        }
+
+        .ed-safe {
+            font-size: .8rem;
+            color: var(--sub);
+            margin: 14px 2px 0
+        }
+
+        /* ── 타자 도구 ── */
+        #ty .today {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 12px
+        }
+
+        #ty .today b {
+            font-size: 15px;
+            color: var(--ink)
+        }
+
+        #ty .modes {
+            display: flex;
+            gap: 6px
+        }
+
+        #ty .target {
+            font-size: 22px;
+            line-height: 1.8;
+            letter-spacing: .02em;
+            padding: 18px 20px;
+            border-radius: var(--radius);
+            background: var(--soft);
+            min-height: 96px;
+            color: var(--ink)
+        }
+
+        #ty .target span {
+            border-bottom: 2px solid transparent
+        }
+
+        #ty .target .c {
+            color: var(--ok)
+        }
+
+        #ty .target .x {
+            color: #fff;
+            background: var(--bad);
+            border-radius: 3px
+        }
+
+        #ty .target .cur {
+            border-bottom-color: var(--pri)
+        }
+
+        #ty .who {
+            text-align: right;
+            color: var(--sub);
+            font-size: 14px;
+            margin-top: 6px
+        }
+
+        #ty .typein {
+            width: 100%;
+            margin-top: 14px;
+            padding: 14px 16px;
+            border: 2px solid var(--line);
+            border-radius: 12px;
+            font: inherit;
+            font-size: 20px;
+            color: var(--ink);
+            background: #fff;
+            outline: none;
+            transition: border-color .15s
+        }
+
+        #ty .typein:focus {
+            border-color: var(--pri)
+        }
+
+        #ty .typein:disabled {
+            background: var(--soft)
+        }
+
+        #ty .stats, #ty .rec {
+            display: grid;
+            grid-template-columns:repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 14px
+        }
+
+        #ty .rec {
+            margin: 0 0 16px
+        }
+
+        #ty .stat {
+            background: var(--soft);
+            border-radius: 12px;
+            padding: 12px 8px;
+            text-align: center
+        }
+
+        #ty .stat b {
+            display: block;
+            font-size: 24px;
+            color: var(--ink);
+            letter-spacing: -.02em;
+            font-variant-numeric: tabular-nums
+        }
+
+        #ty .stat span {
+            font-size: 12.5px;
+            color: var(--sub)
+        }
+
+        #ty .done {
+            margin-top: 14px;
+            padding: 18px;
+            border-radius: var(--radius);
+            background: var(--pri2);
+            text-align: center
+        }
+
+        #ty .done .big {
+            font-size: 34px;
+            font-weight: 800;
+            color: var(--ink)
+        }
+
+        #ty .done .new {
+            display: inline-block;
+            margin-top: 6px;
+            padding: 3px 10px;
+            border-radius: 99px;
+            background: var(--point);
+            color: #fff;
+            font-weight: 700;
+            font-size: 13px
+        }
+
+        #ty .hist {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px
+        }
+
+        #ty .hist th, #ty .hist td {
+            text-align: left;
+            vertical-align: top;
+            padding: 9px 14px 9px 0;
+            border-bottom: 1px solid var(--line)
+        }
+
+        #ty .hist th {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--sub)
+        }
+
+        #ty .hist th:nth-child(-n+3), #ty .hist td:nth-child(-n+3) {
+            white-space: nowrap;
+            width: 1%
+        }
+
+        #ty .hist th:last-child, #ty .hist td:last-child {
+            padding-right: 0
+        }
+
+        /* ── 본문 섹션 ── */
+        .ed-sec {
+            margin-top: 52px
+        }
+
+        .ed-sec > h2 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 16px
+        }
+
+        .ed-steps {
+            list-style: none;
+            counter-reset: s;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            gap: 12px
+        }
+
+        .ed-steps li {
+            counter-increment: s;
+            position: relative;
+            padding-left: 38px;
+            font-size: .95rem
+        }
+
+        .ed-steps li::before {
+            content: counter(s, decimal-leading-zero);
+            position: absolute;
+            left: 0;
+            top: .2em;
+            font-size: .78rem;
+            font-weight: 600;
+            color: var(--sub)
+        }
+
+        .ed-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .9rem
+        }
+
+        .ed-table th, .ed-table td {
+            text-align: left;
+            padding: 10px 8px 10px 0;
+            border-bottom: 1px solid var(--line)
+        }
+
+        .ed-table thead th {
+            font-size: .78rem;
+            font-weight: 600;
+            color: var(--sub)
+        }
+
+        .ed-table tbody th {
+            font-weight: 600;
+            color: var(--ink);
+            width: 30%;
+            white-space: nowrap
+        }
+
+        .ed-note {
+            font-size: .84rem;
+            color: var(--sub);
+            margin-top: 12px
+        }
+
+        /* FAQ */
+        .ed-faq details {
+            border-bottom: 1px solid var(--line)
+        }
+
+        .ed-faq details:first-of-type {
+            border-top: 1px solid var(--line)
+        }
+
+        .ed-faq summary {
+            list-style: none;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 16px 0;
+            font-weight: 600;
+            color: var(--ink);
+            font-size: .96rem
+        }
+
+        .ed-faq summary::-webkit-details-marker {
+            display: none
+        }
+
+        .ed-faq summary::after {
+            content: "+";
+            color: var(--sub);
+            font-weight: 400;
+            font-size: 1.2rem;
+            line-height: 1
+        }
+
+        .ed-faq details[open] summary::after {
+            content: "\2212"
+        }
+
+        .ed-faq details p {
+            margin: 0 0 16px;
+            font-size: .92rem
+        }
+
+        .ed-src {
+            margin-top: 52px;
+            padding-top: 20px;
+            border-top: 1px solid var(--line);
+            font-size: .8rem;
+            color: var(--sub)
+        }
+
+        /* ── 반응형 ── */
+        @media (max-width: 480px) {
+            main.wrap {
+                padding-top: 24px
+            }
+
+            .ed-card {
+                padding: 16px;
+                border-radius: 16px
+            }
+
+            #ty .target {
+                font-size: 19px;
+                padding: 14px
+            }
+
+            #ty .typein {
+                font-size: 18px
+            }
+
+            #ty .stat b {
+                font-size: 20px
+            }
+
+            .row .btn {
+                flex: 1 1 auto
+            }
+        }
+
+        @media (hover: none) {
+            .chip:hover {
+                border-color: var(--line)
+            }
+
+            .chip.sel:hover {
+                border-color: var(--ink)
+            }
+
+            .btn:hover {
+                opacity: 1
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                transition: none !important
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!--<header class="site-header">-->
+<!--    <div class="wrap"><a class="brand" href="/">EDITED.</a></div>-->
+<!--</header>-->
+
+<main class="wrap">
+    <div class="ed2" id="ty" data-tool="typing">
+
+        <header class="ed-head">
+            <p class="ed-label">도구 · 타자</p>
+            <h1 class="ed-h1">타자연습</h1>
+            <p class="ed-lead">매일 바뀌는 명언 한 줄을 따라 쳐 보세요.<br>타수와 정확도가 바로 나옵니다.</p>
+            <p class="ed-meta">업데이트 2026.09.29</p>
+        </header>
+
+        <section class="ed-tool" aria-label="타자연습 도구">
+            <div class="ed-card">
+                <div class="today"><b id="ty-date"></b>
+                    <div class="modes">
+                        <button class="chip sel" data-m="today">오늘의 명언</button>
+                        <button class="chip" data-m="free">연습 모드</button>
+                    </div>
+                </div>
+                <div class="target" id="ty-target"></div>
+                <div class="who" id="ty-who"></div>
+                <input class="typein" id="ty-in" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="여기에 입력하면 시작합니다" aria-label="타자 연습 입력칸">
+                <div class="stats">
+                    <div class="stat"><b id="ty-cpm">0</b><span>타수(타/분)</span></div>
+                    <div class="stat"><b id="ty-acc">100%</b><span>정확도</span></div>
+                    <div class="stat"><b id="ty-time">0.0</b><span>초</span></div>
+                </div>
+                <div id="ty-done"></div>
+                <div class="row">
+                    <button class="btn sub" id="ty-retry">다시 하기</button>
+                    <button class="btn sub" id="ty-next" hidden>다음 문장 &#8250;</button>
+                </div>
+            </div>
+        </section>
+        <p class="ed-safe">기록은 이 브라우저에만 저장되며 서버로 전송되지 않습니다.</p>
+
+        <section class="ed-sec">
+            <h2>내 기록</h2>
+            <div class="ed-card">
+                <div class="rec">
+                    <div class="stat"><b id="ty-best">-</b><span>최고 타수</span></div>
+                    <div class="stat"><b id="ty-tbest">-</b><span>오늘 최고</span></div>
+                    <div class="stat"><b id="ty-streak">0</b><span>연속 출석(일)</span></div>
+                </div>
+                <table class="hist" id="ty-hist">
+                    <tr>
+                        <th>날짜</th>
+                        <th>타수</th>
+                        <th>정확도</th>
+                        <th>문장</th>
+                    </tr>
+                </table>
+                <div class="row">
+                    <button class="chip" id="ty-clear">기록 지우기</button>
+                </div>
+                <p class="note">기록은 서버가 아니라 지금 쓰는 브라우저에만 저장됩니다. 다른 기기나 시크릿 창에서는 보이지 않습니다.</p>
+            </div>
+        </section>
+
+        <section class="ed-sec">
+            <h2>사용 방법</h2>
+            <ol class="ed-steps">
+                <li>입력칸을 누르고 위 문장을 그대로 따라 칩니다.</li>
+                <li>끝까지 치면 타수·정확도·시간이 나옵니다.</li>
+                <li>내 최고 기록과 연속 출석은 아래 "내 기록"에 남습니다.</li>
+            </ol>
+        </section>
+
+        <section class="ed-sec">
+            <h2>타수는 이렇게 계산해요</h2>
+            <table class="ed-table">
+                <thead>
+                <tr>
+                    <th>타수</th>
+                    <th>참고 구간</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <th scope="row">~150타</th>
+                    <td>처음 익히는 단계</td>
+                </tr>
+                <tr>
+                    <th scope="row">150~300타</th>
+                    <td>일상 업무에 무리 없는 수준</td>
+                </tr>
+                <tr>
+                    <th scope="row">300~500타</th>
+                    <td>빠른 편</td>
+                </tr>
+                <tr>
+                    <th scope="row">500타 이상</th>
+                    <td>매우 빠름</td>
+                </tr>
+                </tbody>
+            </table>
+            <p class="ed-note">한글은 자음·모음을 누르는 횟수로 셉니다("한"은 3타). 틀린 글자는 빼고, 맞게 친 타수를 걸린 시간(분)으로 나눕니다. 참고 구간은 공식 등급 기준이 아닙니다.</p>
+        </section>
+
+        <section class="ed-sec ed-faq">
+            <h2>자주 묻는 질문</h2>
+            <details>
+                <summary>오늘의 명언은 언제 바뀌나요?</summary>
+                <p>매일 자정(한국 시간)에 바뀌고, 같은 날에는 누구에게나 같은 문장이 나옵니다.</p></details>
+            <details>
+                <summary>휴대폰에서도 되나요?</summary>
+                <p>됩니다. 다만 휴대폰 자판은 PC 키보드와 속도가 달라서 기록은 따로 비교하는 게 좋습니다.</p></details>
+            <details>
+                <summary>띄어쓰기·문장부호도 맞아야 하나요?</summary>
+                <p>네, 띄어쓰기와 문장부호까지 똑같아야 맞은 글자로 셉니다.</p></details>
+        </section>
+
+        <footer class="ed-src">
+            <p>기록은 서버가 아니라 지금 쓰는 브라우저에만 저장됩니다. 다른 기기나 시크릿 창에서는 보이지 않습니다.</p>
+        </footer>
+    </div>
+</main>
+
+<!--<footer class="site-footer">-->
+<!--    <div class="wrap">© EDITED. · 결과와 설명은 참고용입니다.</div>-->
+<!--</footer>-->
+
+<script>
+    (function () {
+        var $ = function (id) {
+            return document.getElementById(id)
+        };
+        var Q = [
+            ["천 리 길도 한 걸음부터 시작한다.", "속담"], ["가는 말이 고와야 오는 말이 곱다.", "속담"], ["낮말은 새가 듣고 밤말은 쥐가 듣는다.", "속담"],
+            ["백지장도 맞들면 낫다.", "속담"], ["티끌 모아 태산이 된다.", "속담"], ["호랑이에게 물려 가도 정신만 차리면 산다.", "속담"],
+            ["구슬이 서 말이라도 꿰어야 보배다.", "속담"], ["우물을 파도 한 우물을 파라.", "속담"], ["소 잃고 외양간 고친다.", "속담"],
+            ["돌다리도 두들겨 보고 건너라.", "속담"], ["고생 끝에 낙이 온다.", "속담"], ["세 살 버릇 여든까지 간다.", "속담"],
+            ["배우고 때때로 익히면 또한 기쁘지 아니한가.", "공자, \u300e논어\u300f"], ["아는 것을 안다 하고 모르는 것을 모른다 하는 것이 앎이다.", "공자, \u300e논어\u300f"],
+            ["지나침은 모자람과 같다.", "공자, \u300e논어\u300f"], ["세 사람이 길을 가면 그중에 반드시 나의 스승이 있다.", "공자, \u300e논어\u300f"],
+            ["천하의 어려운 일은 반드시 쉬운 데서 시작된다.", "노자, \u300e도덕경\u300f"], ["아름드리 나무도 털끝만 한 싹에서 자란다.", "노자, \u300e도덕경\u300f"],
+            ["남을 아는 자는 지혜롭고, 자신을 아는 자는 밝다.", "노자, \u300e도덕경\u300f"], ["물은 만물을 이롭게 하면서도 다투지 않는다.", "노자, \u300e도덕경\u300f"],
+            ["지피지기면 백전불태라.", "손자, \u300e손자병법\u300f"], ["하늘이 무너져도 솟아날 구멍이 있다.", "속담"],
+            ["우리가 반복하는 행동이 곧 우리 자신이다.", "윌 듀런트(아리스토텔레스 해설)"], ["행운은 준비된 사람에게 찾아온다.", "루이 파스퇴르"],
+            ["인생은 짧고 예술은 길다.", "히포크라테스"], ["너 자신을 알라.", "델포이 신전의 격언"],
+            ["시간을 아껴 쓰는 사람에게는 늘 시간이 넉넉하다.", "벤저민 프랭클린의 뜻을 옮김"], ["오늘 할 수 있는 일을 내일로 미루지 마라.", "벤저민 프랭클린"],
+            ["일찍 자고 일찍 일어나면 건강하고 부유하고 현명해진다.", "벤저민 프랭클린"], ["배움에는 왕도가 없다.", "유클리드"],
+            ["나는 생각한다, 그러므로 나는 존재한다.", "르네 데카르트"], ["멈추지만 않는다면 얼마나 천천히 가는지는 중요하지 않다.", "격언"],
+            ["행복은 스스로 만족하는 사람의 것이다.", "아리스토텔레스"], ["어려움 속에 기회가 있다.", "알베르트 아인슈타인의 말로 전해짐"],
+            ["상상력은 지식보다 중요하다.", "알베르트 아인슈타인"], ["실패는 성공의 어머니다.", "속담"],
+            ["부지런한 물레방아는 얼 틈이 없다.", "속담"], ["될성부른 나무는 떡잎부터 알아본다.", "속담"], ["원숭이도 나무에서 떨어질 때가 있다.", "속담"],
+            ["말 한마디로 천 냥 빚을 갚는다.", "속담"], ["같은 값이면 다홍치마.", "속담"], ["발 없는 말이 천 리 간다.", "속담"],
+            ["열 번 찍어 안 넘어가는 나무 없다.", "속담"], ["꿈을 꾸는 사람만이 그 꿈을 이룰 수 있다.", "격언"],
+            ["늦었다고 생각할 때가 가장 빠른 때다.", "격언"], ["작은 습관이 큰 차이를 만든다.", "격언"], ["읽는 만큼 보이고 아는 만큼 들린다.", "격언"],
+            ["오늘 걷지 않으면 내일은 뛰어야 한다.", "격언"], ["기회는 새처럼 날아가기 전에 잡아야 한다.", "격언"],
+            ["건강한 몸에 건강한 정신이 깃든다.", "유베날리스의 시구에서 유래"], ["우리가 두려워해야 할 것은 두려움 그 자체뿐이다.", "프랭클린 루스벨트"],
+            ["위대한 일은 작은 일들이 모여 이루어진다.", "빈센트 반 고흐"], ["삶이 있는 한 희망은 있다.", "키케로"],
+            ["가장 어두운 시간은 해 뜨기 직전이다.", "격언"], ["사람은 먹기 위해 사는 것이 아니라 살기 위해 먹는다.", "소크라테스"],
+            ["용기란 두려움을 극복하는 것이지 두려움이 없는 것이 아니다.", "격언"], ["진정한 여행은 새로운 눈을 갖는 데 있다.", "마르셀 프루스트"],
+            ["웃음은 두 사람 사이의 가장 가까운 거리다.", "빅터 보르게"], ["매일 조금씩 나아지면 결국 크게 달라진다.", "격언"], ["오늘의 나는 어제의 내가 만든 결과다.", "격언"]];
+        var KEY = "edited-typing-v1", mode = "today", target = "", who = "", start = 0, timer = null, finished = false, composing = false, freeIdx = 0;
+
+        function kst() {
+            var d = new Date(Date.now() + 9 * 3600e3);
+            return d.toISOString().slice(0, 10)
+        }
+
+        function dayNo(s) {
+            return Math.floor(Date.parse(s + "T00:00:00Z") / 864e5)
+        }
+
+        function todayQ() {
+            var n = dayNo(kst()), i = ((n * 7919) % Q.length + Q.length) % Q.length;
+            return Q[i]
+        }
+
+        // 한글 타수: 초성1 + 중성(복합모음 2) + 종성(겹받침 2), 그 외 문자 1
+        var CV = [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0], CJ = [0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+        function strokes(ch) {
+            var c = ch.charCodeAt(0);
+            if (c >= 0xAC00 && c <= 0xD7A3) {
+                var s = c - 0xAC00, v = Math.floor(s % 588 / 28), j = s % 28;
+                return 1 + 1 + CV[v] + (j ? 1 + CJ[j] : 0)
+            }
+            return 1
+        }
+
+        function load() {
+            try {
+                return JSON.parse(localStorage.getItem(KEY)) || {h: [], days: []}
+            } catch (e) {
+                return {h: [], days: []}
+            }
+        }
+
+        function save(d) {
+            try {
+                localStorage.setItem(KEY, JSON.stringify(d))
+            } catch (e) {
+            }
+        }
+
+        function streak(days) {
+            var set = {};
+            days.forEach(function (d) {
+                set[d] = 1
+            });
+            var n = 0, t = dayNo(kst());
+            if (!set[kst()]) t--;
+            while (true) {
+                var s = new Date(t * 864e5).toISOString().slice(0, 10);
+                if (set[s]) {
+                    n++;
+                    t--
+                } else break
+            }
+            return n
+        }
+
+        function drawRec() {
+            var d = load(), today = kst(), best = 0, tb = 0;
+            d.h.forEach(function (r) {
+                best = Math.max(best, r.c);
+                if (r.d === today) tb = Math.max(tb, r.c)
+            });
+            $("ty-best").textContent = best || "-";
+            $("ty-tbest").textContent = tb || "-";
+            $("ty-streak").textContent = streak(d.days);
+            var t = $("ty-hist");
+            t.innerHTML = "<tr><th>날짜</th><th>타수</th><th>정확도</th><th>문장</th></tr>";
+            d.h.slice(-10).reverse().forEach(function (r) {
+                var tr = document.createElement("tr");
+                [r.d.slice(5), r.c, r.a + "%", r.q].forEach(function (v) {
+                    var td = document.createElement("td");
+                    td.textContent = v;
+                    tr.appendChild(td)
+                });
+                t.appendChild(tr)
+            })
+        }
+
+        function setTarget(q) {
+            target = q[0];
+            who = q[1];
+            $("ty-who").textContent = "\u2014 " + who;
+            reset()
+        }
+
+        function reset() {
+            finished = false;
+            start = 0;
+            clearInterval(timer);
+            $("ty-in").value = "";
+            $("ty-in").disabled = false;
+            $("ty-done").innerHTML = "";
+            $("ty-cpm").textContent = "0";
+            $("ty-acc").textContent = "100%";
+            $("ty-time").textContent = "0.0";
+            $("ty-next").hidden = mode !== "free";
+            paint("")
+        }
+
+        function paint(v) {
+            var t = $("ty-target");
+            t.innerHTML = "";
+            Array.from(target).forEach(function (ch, i) {
+                var s = document.createElement("span");
+                s.textContent = ch;
+                if (i < v.length) {
+                    var live = composing && i === v.length - 1;
+                    if (!live) s.className = v[i] === ch ? "c" : "x"; else s.className = "cur"
+                } else if (i === v.length) s.className = "cur";
+                t.appendChild(s)
+            })
+        }
+
+        function score(v, end) {
+            var ok = 0, st = 0, n = Math.min(v.length, target.length), done = composing ? n - 1 : n;
+            for (var i = 0; i < done; i++) if (v[i] === target[i]) {
+                ok++;
+                st += strokes(target[i])
+            }
+            var sec = Math.max(0.5, ((end || Date.now()) - start) / 1000);
+            return {cpm: Math.round(st / sec * 60), acc: done ? Math.round(ok / Math.max(done, 1) * 100) : 100, sec: sec, okAll: ok}
+        }
+
+        function tick() {
+            if (!start || finished) return;
+            var r = score($("ty-in").value);
+            $("ty-cpm").textContent = r.cpm;
+            $("ty-acc").textContent = r.acc + "%";
+            $("ty-time").textContent = r.sec.toFixed(1)
+        }
+
+        function finish() {
+            if (finished || !start) return;
+            finished = true;
+            clearInterval(timer);
+            var v = $("ty-in").value, end = Date.now();
+            composing = false;
+            paint(v);
+            var r = score(v, end), acc = Math.round(r.okAll / target.length * 100);
+            $("ty-in").disabled = true;
+            $("ty-cpm").textContent = r.cpm;
+            $("ty-acc").textContent = acc + "%";
+            $("ty-time").textContent = r.sec.toFixed(1);
+            var d = load(), prev = 0, today = kst();
+            d.h.forEach(function (x) {
+                prev = Math.max(prev, x.c)
+            });
+            var valid = r.sec >= 2;
+            if (valid) d.h.push({d: today, c: r.cpm, a: acc, q: target.slice(0, 14) + (target.length > 14 ? "\u2026" : ""), m: mode});
+            if (d.h.length > 200) d.h = d.h.slice(-200);
+            if (d.days.indexOf(today) < 0) d.days.push(today);
+            save(d);
+            var share = "EDITED. 타자연습 " + (mode === "today" ? "오늘의 명언 " : "") + today + "\n\u2328\ufe0f " + r.cpm + "타 \u00b7 정확도 " + acc + "%";
+            $("ty-done").innerHTML = '<div class="done"><div class="big">' + r.cpm + '타</div><div>정확도 ' + acc + '% \u00b7 ' + r.sec.toFixed(1) + '초</div>' + (!valid ? '<div class="note">2초 안에 끝난 기록은 최고 기록에 저장하지 않습니다.</div>' : (r.cpm > prev && acc >= 90 ? '<div class="new">최고 기록 경신!</div>' : '')) +
+                '<div class="row" style="justify-content:center"><button class="chip" id="ty-share">결과 복사하기</button></div></div>';
+            $("ty-share").onclick = function () {
+                var b = this;
+                (navigator.clipboard ? navigator.clipboard.writeText(share) : Promise.reject()).then(function () {
+                    b.textContent = "복사했어요 \u2713"
+                }, function () {
+                    prompt("아래 내용을 복사하세요", share)
+                })
+            };
+            drawRec()
+        }
+
+        var inp = $("ty-in");
+        inp.addEventListener("compositionstart", function () {
+            composing = true
+        });
+        inp.addEventListener("compositionend", function () {
+            composing = false;
+            onInput()
+        });
+        inp.addEventListener("input", onInput);
+
+        function onInput() {
+            if (finished) return;
+            var v = inp.value;
+            if (!start && v.length) {
+                start = Date.now();
+                timer = setInterval(tick, 100)
+            }
+            paint(v);
+            tick();
+            if (v.length >= target.length && (!composing || v[target.length - 1] === target[target.length - 1])) setTimeout(function () {
+                if (!finished && inp.value.length >= target.length) finish()
+            }, composing ? 350 : 0)
+        }
+
+        inp.addEventListener("keydown", function (e) {
+            if (e.key === "Enter" && !e.isComposing) {
+                e.preventDefault();
+                if (inp.value.length) finish()
+            }
+        });
+        inp.addEventListener("paste", function (e) {
+            e.preventDefault()
+        });
+        $("ty-retry").onclick = function () {
+            reset();
+            inp.focus()
+        };
+        $("ty-next").onclick = function () {
+            freeIdx = (freeIdx + 1 + Math.floor(Math.random() * (Q.length - 1))) % Q.length;
+            setTarget(Q[freeIdx]);
+            inp.focus()
+        };
+        document.querySelectorAll("#ty .modes .chip").forEach(function (b) {
+            b.onclick = function () {
+                document.querySelectorAll("#ty .modes .chip").forEach(function (x) {
+                    x.classList.remove("sel")
+                });
+                b.classList.add("sel");
+                mode = b.dataset.m;
+                if (mode === "today") setTarget(todayQ()); else {
+                    freeIdx = Math.floor(Math.random() * Q.length);
+                    setTarget(Q[freeIdx])
+                }
+                inp.focus()
+            }
+        });
+        $("ty-clear").onclick = function () {
+            if (confirm("이 브라우저에 저장된 타자 기록을 모두 지울까요?")) {
+                save({h: [], days: []});
+                drawRec()
+            }
+        };
+        $("ty-date").textContent = kst().replace(/-/g, ".") + " 오늘의 명언";
+        setTarget(todayQ());
+        drawRec();
+    })();
+</script>
+</body>
+</html>
