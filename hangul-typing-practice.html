@@ -1,0 +1,4314 @@
+<!doctype html>
+<html lang="ko" data-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="description" content="초보자부터 숙련자까지 사용할 수 있는 학습형 한글 타자 연습 웹앱">
+    <title>한글 타자연습</title>
+
+    <!-- https://sites.google.com/view/hangeultype/%ED%99%88 -->
+
+    <style>
+        /* ==========================================================
+       한글 타자연습 - 스타일
+       색: 네이비 / 블루 / 화이트 / 연한 회색
+       핵심 시각 요소: 원고지 칸에 놓인 현재 연습 줄
+       ========================================================== */
+
+        :root {
+            --navy: #14254a;
+            --navy-2: #24386a;
+            --blue: #2259c4;
+            --blue-soft: #e4ecfb;
+            --blue-line: #b9cbef;
+            --white: #ffffff;
+            --gray-50: #f3f5f9;
+            --gray-100: #e9edf3;
+            --gray-200: #d6dde8;
+            --text: #17213a;
+            --muted: #56627c;
+            --ok: #26734f;
+            --ok-bg: #e5f2ea;
+            --err: #b83a33;
+            --err-bg: #fbe8e5;
+            --warn: #8a5a00;
+
+            --bg: var(--gray-50);
+            --surface: var(--white);
+            --surface-2: var(--gray-100);
+            --border: var(--gray-200);
+            --grid: var(--blue-line);
+            --key-bg: var(--white);
+            --key-text: var(--navy);
+
+            --font: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+            --font-scale: 1;
+            --cell: calc(2.75rem * var(--font-scale));
+            --radius-s: 6px;
+            --radius-m: 10px;
+            --focus: 0 0 0 3px var(--surface), 0 0 0 6px var(--blue);
+        }
+
+        [data-theme="dark"] {
+            --bg: #0e1830;
+            --surface: #15223f;
+            --surface-2: #1c2b4d;
+            --border: #2c3d63;
+            --grid: #34508a;
+            --text: #e8edf6;
+            --muted: #a3afc6;
+            --navy: #dfe7f7;
+            --navy-2: #c9d5ee;
+            --blue: #7aa5f5;
+            --blue-soft: #1f3363;
+            --ok: #73cf9f;
+            --ok-bg: #173a2c;
+            --err: #ff978d;
+            --err-bg: #46201f;
+            --warn: #f2c76b;
+            --key-bg: #1b2a4b;
+            --key-text: #e8edf6;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        html {
+            font-size: 100%;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            margin: 0;
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            word-break: keep-all;
+            overflow-wrap: anywhere;
+        }
+
+        h1, h2, h3 {
+            color: var(--navy);
+            line-height: 1.3;
+            margin: 0;
+        }
+
+        h1 {
+            font-size: clamp(1.6rem, 1.2rem + 1.4vw, 2.2rem);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        h2 {
+            font-size: 1.15rem;
+            font-weight: 700;
+        }
+
+        h2 small {
+            font-weight: 500;
+            color: var(--muted);
+            font-size: 0.85rem;
+        }
+
+        p {
+            margin: 0;
+        }
+
+        button, input, textarea {
+            font: inherit;
+            color: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        :focus-visible {
+            outline: none;
+            box-shadow: var(--focus);
+            border-radius: var(--radius-s);
+        }
+
+        .sr-only {
+            position: absolute !important;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .skip-link {
+            position: absolute;
+            left: 1rem;
+            top: -3rem;
+            z-index: 100;
+            background: var(--navy);
+            color: var(--surface);
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-s);
+        }
+
+        .skip-link:focus {
+            top: 0.75rem;
+        }
+
+        /* ---------- 상단 바 ---------- */
+        .topbar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .topbar-inner {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 0.6rem 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            background: none;
+            border: 0;
+            padding: 0.25rem;
+            color: var(--navy);
+        }
+
+        .brand-mark {
+            display: grid;
+            place-items: center;
+            width: 2.1rem;
+            height: 2.1rem;
+            border: 2px solid var(--navy);
+            border-radius: 4px;
+            font-weight: 800;
+            font-size: 1.15rem;
+            background: linear-gradient(var(--grid), var(--grid)) center / 100% 1px no-repeat,
+            linear-gradient(var(--grid), var(--grid)) center / 1px 100% no-repeat;
+        }
+
+        .brand-name {
+            font-weight: 800;
+            font-size: 1.1rem;
+            letter-spacing: -0.01em;
+            white-space: nowrap;
+        }
+
+        .topnav {
+            display: flex;
+            gap: 0.25rem;
+            flex-wrap: nowrap;
+        }
+
+        .nav-btn {
+            white-space: nowrap;
+            background: none;
+            border: 1px solid transparent;
+            border-radius: var(--radius-s);
+            padding: 0.45rem 0.8rem;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        .nav-btn:hover {
+            color: var(--navy);
+            background: var(--surface-2);
+        }
+
+        .nav-btn[aria-current="page"] {
+            color: var(--navy);
+            border-color: var(--border);
+            background: var(--surface-2);
+        }
+
+        .theme-btn {
+            border-color: var(--border);
+        }
+
+        main {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 2rem 1.25rem 4rem;
+        }
+
+        main:focus {
+            outline: none;
+        }
+
+        .view > * + * {
+            margin-top: 1.25rem;
+        }
+
+        .lead {
+            color: var(--muted);
+            max-width: 44rem;
+        }
+
+        .note {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        /* ---------- 버튼 ---------- */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            min-height: 2.75rem;
+            padding: 0.55rem 1.2rem;
+            border-radius: var(--radius-s);
+            border: 1px solid transparent;
+            font-weight: 700;
+        }
+
+        .btn-primary {
+            background: var(--blue);
+            color: #fff;
+        }
+
+        [data-theme="dark"] .btn-primary {
+            color: #0e1830;
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.08);
+        }
+
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--navy);
+            border-color: var(--navy-2);
+        }
+
+        .btn-secondary:hover {
+            background: var(--blue-soft);
+        }
+
+        .btn-ghost {
+            background: none;
+            color: var(--muted);
+            border-color: var(--border);
+        }
+
+        .btn-ghost:hover {
+            color: var(--navy);
+        }
+
+        .btn-danger {
+            background: var(--surface);
+            color: var(--err);
+            border-color: var(--err);
+        }
+
+        .btn-danger:hover {
+            background: var(--err-bg);
+        }
+
+        .btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            filter: none;
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        /* ---------- 처음 화면 ---------- */
+        .home-head {
+            display: grid;
+            gap: 0.6rem;
+        }
+
+        .home-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 300px;
+            gap: 2rem;
+            align-items: start;
+            margin-top: 2rem;
+        }
+
+        .mode-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            border-top: 1px solid var(--border);
+        }
+
+        .mode-list li {
+            border-bottom: 1px solid var(--border);
+        }
+
+        .mode-item {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            padding: 1rem 0.5rem;
+            background: none;
+            border: 0;
+            text-align: left;
+        }
+
+        .mode-item:hover {
+            background: var(--surface);
+        }
+
+        .mode-item:hover .mode-glyph {
+            border-color: var(--blue);
+            color: var(--blue);
+        }
+
+        .mode-glyph {
+            flex: none;
+            display: grid;
+            place-items: center;
+            width: 3.4rem;
+            height: 3.4rem;
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: var(--navy);
+            border: 1.5px solid var(--navy-2);
+            border-radius: 3px;
+            background: linear-gradient(var(--grid), var(--grid)) center / 100% 1px no-repeat,
+            linear-gradient(var(--grid), var(--grid)) center / 1px 100% no-repeat,
+            var(--surface);
+        }
+
+        .mode-text {
+            display: grid;
+            gap: 0.1rem;
+        }
+
+        .mode-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--navy);
+        }
+
+        .mode-desc {
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .home-side {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-m);
+            padding: 1.25rem;
+            display: grid;
+            gap: 0.9rem;
+        }
+
+        .home-summary {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            font-size: 0.95rem;
+        }
+
+        .summary-row span:first-child {
+            color: var(--muted);
+        }
+
+        .summary-row strong {
+            color: var(--navy);
+        }
+
+        /* ---------- 설정 화면 ---------- */
+        .back-link {
+            background: none;
+            border: 0;
+            padding: 0.25rem 0;
+            color: var(--blue);
+            font-weight: 600;
+        }
+
+        .back-link::before {
+            content: "‹ ";
+        }
+
+        .setup-options {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .choice-group {
+            border: 0;
+            margin: 0;
+            padding: 0;
+            min-width: 0;
+        }
+
+        .choice-group legend {
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 0.6rem;
+            padding: 0;
+        }
+
+        .choices {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 0.6rem;
+        }
+
+        .choice {
+            position: relative;
+            display: block;
+        }
+
+        .choice input {
+            position: absolute;
+            opacity: 0;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .choice-body {
+            display: grid;
+            gap: 0.15rem;
+            height: 100%;
+            padding: 0.8rem 1rem;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-s);
+            background: var(--surface);
+        }
+
+        .choice-body strong {
+            color: var(--navy);
+        }
+
+        .choice-body small {
+            color: var(--muted);
+            font-size: 0.88rem;
+        }
+
+        .choice input:checked + .choice-body {
+            border-color: var(--blue);
+            background: var(--blue-soft);
+            box-shadow: inset 4px 0 0 var(--blue);
+        }
+
+        .choice input:focus-visible + .choice-body {
+            box-shadow: var(--focus);
+        }
+
+        .custom-area {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .field-label {
+            font-weight: 700;
+            color: var(--navy);
+        }
+
+        textarea {
+            width: 100%;
+            resize: vertical;
+            min-height: 10rem;
+            padding: 0.9rem 1rem;
+            line-height: 1.7;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-s);
+            background: var(--surface);
+        }
+
+        textarea:focus-visible {
+            border-color: var(--blue);
+        }
+
+        .custom-meta {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+            font-size: 0.9rem;
+            color: var(--muted);
+        }
+
+        .field-error {
+            color: var(--err);
+            font-weight: 600;
+        }
+
+        .setup-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        /* ---------- 연습 화면 ---------- */
+        .view-practice > * + * {
+            margin-top: 1rem;
+        }
+
+        .practice-status {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 1.5rem;
+            padding: 0.75rem 1rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-m);
+        }
+
+        .status-mode {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .status-mode-name {
+            font-weight: 800;
+            color: var(--navy);
+        }
+
+        .pill {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--blue);
+            border: 1px solid var(--blue-line);
+            border-radius: 999px;
+            padding: 0.05rem 0.65rem;
+        }
+
+        [data-theme="dark"] .pill {
+            border-color: var(--grid);
+        }
+
+        .status-progress {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .progress {
+            flex: 1;
+            height: 8px;
+            background: var(--surface-2);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            display: block;
+            height: 100%;
+            width: 0;
+            background: var(--blue);
+            transition: width 0.2s ease;
+        }
+
+        .progress-text {
+            font-variant-numeric: tabular-nums;
+            font-weight: 700;
+            color: var(--navy);
+            min-width: 3.2rem;
+            text-align: right;
+        }
+
+        .status-time {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .status-time strong {
+            font-size: 1.35rem;
+            color: var(--navy);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* 원고지 무대 */
+        .stage {
+            position: relative;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-m);
+            padding: 1.25rem 1.5rem 1.4rem;
+            min-height: 13rem;
+            display: grid;
+            gap: 0.9rem;
+            align-content: center;
+        }
+
+        .line-side {
+            color: var(--muted);
+            font-size: calc(1rem * var(--font-scale));
+            min-height: 1.6em;
+            white-space: pre-wrap;
+        }
+
+        .line-prev {
+            opacity: 0.6;
+        }
+
+        .line-prev::before {
+            content: "✓ ";
+            color: var(--ok);
+        }
+
+        .line-prev:empty::before, .line-next:empty::before {
+            content: "";
+        }
+
+        .line-next::before {
+            content: "다음 줄  ";
+            font-size: 0.8em;
+            color: var(--muted);
+        }
+
+        .line-current {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 0 1px 1px 0;
+        }
+
+        .ch {
+            position: relative;
+            display: grid;
+            place-items: center;
+            width: var(--cell);
+            height: calc(var(--cell) * 1.18);
+            margin: 0 -1px -1px 0;
+            border: 1px solid var(--grid);
+            font-size: calc(var(--cell) * 0.6);
+            font-weight: 600;
+            color: var(--text);
+            background: var(--surface);
+        }
+
+        /* 정답: 연한 긍정색 배경 + 흐린 글자 */
+        .ch.is-correct {
+            color: var(--ok);
+            background: var(--ok-bg);
+            font-weight: 500;
+        }
+
+        /* 오답: 오류색 + 물결 밑줄 + 대각선 무늬 + 입력한 글자 표시 */
+        .ch.is-wrong {
+            color: var(--err);
+            background: var(--err-bg);
+            background: repeating-linear-gradient(135deg, transparent 0 6px, color-mix(in srgb, var(--err) 12%, transparent) 6px 8px),
+            var(--err-bg);
+            text-decoration: underline wavy var(--err);
+            text-decoration-thickness: 2px;
+            text-underline-offset: 0.18em;
+        }
+
+        .ch.is-wrong.is-space::after {
+            content: "∨";
+            font-size: 0.6em;
+            color: var(--err);
+        }
+
+        /* 현재 입력 위치: 굵은 테두리 + 아래 막대 */
+        .ch.is-current {
+            z-index: 2;
+            background: var(--blue-soft);
+            color: var(--navy);
+            box-shadow: inset 0 0 0 3px var(--blue);
+        }
+
+        .ch.is-current::after {
+            content: "";
+            position: absolute;
+            left: 18%;
+            right: 18%;
+            bottom: 5px;
+            height: 4px;
+            border-radius: 2px;
+            background: var(--blue);
+            animation: caret 1.1s steps(1) infinite;
+        }
+
+        .ch.is-composing-off {
+            box-shadow: inset 0 0 0 3px var(--warn);
+        }
+
+        .ch[data-typed]::before {
+            content: attr(data-typed);
+            position: absolute;
+            top: 2px;
+            left: 4px;
+            font-size: 0.38em;
+            line-height: 1.1;
+            font-weight: 700;
+            color: var(--err);
+        }
+
+        .ch.is-composing::before {
+            color: var(--blue);
+        }
+
+        .ch.is-composing-off::before {
+            color: var(--warn);
+        }
+
+        .ch.is-end {
+            color: var(--blue);
+            font-size: calc(var(--cell) * 0.4);
+        }
+
+        .ch.is-extra {
+            width: auto;
+            padding: 0 0.6rem;
+            color: var(--err);
+            font-size: calc(var(--cell) * 0.35);
+            background: var(--err-bg);
+        }
+
+        @keyframes caret {
+            50% {
+                opacity: 0.15;
+            }
+        }
+
+        .stage-overlay {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-content: center;
+            justify-items: center;
+            gap: 0.6rem;
+            background: color-mix(in srgb, var(--surface) 82%, transparent);
+            border-radius: var(--radius-m);
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .overlay-note {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .input-row {
+            display: grid;
+            gap: 0.35rem;
+        }
+
+        .typing-input {
+            width: 100%;
+            min-height: 3.4rem;
+            padding: 0.6rem 1rem;
+            font-size: calc(1.35rem * var(--font-scale));
+            border: 2px solid var(--navy-2);
+            border-radius: var(--radius-s);
+            background: var(--surface);
+        }
+
+        .typing-input:focus-visible {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 4px var(--blue-soft);
+        }
+
+        .input-hint {
+            color: var(--muted);
+            font-size: 0.88rem;
+        }
+
+        .input-hint.is-alert {
+            color: var(--err);
+            font-weight: 600;
+        }
+
+        /* 실시간 통계 */
+        .stats {
+            margin: 0;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1.4fr)) repeat(6, minmax(0, 1fr));
+            border: 1px solid var(--border);
+            border-radius: var(--radius-m);
+            background: var(--surface);
+            overflow: hidden;
+        }
+
+        .stat {
+            padding: 0.55rem 0.75rem;
+            border-right: 1px solid var(--border);
+            min-width: 0;
+        }
+
+        .stat:last-child {
+            border-right: 0;
+        }
+
+        .stat dt {
+            font-size: 0.8rem;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        .stat dd {
+            margin: 0;
+            font-weight: 700;
+            color: var(--navy);
+            font-variant-numeric: tabular-nums;
+            font-size: 1.1rem;
+        }
+
+        .stat-main dd {
+            font-size: 1.6rem;
+            line-height: 1.2;
+        }
+
+        /* 도구 막대 */
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .tool-btn {
+            min-height: 2.4rem;
+            padding: 0.35rem 0.85rem;
+            border-radius: var(--radius-s);
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--navy);
+            font-weight: 600;
+            font-size: 0.92rem;
+        }
+
+        .tool-btn:hover {
+            border-color: var(--navy-2);
+        }
+
+        .tool-btn[aria-pressed="true"] {
+            background: var(--blue-soft);
+            border-color: var(--blue);
+        }
+
+        .tool-btn[aria-pressed="true"]::before {
+            content: "● ";
+            color: var(--blue);
+            font-size: 0.7em;
+            vertical-align: 0.15em;
+        }
+
+        .tool-btn[aria-pressed="false"]#btn-keyboard::before, .tool-btn[aria-pressed="false"]#btn-sound::before {
+            content: "○ ";
+            font-size: 0.7em;
+            vertical-align: 0.15em;
+        }
+
+        #btn-pause[aria-pressed="true"]::before {
+            content: "❚❚ ";
+        }
+
+        .tool-sep {
+            width: 1px;
+            height: 1.6rem;
+            background: var(--border);
+            margin: 0 0.2rem;
+        }
+
+        .tool-spacer {
+            flex: 1;
+        }
+
+        .tool-value {
+            min-width: 3rem;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        /* ---------- 두벌식 가상 키보드 ---------- */
+        .keyboard-wrap {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-m);
+            padding: 0.9rem;
+        }
+
+        .keyboard {
+            display: grid;
+            gap: 0.35rem;
+            max-width: 860px;
+            margin: 0 auto;
+            user-select: none;
+        }
+
+        .kb-row {
+            display: flex;
+            gap: 0.35rem;
+        }
+
+        .key {
+            position: relative;
+            flex: 1 1 0;
+            min-width: 0;
+            height: 3.1rem;
+            border: 1px solid var(--border);
+            border-bottom-width: 3px;
+            border-radius: 6px;
+            background: var(--key-bg);
+            color: var(--key-text);
+            display: grid;
+            place-items: center;
+            font-size: 1.15rem;
+            font-weight: 600;
+        }
+
+        .key .k-sub {
+            position: absolute;
+            font-size: 0.62rem;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        .key .k-en {
+            left: 5px;
+            bottom: 2px;
+        }
+
+        .key .k-shift {
+            right: 5px;
+            top: 2px;
+            font-size: 0.72rem;
+            color: var(--navy-2);
+        }
+
+        .key.k-func {
+            font-size: 0.75rem;
+            color: var(--muted);
+        }
+
+        .key.w-15 {
+            flex-grow: 1.5;
+        }
+
+        .key.w-18 {
+            flex-grow: 1.8;
+        }
+
+        .key.w-2 {
+            flex-grow: 2;
+        }
+
+        .key.w-22 {
+            flex-grow: 2.2;
+        }
+
+        .key.w-25 {
+            flex-grow: 2.5;
+        }
+
+        .key.w-28 {
+            flex-grow: 2.8;
+        }
+
+        .key.w-space {
+            flex-grow: 1;
+            max-width: 50%;
+            margin: 0 auto;
+        }
+
+        .key.is-home::after {
+            content: "";
+            position: absolute;
+            bottom: 6px;
+            width: 10px;
+            height: 2px;
+            background: var(--muted);
+            border-radius: 1px;
+        }
+
+        .key.is-next {
+            background: var(--blue);
+            color: #fff;
+            border-color: var(--navy);
+            outline: 2px dashed var(--blue);
+            outline-offset: 2px;
+        }
+
+        [data-theme="dark"] .key.is-next {
+            color: #0e1830;
+        }
+
+        .key.is-next .k-sub {
+            color: inherit;
+            opacity: 0.85;
+        }
+
+        .key.is-next-warn {
+            background: var(--err-bg);
+            color: var(--err);
+            border-color: var(--err);
+            outline: 2px dashed var(--err);
+            outline-offset: 2px;
+        }
+
+        .key.is-pressed {
+            transform: translateY(2px);
+            border-bottom-width: 1px;
+            background: var(--surface-2);
+        }
+
+        .key.is-next.is-pressed {
+            background: var(--navy-2);
+        }
+
+        .key-guide {
+            text-align: center;
+            margin-top: 0.6rem;
+            color: var(--navy);
+            font-weight: 600;
+            min-height: 1.6em;
+        }
+
+        /* ---------- 결과 화면 ---------- */
+        .result-hero {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            padding: 1.25rem 1.5rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-m);
+        }
+
+        .result-score {
+            display: grid;
+        }
+
+        .result-score-label {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .result-score strong {
+            font-size: 3.2rem;
+            line-height: 1;
+            color: var(--navy);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .result-compare {
+            color: var(--text);
+            max-width: 36rem;
+        }
+
+        .result-compare .up {
+            color: var(--ok);
+            font-weight: 700;
+        }
+
+        .result-compare .down {
+            color: var(--err);
+            font-weight: 700;
+        }
+
+        .result-grid, .records-summary {
+            margin: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            border-top: 1px solid var(--border);
+            border-left: 1px solid var(--border);
+        }
+
+        .result-grid > div, .records-summary > div {
+            padding: 0.8rem 1rem;
+            border-right: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
+        }
+
+        .result-grid dt, .records-summary dt {
+            color: var(--muted);
+            font-size: 0.85rem;
+        }
+
+        .result-grid dd, .records-summary dd {
+            margin: 0;
+            font-size: 1.45rem;
+            font-weight: 700;
+            color: var(--navy);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .result-weak {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .weak-msg {
+            font-weight: 600;
+        }
+
+        .weak-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .weak-item {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 0.5rem;
+            padding: 0.4rem 0.8rem;
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--err);
+            border-radius: var(--radius-s);
+            background: var(--surface);
+        }
+
+        .weak-item b {
+            font-size: 1.3rem;
+            color: var(--navy);
+        }
+
+        .weak-item span {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .result-actions, .records-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+        }
+
+        /* ---------- 기록 화면 ---------- */
+        .records-block {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .records-chart {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-m);
+            padding: 1rem;
+        }
+
+        .records-chart svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .chart-grid {
+            stroke: var(--border);
+            stroke-width: 1;
+        }
+
+        .chart-axis {
+            fill: var(--muted);
+            font-size: 12px;
+            font-family: var(--font);
+        }
+
+        .chart-line {
+            fill: none;
+            stroke: var(--blue);
+            stroke-width: 2.5;
+            stroke-linejoin: round;
+        }
+
+        .chart-dot {
+            fill: var(--surface);
+            stroke: var(--blue);
+            stroke-width: 2.5;
+        }
+
+        .chart-value {
+            fill: var(--navy);
+            font-size: 12px;
+            font-weight: 700;
+            font-family: var(--font);
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-m);
+        }
+
+        .records-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.93rem;
+            min-width: 620px;
+        }
+
+        .records-table th, .records-table td {
+            padding: 0.6rem 0.8rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .records-table th {
+            color: var(--muted);
+            font-weight: 600;
+            background: var(--surface-2);
+        }
+
+        .records-table td.num {
+            font-variant-numeric: tabular-nums;
+            text-align: right;
+        }
+
+        .records-table th.num {
+            text-align: right;
+        }
+
+        .records-table tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .empty {
+            color: var(--muted);
+            padding: 0.5rem 0;
+        }
+
+        /* ---------- 알림 ---------- */
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: 1.5rem;
+            transform: translate(-50%, 1rem);
+            background: var(--navy);
+            color: var(--surface);
+            padding: 0.65rem 1.2rem;
+            border-radius: var(--radius-s);
+            font-weight: 700;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s, transform 0.2s;
+            z-index: 50;
+            max-width: calc(100% - 2rem);
+            text-align: center;
+        }
+
+        .toast.is-visible {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
+        /* ---------- 반응형 ---------- */
+        @media (max-width: 960px) {
+            .home-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .stat:nth-child(3n) {
+                border-right: 0;
+            }
+
+            .stat:nth-child(-n+6) {
+                border-bottom: 1px solid var(--border);
+            }
+
+            .practice-status {
+                grid-template-columns: 1fr auto;
+            }
+
+            .status-progress {
+                grid-column: 1 / -1;
+                grid-row: 2;
+            }
+        }
+
+        @media (max-width: 640px) {
+            :root {
+                --cell: calc(2.05rem * var(--font-scale));
+            }
+
+            main {
+                padding: 1.25rem 0.9rem 3rem;
+            }
+
+            .topbar-inner {
+                padding: 0.5rem 0.9rem;
+            }
+
+            .brand-name {
+                font-size: 1rem;
+            }
+
+            .nav-btn {
+                padding: 0.4rem 0.55rem;
+                font-size: 0.92rem;
+            }
+
+            .stage {
+                padding: 1rem;
+                min-height: 10rem;
+            }
+
+            .stat-main dd {
+                font-size: 1.25rem;
+            }
+
+            .stat {
+                padding: 0.45rem 0.55rem;
+            }
+
+            .key {
+                height: 2.4rem;
+                font-size: 0.95rem;
+                border-radius: 4px;
+            }
+
+            .key .k-en {
+                display: none;
+            }
+
+            .kb-row, .keyboard {
+                gap: 0.2rem;
+            }
+
+            .keyboard-wrap {
+                padding: 0.5rem;
+            }
+
+            .tool-spacer {
+                display: none;
+            }
+
+            .result-score strong {
+                font-size: 2.6rem;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .key .k-shift {
+                display: none;
+            }
+
+            .brand-mark {
+                width: 1.8rem;
+                height: 1.8rem;
+                font-size: 1rem;
+            }
+
+            .topbar-inner {
+                gap: 0.5rem;
+            }
+
+            .nav-btn {
+                padding: 0.35rem 0.45rem;
+                font-size: 0.88rem;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .kb-row:first-child {
+                display: none;
+            }
+
+            .brand-name {
+                font-size: 0.95rem;
+            }
+        }
+
+        /* 아주 좁은 화면(320px 등): 앱 이름 글자를 숨기고 로고만 표시해 상단 메뉴가 넘치지 않게 함 */
+        @media (max-width: 380px) {
+            .brand-name {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                overflow: hidden;
+                clip: rect(0 0 0 0);
+                white-space: nowrap;
+            }
+
+            .stage {
+                padding: 0.75rem;
+            }
+
+            .practice-status {
+                padding: 0.6rem 0.75rem;
+                gap: 0.75rem;
+            }
+        }
+
+        /* 움직임 줄이기 */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+
+        /* 고대비 환경 */
+        @media (forced-colors: active) {
+            .ch.is-current {
+                outline: 3px solid Highlight;
+            }
+
+            .key.is-next {
+                outline: 3px solid Highlight;
+            }
+        }
+
+    </style>
+</head>
+<body>
+<a class="skip-link" href="#main">본문으로 건너뛰기</a>
+
+<header class="topbar">
+    <div class="topbar-inner">
+        <button type="button" class="brand" data-nav="home" aria-label="처음 화면으로 이동">
+            <span class="brand-mark" aria-hidden="true">ㅎ</span>
+            <span class="brand-name" data-app-name>한글 타자연습</span>
+        </button>
+        <nav class="topnav" aria-label="주 메뉴">
+            <button type="button" class="nav-btn" data-nav="home">연습</button>
+            <button type="button" class="nav-btn" data-nav="records">나의 기록</button>
+            <button type="button" class="nav-btn theme-btn" id="theme-toggle" aria-pressed="false">어둡게</button>
+        </nav>
+    </div>
+</header>
+
+<main id="main" tabindex="-1">
+
+    <!-- 처음 화면 -->
+    <section class="view" id="view-home" data-view="home" aria-labelledby="home-title">
+        <div class="home-head">
+            <h1 id="home-title" tabindex="-1">어떤 연습을 할까요?</h1>
+            <p class="lead">처음이라면 기초 연습부터 시작하세요. 정확하게 치는 습관이 먼저 잡히면 속도는 따라옵니다.</p>
+        </div>
+        <div class="home-grid">
+            <ul class="mode-list" role="list">
+                <li>
+                    <button type="button" class="mode-item" data-mode="basic">
+                        <span class="mode-glyph" aria-hidden="true">ㄱ</span>
+                        <span class="mode-text"><span class="mode-name">기초 연습</span><span class="mode-desc">자음·모음 자리와 기본 음절을 익힙니다</span></span>
+                    </button>
+                </li>
+                <li>
+                    <button type="button" class="mode-item" data-mode="words">
+                        <span class="mode-glyph" aria-hidden="true">낱</span>
+                        <span class="mode-text"><span class="mode-name">낱말 연습</span><span class="mode-desc">초급·중급·고급 낱말을 하나씩 입력합니다</span></span>
+                    </button>
+                </li>
+                <li>
+                    <button type="button" class="mode-item" data-mode="sentences">
+                        <span class="mode-glyph" aria-hidden="true">문</span>
+                        <span class="mode-text"><span class="mode-name">문장 연습</span><span class="mode-desc">자연스러운 한국어 문장을 다섯 개씩 연습합니다</span></span>
+                    </button>
+                </li>
+                <li>
+                    <button type="button" class="mode-item" data-mode="long">
+                        <span class="mode-glyph" aria-hidden="true">글</span>
+                        <span class="mode-text"><span class="mode-name">긴 글 연습</span><span class="mode-desc">짧은 글 한 편을 끝까지 입력합니다</span></span>
+                    </button>
+                </li>
+                <li>
+                    <button type="button" class="mode-item" data-mode="custom">
+                        <span class="mode-glyph" aria-hidden="true">내</span>
+                        <span class="mode-text"><span class="mode-name">사용자 문장 연습</span><span class="mode-desc">직접 입력하거나 붙여 넣은 글로 연습합니다</span></span>
+                    </button>
+                </li>
+                <li>
+                    <button type="button" class="mode-item" data-mode="timed">
+                        <span class="mode-glyph" aria-hidden="true">분</span>
+                        <span class="mode-text"><span class="mode-name">시간 제한 연습</span><span class="mode-desc">1분·3분·5분 동안 최대한 정확하게 입력합니다</span></span>
+                    </button>
+                </li>
+            </ul>
+            <aside class="home-side" aria-labelledby="summary-title">
+                <h2 id="summary-title">지난 연습</h2>
+                <div id="home-summary" class="home-summary"></div>
+                <button type="button" class="btn btn-secondary btn-block" id="home-weak-btn">취약 글자 연습</button>
+                <p class="note" id="home-weak-note"></p>
+            </aside>
+        </div>
+    </section>
+
+    <!-- 연습 설정 화면 -->
+    <section class="view" id="view-setup" data-view="setup" aria-labelledby="setup-title" hidden>
+        <button type="button" class="back-link" data-nav="home">처음 화면으로</button>
+        <h1 id="setup-title" tabindex="-1">연습 설정</h1>
+        <p class="lead" id="setup-desc"></p>
+        <div id="setup-options" class="setup-options"></div>
+        <div id="custom-area" class="custom-area" hidden>
+            <label for="custom-text" class="field-label">연습할 글</label>
+            <textarea id="custom-text" rows="9" maxlength="3000" placeholder="연습하고 싶은 글을 입력하거나 붙여 넣으세요. 줄 바꿈은 연습할 때 줄 단위로 나뉩니다."></textarea>
+            <div class="custom-meta">
+                <span id="custom-count">0 / 3000자</span>
+                <span id="custom-error" class="field-error" role="alert"></span>
+            </div>
+        </div>
+        <div class="setup-actions">
+            <button type="button" class="btn btn-primary" id="setup-start">연습 시작</button>
+        </div>
+    </section>
+
+    <!-- 연습 화면 -->
+    <section class="view view-practice" id="view-practice" data-view="practice" aria-labelledby="practice-title" hidden>
+        <h1 id="practice-title" class="sr-only" tabindex="-1">타자 연습</h1>
+
+        <div class="practice-status">
+            <div class="status-mode">
+                <span id="practice-mode" class="status-mode-name"></span>
+                <span id="practice-level" class="pill"></span>
+            </div>
+            <div class="status-progress">
+                <div class="progress" id="practice-progress" role="progressbar" aria-label="진행률" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                    <span class="progress-bar" id="practice-progress-bar"></span>
+                </div>
+                <span id="practice-progress-text" class="progress-text">0%</span>
+            </div>
+            <div class="status-time">
+                <span id="practice-time-label">경과 시간</span>
+                <strong id="practice-time">0:00</strong>
+            </div>
+        </div>
+
+        <div class="stage" id="stage">
+            <p class="line-side line-prev" id="line-prev" aria-hidden="true"></p>
+            <div class="line-current" id="line-current" aria-hidden="true"></div>
+            <p class="line-side line-next" id="line-next" aria-hidden="true"></p>
+            <p class="sr-only" id="line-sr" aria-live="polite"></p>
+            <div class="stage-overlay" id="stage-overlay" hidden>
+                <button type="button" class="btn btn-primary" id="overlay-btn">여기를 눌러 연습을 시작하세요</button>
+                <p class="overlay-note" id="overlay-note">Esc 키로 언제든 일시정지할 수 있습니다.</p>
+            </div>
+        </div>
+
+        <div class="input-row">
+            <label for="typing-input" class="sr-only">타자 입력창</label>
+            <input id="typing-input" class="typing-input" type="text" lang="ko"
+                   autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+                   inputmode="text" enterkeyhint="next" aria-describedby="line-sr input-hint">
+            <p class="input-hint" id="input-hint">줄 끝에서 Enter 또는 Space를 누르면 다음 줄로 넘어갑니다. Esc는 일시정지입니다.</p>
+        </div>
+
+        <dl class="stats" id="stats">
+            <div class="stat stat-main">
+                <dt>분당 글자</dt>
+                <dd id="stat-cpm">0</dd>
+            </div>
+            <div class="stat stat-main">
+                <dt>분당 타수</dt>
+                <dd id="stat-kpm">0</dd>
+            </div>
+            <div class="stat stat-main">
+                <dt>정확도</dt>
+                <dd id="stat-accuracy">-</dd>
+            </div>
+            <div class="stat">
+                <dt>오류</dt>
+                <dd id="stat-errors">0</dd>
+            </div>
+            <div class="stat">
+                <dt>수정</dt>
+                <dd id="stat-corrections">0</dd>
+            </div>
+            <div class="stat">
+                <dt>Backspace</dt>
+                <dd id="stat-backspaces">0</dd>
+            </div>
+            <div class="stat">
+                <dt>입력 글자</dt>
+                <dd id="stat-typed">0</dd>
+            </div>
+            <div class="stat">
+                <dt>정확 글자</dt>
+                <dd id="stat-correct">0</dd>
+            </div>
+            <div class="stat">
+                <dt>현재 줄 일치율</dt>
+                <dd id="stat-line-match">0%</dd>
+            </div>
+        </dl>
+
+        <div class="toolbar" role="toolbar" aria-label="연습 도구">
+            <button type="button" class="tool-btn" id="btn-pause" aria-pressed="false">일시정지</button>
+            <button type="button" class="tool-btn" id="btn-restart">다시 시작</button>
+            <button type="button" class="tool-btn" id="btn-new">새 문장</button>
+            <span class="tool-sep" aria-hidden="true"></span>
+            <button type="button" class="tool-btn" id="btn-font-down" aria-label="글자 작게">가−</button>
+            <span class="tool-value" id="font-scale-value" aria-live="polite">100%</span>
+            <button type="button" class="tool-btn" id="btn-font-up" aria-label="글자 크게">가+</button>
+            <span class="tool-sep" aria-hidden="true"></span>
+            <button type="button" class="tool-btn" id="btn-keyboard" aria-pressed="true">키보드</button>
+            <button type="button" class="tool-btn" id="btn-sound" aria-pressed="true">효과음</button>
+            <span class="tool-spacer" aria-hidden="true"></span>
+            <button type="button" class="tool-btn tool-btn-end" id="btn-quit">그만하고 결과 보기</button>
+        </div>
+
+        <div class="keyboard-wrap" id="keyboard-wrap">
+            <div class="keyboard" id="keyboard" aria-hidden="true"></div>
+            <p class="key-guide" id="key-guide"></p>
+        </div>
+    </section>
+
+    <!-- 결과 화면 -->
+    <section class="view" id="view-result" data-view="result" aria-labelledby="result-title" hidden>
+        <h1 id="result-title" tabindex="-1">연습 결과</h1>
+        <p class="lead" id="result-sub"></p>
+
+        <div class="result-hero">
+            <div class="result-score">
+                <span class="result-score-label">점수</span>
+                <strong id="result-score">0</strong>
+            </div>
+            <p class="result-compare" id="result-compare"></p>
+        </div>
+
+        <dl class="result-grid">
+            <div>
+                <dt>연습 시간</dt>
+                <dd id="result-time">0:00</dd>
+            </div>
+            <div>
+                <dt>분당 글자</dt>
+                <dd id="result-cpm">0</dd>
+            </div>
+            <div>
+                <dt>분당 타수</dt>
+                <dd id="result-kpm">0</dd>
+            </div>
+            <div>
+                <dt>정확도</dt>
+                <dd id="result-accuracy">0%</dd>
+            </div>
+            <div>
+                <dt>오류 수</dt>
+                <dd id="result-errors">0</dd>
+            </div>
+            <div>
+                <dt>수정 횟수</dt>
+                <dd id="result-corrections">0</dd>
+            </div>
+            <div>
+                <dt>Backspace</dt>
+                <dd id="result-backspaces">0</dd>
+            </div>
+            <div>
+                <dt>완료 글자 수</dt>
+                <dd id="result-chars">0</dd>
+            </div>
+            <div>
+                <dt>최고 연속 정확</dt>
+                <dd id="result-streak">0</dd>
+            </div>
+        </dl>
+
+        <section class="result-weak" aria-labelledby="result-weak-title">
+            <h2 id="result-weak-title">가장 많이 틀린 글자</h2>
+            <p id="result-weak-msg" class="weak-msg"></p>
+            <ul id="result-weak-list" class="weak-list" role="list"></ul>
+            <p id="result-key-msg" class="note"></p>
+        </section>
+
+        <div class="result-actions">
+            <button type="button" class="btn btn-primary" id="result-retry">다시 연습</button>
+            <button type="button" class="btn btn-secondary" id="result-next">다음 연습</button>
+            <button type="button" class="btn btn-secondary" id="result-weak">취약 글자 연습</button>
+            <button type="button" class="btn btn-ghost" data-nav="home">메인 화면</button>
+        </div>
+    </section>
+
+    <!-- 나의 기록 화면 -->
+    <section class="view" id="view-records" data-view="records" aria-labelledby="records-title" hidden>
+        <h1 id="records-title" tabindex="-1">나의 기록</h1>
+        <p class="note" id="records-storage-note"></p>
+
+        <dl class="records-summary" id="records-summary">
+            <div>
+                <dt>연습 횟수</dt>
+                <dd id="rec-count">0</dd>
+            </div>
+            <div>
+                <dt>총 연습 시간</dt>
+                <dd id="rec-time">0분</dd>
+            </div>
+            <div>
+                <dt>총 정확 글자</dt>
+                <dd id="rec-chars">0</dd>
+            </div>
+            <div>
+                <dt>평균 속도</dt>
+                <dd id="rec-avg-cpm">0</dd>
+            </div>
+            <div>
+                <dt>최고 속도</dt>
+                <dd id="rec-best-cpm">0</dd>
+            </div>
+            <div>
+                <dt>평균 정확도</dt>
+                <dd id="rec-avg-acc">-</dd>
+            </div>
+            <div>
+                <dt>최고 정확도</dt>
+                <dd id="rec-best-acc">-</dd>
+            </div>
+        </dl>
+
+        <section class="records-block" aria-labelledby="chart-title">
+            <h2 id="chart-title">최근 10회 속도 변화 <small>(분당 글자)</small></h2>
+            <div id="records-chart" class="records-chart"></div>
+        </section>
+
+        <section class="records-block" aria-labelledby="recent-title">
+            <h2 id="recent-title">최근 연습</h2>
+            <div class="table-wrap">
+                <table class="records-table">
+                    <thead>
+                    <tr>
+                        <th scope="col">날짜</th>
+                        <th scope="col">연습</th>
+                        <th scope="col">시간</th>
+                        <th scope="col">분당 글자</th>
+                        <th scope="col">분당 타수</th>
+                        <th scope="col">정확도</th>
+                        <th scope="col">점수</th>
+                    </tr>
+                    </thead>
+                    <tbody id="records-tbody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="records-block" aria-labelledby="weak-title">
+            <h2 id="weak-title">자주 틀리는 글자</h2>
+            <ul id="records-weak" class="weak-list" role="list"></ul>
+        </section>
+
+        <div class="records-actions">
+            <button type="button" class="btn btn-danger" id="records-clear">기록 전체 삭제</button>
+        </div>
+    </section>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+    'use strict';
+
+    /* ==========================================================
+     한글 타자연습 - app.js
+     구성
+     1. 앱 설정 상수
+     2. 연습 콘텐츠 (practiceData)
+     3. 한글 처리 (Hangul)  - 음절 분해, 두벌식 키 시퀀스
+     4. 문자열 유틸 (TextUtil) - NFC 정규화, 글자(grapheme) 분리, 줄 나누기
+     5. 저장소 (Store)      - LocalStorage + 메모리 대체
+     6. 효과음 (Sound)      - Web Audio API
+     7. 세션 생성           - 모드별 연습 줄 구성
+     8. 연습 엔진            - IME 조합 처리, 비교, 타이머, 타수
+     9. 화면 렌더링          - 연습 줄, 통계, 가상 키보드
+     10. 결과 분석           - 취약 글자, 점수, 기록
+     11. 화면 전환 / 이벤트 연결
+     ========================================================== */
+
+    /* ===== 1. 앱 설정 상수 ===== */
+    const APP_NAME = '한글 타자연습';
+    const STORAGE_KEY = 'hangulTypingPractice.v1';
+    const MAX_HISTORY = 100;
+    const LINE_MAX_LENGTH = 34;          // 긴 글·사용자 글을 나눌 때 한 줄 최대 글자 수
+    const WORDS_PER_SESSION = 15;
+    const SENTENCES_PER_SESSION = 5;
+    const CUSTOM_MAX_LENGTH = 3000;
+    const STREAK_MILESTONES = [10, 20, 50, 100];
+    const FONT_SCALE_MIN = 0.8;
+    const FONT_SCALE_MAX = 1.6;
+    const TICK_MS = 200;
+    const LIVE_RATE_MIN_MS = 3000;     // 시작 직후 몇 글자만으로 속도가 과대 표시되는 것을 막음
+
+    const LEVELS = {
+        beginner    : {label: '초급', factor: 1.0, desc: '짧고 쉬운 낱말과 문장'},
+        intermediate: {label: '중급', factor: 1.15, desc: '생활 속 긴 낱말과 문장'},
+        advanced    : {label: '고급', factor: 1.3, desc: '겹받침, 숫자, 기호가 섞인 표현'}
+    };
+
+    const MODES = {
+        basic    : {label: '기초 연습', desc: '자음과 모음의 자리를 익히고 기본 음절로 손을 풀어 봅니다. 자모 사이의 띄어쓰기도 함께 입력하세요.'},
+        words    : {label: '낱말 연습', desc: `난이도를 고르면 낱말 ${WORDS_PER_SESSION}개가 무작위로 나옵니다. 낱말을 다 쓰면 Enter나 Space로 넘어갑니다.`},
+        sentences: {label: '문장 연습', desc: `난이도를 고르면 문장 ${SENTENCES_PER_SESSION}개가 무작위로 나옵니다.`},
+        long     : {label: '긴 글 연습', desc: '짧은 글 한 편을 줄 단위로 끝까지 입력합니다. 모든 글은 연습용으로 새로 쓴 글입니다.'},
+        custom   : {label: '사용자 문장 연습', desc: '연습하고 싶은 글을 직접 입력하거나 붙여 넣으세요. 이 화면에서는 붙여 넣기를 쓸 수 있습니다.'},
+        timed    : {label: '시간 제한 연습', desc: '정해진 시간 동안 문장이 계속 이어집니다. 첫 글자를 입력하는 순간부터 시간이 줄어듭니다.'},
+        weak     : {label: '취약 글자 연습', desc: '자주 틀린 글자가 많이 들어 있는 낱말과 문장으로 연습합니다.'}
+    };
+
+    const TIME_OPTIONS = [1, 3, 5];
+
+    /* ===== 2. 연습 콘텐츠 =====
+     모든 문장과 글은 이 앱을 위해 새로 작성한 교육용 콘텐츠입니다.
+     나중에 JSON 파일로 분리할 수 있도록 순수 데이터로만 구성합니다. */
+    const practiceData = {
+        basic       : [
+            {
+                id: 'home-left', title: '기본 자리 자음', keys: 'ㅁ ㄴ ㅇ ㄹ ㅎ', lines: [
+                    'ㅁ ㄴ ㅇ ㄹ ㅁ ㄴ ㅇ ㄹ',
+                    'ㄹ ㅇ ㄴ ㅁ ㄹ ㅇ ㄴ ㅁ',
+                    'ㅁ ㅁ ㄴ ㄴ ㅇ ㅇ ㄹ ㄹ ㅎ ㅎ',
+                    'ㅎ ㄹ ㅇ ㄴ ㅁ ㅎ ㅁ ㄹ'
+                ]
+            },
+            {
+                id: 'home-right', title: '기본 자리 모음', keys: 'ㅗ ㅓ ㅏ ㅣ', lines: [
+                    'ㅗ ㅓ ㅏ ㅣ ㅗ ㅓ ㅏ ㅣ',
+                    'ㅣ ㅏ ㅓ ㅗ ㅣ ㅏ ㅓ ㅗ',
+                    'ㅏ ㅏ ㅓ ㅓ ㅗ ㅗ ㅣ ㅣ',
+                    'ㅓ ㅣ ㅗ ㅏ ㅣ ㅓ ㅏ ㅗ'
+                ]
+            },
+            {
+                id: 'home-syllable', title: '기본 자리 음절', keys: '기본 자리만 쓰는 글자', lines: [
+                    '마 나 아 라 하 머 너 어 러 허',
+                    '모 노 오 로 호 미 니 이 리 히',
+                    '마라 나이 아니 하나 오이 어머 이마 허리'
+                ]
+            },
+            {
+                id: 'top-consonant', title: '윗줄 자음', keys: 'ㅂ ㅈ ㄷ ㄱ ㅅ', lines: [
+                    'ㅂ ㅈ ㄷ ㄱ ㅅ ㅂ ㅈ ㄷ ㄱ ㅅ',
+                    'ㅅ ㄱ ㄷ ㅈ ㅂ ㅅ ㄱ ㄷ ㅈ ㅂ',
+                    '바 자 다 가 사 버 저 더 거 서',
+                    '보 조 도 고 소 비 지 디 기 시'
+                ]
+            },
+            {
+                id: 'top-vowel', title: '윗줄 모음', keys: 'ㅛ ㅕ ㅑ ㅐ ㅔ', lines: [
+                    'ㅛ ㅕ ㅑ ㅐ ㅔ ㅛ ㅕ ㅑ ㅐ ㅔ',
+                    '교 겨 갸 개 게 쇼 셔 샤 새 세',
+                    '요 여 야 애 에 효 혀 햐 해 헤'
+                ]
+            },
+            {
+                id: 'bottom', title: '아랫줄', keys: 'ㅋ ㅌ ㅊ ㅍ ㅠ ㅜ ㅡ', lines: [
+                    'ㅋ ㅌ ㅊ ㅍ ㅠ ㅜ ㅡ ㅋ ㅌ ㅊ',
+                    '카 타 차 파 큐 투 츠 퓨 쿠 트',
+                    '크 트 츠 프 추 쿠 투 푸 휴 뉴'
+                ]
+            },
+            {
+                id: 'shift', title: '쌍자음과 Shift 모음', keys: 'ㅃ ㅉ ㄸ ㄲ ㅆ ㅒ ㅖ', lines: [
+                    'ㅃ ㅉ ㄸ ㄲ ㅆ ㅒ ㅖ ㅃ ㅉ ㄸ',
+                    '빠 짜 따 까 싸 뻐 쩌 떠 꺼 써',
+                    '얘 예 걔 계 녜 쎄 떼 깨 빼 째'
+                ]
+            },
+            {
+                id: 'ganada', title: '가나다 음절', keys: '기본 모음과 자음 조합', lines: [
+                    '가 나 다 라 마 바 사 아 자 차 카 타 파 하',
+                    '거 너 더 러 머 버 서 어 저 처 커 터 퍼 허',
+                    '고 노 도 로 모 보 소 오 조 초 코 토 포 호',
+                    '구 누 두 루 무 부 수 우 주 추 쿠 투 푸 후'
+                ]
+            },
+            {
+                id: 'batchim', title: '받침 음절', keys: '받침이 있는 글자', lines: [
+                    '각 난 닫 랄 맘 밥 삿 앙 잦 찾',
+                    '국 눈 문 불 숨 웃 줄 춤 콩 탑',
+                    '학 한 할 함 합 핫 항 핵 행 혁'
+                ]
+            },
+            {
+                id: 'complex', title: '복합 모음과 겹받침', keys: 'ㅘ ㅙ ㅚ ㅝ ㅟ ㅢ, ㄳ ㄺ ㅄ', lines: [
+                    '과 괘 괴 궈 궤 귀 긔 와 왜 외',
+                    '워 웨 위 의 화 회 훼 휘 희 쥐',
+                    '값 넋 닭 몫 삶 앉 않 읽 젊 흙'
+                ]
+            }
+        ],
+        beginner    : {
+            words    : [
+                '학교', '사람', '나무', '하늘', '바다', '우유', '가방', '모자', '시계', '의자',
+                '거울', '구름', '노래', '다리', '라면', '바지', '사과', '아이', '치마', '커피',
+                '토끼', '포도', '하마', '기차', '나비', '두부', '머리', '소리', '오리', '이마',
+                '지도', '고기', '부모', '비누', '여우', '휴지', '도시', '사랑', '행복', '전기', '안전'
+            ],
+            sentences: [
+                '오늘은 날씨가 맑습니다.',
+                '아침에 물을 한 잔 마셨습니다.',
+                '우리 집 앞에는 큰 나무가 있습니다.',
+                '동생과 함께 공원에 갔습니다.',
+                '저녁에는 가족과 밥을 먹습니다.',
+                '책상 위에 연필이 두 자루 있습니다.',
+                '비가 와서 우산을 챙겼습니다.',
+                '고양이가 창가에서 잠을 잡니다.',
+                '주말에 할머니 댁에 갑니다.',
+                '버스를 타고 학교에 갑니다.',
+                '꽃이 피어서 마당이 환합니다.',
+                '친구에게 짧은 편지를 썼습니다.',
+                '오늘 점심은 김밥입니다.',
+                '바람이 시원하게 붑니다.',
+                '천천히 정확하게 입력해 봅시다.'
+            ]
+        },
+        intermediate: {
+            words    : [
+                '대한민국', '컴퓨터', '자동차', '도서관', '전화기', '운동장', '냉장고', '선생님', '박물관', '초등학교',
+                '미술관', '고속도로', '놀이터', '우체국', '신호등', '지하철', '소방서', '경찰서', '백화점', '무지개',
+                '강아지', '고양이', '해바라기', '손수건', '청소기', '운동화', '비행기', '주차장', '안전모', '계산기',
+                '달력', '꽃병', '책상', '옷걸이', '밥그릇', '김치찌개', '된장국', '장난감', '볶음밥', '소화기'
+            ],
+            sentences: [
+                '책을 읽으면 새로운 생각을 만날 수 있습니다.',
+                '안전은 모든 작업에서 가장 먼저 생각해야 합니다.',
+                '작은 습관이 모여 큰 변화를 만듭니다.',
+                '회의 자료는 하루 전까지 공유해 주시기 바랍니다.',
+                '계단을 오를 때는 손잡이를 잡는 것이 좋습니다.',
+                '점심시간에는 잠깐이라도 바깥 공기를 쐬어 보세요.',
+                '도서관에서는 휴대전화를 진동으로 바꿔 주세요.',
+                '처음에는 느려도 괜찮으니 정확하게 치는 연습을 합시다.',
+                '비상구 앞에는 물건을 쌓아 두지 않습니다.',
+                '새로 산 화분에 물을 주고 햇볕이 드는 곳에 두었습니다.',
+                '정리된 책상은 일의 집중력을 높여 줍니다.',
+                '퇴근하기 전에 창문과 전원을 한 번 더 확인합니다.',
+                '여행을 떠나기 전에 일정과 준비물을 꼼꼼히 적었습니다.',
+                '서로의 의견을 끝까지 듣는 것이 좋은 대화의 시작입니다.',
+                '매일 십 분씩 꾸준히 연습하면 손이 먼저 기억합니다.'
+            ]
+        },
+        advanced    : {
+            words    : [
+                '읽다', '넓다', '값지다', '앉다', '많다', '밝다', '닭갈비', '괜찮다', '훑어보다', '뚫다',
+                '핥다', '읊다', '삶다', '젊음', '흙탕물', '몫', '넋두리', '왜곡', '꿰매다', '의논',
+                '희망', '쇠고기', '웬일', '됐다', '했겠다', '쫓아가다', '꺾다', '낚시꾼', '깎다', '엎드리다',
+                '짧다', '얇다', '밟다', '굵다', '묽다', '맑음', '여덟', '외곬', '괴롭다', '뒤꿈치'
+            ],
+            sentences: [
+                '회의는 3층 대회의실에서 오후 2시 30분에 시작합니다.',
+                "USB 메모리는 사용 후 반드시 '안전하게 제거'를 누르세요.",
+                '"괜찮아요, 천천히 하셔도 됩니다."라고 그가 웃으며 말했습니다.',
+                '소화기 점검표에는 날짜, 점검자, 압력 상태를 모두 적어야 합니다.',
+                '2026년 상반기 예산안은 총 4,800만 원으로 편성되었습니다.',
+                '닭갈비를 볶을 때는 양념이 눌어붙지 않도록 자주 뒤적입니다.',
+                '읽고, 쓰고, 다시 읽는 과정에서 글은 조금씩 단단해집니다.',
+                '비밀번호는 영문, 숫자, 특수문자(!@#)를 섞어 12자 이상으로 정하세요.',
+                '흙탕물이 튀지 않게 웅덩이를 피해 넓은 길로 돌아갔습니다.',
+                '그는 낡은 외투를 꿰매 입으며 겨울을 묵묵히 견뎠습니다.',
+                '택배 문의는 평일 오전 9시부터 오후 6시까지 받습니다.',
+                '앉아서 일하는 시간이 길다면 50분마다 몸을 펴 주세요.',
+                '값싼 물건보다 오래 쓸 수 있는 물건을 고르는 편이 낫습니다.',
+                '"왜 그랬어?"라는 질문보다 "무엇이 필요했어?"가 더 따뜻합니다.',
+                'Wi-Fi 이름과 비밀번호는 안내 데스크 옆 게시판에 있습니다.'
+            ]
+        },
+        longTexts   : [
+            {
+                id: 'morning-walk', title: '아침 산책', level: 'beginner', text:
+                    '아침 일찍 집을 나서면 공기가 맑고 조용합니다. 길가의 나무들은 밤새 내린 이슬을 머금고 있습니다. 천천히 걷다 보면 빵집에서 고소한 냄새가 흘러나옵니다. 공원에 도착하면 운동하는 사람들과 인사를 나눕니다. 삼십 분 정도 걷고 돌아오면 몸이 가볍고 마음도 차분해집니다. 하루를 시작하기에 이보다 좋은 방법은 많지 않습니다.'
+            },
+            {
+                id: 'library', title: '도서관에서 보낸 오후', level: 'intermediate', text:
+                    '비가 오는 토요일 오후, 오랜만에 동네 도서관을 찾았습니다. 입구 옆 게시판에는 이달의 추천 도서와 어린이 독서 교실 안내가 붙어 있었습니다. 창가 자리에 앉아 여행 에세이를 펼치자 빗소리가 배경 음악처럼 들려왔습니다. 몇 장을 넘기다 보니 가 보지 못한 도시의 골목길이 눈앞에 그려졌습니다. 책을 덮고 나왔을 때는 비가 그쳐 있었고, 하늘에는 엷은 노을이 번지고 있었습니다.'
+            },
+            {
+                id: 'safety', title: '안전한 작업장 만들기', level: 'intermediate', text:
+                    '안전한 작업장은 특별한 장비보다 작은 습관에서 시작됩니다. 작업을 시작하기 전에는 주변에 넘어질 만한 물건이 없는지 살펴봅니다. 무거운 짐을 들 때는 허리를 굽히지 말고 무릎을 굽혀 몸 가까이에서 들어 올립니다. 전기 기기를 다룰 때는 젖은 손으로 플러그를 만지지 않습니다. 비상구와 소화기의 위치를 미리 알아 두면 위급한 순간에 침착하게 움직일 수 있습니다. 서로에게 한 번 더 확인하는 말 한마디가 사고를 막는 가장 확실한 방법입니다.'
+            },
+            {
+                id: 'kimjang', title: '김장하는 날', level: 'advanced', text:
+                    '찬 바람이 불기 시작하면 우리 집은 김장 준비로 분주해집니다. 전날 밤 소금에 절여 둔 배추는 아침이 되면 숨이 죽어 부드러워집니다. 어머니는 무, 쪽파, 갓을 채 썰고 고춧가루와 젓갈을 넣어 속을 버무리십니다. 온 가족이 둘러앉아 배춧잎 사이사이에 양념을 바르다 보면 손끝이 얼얼해집니다. 점심에는 갓 삶은 수육을 겉절이에 싸 먹는 것이 오랜 전통입니다. 김치통을 가득 채우고 나면 겨울을 든든하게 맞이할 수 있다는 생각에 마음이 넉넉해집니다.'
+            },
+            {
+                id: 'night-sky', title: '밤하늘 관측', level: 'advanced', text:
+                    '도시의 불빛에서 벗어나 산 위 천문대에 오르자 하늘이 놀랄 만큼 넓어 보였습니다. 해설사는 레이저 지시기로 북쪽 하늘의 북두칠성을 가리키며 별자리 찾는 법을 알려 주었습니다. 망원경에 눈을 대니 토성의 고리가 작지만 또렷하게 보였고, 여기저기서 감탄이 터져 나왔습니다. 우리가 보는 별빛 가운데 일부는 수백 년 전에 출발한 빛이라는 설명을 듣자 시간이 낯설게 느껴졌습니다. 내려오는 길에 올려다본 하늘에는 은하수가 희미한 강물처럼 흐르고 있었습니다.'
+            }
+        ]
+    };
+
+    /* ===== 3. 한글 처리 =====
+     - 음절을 초성/중성/종성으로 분해
+     - 두벌식 키 시퀀스로 변환 (소문자=그냥 누름, 대문자=Shift+키)
+     - IME 조합 중인 글자가 목표 글자의 "앞부분"인지 키 단위로 판정 */
+    const Hangul = (() => {
+        const SYLLABLE_START = 0xac00;
+        const SYLLABLE_END = 0xd7a3;
+        const CHO = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+        const JUNG = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ'];
+        const JONG = ['', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+
+        // 표준 두벌식 배열 (영문 소문자 키 → 자모)
+        const KEY_TO_JAMO = {
+            q: 'ㅂ', w: 'ㅈ', e: 'ㄷ', r: 'ㄱ', t: 'ㅅ', y: 'ㅛ', u: 'ㅕ', i: 'ㅑ', o: 'ㅐ', p: 'ㅔ',
+            a: 'ㅁ', s: 'ㄴ', d: 'ㅇ', f: 'ㄹ', g: 'ㅎ', h: 'ㅗ', j: 'ㅓ', k: 'ㅏ', l: 'ㅣ',
+            z: 'ㅋ', x: 'ㅌ', c: 'ㅊ', v: 'ㅍ', b: 'ㅠ', n: 'ㅜ', m: 'ㅡ'
+        };
+        const SHIFT_KEY_TO_JAMO = {q: 'ㅃ', w: 'ㅉ', e: 'ㄸ', r: 'ㄲ', t: 'ㅆ', o: 'ㅒ', p: 'ㅖ'};
+
+        // 자모 → 키 시퀀스 (복합 모음·겹받침 포함)
+        const JAMO_KEYS = {};
+        Object.keys(KEY_TO_JAMO).forEach((key) => {
+            JAMO_KEYS[KEY_TO_JAMO[key]] = key;
+        });
+        Object.keys(SHIFT_KEY_TO_JAMO).forEach((key) => {
+            JAMO_KEYS[SHIFT_KEY_TO_JAMO[key]] = key.toUpperCase();
+        });
+        Object.assign(JAMO_KEYS, {
+            'ㅘ': 'hk', 'ㅙ': 'ho', 'ㅚ': 'hl', 'ㅝ': 'nj', 'ㅞ': 'np', 'ㅟ': 'nl', 'ㅢ': 'ml',
+            'ㄳ': 'rt', 'ㄵ': 'sw', 'ㄶ': 'sg', 'ㄺ': 'fr', 'ㄻ': 'fa', 'ㄼ': 'fq',
+            'ㄽ': 'ft', 'ㄾ': 'fx', 'ㄿ': 'fv', 'ㅀ': 'fg', 'ㅄ': 'qt'
+        });
+
+        const CONSONANTS = new Set(CHO.concat(JONG.filter(Boolean)));
+        const VOWELS = new Set(JUNG);
+
+        function isSyllable(ch) {
+            if (typeof ch !== 'string' || ch.length !== 1) return false;
+            const code = ch.charCodeAt(0);
+            return code >= SYLLABLE_START && code <= SYLLABLE_END;
+        }
+
+        function isJamo(ch) {
+            return typeof ch === 'string' && Object.prototype.hasOwnProperty.call(JAMO_KEYS, ch);
+        }
+
+        function isHangul(ch) {
+            return isSyllable(ch) || isJamo(ch);
+        }
+
+        // 음절 → { cho, jung, jong }
+        function decompose(ch) {
+            if (!isSyllable(ch)) return null;
+            const index = ch.charCodeAt(0) - SYLLABLE_START;
+            return {
+                cho : CHO[Math.floor(index / 588)],
+                jung: JUNG[Math.floor((index % 588) / 28)],
+                jong: JONG[index % 28]
+            };
+        }
+
+        // 한 글자 → 키 단위 정보 배열 [{ key, part, jamo }]
+        function keyParts(ch) {
+            if (!ch) return [];
+            const parts = [];
+            const push = (jamo, part) => {
+                (JAMO_KEYS[jamo] || '').split('').forEach((key) => parts.push({key, part, jamo}));
+            };
+            const d = decompose(ch);
+            if (d) {
+                push(d.cho, 'cho');
+                push(d.jung, 'jung');
+                if (d.jong) push(d.jong, 'jong');
+                return parts;
+            }
+            if (isJamo(ch)) {
+                let part = 'jung';
+                if (CONSONANTS.has(ch)) part = CHO.includes(ch) ? 'cho' : 'jong';
+                push(ch, part);
+                return parts;
+            }
+            return [{key: ch, part: 'other', jamo: ch}];
+        }
+
+        // 한 글자 → 키 토큰 배열. 한글이 아니면 글자 자체가 토큰
+        function keysOf(ch) {
+            return keyParts(ch).map((p) => p.key);
+        }
+
+        // 두 입력이 같은 키 흐름의 연장인지 (예: "거" → "건"). 모바일에서 같은 오답이 두 번 세어지는 것을 방지
+        function sameKeyStream(a, b) {
+            const ka = keysOfText(a);
+            const kb = keysOfText(b);
+            const n = Math.min(ka.length, kb.length);
+            if (n === 0) return false;
+            for (let i = 0; i < n; i += 1) if (ka[i] !== kb[i]) return false;
+            return true;
+        }
+
+        // 조합형(첫가끝) 자모 → 키보드로 입력 가능한 호환형 자모
+        const CONJOINING_TO_COMPAT = (() => {
+            const map = {};
+            CHO.forEach((j, i) => {
+                map[String.fromCharCode(0x1100 + i)] = j;
+            });
+            JUNG.forEach((j, i) => {
+                map[String.fromCharCode(0x1161 + i)] = j;
+            });
+            JONG.slice(1).forEach((j, i) => {
+                map[String.fromCharCode(0x11a8 + i)] = j;
+            });
+            return map;
+        })();
+
+        function toCompatibilityJamo(text) {
+            return String(text).replace(/[\u1100-\u1112\u1161-\u1175\u11A8-\u11C2]/g, (ch) => CONJOINING_TO_COMPAT[ch] || ch);
+        }
+
+        // 여러 글자 문자열 → 키 토큰 배열
+        function keysOfText(text) {
+            const out = [];
+            Array.from(String(text || '')).forEach((ch) => {
+                keysOf(ch).forEach((k) => out.push(k));
+            });
+            return out;
+        }
+
+        // 조합 중인 글자(tail, 한 글자 이상)가 목표 글자(들)의 키 시퀀스 앞부분과 일치하는지 판정
+        // 예) 목표 "가나"에서 조합 중 "간"(r,k,s)은 "가"+"나"(r,k,s,k)의 앞부분이므로 정상
+        function isKeyPrefix(tail, expectedChars) {
+            const tailKeys = keysOfText(tail);
+            const expected = [];
+            (expectedChars || []).forEach((ch) => {
+                keysOf(ch).forEach((k) => expected.push(k));
+            });
+            if (tailKeys.length === 0 || tailKeys.length > expected.length) return false;
+            return tailKeys.every((k, i) => k === expected[i]);
+        }
+
+        function jamoForKey(token) {
+            if (typeof token !== 'string' || token.length !== 1) return '';
+            const lower = token.toLowerCase();
+            if (token !== lower) return SHIFT_KEY_TO_JAMO[lower] || KEY_TO_JAMO[lower] || '';
+            return KEY_TO_JAMO[lower] || '';
+        }
+
+        return {
+            CHO, JUNG, JONG, KEY_TO_JAMO, SHIFT_KEY_TO_JAMO, VOWELS,
+            isSyllable, isJamo, isHangul, decompose, keyParts, keysOf, keysOfText, isKeyPrefix, sameKeyStream, toCompatibilityJamo, jamoForKey
+        };
+    })();
+
+    /* 문자 토큰 → 물리 키 (code, shift 여부) */
+    const KEY_CODE_OF = (() => {
+        const map = {};
+        for (let c = 97; c <= 122; c += 1) {
+            const lower = String.fromCharCode(c);
+            const code = 'Key' + lower.toUpperCase();
+            map[lower] = {code, shift: false};
+            map[lower.toUpperCase()] = {code, shift: true};
+        }
+        for (let d = 0; d <= 9; d += 1) map[String(d)] = {code: 'Digit' + d, shift: false};
+        const shiftedDigits = {'!': '1', '@': '2', '#': '3', '$': '4', '%': '5', '^': '6', '&': '7', '*': '8', '(': '9', ')': '0'};
+        Object.keys(shiftedDigits).forEach((ch) => {
+            map[ch] = {code: 'Digit' + shiftedDigits[ch], shift: true};
+        });
+        [['`', '~', 'Backquote'], ['-', '_', 'Minus'], ['=', '+', 'Equal'], ['[', '{', 'BracketLeft'],
+            [']', '}', 'BracketRight'], ['\\', '|', 'Backslash'], [';', ':', 'Semicolon'], ["'", '"', 'Quote'],
+            [',', '<', 'Comma'], ['.', '>', 'Period'], ['/', '?', 'Slash']].forEach(([plain, shifted, code]) => {
+            map[plain] = {code, shift: false};
+            map[shifted] = {code, shift: true};
+        });
+        map[' '] = {code: 'Space', shift: false};
+        return map;
+    })();
+
+    // 타수에 포함하는 물리 키 (modifier, 방향키, 기능키 제외)
+    const COUNTABLE_CODE = /^(Key[A-Z]|Digit\d|Numpad\d|Space|Minus|Equal|BracketLeft|BracketRight|Backslash|Semicolon|Quote|Comma|Period|Slash|Backquote|Enter|NumpadEnter|NumpadAdd|NumpadSubtract|NumpadMultiply|NumpadDivide|NumpadDecimal|IntlBackslash)$/;
+    const NAVIGATION_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown']);
+    const BLOCKED_INPUT_TYPES = new Set(['insertFromPaste', 'insertFromDrop', 'insertFromYank', 'insertReplacementText', 'historyUndo', 'historyRedo', 'insertFromPasteAsQuotation']);
+
+    /* ===== 4. 문자열 유틸 ===== */
+    const TextUtil = (() => {
+        let segmenter = null;
+        try {
+            if (typeof Intl !== 'undefined' && typeof Intl.Segmenter === 'function') {
+                segmenter = new Intl.Segmenter('ko', {granularity: 'grapheme'});
+            }
+        } catch (error) {
+            segmenter = null; // 미지원 브라우저: Array.from으로 대체
+        }
+
+        // NFC 정규화 → NFD로 들어온 한글을 완성형으로 합침.
+        // 합쳐지지 않고 남은 조합형 자모(예: 단독 U+1112)는 키보드로 칠 수 있는 호환형(ㅎ)으로 바꿈
+        function normalize(text) {
+            let str = String(text == null ? '' : text);
+            try {
+                str = str.normalize('NFC');
+            } catch (error) { /* normalize 미지원 */
+            }
+            return Hangul.toCompatibilityJamo(str);
+        }
+
+        // 화면에 보이는 글자 단위로 분리 (NFC 정규화 후)
+        function graphemes(text) {
+            const str = normalize(text);
+            if (segmenter) {
+                try {
+                    return Array.from(segmenter.segment(str), (s) => s.segment);
+                } catch (error) { /* fallback */
+                }
+            }
+            return Array.from(str);
+        }
+
+        // 키보드로 입력하기 어려운 문자를 일반 문자로 바꾸고 공백 정리
+        function sanitize(text) {
+            return normalize(text)
+            .replace(/[\u201C\u201D\u201E\u201F\u2033]/g, '"')
+            .replace(/[\u2018\u2019\u201A\u201B\u2032]/g, "'")
+            .replace(/\u2026/g, '...')
+            .replace(/[\u2013\u2014\u2212]/g, '-')
+            .replace(/[\u00A0\u2000-\u200B\u3000\t]/g, ' ')
+            .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '')
+            .replace(/\r\n?/g, '\n');
+        }
+
+        // 긴 문단을 띄어쓰기 기준으로 maxLength 이하의 줄로 나눔
+        function wrapParagraph(paragraph, maxLength) {
+            const words = paragraph.split(' ').filter(Boolean);
+            const lines = [];
+            let current = '';
+            words.forEach((word) => {
+                const candidate = current ? current + ' ' + word : word;
+                if (graphemes(candidate).length <= maxLength || !current) {
+                    current = candidate;
+                } else {
+                    lines.push(current);
+                    current = word;
+                }
+            });
+            if (current) lines.push(current);
+            // 띄어쓰기 없이 너무 긴 덩어리는 강제로 자름
+            return lines.flatMap((line) => {
+                const g = graphemes(line);
+                if (g.length <= maxLength * 1.5) return [line];
+                const pieces = [];
+                for (let i = 0; i < g.length; i += maxLength) pieces.push(g.slice(i, i + maxLength).join(''));
+                return pieces;
+            });
+        }
+
+        // 글 → 연습 줄 배열 (줄바꿈 → 문장 → 길이 순서로 나눔)
+        // 문장 끝은 "마침표/물음표/느낌표로 끝나는 어절"로 판단하므로
+        // "됩니다."라고, (!@#)처럼 문장 중간에 있는 부호에서는 나누지 않음
+        function toLines(text, maxLength) {
+            const result = [];
+            sanitize(text).split('\n').forEach((rawLine) => {
+                const words = rawLine.split(' ').filter(Boolean);
+                let current = [];
+                const flush = () => {
+                    if (current.length) wrapParagraph(current.join(' '), maxLength).forEach((line) => result.push(line));
+                    current = [];
+                };
+                words.forEach((word) => {
+                    current.push(word);
+                    if (/[.!?]["')\]]*$/.test(word)) flush();
+                });
+                flush();
+            });
+            return result;
+        }
+
+        // 문장 분리 없이 길이만 맞춰 나눔 (미리 준비된 문장용)
+        function wrap(text, maxLength) {
+            const words = sanitize(text).replace(/\n/g, ' ');
+            return wrapParagraph(words.replace(/ {2,}/g, ' ').trim(), maxLength);
+        }
+
+        return {normalize, graphemes, sanitize, toLines, wrap};
+    })();
+
+    function shuffle(list) {
+        const arr = list.slice();
+        for (let i = arr.length - 1; i > 0; i -= 1) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    function sample(list, count) {
+        return shuffle(list).slice(0, Math.min(count, list.length));
+    }
+
+    function clamp(value, min, max) {
+        return Math.min(max, Math.max(min, value));
+    }
+
+    function formatDuration(ms) {
+        const total = Math.max(0, Math.floor(ms / 1000));
+        const minutes = Math.floor(total / 60);
+        const seconds = total % 60;
+        return `${minutes}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    function formatLongDuration(ms) {
+        const minutes = Math.round(ms / 60000);
+        if (minutes < 60) return `${minutes}분`;
+        return `${Math.floor(minutes / 60)}시간 ${minutes % 60}분`;
+    }
+
+    function formatPercent(value) {
+        if (!Number.isFinite(value)) return '-';
+        return `${Math.round(value * 10) / 10}%`;
+    }
+
+    function formatDate(iso) {
+        const d = new Date(iso);
+        if (Number.isNaN(d.getTime())) return '-';
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${d.getMonth() + 1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
+    /* ===== 5. 저장소 =====
+     LocalStorage를 쓸 수 없는 환경(사생활 보호 모드 등)에서는 메모리에만 저장합니다. */
+    const Store = (() => {
+        let available = true;
+        let data = null;
+
+        function defaults() {
+            return {
+                version : 1,
+                settings: {theme: 'auto', sound: true, keyboard: true, fontScale: 1, lastCustomText: ''},
+                history : [],
+                weak    : {jamo: {}, syllable: {}, key: {}, category: {}}
+            };
+        }
+
+        function numberMap(value) {
+            const out = {};
+            if (value && typeof value === 'object' && !Array.isArray(value)) {
+                Object.keys(value).forEach((k) => {
+                    const n = Number(value[k]);
+                    if (Number.isFinite(n) && n > 0) out[k] = n;
+                });
+            }
+            return out;
+        }
+
+        const num = (v, fallback) => (Number.isFinite(Number(v)) ? Number(v) : fallback);
+        const str = (v, fallback) => (typeof v === 'string' ? v : fallback);
+
+        // 기록 한 건의 모든 필드를 화면에서 안전하게 쓸 수 있는 형태로 맞춤
+        function normalizeRecord(h) {
+            if (!h || typeof h !== 'object') return null;
+            const cpm = num(h.cpm, NaN);
+            const accuracy = num(h.accuracy, NaN);
+            const durationMs = num(h.durationMs, NaN);
+            if (!Number.isFinite(cpm) || !Number.isFinite(accuracy) || !Number.isFinite(durationMs)) return null;
+            const mode = MODES[h.mode] ? h.mode : 'custom';
+            return {
+                id          : num(h.id, 0),
+                date        : str(h.date, ''),
+                mode,
+                title       : str(h.title, MODES[mode].label),
+                levelLabel  : str(h.levelLabel, ''),
+                durationMs  : Math.max(0, durationMs),
+                cpm         : Math.max(0, Math.round(cpm)),
+                kpm         : Math.max(0, Math.round(num(h.kpm, 0))),
+                kpmEstimated: h.kpmEstimated === true,
+                accuracy    : clamp(accuracy, 0, 100),
+                errors      : Math.max(0, num(h.errors, 0)),
+                corrections : Math.max(0, num(h.corrections, 0)),
+                backspaces  : Math.max(0, num(h.backspaces, 0)),
+                correctChars: Math.max(0, num(h.correctChars, 0)),
+                score       : Math.max(0, Math.round(num(h.score, 0))),
+                bestStreak  : Math.max(0, num(h.bestStreak, 0)),
+                topErrors   : Array.isArray(h.topErrors) ? h.topErrors.filter((e) => Array.isArray(e) && typeof e[0] === 'string').slice(0, 5) : []
+            };
+        }
+
+        // 손상된 데이터가 들어와도 앱이 멈추지 않도록 형태를 검증
+        function sanitizeData(raw) {
+            const base = defaults();
+            if (!raw || typeof raw !== 'object') return base;
+            const s = raw.settings && typeof raw.settings === 'object' ? raw.settings : {};
+            base.settings.theme = ['auto', 'light', 'dark'].includes(s.theme) ? s.theme : 'auto';
+            base.settings.sound = typeof s.sound === 'boolean' ? s.sound : true;
+            base.settings.keyboard = typeof s.keyboard === 'boolean' ? s.keyboard : true;
+            base.settings.fontScale = Number.isFinite(Number(s.fontScale)) ? clamp(Number(s.fontScale), FONT_SCALE_MIN, FONT_SCALE_MAX) : 1;
+            base.settings.lastCustomText = typeof s.lastCustomText === 'string' ? s.lastCustomText.slice(0, CUSTOM_MAX_LENGTH) : '';
+            if (Array.isArray(raw.history)) {
+                base.history = raw.history.map(normalizeRecord).filter(Boolean).slice(-MAX_HISTORY);
+            }
+            const w = raw.weak && typeof raw.weak === 'object' ? raw.weak : {};
+            base.weak = {jamo: numberMap(w.jamo), syllable: numberMap(w.syllable), key: numberMap(w.key), category: numberMap(w.category)};
+            return base;
+        }
+
+        function load() {
+            try {
+                const raw = window.localStorage.getItem(STORAGE_KEY);
+                data = raw ? sanitizeData(JSON.parse(raw)) : defaults();
+            } catch (error) {
+                available = false;
+                data = data || defaults();
+            }
+            return data;
+        }
+
+        function save() {
+            if (!available) return false;
+            try {
+                window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                return true;
+            } catch (error) {
+                available = false;
+                return false;
+            }
+        }
+
+        // 다른 탭에서 저장한 기록을 덮어쓰지 않도록 저장 직전에 최신 기록을 다시 읽음
+        function readLatest() {
+            if (!available) return null;
+            try {
+                const raw = window.localStorage.getItem(STORAGE_KEY);
+                return raw ? sanitizeData(JSON.parse(raw)) : null;
+            } catch (error) {
+                return null;
+            }
+        }
+
+        // storage 이벤트(다른 탭 변경) 반영: 기록과 취약 글자는 최신 값, 설정도 최신 값
+        function syncFromStorage() {
+            const latest = readLatest();
+            if (latest) data = latest;
+            return data;
+        }
+
+        function addSession(record, analysis) {
+            const latest = readLatest();
+            if (latest) {
+                data.history = latest.history;
+                data.weak = latest.weak;
+            }
+            data.history.push(normalizeRecord(record) || record);
+            if (data.history.length > MAX_HISTORY) data.history = data.history.slice(-MAX_HISTORY);
+            // 오래된 실수는 서서히 잊히도록 감쇠 후 이번 세션 오류를 더함
+            ['jamo', 'syllable', 'key', 'category'].forEach((group) => {
+                const target = data.weak[group];
+                Object.keys(target).forEach((k) => {
+                    target[k] = Math.round(target[k] * 0.85 * 100) / 100;
+                    if (target[k] < 0.5) delete target[k];
+                });
+                analysis[group].forEach((count, k) => {
+                    target[k] = (target[k] || 0) + count;
+                });
+            });
+            save();
+        }
+
+        function clearRecords() {
+            data.history = [];
+            data.weak = {jamo: {}, syllable: {}, key: {}, category: {}};
+            save();
+        }
+
+        return {
+            load, save, addSession, clearRecords, syncFromStorage,
+            get data() {
+                return data;
+            },
+            get available() {
+                return available;
+            }
+        };
+    })();
+
+    /* ===== 6. 효과음 (외부 음원 없이 Web Audio로 생성) ===== */
+    const Sound = (() => {
+        let ctx = null;
+        const PATTERNS = {
+            error : [[196, 0.08]],
+            line  : [[659, 0.06], [880, 0.08]],
+            streak: [[784, 0.06], [988, 0.06], [1319, 0.1]],
+            finish: [[523, 0.08], [659, 0.08], [784, 0.14]]
+        };
+
+        function play(name) {
+            if (!Store.data || !Store.data.settings.sound) return;
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtx) return;
+                if (!ctx) ctx = new AudioCtx();
+                if (ctx.state === 'suspended' && typeof ctx.resume === 'function') {
+                    // 자동 재생 정책으로 거부되면 Promise가 reject되므로 반드시 처리
+                    const resumed = ctx.resume();
+                    if (resumed && typeof resumed.catch === 'function') resumed.catch(() => {
+                    });
+                }
+                let t = ctx.currentTime + 0.005;
+                (PATTERNS[name] || []).forEach(([freq, dur]) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, t);
+                    gain.gain.setValueAtTime(0.0001, t);
+                    gain.gain.exponentialRampToValueAtTime(0.045, t + 0.01);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(t);
+                    osc.stop(t + dur + 0.02);
+                    t += dur * 0.9;
+                });
+            } catch (error) {
+                /* 오디오를 쓸 수 없는 환경에서는 조용히 넘어감 */
+            }
+        }
+
+        return {play};
+    })();
+
+    /* ===== 7. 세션 생성 ===== */
+    function wrapAll(texts) {
+        return texts.flatMap((t) => TextUtil.wrap(t, LINE_MAX_LENGTH + 12));
+    }
+
+    function randomSentenceLine(level, previous) {
+        const pool = practiceData[level].sentences;
+        let pick = pool[Math.floor(Math.random() * pool.length)];
+        if (pool.length > 1 && pick === previous) pick = pool[(pool.indexOf(pick) + 1) % pool.length];
+        return TextUtil.sanitize(pick);
+    }
+
+    // config: { mode, level, lessonId, textId, minutes, customText, weakLines }
+    function buildSession(config) {
+        const session = {
+            config     : Object.assign({}, config),
+            mode       : config.mode,
+            title      : MODES[config.mode].label,
+            levelLabel : '',
+            factor     : 1,
+            lines      : [],
+            timeLimitMs: 0
+        };
+
+        switch (config.mode) {
+            case 'basic': {
+                const lesson = practiceData.basic.find((l) => l.id === config.lessonId) || practiceData.basic[0];
+                session.config.lessonId = lesson.id;
+                session.levelLabel = lesson.title;
+                session.factor = 0.9;
+                session.lines = lesson.lines.map(TextUtil.sanitize);
+                break;
+            }
+            case 'words': {
+                const level = LEVELS[config.level] ? config.level : 'beginner';
+                session.levelLabel = LEVELS[level].label;
+                session.factor = LEVELS[level].factor;
+                session.lines = sample(practiceData[level].words, WORDS_PER_SESSION).map(TextUtil.sanitize);
+                break;
+            }
+            case 'sentences': {
+                const level = LEVELS[config.level] ? config.level : 'beginner';
+                session.levelLabel = LEVELS[level].label;
+                session.factor = LEVELS[level].factor;
+                session.lines = wrapAll(sample(practiceData[level].sentences, SENTENCES_PER_SESSION));
+                break;
+            }
+            case 'long': {
+                const text = practiceData.longTexts.find((t) => t.id === config.textId) || practiceData.longTexts[0];
+                session.config.textId = text.id;
+                session.levelLabel = text.title;
+                session.factor = LEVELS[text.level].factor;
+                session.lines = TextUtil.toLines(text.text, LINE_MAX_LENGTH);
+                break;
+            }
+            case 'custom': {
+                session.levelLabel = '직접 입력한 글';
+                session.factor = 1;
+                session.lines = TextUtil.toLines(config.customText || '', LINE_MAX_LENGTH);
+                break;
+            }
+            case 'timed': {
+                const level = LEVELS[config.level] ? config.level : 'beginner';
+                const minutes = TIME_OPTIONS.includes(Number(config.minutes)) ? Number(config.minutes) : 1;
+                session.config.level = level;
+                session.config.minutes = minutes;
+                session.levelLabel = `${minutes}분 · ${LEVELS[level].label}`;
+                session.factor = LEVELS[level].factor;
+                session.timeLimitMs = minutes * 60000;
+                for (let i = 0; i < 4; i += 1) session.lines.push(randomSentenceLine(level, session.lines[i - 1]));
+                break;
+            }
+            case 'weak': {
+                session.levelLabel = '맞춤 연습';
+                session.factor = 1.1;
+                session.lines = (config.weakLines || []).slice();
+                break;
+            }
+            default:
+                break;
+        }
+        session.lines = session.lines.filter((line) => line.trim().length > 0);
+        session.totalChars = session.lines.reduce((sum, line) => sum + TextUtil.graphemes(line).length, 0);
+        return session;
+    }
+
+    // "다음 연습" / "새 문장"에 쓸 설정
+    function nextConfig(config) {
+        const next = Object.assign({}, config);
+        if (config.mode === 'basic') {
+            const index = practiceData.basic.findIndex((l) => l.id === config.lessonId);
+            next.lessonId = practiceData.basic[(index + 1) % practiceData.basic.length].id;
+        } else if (config.mode === 'long') {
+            const index = practiceData.longTexts.findIndex((t) => t.id === config.textId);
+            next.textId = practiceData.longTexts[(index + 1) % practiceData.longTexts.length].id;
+        } else if (config.mode === 'weak') {
+            const lines = buildWeakLines(null);
+            if (lines) next.weakLines = lines;
+        }
+        return next;
+    }
+
+    /* ===== 8. 연습 엔진 ===== */
+    let practice = null;
+    let tickTimer = null;
+    let currentView = 'home';
+    const dom = {};
+
+    function createPracticeState(session) {
+        return {
+            session,
+            lineIndex      : 0,
+            line           : [],                // 현재 줄의 목표 글자 배열
+            prevCommitted  : [],       // 지금까지 확정(평가)된 입력 글자 배열
+            wrongMarked    : new Set(),  // 현재 줄에서 지금 틀린 상태로 남은 위치 (수정 횟수 계산용)
+            evaluated      : new Map(),    // 위치 → 마지막으로 평가한 입력 글자 (정확도 중복 집계 방지)
+            tail           : null,              // IME 조합 중이거나 조합이 이어질 수 있는 마지막 글자(들)
+            compositionData: '',     // compositionupdate로 받은 현재 조합 문자열
+            lastEnterAt    : 0,
+            lastValue      : '',
+            composing      : false,
+            commitRequested: false,
+            lastCommitAt   : 0,
+            started        : false,
+            finished       : false,
+            userPaused     : false,
+            focused        : false,
+            elapsedBase    : 0,
+            runStart       : null,
+            stats          : {
+                keystrokes : 0, backspaces: 0, attempts: 0, correctAttempts: 0, errors: 0, corrections: 0,
+                doneCorrect: 0, doneTyped: 0, doneTarget: 0, linesDone: 0, streak: 0, bestStreak: 0
+            },
+            errorLog       : []
+        };
+    }
+
+    function practiceActive() {
+        return currentView === 'practice' && practice && !practice.finished;
+    }
+
+    function now() {
+        return (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+    }
+
+    /* --- 타이머: 첫 입력부터 시작, 포커스 이탈·일시정지 중에는 멈춤 --- */
+    function elapsedMs() {
+        if (!practice) return 0;
+        return practice.elapsedBase + (practice.runStart != null ? now() - practice.runStart : 0);
+    }
+
+    function updateRunning() {
+        if (!practice) return;
+        const shouldRun = practice.started && !practice.finished && !practice.userPaused && practice.focused;
+        if (shouldRun && practice.runStart == null) {
+            practice.runStart = now();
+        } else if (!shouldRun && practice.runStart != null) {
+            practice.elapsedBase += now() - practice.runStart;
+            practice.runStart = null;
+        }
+        renderOverlay();
+    }
+
+    function ensureStarted() {
+        if (!practice || practice.started || practice.finished) return;
+        practice.started = true;
+        updateRunning();
+    }
+
+    function startTick() {
+        stopTick();
+        tickTimer = window.setInterval(onTick, TICK_MS);
+    }
+
+    function stopTick() {
+        if (tickTimer) window.clearInterval(tickTimer);
+        tickTimer = null;
+    }
+
+    function onTick() {
+        if (!practiceActive()) return;
+        const limit = practice.session.timeLimitMs;
+        if (limit && practice.started && elapsedMs() >= limit) {
+            finishSession('time');
+            return;
+        }
+        renderStats();
+    }
+
+    /* --- 줄 불러오기 --- */
+    function ensureTimedLines() {
+        const s = practice.session;
+        if (!s.timeLimitMs) return;
+        while (s.lines.length < practice.lineIndex + 3) {
+            s.lines.push(randomSentenceLine(s.config.level, s.lines[s.lines.length - 1]));
+        }
+    }
+
+    function loadLine() {
+        ensureTimedLines();
+        const text = practice.session.lines[practice.lineIndex] || '';
+        practice.line = TextUtil.graphemes(text);
+        practice.prevCommitted = [];
+        practice.wrongMarked = new Set();
+        practice.evaluated = new Map();
+        practice.tail = null;
+        practice.compositionData = '';
+        practice.lastValue = '';
+        dom.input.value = '';
+        dom.input.maxLength = text.length + 12;
+        dom.lineSr.textContent = `입력할 줄: ${text}`;
+        setHint(null);
+        renderAll();
+    }
+
+    /* --- 입력 해석 ---
+     입력창 값 전체를 글자 단위로 나눈 뒤
+     · 마지막 글자가 IME 조합 중이면 "미확정(tail)"으로 두고 평가하지 않음
+     · 조합 이벤트가 없는 환경(일부 모바일)에서도 마지막 글자가 목표의 키 앞부분이면 미확정으로 둠
+     · 새로 확정되었거나 바뀐 위치만 평가하여 오류를 기록 (Backspace로 지워도 기록은 남음) */
+    function splitCommitted(chars, force) {
+        if (force || chars.length === 0) return {committed: chars, tail: null};
+        const line = practice.line;
+        if (practice.composing) {
+            // 조합 영역이 한 글자보다 길 수 있음(일부 안드로이드 키보드는 낱말 단위로 조합)
+            const size = clamp(TextUtil.graphemes(practice.compositionData).length, 1, chars.length);
+            return {committed: chars.slice(0, chars.length - size), tail: chars.slice(chars.length - size).join('')};
+        }
+        // 조합 이벤트가 없는 환경: 마지막 글자가 목표 키 시퀀스의 앞부분이면 미확정
+        const idx = chars.length - 1;
+        const last = chars[idx];
+        if (idx < line.length && last !== line[idx] && Hangul.isHangul(last)
+            && Hangul.isKeyPrefix(last, line.slice(idx, idx + 2))) {
+            return {committed: chars.slice(0, idx), tail: last};
+        }
+        return {committed: chars, tail: null};
+    }
+
+    function evaluateCommitted(committed) {
+        for (let i = 0; i < committed.length; i += 1) {
+            if (practice.prevCommitted[i] !== committed[i]) evaluateChar(i, committed[i]);
+        }
+        practice.prevCommitted = committed.slice();
+    }
+
+    // 정확도 = 맞은 첫 입력 ÷ (위치별 첫 입력 + 이후 추가 오답)
+    // · 이미 맞게 친 글자를 지웠다 다시 쳐도 집계가 늘지 않음 → Backspace로 정확도를 올릴 수 없음
+    // · 틀린 위치를 고치면 "수정"으로만 세고, 처음의 실수는 그대로 남음
+    // · 같은 키 흐름이 이어진 것(모바일의 "거"→"건")은 오답을 한 번만 셈
+    function evaluateChar(index, typed) {
+        const p = practice;
+        const s = p.stats;
+        const expected = index < p.line.length ? p.line[index] : null;
+        const seen = p.evaluated.has(index);
+        const previousTyped = p.evaluated.get(index);
+        p.evaluated.set(index, typed);
+
+        if (typed === expected) {
+            if (!seen) {
+                s.attempts += 1;
+                s.correctAttempts += 1;
+                bumpStreak();
+            } else if (p.wrongMarked.has(index)) {
+                s.corrections += 1;
+                p.wrongMarked.delete(index);
+                bumpStreak();
+            }
+            return;
+        }
+        if (seen && p.wrongMarked.has(index) && Hangul.sameKeyStream(previousTyped, typed)) return;
+        s.attempts += 1;
+        s.errors += 1;
+        s.streak = 0;
+        p.wrongMarked.add(index);
+        p.errorLog.push({expected, typed});
+        Sound.play('error');
+    }
+
+    function bumpStreak() {
+        const s = practice.stats;
+        s.streak += 1;
+        if (s.streak > s.bestStreak) s.bestStreak = s.streak;
+        checkStreakMilestone(s.streak);
+    }
+
+    function checkStreakMilestone(streak) {
+        const hit = STREAK_MILESTONES.includes(streak) || (streak > 100 && streak % 100 === 0);
+        if (hit) {
+            showToast(`${streak}자 연속 정확!`);
+            Sound.play('streak');
+        }
+    }
+
+    function readInputChars() {
+        return TextUtil.graphemes(dom.input.value);
+    }
+
+    function processInput(force) {
+        if (!practiceActive()) return;
+        const line = practice.line;
+        let chars = readInputChars();
+
+        // 줄 시작의 공백은 이전 줄 끝에서 습관적으로 친 Space로 보고 무시
+        if (!practice.composing && practice.prevCommitted.length === 0 && chars[0] === ' ' && line[0] !== ' ') {
+            dom.input.value = dom.input.value.replace(/^ +/, '');
+            chars = readInputChars();
+        }
+
+        // 줄을 끝까지 입력한 뒤 친 Space는 Enter와 같은 "다음 줄" 신호로 처리
+        if (!practice.composing && line.length > 0 && chars.length === line.length + 1
+            && chars[chars.length - 1] === ' ' && line[line.length - 1] !== ' ') {
+            const body = chars.slice(0, -1);
+            dom.input.value = body.join('');
+            evaluateCommitted(body);
+            commitLine();
+            return;
+        }
+
+        const {committed, tail} = splitCommitted(chars, force);
+        evaluateCommitted(committed);
+        practice.tail = tail;
+        practice.lastValue = dom.input.value;
+
+        // 조합이 끝난 상태에서 줄 전체가 정확히 일치하면 자동으로 다음 줄
+        if (!practice.composing && !tail && committed.length === line.length && line.length > 0
+            && committed.every((ch, i) => ch === line[i])) {
+            commitLine();
+            return;
+        }
+        renderLine();
+        renderKeyboardHint();
+        renderStats();
+    }
+
+    // Enter 처리: 조합 중이면 compositionend 이후로 미룸
+    function tryCommitFromEnter() {
+        if (!practiceActive()) return;
+        if (practice.composing) {
+            practice.commitRequested = true;
+            return;
+        }
+        practice.commitRequested = false;
+        if (now() - practice.lastCommitAt < 150) return; // 일부 브라우저의 Enter 중복 이벤트 방지
+        const chars = readInputChars();
+        if (chars.length === 0) return;
+        if (chars.length < practice.line.length) {
+            setHint('이 줄을 끝까지 입력한 다음 Enter를 누르세요.', true);
+            processInput(false);
+            return;
+        }
+        evaluateCommitted(chars);
+        commitLine();
+    }
+
+    function commitLine() {
+        const p = practice;
+        const s = p.stats;
+        const line = p.line;
+        let correct = 0;
+        for (let i = 0; i < line.length; i += 1) if (p.prevCommitted[i] === line[i]) correct += 1;
+        s.doneCorrect += correct;
+        s.doneTyped += p.prevCommitted.length;
+        s.doneTarget += line.length;
+        s.linesDone += 1;
+        p.lastCommitAt = now();
+        p.lineIndex += 1;
+
+        const isLast = !p.session.timeLimitMs && p.lineIndex >= p.session.lines.length;
+        if (isLast) {
+            p.prevCommitted = [];
+            p.tail = null;
+            finishSession('complete');
+            return;
+        }
+        Sound.play('line');
+        loadLine();
+    }
+
+    /* --- 입력창 이벤트 --- */
+    function onInputKeydown(event) {
+        if (!practiceActive()) return;
+        const composingNow = event.isComposing || event.keyCode === 229;
+        flashKey(event.code);
+
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            togglePause();
+            return;
+        }
+        if (NAVIGATION_KEYS.has(event.key) && !composingNow) {
+            event.preventDefault(); // 커서는 항상 입력 끝에 둠
+            return;
+        }
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            if (event.repeat) return;
+            // macOS 등에서 IME가 Enter keydown을 두 번(229 → 13) 보내는 경우 한 번만 처리
+            const t = now();
+            if (t - practice.lastEnterAt < 80) return;
+            practice.lastEnterAt = t;
+            // 입력이 비어 있어 아무 일도 하지 않는 Enter는 타수에서 제외
+            if (dom.input.value.length > 0) countKey();
+            practice.commitRequested = true;
+            const owner = practice;
+            window.setTimeout(() => {
+                if (practice === owner) tryCommitFromEnter();
+            }, 0);
+            return;
+        }
+        if (event.key === 'Backspace' || event.code === 'Backspace') {
+            if (!event.repeat) practice.stats.backspaces += 1;
+            return;
+        }
+        if (event.repeat) {
+            // 키를 길게 눌러 생기는 반복 입력은 타수에서 제외하고, 조합 중이 아니면 막음
+            if (!composingNow) event.preventDefault();
+            return;
+        }
+        if (event.ctrlKey || event.metaKey || event.altKey) return;
+        if (COUNTABLE_CODE.test(event.code || '')) countKey();
+    }
+
+    function countKey() {
+        practice.stats.keystrokes += 1;
+        ensureStarted();
+    }
+
+    function onBeforeInput(event) {
+        if (!practiceActive()) return;
+        if (BLOCKED_INPUT_TYPES.has(event.inputType)) {
+            event.preventDefault();
+            showToast('연습 중에는 붙여 넣기를 쓸 수 없습니다.');
+        }
+    }
+
+    function onInput(event) {
+        if (!practiceActive()) return;
+        if (event && BLOCKED_INPUT_TYPES.has(event.inputType)) {
+            dom.input.value = practice.lastValue;
+            return;
+        }
+        if (dom.input.value.length > 0) ensureStarted();
+        processInput(false);
+    }
+
+    function onCompositionStart(event) {
+        if (!practiceActive()) return;
+        practice.composing = true;
+        practice.compositionData = event && typeof event.data === 'string' ? TextUtil.normalize(event.data) : '';
+    }
+
+    function onCompositionEnd() {
+        if (!practiceActive()) return;
+        practice.composing = false;
+        practice.compositionData = '';
+        const owner = practice;
+        // 브라우저마다 compositionend와 input 순서가 달라 다음 틱에 한 번 더 확인
+        // (그 사이 새 연습이 시작됐다면 이전 연습의 지연 처리는 버림)
+        window.setTimeout(() => {
+            if (practice !== owner || !practiceActive()) return;
+            processInput(false);
+            if (practice && practice.commitRequested) tryCommitFromEnter();
+        }, 0);
+    }
+
+    function onPasteBlocked(event) {
+        if (!practiceActive()) return;
+        event.preventDefault();
+        showToast('연습 중에는 붙여 넣기를 쓸 수 없습니다.');
+    }
+
+    function keepCaretAtEnd() {
+        if (!practiceActive() || practice.composing) return;
+        const len = dom.input.value.length;
+        try {
+            if (dom.input.selectionStart !== len || dom.input.selectionEnd !== len) dom.input.setSelectionRange(len, len);
+        } catch (error) { /* 일부 입력 타입에서 지원하지 않음 */
+        }
+    }
+
+    function onInputFocus() {
+        if (!practice || practice.finished) return;
+        practice.focused = true;
+        practice.userPaused = false;
+        updateRunning();
+        renderPauseButton();
+        keepCaretAtEnd();
+    }
+
+    function onInputBlur() {
+        if (!practice || practice.finished) return;
+        practice.focused = false;
+        practice.composing = false;
+        practice.compositionData = '';
+        updateRunning();
+    }
+
+    function focusInput() {
+        if (!practice || practice.finished) return;
+        try {
+            dom.input.focus({preventScroll: true});
+        } catch (error) {
+            dom.input.focus();
+        }
+        // 입력창이 이미 포커스 상태면 focus 이벤트가 다시 오지 않으므로 직접 상태를 맞춤
+        if (document.activeElement === dom.input && !practice.focused) onInputFocus();
+    }
+
+    function togglePause() {
+        if (!practice || practice.finished) return;
+        if (practice.userPaused) {
+            practice.userPaused = false;
+            focusInput();
+        } else {
+            practice.userPaused = true;
+            updateRunning();
+            dom.input.blur();
+            try {
+                dom.overlayBtn.focus();
+            } catch (error) { /* 무시 */
+            }
+        }
+        renderPauseButton();
+        renderOverlay();
+    }
+
+    /* --- 세션 시작/종료 --- */
+    function startPractice(session) {
+        if (!session.lines.length) {
+            showToast('연습할 내용이 없습니다.');
+            return;
+        }
+        // 이전 연습의 IME 조합이 남아 새 입력창으로 넘어오지 않도록 먼저 포커스를 해제
+        if (document.activeElement === dom.input) dom.input.blur();
+        dom.input.value = '';
+        practice = createPracticeState(session);
+        dom.input.disabled = false;
+        practice.focused = document.activeElement === dom.input && document.hasFocus();
+        showView('practice', {skipFocus: true});
+        dom.practiceMode.textContent = session.title;
+        dom.practiceLevel.textContent = session.levelLabel;
+        dom.practiceTimeLabel.textContent = session.timeLimitMs ? '남은 시간' : '경과 시간';
+        dom.btnNew.textContent = session.mode === 'custom' ? '처음부터' : (session.mode === 'long' || session.mode === 'basic' ? '다음 글' : '새 문장');
+        dom.inputHint.dataset.default = session.mode === 'basic'
+            ? '자모 사이의 띄어쓰기까지 입력하세요. 줄 끝에서 Enter나 Space로 넘어갑니다. Esc는 일시정지입니다.'
+            : '줄 끝에서 Enter 또는 Space를 누르면 다음 줄로 넘어갑니다. Esc는 일시정지입니다.';
+        loadLine();
+        startTick();
+        window.setTimeout(focusInput, 30);
+    }
+
+    function restartPractice() {
+        if (!practice) return;
+        const s = practice.session;
+        const fresh = s.mode === 'timed' ? buildSession(s.config) : Object.assign({}, s, {lines: s.lines.slice()});
+        if (s.mode !== 'timed') fresh.config = Object.assign({}, s.config);
+        startPractice(fresh);
+    }
+
+    function newPractice() {
+        if (!practice) return;
+        startPractice(buildSession(nextConfig(practice.session.config)));
+    }
+
+    function quitPractice() {
+        if (!practice) return;
+        if (practice.stats.attempts === 0) {
+            stopPractice();
+            showView('home');
+            return;
+        }
+        finishSession('quit');
+    }
+
+    function stopPractice() {
+        stopTick();
+        if (practice && !practice.finished) {
+            practice.finished = true;
+            updateRunning();
+        }
+    }
+
+    function finishSession(reason) {
+        if (!practice || practice.finished) return;
+        const p = practice;
+        // 시간 종료·중단 시 현재 줄에서 확정된 글자까지 반영
+        if (reason !== 'complete') {
+            let correct = 0;
+            p.prevCommitted.forEach((ch, i) => {
+                if (ch === p.line[i]) correct += 1;
+            });
+            p.stats.doneCorrect += correct;
+            p.stats.doneTyped += p.prevCommitted.length;
+        }
+        const durationMs = p.session.timeLimitMs && reason === 'time' ? p.session.timeLimitMs : elapsedMs();
+        p.finished = true;
+        updateRunning();
+        stopTick();
+        dom.input.blur();
+        dom.input.value = '';
+        dom.input.disabled = true;
+
+        const result = computeResult(p, durationMs);
+        const analysis = analyzeErrors(p.errorLog);
+        const previous = findPreviousRecord(p.session.mode);
+        const saved = result.attempts > 0;
+        if (saved) Store.addSession(toRecord(result, analysis), analysis);
+        Sound.play('finish');
+        renderResult(result, analysis, previous, saved, reason);
+        showView('result');
+    }
+
+    /* ===== 통계 계산 ===== */
+    function liveStats() {
+        const p = practice;
+        const s = p.stats;
+        let lineCorrect = 0;
+        p.prevCommitted.forEach((ch, i) => {
+            if (ch === p.line[i]) lineCorrect += 1;
+        });
+        const elapsed = elapsedMs();
+        const minutes = elapsed / 60000;
+        const correctChars = s.doneCorrect + lineCorrect;
+        const typedChars = s.doneTyped + p.prevCommitted.length;
+        const keystrokes = effectiveKeystrokes(p, typedChars);
+        return {
+            elapsed,
+            correctChars,
+            typedChars,
+            cpm      : elapsed >= LIVE_RATE_MIN_MS ? Math.round(correctChars / minutes) : null,
+            kpm      : elapsed >= LIVE_RATE_MIN_MS ? Math.round(keystrokes.count / minutes) : null,
+            accuracy : s.attempts ? (s.correctAttempts / s.attempts) * 100 : NaN,
+            lineMatch: p.line.length ? (lineCorrect / p.line.length) * 100 : 0,
+            lineCorrect
+        };
+    }
+
+    // 모바일 가상 키보드처럼 keydown에 실제 키 정보가 없으면 입력한 글자의 자모 수로 추정
+    function effectiveKeystrokes(p, typedChars) {
+        if (p.stats.keystrokes > 0 || typedChars === 0) return {count: p.stats.keystrokes, estimated: false};
+        let estimate = 0;
+        p.session.lines.slice(0, p.lineIndex).forEach((line) => {
+            TextUtil.graphemes(line).forEach((ch) => {
+                estimate += Hangul.keysOf(ch).length;
+            });
+            estimate += 1;
+        });
+        p.prevCommitted.forEach((ch) => {
+            estimate += Hangul.keysOf(ch).length;
+        });
+        return {count: estimate, estimated: true};
+    }
+
+    function computeResult(p, durationMs) {
+        const s = p.stats;
+        const duration = Math.max(durationMs, 1000);
+        const minutes = duration / 60000;
+        const keys = effectiveKeystrokes(p, s.doneTyped);
+        const accuracy = s.attempts ? (s.correctAttempts / s.attempts) * 100 : 0;
+        const cpm = Math.round(s.doneCorrect / minutes);
+        const kpm = Math.round(keys.count / minutes);
+        return {
+            mode        : p.session.mode,
+            title       : p.session.title,
+            levelLabel  : p.session.levelLabel,
+            config      : p.session.config,
+            durationMs  : duration,
+            cpm,
+            kpm,
+            kpmEstimated: keys.estimated,
+            accuracy    : Math.round(accuracy * 10) / 10,
+            errors      : s.errors,
+            corrections : s.corrections,
+            backspaces  : s.backspaces,
+            correctChars: s.doneCorrect,
+            typedChars  : s.doneTyped,
+            attempts    : s.attempts,
+            bestStreak  : s.bestStreak,
+            score       : computeScore(cpm, accuracy, p.session.factor)
+        };
+    }
+
+    // 점수 = 분당 글자 × 정확도 보정(세제곱) × 난이도 보정
+    // 정확도가 낮으면 점수가 급격히 줄어 "빠르게 막 치기"가 불리해짐
+    function computeScore(cpm, accuracy, factor) {
+        const accFactor = Math.pow(clamp(accuracy, 0, 100) / 100, 3);
+        const penalty = accuracy < 80 ? 0.5 : 1;
+        return Math.round(cpm * accFactor * factor * penalty);
+    }
+
+    function toRecord(result, analysis) {
+        return {
+            id          : Date.now(),
+            date        : new Date().toISOString(),
+            mode        : result.mode,
+            title       : result.title,
+            levelLabel  : result.levelLabel,
+            durationMs  : Math.round(result.durationMs),
+            cpm         : result.cpm,
+            kpm         : result.kpm,
+            kpmEstimated: result.kpmEstimated,
+            accuracy    : result.accuracy,
+            errors      : result.errors,
+            corrections : result.corrections,
+            backspaces  : result.backspaces,
+            correctChars: result.correctChars,
+            score       : result.score,
+            bestStreak  : result.bestStreak,
+            topErrors   : topEntries(analysis.syllable, 5)
+        };
+    }
+
+    function findPreviousRecord(mode) {
+        const history = Store.data.history;
+        for (let i = history.length - 1; i >= 0; i -= 1) if (history[i].mode === mode) return history[i];
+        return null;
+    }
+
+    /* ===== 10. 오류 분석 =====
+     틀린 글자의 키 시퀀스를 목표 글자와 비교하여 처음 어긋난 키가
+     초성/중성/종성 중 어디에 속하는지로 자음·모음·받침 오류를 분류합니다. */
+    const CATEGORY_LABELS = {
+        cho: '자음(초성)', jung: '모음', jong: '받침', space: '띄어쓰기', symbol: '숫자·기호·영문', extra: '줄 길이 초과 입력'
+    };
+    const CATEGORY_MESSAGES = {
+        cho   : '자음(초성) 입력에서 오류가 가장 많이 발생했습니다. 왼손 자음 자리를 다시 확인해 보세요.',
+        jung  : '모음 입력에서 오류가 가장 많이 발생했습니다. 오른손 모음 자리와 복합 모음 순서를 확인해 보세요.',
+        jong  : '받침 입력에서 오류가 가장 많이 발생했습니다. 받침과 겹받침을 천천히 입력해 보세요.',
+        space : '띄어쓰기에서 오류가 가장 많이 발생했습니다. 낱말이 끝나는 곳을 먼저 확인하고 Space를 누르세요.',
+        symbol: '숫자, 기호, 영문에서 오류가 가장 많이 발생했습니다. 한/영 전환과 Shift 사용을 확인해 보세요.',
+        extra : '줄 끝을 넘어서 입력한 경우가 많았습니다. 줄 끝에서는 Enter를 누르세요.'
+    };
+
+    function analyzeErrors(errorLog) {
+        const result = {syllable: new Map(), jamo: new Map(), key: new Map(), category: new Map()};
+        const inc = (map, key) => map.set(key, (map.get(key) || 0) + 1);
+        errorLog.forEach(({expected, typed}) => {
+            if (expected == null) {
+                inc(result.category, 'extra');
+                return;
+            }
+            if (expected === ' ') {
+                inc(result.category, 'space');
+                inc(result.syllable, '띄어쓰기');
+                return;
+            }
+            inc(result.syllable, expected);
+            const parts = Hangul.keyParts(expected);
+            const typedKeys = Hangul.keysOf(typed || '');
+            let k = 0;
+            while (k < parts.length && k < typedKeys.length && parts[k].key === typedKeys[k]) k += 1;
+            if (k >= parts.length) {
+                // 목표 글자를 다 치고 키를 더 누른 경우 (예: "가"에 받침을 붙여 "각")
+                inc(result.category, Hangul.isHangul(expected) ? 'jong' : 'symbol');
+                return;
+            }
+            const part = parts[k];
+            if (part.part === 'other') {
+                inc(result.category, 'symbol');
+                inc(result.key, part.key);
+                return;
+            }
+            inc(result.category, part.part);
+            inc(result.jamo, part.jamo);
+            inc(result.key, part.key);
+        });
+        return result;
+    }
+
+    function topEntries(mapOrObject, count) {
+        const entries = mapOrObject instanceof Map ? Array.from(mapOrObject.entries()) : Object.entries(mapOrObject || {});
+        return entries.sort((a, b) => b[1] - a[1]).slice(0, count).map(([k, v]) => [k, Math.round(v * 10) / 10]);
+    }
+
+    // 물리 키 이름만 (예: "Shift + R", "G", "Space")
+    function keyName(token) {
+        const info = KEY_CODE_OF[token];
+        if (!info) return token;
+        if (info.code === 'Space') return 'Space';
+        const base = /^Key[A-Z]$/.test(info.code) ? info.code.slice(3) : token;
+        return `${info.shift ? 'Shift + ' : ''}${base}`;
+    }
+
+    function keyLabel(token) {
+        const info = KEY_CODE_OF[token];
+        if (!info) return `'${token}'`;
+        if (/^Key[A-Z]$/.test(info.code)) {
+            const letter = info.code.slice(3);
+            const jamo = Hangul.jamoForKey(token);
+            return `${info.shift ? 'Shift + ' : ''}${letter}${jamo ? ` (${jamo})` : ''}`;
+        }
+        if (info.code === 'Space') return 'Space';
+        return `${info.shift ? 'Shift + ' : ''}${token}`;
+    }
+
+    // 취약 자모·음절 가중치로 기존 낱말·문장 중 연습 세트를 고름
+    function buildWeakLines(sessionAnalysis) {
+        const jamoW = Object.assign({}, Store.data.weak.jamo);
+        const syllW = Object.assign({}, Store.data.weak.syllable);
+        if (sessionAnalysis) {
+            sessionAnalysis.jamo.forEach((v, k) => {
+                jamoW[k] = (jamoW[k] || 0) + v * 2;
+            });
+            sessionAnalysis.syllable.forEach((v, k) => {
+                syllW[k] = (syllW[k] || 0) + v * 2;
+            });
+        }
+        delete syllW['띄어쓰기'];
+        if (!Object.keys(jamoW).length && !Object.keys(syllW).length) return null;
+
+        const scoreText = (text) => {
+            const chars = TextUtil.graphemes(text);
+            let score = 0;
+            chars.forEach((ch) => {
+                score += (syllW[ch] || 0) * 3;
+                const d = Hangul.decompose(ch);
+                if (d) score += (jamoW[d.cho] || 0) + (jamoW[d.jung] || 0) + (d.jong ? (jamoW[d.jong] || 0) : 0);
+                else score += jamoW[ch] || 0;
+            });
+            return score / Math.sqrt(Math.max(chars.length, 1));
+        };
+        const levels = ['beginner', 'intermediate', 'advanced'];
+        const rank = (items) => items.map((t) => ({t, s: scoreText(t)}))
+        .filter((x) => x.s > 0).sort((a, b) => b.s - a.s);
+        const words = rank(levels.flatMap((l) => practiceData[l].words)).slice(0, 10).map((x) => x.t);
+        const sentences = rank(levels.flatMap((l) => practiceData[l].sentences)).slice(0, 4).map((x) => x.t);
+        if (words.length + sentences.length < 3) return null;
+        return shuffle(words).map(TextUtil.sanitize).concat(wrapAll(sentences));
+    }
+
+    function startWeakPractice(sessionAnalysis) {
+        const lines = buildWeakLines(sessionAnalysis || null);
+        if (!lines) {
+            showToast('아직 분석할 오류 기록이 없습니다. 다른 연습을 먼저 해 보세요.');
+            return;
+        }
+        startPractice(buildSession({mode: 'weak', weakLines: lines}));
+    }
+
+    /* ===== 9. 화면 렌더링 ===== */
+    function renderAll() {
+        renderLine();
+        renderSideLines();
+        renderKeyboardHint();
+        renderStats();
+        renderOverlay();
+        renderPauseButton();
+    }
+
+    // 현재 줄을 원고지 칸에 표시
+    function renderLine() {
+        const p = practice;
+        const line = p.line;
+        const committed = p.prevCommitted;
+        const current = committed.length;
+        const tailLen = p.tail ? TextUtil.graphemes(p.tail).length : 0;
+        const tailOk = p.tail ? Hangul.isKeyPrefix(p.tail, line.slice(current, current + tailLen + 1)) : true;
+        const frag = document.createDocumentFragment();
+
+        line.forEach((ch, i) => {
+            const cell = document.createElement('span');
+            cell.className = 'ch';
+            if (ch === ' ') cell.classList.add('is-space');
+            cell.textContent = ch === ' ' ? '' : ch;
+            if (i < committed.length) {
+                if (committed[i] === ch) {
+                    cell.classList.add('is-correct');
+                } else {
+                    cell.classList.add('is-wrong');
+                    cell.dataset.typed = committed[i] === ' ' ? '␣' : committed[i];
+                }
+            } else if (i === current) {
+                cell.classList.add('is-current');
+                if (p.tail) {
+                    cell.classList.add(tailOk ? 'is-composing' : 'is-composing-off');
+                    cell.dataset.typed = p.tail;
+                }
+            }
+            frag.appendChild(cell);
+        });
+
+        const extra = committed.length + tailLen - line.length;
+        if (extra > 0) {
+            const cell = document.createElement('span');
+            cell.className = 'ch is-extra';
+            cell.textContent = `+${extra}자`;
+            frag.appendChild(cell);
+        } else if (current >= line.length && !p.tail) {
+            const cell = document.createElement('span');
+            cell.className = 'ch is-end is-current';
+            cell.textContent = '↵';
+            frag.appendChild(cell);
+        }
+        dom.lineCurrent.textContent = '';
+        dom.lineCurrent.appendChild(frag);
+    }
+
+    function renderSideLines() {
+        const lines = practice.session.lines;
+        dom.linePrev.textContent = lines[practice.lineIndex - 1] || '';
+        dom.lineNext.textContent = lines[practice.lineIndex + 1] || '';
+    }
+
+    function renderStats() {
+        if (!practice) return;
+        const st = liveStats();
+        const s = practice.stats;
+        const session = practice.session;
+        dom.statCpm.textContent = st.cpm == null ? '-' : String(st.cpm);
+        dom.statKpm.textContent = st.kpm == null ? '-' : String(st.kpm);
+        dom.statAccuracy.textContent = formatPercent(st.accuracy);
+        dom.statErrors.textContent = String(s.errors);
+        dom.statCorrections.textContent = String(s.corrections);
+        dom.statBackspaces.textContent = String(s.backspaces);
+        dom.statTyped.textContent = String(st.typedChars);
+        dom.statCorrect.textContent = String(st.correctChars);
+        dom.statLineMatch.textContent = formatPercent(st.lineMatch);
+
+        let progress;
+        if (session.timeLimitMs) {
+            progress = (st.elapsed / session.timeLimitMs) * 100;
+            dom.practiceTime.textContent = formatDuration(session.timeLimitMs - st.elapsed + 999);
+        } else {
+            const done = s.doneTarget + Math.min(practice.prevCommitted.length, practice.line.length);
+            progress = session.totalChars ? (done / session.totalChars) * 100 : 0;
+            dom.practiceTime.textContent = formatDuration(st.elapsed);
+        }
+        progress = clamp(Math.round(progress), 0, 100);
+        dom.progressBar.style.width = `${progress}%`;
+        dom.progressText.textContent = `${progress}%`;
+        dom.progress.setAttribute('aria-valuenow', String(progress));
+    }
+
+    function renderOverlay() {
+        if (!practice || currentView !== 'practice') return;
+        const show = !practice.finished && (practice.userPaused || !practice.focused);
+        dom.overlay.hidden = !show;
+        if (!show) return;
+        if (practice.userPaused) {
+            dom.overlayBtn.textContent = '이어서 연습하기';
+            dom.overlayNote.textContent = '일시정지 중입니다. 시간이 멈춰 있습니다.';
+        } else if (!practice.started) {
+            dom.overlayBtn.textContent = '여기를 눌러 연습을 시작하세요';
+            dom.overlayNote.textContent = '첫 글자를 입력하는 순간부터 시간을 잽니다.';
+        } else {
+            dom.overlayBtn.textContent = '여기를 눌러 이어서 입력하세요';
+            dom.overlayNote.textContent = '입력창을 벗어나 시간이 멈췄습니다.';
+        }
+    }
+
+    function renderPauseButton() {
+        if (!practice) return;
+        dom.btnPause.setAttribute('aria-pressed', String(practice.userPaused));
+        dom.btnPause.textContent = practice.userPaused ? '계속하기' : '일시정지';
+    }
+
+    function setHint(message, alert) {
+        if (message) {
+            dom.inputHint.textContent = message;
+            dom.inputHint.classList.toggle('is-alert', Boolean(alert));
+            window.clearTimeout(setHint.timer);
+            setHint.timer = window.setTimeout(() => setHint(null), 2600);
+        } else {
+            dom.inputHint.textContent = dom.inputHint.dataset.default || '';
+            dom.inputHint.classList.remove('is-alert');
+        }
+    }
+
+    let toastTimer = null;
+
+    function showToast(message) {
+        dom.toast.textContent = message;
+        dom.toast.classList.add('is-visible');
+        window.clearTimeout(toastTimer);
+        toastTimer = window.setTimeout(() => dom.toast.classList.remove('is-visible'), 1900);
+    }
+
+    /* --- 두벌식 가상 키보드 --- */
+    const keyElements = {};
+    const KEYBOARD_ROWS = [
+        [['Backquote', '`', '~'], ['Digit1', '1', '!'], ['Digit2', '2', '@'], ['Digit3', '3', '#'], ['Digit4', '4', '$'],
+            ['Digit5', '5', '%'], ['Digit6', '6', '^'], ['Digit7', '7', '&'], ['Digit8', '8', '*'], ['Digit9', '9', '('],
+            ['Digit0', '0', ')'], ['Minus', '-', '_'], ['Equal', '=', '+'], ['Backspace', 'Backspace', null, 'w-2']],
+        [['Tab', 'Tab', null, 'w-15'], 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p',
+            ['BracketLeft', '[', '{'], ['BracketRight', ']', '}'], ['Backslash', '\\', '|', 'w-15']],
+        [['CapsLock', 'Caps Lock', null, 'w-18'], 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l',
+            ['Semicolon', ';', ':'], ['Quote', "'", '"'], ['Enter', 'Enter', null, 'w-22']],
+        [['ShiftLeft', 'Shift', null, 'w-25'], 'z', 'x', 'c', 'v', 'b', 'n', 'm',
+            ['Comma', ',', '<'], ['Period', '.', '>'], ['Slash', '/', '?'], ['ShiftRight', 'Shift', null, 'w-28']],
+        [['Space', 'Space', null, 'w-space']]
+    ];
+
+    function buildKeyboard() {
+        const frag = document.createDocumentFragment();
+        KEYBOARD_ROWS.forEach((row) => {
+            const rowEl = document.createElement('div');
+            rowEl.className = 'kb-row';
+            row.forEach((def) => {
+                const key = document.createElement('span');
+                key.className = 'key';
+                if (typeof def === 'string') {
+                    // 글자 키: 한글 자모 + Shift 자모 + 영문
+                    const code = 'Key' + def.toUpperCase();
+                    key.dataset.code = code;
+                    key.textContent = Hangul.KEY_TO_JAMO[def];
+                    const shiftJamo = Hangul.SHIFT_KEY_TO_JAMO[def];
+                    if (shiftJamo) key.appendChild(makeSub('k-shift', shiftJamo));
+                    key.appendChild(makeSub('k-en', def.toUpperCase()));
+                    if (def === 'f' || def === 'j') key.classList.add('is-home');
+                    keyElements[code] = key;
+                } else {
+                    const [code, label, shifted, width] = def;
+                    key.dataset.code = code;
+                    if (width) key.classList.add(width);
+                    if (shifted) {
+                        key.textContent = label;
+                        key.appendChild(makeSub('k-shift', shifted));
+                    } else {
+                        key.classList.add('k-func');
+                        key.textContent = label;
+                    }
+                    keyElements[code] = key;
+                }
+                rowEl.appendChild(key);
+            });
+            frag.appendChild(rowEl);
+        });
+        dom.keyboard.textContent = '';
+        dom.keyboard.appendChild(frag);
+    }
+
+    function makeSub(className, text) {
+        const el = document.createElement('span');
+        el.className = `k-sub ${className}`;
+        el.textContent = text;
+        return el;
+    }
+
+    function flashKey(code) {
+        const el = keyElements[code];
+        if (!el) return;
+        el.classList.add('is-pressed');
+        window.setTimeout(() => el.classList.remove('is-pressed'), 120);
+    }
+
+    // 다음에 눌러야 할 물리 키 계산
+    function computeNextKeyHint() {
+        const p = practice;
+        const line = p.line;
+        const idx = p.prevCommitted.length;
+        if (p.tail) {
+            const tailKeys = Hangul.keysOfText(p.tail);
+            const tailLen = TextUtil.graphemes(p.tail).length;
+            const windowChars = line.slice(idx, idx + tailLen + 1);
+            if (!Hangul.isKeyPrefix(p.tail, windowChars)) return {type: 'backspace'};
+            const expected = Hangul.keysOfText(windowChars.join(''));
+            const token = expected[tailKeys.length];
+            if (token === undefined) return idx + tailLen >= line.length ? {type: 'enter'} : null;
+            // 다음 키가 어느 목표 글자에 속하는지 찾음 (안내 문구의 자모 표시용)
+            let covered = 0;
+            let charIndex = idx;
+            while (charIndex < line.length && covered + Hangul.keysOf(line[charIndex]).length <= tailKeys.length) {
+                covered += Hangul.keysOf(line[charIndex]).length;
+                charIndex += 1;
+            }
+            return {type: 'key', token, char: line[charIndex]};
+        }
+        if (idx >= line.length) return {type: 'enter'};
+        const token = Hangul.keysOf(line[idx])[0];
+        return token === undefined ? null : {type: 'key', token, char: line[idx]};
+    }
+
+    function renderKeyboardHint() {
+        Object.values(keyElements).forEach((el) => el.classList.remove('is-next', 'is-next-warn'));
+        if (!practice || !Store.data.settings.keyboard) return;
+        const hint = computeNextKeyHint();
+        let guide = '';
+        if (!hint) {
+            guide = '';
+        } else if (hint.type === 'backspace') {
+            if (keyElements.Backspace) keyElements.Backspace.classList.add('is-next-warn');
+            guide = '입력한 글자가 다릅니다. Backspace로 지우고 다시 입력하세요.';
+        } else if (hint.type === 'enter') {
+            if (keyElements.Enter) keyElements.Enter.classList.add('is-next');
+            guide = '줄을 다 썼습니다. Enter를 누르세요.';
+        } else {
+            const info = KEY_CODE_OF[hint.token];
+            if (info) {
+                if (keyElements[info.code]) keyElements[info.code].classList.add('is-next');
+                if (info.shift) {
+                    if (keyElements.ShiftLeft) keyElements.ShiftLeft.classList.add('is-next');
+                    if (keyElements.ShiftRight) keyElements.ShiftRight.classList.add('is-next');
+                }
+                const isHangulTarget = Hangul.isHangul(hint.char);
+                const jamo = isHangulTarget ? Hangul.jamoForKey(hint.token) : '';
+                if (hint.token === ' ') guide = '다음 키: Space';
+                else if (jamo) guide = `다음 키: ${jamo}  (${keyName(hint.token)})`;
+                else guide = `다음 키: ${hint.token}  (${keyName(hint.token)})`;
+            } else {
+                guide = `다음 글자: ${hint.char || hint.token}`;
+            }
+        }
+        dom.keyGuide.textContent = guide;
+    }
+
+    function applyKeyboardVisibility() {
+        const on = Store.data.settings.keyboard;
+        dom.keyboardWrap.hidden = !on;
+        dom.btnKeyboard.setAttribute('aria-pressed', String(on));
+        dom.btnKeyboard.setAttribute('aria-label', on ? '가상 키보드 숨기기' : '가상 키보드 보이기');
+    }
+
+    function applySound() {
+        const on = Store.data.settings.sound;
+        dom.btnSound.setAttribute('aria-pressed', String(on));
+        dom.btnSound.setAttribute('aria-label', on ? '효과음 끄기' : '효과음 켜기');
+    }
+
+    function applyFontScale() {
+        const scale = Store.data.settings.fontScale;
+        document.documentElement.style.setProperty('--font-scale', String(scale));
+        dom.fontScaleValue.textContent = `${Math.round(scale * 100)}%`;
+    }
+
+    function resolveTheme() {
+        const pref = Store.data.settings.theme;
+        if (pref === 'light' || pref === 'dark') return pref;
+        try {
+            return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        } catch (error) {
+            return 'light';
+        }
+    }
+
+    function applyTheme() {
+        const theme = resolveTheme();
+        document.documentElement.setAttribute('data-theme', theme);
+        dom.themeToggle.setAttribute('aria-pressed', String(theme === 'dark'));
+        dom.themeToggle.textContent = theme === 'dark' ? '밝게' : '어둡게';
+        dom.themeToggle.setAttribute('aria-label', theme === 'dark' ? '밝은 화면으로 바꾸기' : '어두운 화면으로 바꾸기');
+    }
+
+    /* --- 결과 화면 --- */
+    function renderResult(result, analysis, previous, saved, reason) {
+        const reasonText = {complete: '모든 줄을 마쳤습니다.', time: '시간이 끝났습니다.', quit: '중간에 마쳤습니다.'}[reason] || '';
+        dom.resultSub.textContent = `${result.title} · ${result.levelLabel}. ${reasonText}${saved ? '' : ' 입력한 글자가 없어 기록하지 않았습니다.'}`;
+        dom.resultScore.textContent = String(result.score);
+        dom.resultTime.textContent = formatDuration(result.durationMs);
+        dom.resultCpm.textContent = String(result.cpm);
+        dom.resultKpm.textContent = result.kpmEstimated ? `${result.kpm} (추정)` : String(result.kpm);
+        dom.resultAccuracy.textContent = formatPercent(result.accuracy);
+        dom.resultErrors.textContent = String(result.errors);
+        dom.resultCorrections.textContent = String(result.corrections);
+        dom.resultBackspaces.textContent = String(result.backspaces);
+        dom.resultChars.textContent = String(result.correctChars);
+        dom.resultStreak.textContent = String(result.bestStreak);
+
+        // 이전 기록 대비
+        dom.resultCompare.textContent = '';
+        if (!saved) {
+            dom.resultCompare.textContent = '이번 연습은 기록하지 않았습니다.';
+        } else if (!previous) {
+            dom.resultCompare.textContent = `${result.title}의 첫 기록입니다. 다음 연습부터 이번 기록과 비교해 드립니다.`;
+        } else {
+            const cpmDiff = result.cpm - previous.cpm;
+            const accDiff = Math.round((result.accuracy - previous.accuracy) * 10) / 10;
+            dom.resultCompare.append(
+                '지난번 같은 연습보다 분당 글자 ',
+                diffSpan(cpmDiff, ''),
+                ', 정확도 ',
+                diffSpan(accDiff, '%p'),
+                '.'
+            );
+        }
+
+        // 취약 글자
+        const topSyll = topEntries(analysis.syllable, 6);
+        const topCat = topEntries(analysis.category, 1)[0];
+        const topKeys = topEntries(analysis.key, 3);
+        const topJamo = topEntries(analysis.jamo, 4);
+        dom.resultWeakList.textContent = '';
+        if (!topSyll.length) {
+            dom.resultWeakMsg.textContent = result.errors ? '' : '틀린 글자가 없습니다. 아주 정확했습니다.';
+        } else {
+            dom.resultWeakMsg.textContent = topCat ? CATEGORY_MESSAGES[topCat[0]] : '';
+            topSyll.forEach(([ch, count]) => dom.resultWeakList.appendChild(weakItem(ch, `${count}회 오류`)));
+        }
+        const keyText = topKeys.map(([k, n]) => `${keyLabel(k)} ${n}회`).join(', ');
+        const jamoText = topJamo.map(([j, n]) => `${j} ${n}회`).join(', ');
+        dom.resultKeyMsg.textContent = [jamoText && `자모별: ${jamoText}`, keyText && `키별: ${keyText}`].filter(Boolean).join(' / ');
+
+        dom.resultWeakBtn.disabled = !buildWeakLines(analysis);
+        dom.resultWeakBtn.onclick = () => startWeakPractice(analysis);
+        dom.resultNextBtn.textContent = result.mode === 'custom' ? '다른 글 입력' : '다음 연습';
+        lastResult = result;
+    }
+
+    let lastResult = null;
+
+    function diffSpan(value, unit) {
+        const span = document.createElement('span');
+        if (value > 0) {
+            span.className = 'up';
+            span.textContent = `▲ ${value}${unit} 향상`;
+        } else if (value < 0) {
+            span.className = 'down';
+            span.textContent = `▼ ${Math.abs(value)}${unit} 하락`;
+        } else {
+            span.textContent = '변화 없음';
+        }
+        return span;
+    }
+
+    function weakItem(label, detail) {
+        const li = document.createElement('li');
+        li.className = 'weak-item';
+        const b = document.createElement('b');
+        b.textContent = label;
+        const span = document.createElement('span');
+        span.textContent = detail;
+        li.append(b, span);
+        return li;
+    }
+
+    /* --- 기록 화면 --- */
+    function summarizeHistory(history) {
+        if (!history.length) return null;
+        const sum = (f) => history.reduce((acc, h) => acc + (Number(h[f]) || 0), 0);
+        return {
+            count     : history.length,
+            totalMs   : sum('durationMs'),
+            totalChars: sum('correctChars'),
+            avgCpm    : Math.round(sum('cpm') / history.length),
+            bestCpm   : Math.max(...history.map((h) => h.cpm)),
+            avgAcc    : sum('accuracy') / history.length,
+            bestAcc   : Math.max(...history.map((h) => h.accuracy))
+        };
+    }
+
+    function renderRecords() {
+        const history = Store.data.history;
+        const sum = summarizeHistory(history);
+        dom.recordsNote.textContent = Store.available
+            ? '기록은 이 브라우저에만 저장됩니다.'
+            : '이 브라우저에서는 저장소를 쓸 수 없어 기록이 창을 닫으면 사라집니다.';
+        dom.recCount.textContent = sum ? `${sum.count}회` : '0회';
+        dom.recTime.textContent = sum ? formatLongDuration(sum.totalMs) : '0분';
+        dom.recChars.textContent = sum ? sum.totalChars.toLocaleString('ko-KR') : '0';
+        dom.recAvgCpm.textContent = sum ? String(sum.avgCpm) : '0';
+        dom.recBestCpm.textContent = sum ? String(sum.bestCpm) : '0';
+        dom.recAvgAcc.textContent = sum ? formatPercent(sum.avgAcc) : '-';
+        dom.recBestAcc.textContent = sum ? formatPercent(sum.bestAcc) : '-';
+
+        renderChart(history.slice(-10));
+
+        dom.recordsTbody.textContent = '';
+        const recent = history.slice(-10).reverse();
+        if (!recent.length) {
+            const tr = document.createElement('tr');
+            const td = document.createElement('td');
+            td.colSpan = 7;
+            td.className = 'empty';
+            td.textContent = '아직 기록이 없습니다. 연습을 마치면 여기에 쌓입니다.';
+            tr.appendChild(td);
+            dom.recordsTbody.appendChild(tr);
+        } else {
+            recent.forEach((h) => {
+                const tr = document.createElement('tr');
+                [
+                    [formatDate(h.date), false],
+                    [`${h.title || ''} · ${h.levelLabel || ''}`, false],
+                    [formatDuration(h.durationMs), true],
+                    [String(h.cpm), true],
+                    [String(h.kpm), true],
+                    [formatPercent(h.accuracy), true],
+                    [String(h.score), true]
+                ].forEach(([text, num]) => {
+                    const td = document.createElement('td');
+                    td.textContent = text;
+                    if (num) td.className = 'num';
+                    tr.appendChild(td);
+                });
+                dom.recordsTbody.appendChild(tr);
+            });
+        }
+
+        dom.recordsWeak.textContent = '';
+        const weak = topEntries(Store.data.weak.syllable, 10);
+        if (!weak.length) {
+            const li = document.createElement('li');
+            li.className = 'empty';
+            li.textContent = '아직 자주 틀리는 글자가 없습니다.';
+            dom.recordsWeak.appendChild(li);
+        } else {
+            weak.forEach(([ch, n]) => dom.recordsWeak.appendChild(weakItem(ch, `누적 ${n}`)));
+        }
+        dom.recordsClear.disabled = !history.length && !weak.length;
+    }
+
+    // 최근 기록 꺾은선 그래프 (SVG, 외부 라이브러리 없음)
+    function renderChart(entries) {
+        dom.recordsChart.textContent = '';
+        if (entries.length < 2) {
+            const p = document.createElement('p');
+            p.className = 'empty';
+            p.textContent = '기록이 2회 이상 쌓이면 속도 변화 그래프가 나타납니다.';
+            dom.recordsChart.appendChild(p);
+            return;
+        }
+        const NS = 'http://www.w3.org/2000/svg';
+        const W = 640;
+        const H = 230;
+        const pad = {l: 44, r: 20, t: 22, b: 34};
+        const values = entries.map((e) => e.cpm);
+        const top = Math.max(50, Math.ceil(Math.max(...values) / 50) * 50);
+        const x = (i) => pad.l + (i * (W - pad.l - pad.r)) / (entries.length - 1);
+        const y = (v) => pad.t + (1 - v / top) * (H - pad.t - pad.b);
+        const svg = document.createElementNS(NS, 'svg');
+        svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+        svg.setAttribute('role', 'img');
+        svg.setAttribute('aria-label', `최근 ${entries.length}회 분당 글자: ${values.join(', ')}`);
+        const el = (name, attrs, text) => {
+            const node = document.createElementNS(NS, name);
+            Object.keys(attrs).forEach((k) => node.setAttribute(k, String(attrs[k])));
+            if (text != null) node.textContent = text;
+            svg.appendChild(node);
+            return node;
+        };
+        [0, top / 2, top].forEach((v) => {
+            el('line', {x1: pad.l, x2: W - pad.r, y1: y(v), y2: y(v), class: 'chart-grid'});
+            el('text', {x: pad.l - 8, y: y(v) + 4, 'text-anchor': 'end', class: 'chart-axis'}, Math.round(v));
+        });
+        el('polyline', {points: values.map((v, i) => `${x(i)},${y(v)}`).join(' '), class: 'chart-line'});
+        entries.forEach((e, i) => {
+            const dot = el('circle', {cx: x(i), cy: y(e.cpm), r: 4.5, class: 'chart-dot'});
+            const title = document.createElementNS(NS, 'title');
+            title.textContent = `${formatDate(e.date)} · ${e.cpm}자/분 · 정확도 ${formatPercent(e.accuracy)}`;
+            dot.appendChild(title);
+            el('text', {x: x(i), y: y(e.cpm) - 10, 'text-anchor': 'middle', class: 'chart-value'}, e.cpm);
+            el('text', {x: x(i), y: H - 10, 'text-anchor': 'middle', class: 'chart-axis'}, `${i + 1}회`);
+        });
+        dom.recordsChart.appendChild(svg);
+    }
+
+    /* --- 처음 화면 요약 --- */
+    function renderHome() {
+        const history = Store.data.history;
+        dom.homeSummary.textContent = '';
+        if (!history.length) {
+            const p = document.createElement('p');
+            p.className = 'note';
+            p.textContent = '아직 기록이 없습니다. 첫 연습을 마치면 속도와 정확도가 여기에 표시됩니다.';
+            dom.homeSummary.appendChild(p);
+        } else {
+            const last = history[history.length - 1];
+            const sum = summarizeHistory(history);
+            [
+                ['최근 연습', `${last.title}`],
+                ['최근 분당 글자', `${last.cpm}`],
+                ['최근 정확도', formatPercent(last.accuracy)],
+                ['최고 분당 글자', `${sum.bestCpm}`],
+                ['연습 횟수', `${sum.count}회`]
+            ].forEach(([label, value]) => {
+                const row = document.createElement('div');
+                row.className = 'summary-row';
+                const a = document.createElement('span');
+                a.textContent = label;
+                const b = document.createElement('strong');
+                b.textContent = value;
+                row.append(a, b);
+                dom.homeSummary.appendChild(row);
+            });
+        }
+        const weakTop = topEntries(Store.data.weak.syllable, 5).map(([ch]) => ch);
+        const canWeak = Boolean(buildWeakLines(null));
+        dom.homeWeakBtn.disabled = !canWeak;
+        dom.homeWeakNote.textContent = canWeak
+            ? `자주 틀린 글자: ${weakTop.join(' ')}`
+            : '연습 기록이 쌓이면 자주 틀린 글자로 맞춤 연습을 만들어 드립니다.';
+    }
+
+    /* --- 설정 화면 --- */
+    let setupMode = 'basic';
+
+    function choiceGroup(legend, name, options, selected) {
+        const fieldset = document.createElement('fieldset');
+        fieldset.className = 'choice-group';
+        const lg = document.createElement('legend');
+        lg.textContent = legend;
+        fieldset.appendChild(lg);
+        const wrap = document.createElement('div');
+        wrap.className = 'choices';
+        options.forEach((opt, i) => {
+            const label = document.createElement('label');
+            label.className = 'choice';
+            const input = document.createElement('input');
+            input.type = 'radio';
+            input.name = name;
+            input.value = opt.value;
+            input.checked = selected ? opt.value === selected : i === 0;
+            const body = document.createElement('span');
+            body.className = 'choice-body';
+            const strong = document.createElement('strong');
+            strong.textContent = opt.title;
+            body.appendChild(strong);
+            if (opt.desc) {
+                const small = document.createElement('small');
+                small.textContent = opt.desc;
+                body.appendChild(small);
+            }
+            label.append(input, body);
+            wrap.appendChild(label);
+        });
+        fieldset.appendChild(wrap);
+        return fieldset;
+    }
+
+    const levelOptions = () => Object.keys(LEVELS).map((k) => ({value: k, title: LEVELS[k].label, desc: LEVELS[k].desc}));
+
+    function openSetup(mode) {
+        setupMode = mode;
+        dom.setupTitle.textContent = MODES[mode].label;
+        dom.setupDesc.textContent = MODES[mode].desc;
+        dom.setupOptions.textContent = '';
+        dom.customArea.hidden = mode !== 'custom';
+        dom.customError.textContent = '';
+
+        if (mode === 'basic') {
+            dom.setupOptions.appendChild(choiceGroup('연습할 자리', 'lesson',
+                practiceData.basic.map((l) => ({value: l.id, title: l.title, desc: l.keys}))));
+        } else if (mode === 'words' || mode === 'sentences') {
+            dom.setupOptions.appendChild(choiceGroup('난이도', 'level', levelOptions()));
+        } else if (mode === 'long') {
+            dom.setupOptions.appendChild(choiceGroup('연습할 글', 'text',
+                practiceData.longTexts.map((t) => ({
+                    value: t.id, title: t.title, desc: `${LEVELS[t.level].label} · ${TextUtil.graphemes(t.text).length}자`
+                }))));
+        } else if (mode === 'timed') {
+            dom.setupOptions.appendChild(choiceGroup('시간', 'minutes', TIME_OPTIONS.map((m) => ({value: String(m), title: `${m}분`}))));
+            dom.setupOptions.appendChild(choiceGroup('문장 난이도', 'level', levelOptions()));
+        } else if (mode === 'custom') {
+            dom.customText.value = Store.data.settings.lastCustomText || '';
+            updateCustomCount();
+        }
+        showView('setup');
+    }
+
+    function selectedValue(name) {
+        const el = dom.setupOptions.querySelector(`input[name="${name}"]:checked`);
+        return el ? el.value : null;
+    }
+
+    function updateCustomCount() {
+        dom.customCount.textContent = `${dom.customText.value.length} / ${CUSTOM_MAX_LENGTH}자`;
+    }
+
+    function startFromSetup() {
+        const config = {mode: setupMode};
+        if (setupMode === 'basic') config.lessonId = selectedValue('lesson');
+        if (setupMode === 'words' || setupMode === 'sentences') config.level = selectedValue('level');
+        if (setupMode === 'long') config.textId = selectedValue('text');
+        if (setupMode === 'timed') {
+            config.minutes = Number(selectedValue('minutes'));
+            config.level = selectedValue('level');
+        }
+        if (setupMode === 'custom') {
+            const text = TextUtil.sanitize(dom.customText.value).slice(0, CUSTOM_MAX_LENGTH);
+            if (!text.trim()) {
+                dom.customError.textContent = '연습할 글을 입력하세요. 공백만으로는 연습할 수 없습니다.';
+                dom.customText.focus();
+                return;
+            }
+            config.customText = text;
+            Store.data.settings.lastCustomText = text;
+            Store.save();
+        }
+        const session = buildSession(config);
+        if (!session.lines.length) {
+            if (setupMode === 'custom') dom.customError.textContent = '연습할 글자가 없습니다. 내용을 확인하세요.';
+            return;
+        }
+        startPractice(session);
+    }
+
+    /* ===== 11. 화면 전환 / 이벤트 연결 ===== */
+    function showView(name, options) {
+        const opts = options || {};
+        if (currentView === 'practice' && name !== 'practice' && practice && !practice.finished) stopPractice();
+        currentView = name;
+        document.querySelectorAll('[data-view]').forEach((section) => {
+            section.hidden = section.dataset.view !== name;
+        });
+        document.querySelectorAll('.nav-btn[data-nav]').forEach((btn) => {
+            const target = btn.dataset.nav;
+            const active = target === name || (target === 'home' && (name === 'setup' || name === 'practice' || name === 'result'));
+            if (active) btn.setAttribute('aria-current', 'page');
+            else btn.removeAttribute('aria-current');
+        });
+        if (name === 'home') renderHome();
+        if (name === 'records') renderRecords();
+        if (!opts.skipFocus) {
+            const heading = document.querySelector(`[data-view="${name}"] h1`);
+            if (heading) {
+                try {
+                    heading.focus({preventScroll: true});
+                } catch (error) {
+                    heading.focus();
+                }
+            }
+            window.scrollTo(0, 0);
+        }
+    }
+
+    function navigate(target) {
+        if (practiceActive() && practice.started && practice.stats.attempts > 0) {
+            const ok = window.confirm('진행 중인 연습을 그만둘까요? 이번 연습은 기록되지 않습니다.');
+            if (!ok) {
+                focusInput();
+                return;
+            }
+        }
+        showView(target);
+    }
+
+    function cacheDom() {
+        const byId = (id) => document.getElementById(id);
+        Object.assign(dom, {
+            themeToggle     : byId('theme-toggle'),
+            homeSummary     : byId('home-summary'), homeWeakBtn: byId('home-weak-btn'), homeWeakNote: byId('home-weak-note'),
+            setupTitle      : byId('setup-title'), setupDesc: byId('setup-desc'), setupOptions: byId('setup-options'),
+            setupStart      : byId('setup-start'), customArea: byId('custom-area'), customText: byId('custom-text'),
+            customCount     : byId('custom-count'), customError: byId('custom-error'),
+            practiceMode    : byId('practice-mode'), practiceLevel: byId('practice-level'),
+            progress        : byId('practice-progress'), progressBar: byId('practice-progress-bar'), progressText: byId('practice-progress-text'),
+            practiceTime    : byId('practice-time'), practiceTimeLabel: byId('practice-time-label'),
+            linePrev        : byId('line-prev'), lineCurrent: byId('line-current'), lineNext: byId('line-next'), lineSr: byId('line-sr'),
+            overlay         : byId('stage-overlay'), overlayBtn: byId('overlay-btn'), overlayNote: byId('overlay-note'),
+            input           : byId('typing-input'), inputHint: byId('input-hint'),
+            statCpm         : byId('stat-cpm'), statKpm: byId('stat-kpm'), statAccuracy: byId('stat-accuracy'),
+            statErrors      : byId('stat-errors'), statCorrections: byId('stat-corrections'), statBackspaces: byId('stat-backspaces'),
+            statTyped       : byId('stat-typed'), statCorrect: byId('stat-correct'), statLineMatch: byId('stat-line-match'),
+            btnPause        : byId('btn-pause'), btnRestart: byId('btn-restart'), btnNew: byId('btn-new'),
+            btnFontDown     : byId('btn-font-down'), btnFontUp: byId('btn-font-up'), fontScaleValue: byId('font-scale-value'),
+            btnKeyboard     : byId('btn-keyboard'), btnSound: byId('btn-sound'), btnQuit: byId('btn-quit'),
+            keyboardWrap    : byId('keyboard-wrap'), keyboard: byId('keyboard'), keyGuide: byId('key-guide'),
+            resultSub       : byId('result-sub'), resultScore: byId('result-score'), resultCompare: byId('result-compare'),
+            resultTime      : byId('result-time'), resultCpm: byId('result-cpm'), resultKpm: byId('result-kpm'),
+            resultAccuracy  : byId('result-accuracy'), resultErrors: byId('result-errors'), resultCorrections: byId('result-corrections'),
+            resultBackspaces: byId('result-backspaces'), resultChars: byId('result-chars'), resultStreak: byId('result-streak'),
+            resultWeakMsg   : byId('result-weak-msg'), resultWeakList: byId('result-weak-list'), resultKeyMsg: byId('result-key-msg'),
+            resultRetry     : byId('result-retry'), resultNextBtn: byId('result-next'), resultWeakBtn: byId('result-weak'),
+            recordsNote     : byId('records-storage-note'), recCount: byId('rec-count'), recTime: byId('rec-time'),
+            recChars        : byId('rec-chars'), recAvgCpm: byId('rec-avg-cpm'), recBestCpm: byId('rec-best-cpm'),
+            recAvgAcc       : byId('rec-avg-acc'), recBestAcc: byId('rec-best-acc'), recordsChart: byId('records-chart'),
+            recordsTbody    : byId('records-tbody'), recordsWeak: byId('records-weak'), recordsClear: byId('records-clear'),
+            toast           : byId('toast')
+        });
+    }
+
+    // 도구 버튼을 누른 뒤에는 입력창으로 포커스를 돌려 흐름이 끊기지 않게 함
+    function withRefocus(fn) {
+        return () => {
+            fn();
+            if (practiceActive() && !practice.userPaused) focusInput();
+        };
+    }
+
+    function bindEvents() {
+        document.querySelectorAll('[data-nav]').forEach((btn) => {
+            btn.addEventListener('click', () => navigate(btn.dataset.nav));
+        });
+        document.querySelectorAll('[data-mode]').forEach((btn) => {
+            btn.addEventListener('click', () => openSetup(btn.dataset.mode));
+        });
+        dom.themeToggle.addEventListener('click', () => {
+            Store.data.settings.theme = resolveTheme() === 'dark' ? 'light' : 'dark';
+            Store.save();
+            applyTheme();
+        });
+        try {
+            const mq = window.matchMedia('(prefers-color-scheme: dark)');
+            const onChange = () => {
+                if (Store.data.settings.theme === 'auto') applyTheme();
+            };
+            if (mq.addEventListener) mq.addEventListener('change', onChange);
+            else if (mq.addListener) mq.addListener(onChange);
+        } catch (error) { /* 미지원 */
+        }
+
+        dom.homeWeakBtn.addEventListener('click', () => startWeakPractice(null));
+        dom.setupStart.addEventListener('click', startFromSetup);
+        dom.customText.addEventListener('input', () => {
+            updateCustomCount();
+            dom.customError.textContent = '';
+        });
+
+        // 연습 입력창 (붙여 넣기 금지: 사용자 문장 등록 textarea에는 적용하지 않음)
+        const input = dom.input;
+        input.addEventListener('keydown', onInputKeydown);
+        input.addEventListener('beforeinput', onBeforeInput);
+        input.addEventListener('input', onInput);
+        input.addEventListener('compositionstart', onCompositionStart);
+        input.addEventListener('compositionupdate', onCompositionStart);
+        input.addEventListener('compositionend', onCompositionEnd);
+        input.addEventListener('paste', onPasteBlocked);
+        input.addEventListener('drop', onPasteBlocked);
+        input.addEventListener('focus', onInputFocus);
+        input.addEventListener('blur', onInputBlur);
+        input.addEventListener('click', keepCaretAtEnd);
+        input.addEventListener('select', keepCaretAtEnd);
+        input.addEventListener('keyup', keepCaretAtEnd);
+
+        dom.overlayBtn.addEventListener('click', () => {
+            if (!practice) return;
+            practice.userPaused = false;
+            focusInput();
+        });
+        document.getElementById('stage').addEventListener('click', (event) => {
+            if (event.target === dom.overlayBtn) return;
+            if (practiceActive() && !practice.userPaused) focusInput();
+        });
+
+        dom.btnPause.addEventListener('click', togglePause);
+        dom.btnRestart.addEventListener('click', restartPractice);
+        dom.btnNew.addEventListener('click', newPractice);
+        dom.btnQuit.addEventListener('click', quitPractice);
+        dom.btnFontDown.addEventListener('click', withRefocus(() => changeFontScale(-0.1)));
+        dom.btnFontUp.addEventListener('click', withRefocus(() => changeFontScale(0.1)));
+        dom.btnKeyboard.addEventListener('click', withRefocus(() => {
+            Store.data.settings.keyboard = !Store.data.settings.keyboard;
+            Store.save();
+            applyKeyboardVisibility();
+            if (practice) renderKeyboardHint();
+        }));
+        dom.btnSound.addEventListener('click', withRefocus(() => {
+            Store.data.settings.sound = !Store.data.settings.sound;
+            Store.save();
+            applySound();
+            if (Store.data.settings.sound) Sound.play('line');
+        }));
+
+        dom.resultRetry.addEventListener('click', () => {
+            if (!lastResult) return;
+            const session = practice ? practice.session : null;
+            if (session && session.mode !== 'timed') {
+                startPractice(Object.assign({}, session, {lines: session.lines.slice(), config: Object.assign({}, session.config)}));
+            } else if (session) {
+                startPractice(buildSession(session.config));
+            }
+        });
+        dom.resultNextBtn.addEventListener('click', () => {
+            if (!practice) return;
+            const config = practice.session.config;
+            if (config.mode === 'custom') {
+                openSetup('custom');
+                return;
+            }
+            startPractice(buildSession(nextConfig(config)));
+        });
+
+        dom.recordsClear.addEventListener('click', () => {
+            const ok = window.confirm('모든 연습 기록과 취약 글자 분석을 삭제할까요? 삭제한 기록은 되돌릴 수 없습니다.');
+            if (!ok) return;
+            Store.clearRecords();
+            renderRecords();
+            showToast('기록을 모두 삭제했습니다.');
+        });
+
+        // 창 전환 시 타이머 정지
+        document.addEventListener('visibilitychange', () => {
+            if (!practice || practice.finished) return;
+            if (document.hidden) {
+                practice.focused = false;
+                updateRunning();
+            } else if (document.activeElement === dom.input) {
+                practice.focused = true;
+                updateRunning();
+            }
+        });
+        // 다른 탭에서 기록이 바뀌면 반영
+        window.addEventListener('storage', (event) => {
+            if (event.key !== STORAGE_KEY) return;
+            Store.syncFromStorage();
+            applyTheme();
+            applyFontScale();
+            applyKeyboardVisibility();
+            applySound();
+            if (currentView === 'home') renderHome();
+            if (currentView === 'records') renderRecords();
+        });
+        window.addEventListener('blur', () => {
+            if (practice && !practice.finished) {
+                practice.focused = false;
+                updateRunning();
+            }
+        });
+        window.addEventListener('focus', () => {
+            if (practice && !practice.finished && document.activeElement === dom.input) {
+                practice.focused = true;
+                updateRunning();
+            }
+        });
+    }
+
+    function changeFontScale(delta) {
+        const s = Store.data.settings;
+        s.fontScale = Math.round(clamp(s.fontScale + delta, FONT_SCALE_MIN, FONT_SCALE_MAX) * 10) / 10;
+        Store.save();
+        applyFontScale();
+    }
+
+    function init() {
+        Store.load();
+        cacheDom();
+        document.title = APP_NAME;
+        document.querySelectorAll('[data-app-name]').forEach((el) => {
+            el.textContent = APP_NAME;
+        });
+        buildKeyboard();
+        applyTheme();
+        applyFontScale();
+        applyKeyboardVisibility();
+        applySound();
+        bindEvents();
+        showView('home', {skipFocus: true});
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
+
+    // 테스트 환경(Node)에서 내부 함수를 확인할 수 있도록 노출
+    if (typeof module !== 'undefined' && module.exports) {
+        module.exports = {Hangul, TextUtil, analyzeErrors, computeScore};
+    }
+
+</script>
+</body>
+</html>
