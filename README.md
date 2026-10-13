@@ -84,7 +84,9 @@
 - https://github.com/encap/coderush
 - https://www.typingcore.com/test
 - https://blog.naver.com/vsafe/224419232282
+- https://app.mgunexcel.com/typing-game
 - https://sites.google.com/view/hangeultype/%ED%99%88
+- https://app.mgunexcel.com/typing-practice
 <br><br><br>
 
 
