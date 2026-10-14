@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typing Practice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+        table {
+            width: 100%;
+            height: 100%;
+            border-collapse: collapse;
+            border: 1px solid #ddd;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            font-size: 13px;
+        }
+        td:nth-child(2) {
+            width: 20%; /* Adjust the width as needed */
+        }
+        #top-line {
+            background-color: #1D6F42;
+            color: #F8F8FF;
+            text-align: center;
+        }
+        #head-row, #head-col {
+            background-color: #f2f2f2;
+            text-align: center;
+        }
+        #head-col{
+            width: 5%
+        }
+        #source, #writer{
+            color: #999;
+            font-style: italic;
+        }
+        #source {
+            text-align: left;
+        }
+        #writer {
+            text-align: right;
+        }
+        #example-sentence, #user-input {
+            text-align: left;
+            font-size: 15px;
+        }
+    </style>
+</head>
+<body spellcheck="false">
+<table>
+    <thread>
+        <tr>
+            <th id="top-line" colspan='6'>kpoptyping.xlsx</th>
+        </tr>
+    </thread>
+    <tbody>
+    <tr id="head-row">
+        <td></td>
+        <td>A</td>
+        <td>B</td>
+        <td>C</td>
+        <td>D</td>
+        <td>E</td>
+    </tr>
+    <tr>
+        <td id="head-col">1</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+    </tr>
+    <tr>
+        <td id="head-col">2</td>
+        <td id="source" colspan='2'></td>
+        <td></td>
+        <td></td>
+        <td></td>
+    </tr>
+    <tr>
+        <td id="head-col">3</td>
+        <td id="example-sentence" colspan='5'></td>
+    </tr>
+    <tr>
+        <td id="head-col">4</td>
+        <td id="user-input" colspan='5' contenteditable="true" type="text"></td>
+    </tr>
+    <tr>
+        <td id="head-col">5</td>
+        <td></td>
+        <td id="writer" colspan='4'></td>
+    </tr>
+    <tr>
+        <td id="head-col">6</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+    </tr>
+    <tr>
+        <td id="head-col">7</td>
+        <td id="typing-speed" colspan='2'></td>
+        <td></td>
+        <td></td>
+        <td></td>
+    </tr>
+    <tr>
+        <td id="head-col">8</td>
+        <td id="accuracy" colspan='2'></td>
+        <td></td>
+        <td></td>
+        <td></td>
+    </tr>
+    <tr>
+        <td id="head-col">9</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+    </tr>
+    <tr>
+        <td id="head-col">10</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+    </tr>
+
+
+    </tbody>
+</table>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const userInput = document.getElementById('user-input');
+        const exampleSentence = document.getElementById('example-sentence');
+        const source = document.getElementById('source');
+        const typingSpeedDisplay = document.getElementById('typing-speed');
+        const accuracyDisplay = document.getElementById('accuracy');
+        let startTime;
+        let wordCount = 0;
+        let correctWordCount = 0;
+        let exampleSentenceWords;
+
+        // Function to calculate typing speed and accuracy
+        function calculateMetrics() {
+            if (!startTime) {
+                startTime = new Date().getTime();
+            }
+            const userInputValue = userInput.textContent.trim();
+            const exampleSentenceValue = exampleSentence.textContent.trim();
+            const minLen = Math.min(userInputValue.length, exampleSentenceValue.length);
+            let charCount = 0;
+            let correctCharCount = 0;
+            for (let i = 0; i < minLen; i++) {
+                charCount ++;
+                if (userInputValue[i] === exampleSentenceValue[i]) {
+                    correctCharCount++;
+                }
+            }
+            const accuracy = Math.round((correctCharCount / charCount) * 100); // percentage
+            accuracyDisplay.textContent = '정확도: ' + accuracy + '%'; // Update accuracy display
+
+            const currentTime = new Date().getTime();
+            const totalTime = (currentTime - startTime) / 1000; // in seconds
+            const typingSpeed = Math.round((userInputValue.length / totalTime) * 60 * 2.2); // characters per minute
+            typingSpeedDisplay.textContent = '속도: ' + typingSpeed + ' 타'; // Update typing speed display
+        }
+
+        // Event listener for user input
+        userInput.addEventListener('input', calculateMetrics);
+
+        // Event listener for Enter key press
+        userInput.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                fetch('json/sentences.json')
+                .then(response => response.json())
+                .then(sentences => {
+                    const randomIndex = Math.floor(Math.random() * sentences.length);
+                    exampleSentence.textContent = sentences[randomIndex].sentence;
+                    source.textContent = sentences[randomIndex].title + ' (' + sentences[randomIndex].year + ')' + ', ' + sentences[randomIndex].artist;
+                    writer.textContent = sentences[randomIndex].writer;
+                    exampleSentenceWords = sentences[randomIndex].sentence.split(/\s+/);
+                    userInput.textContent = ''; // Clear user input
+                    startTime = null; // Reset start time
+                    wordCount = 0; // Reset word count
+                    correctWordCount = 0; // Reset correct word count
+                    setTimeout(() => { // Delay calculation to ensure variables are reset
+                        calculateMetrics();
+                    }, 0);
+                    userInput.focus();
+                })
+                .catch(error => console.error('Error fetching sentences:', error));
+            }
+        });
+
+        // Fetch initial sentence on page load
+        userInput.dispatchEvent(new KeyboardEvent('keydown', {'key': 'Enter'}));
+    });
+</script>
+</body>
+</html>
