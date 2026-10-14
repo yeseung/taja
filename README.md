@@ -91,6 +91,7 @@
 - https://www.edited.kr/p/typing.html
 - https://zzizik9751.github.io/webutil/typing.html
 - https://blog.naver.com/winmoa823413/223390701613
+- https://www.kpoptype.com
 <br><br><br>
 
 
