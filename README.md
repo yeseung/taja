@@ -92,6 +92,7 @@
 - https://zzizik9751.github.io/webutil/typing.html
 - https://blog.naver.com/winmoa823413/223390701613
 - https://www.kpoptype.com
+- https://justgameuploader.itch.io/typing-practice
 <br><br><br>
 
 
