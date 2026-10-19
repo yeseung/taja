@@ -93,6 +93,7 @@
 - https://blog.naver.com/winmoa823413/223390701613
 - https://www.kpoptype.com
 - https://justgameuploader.itch.io/typing-practice
+- https://rabbit-rapper.itch.io/typing-quest
 <br><br><br>
 
 

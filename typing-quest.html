@@ -1,0 +1,4107 @@
+<!doctype html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>English Typing Quest RPG - พิมพ์ภาษาอังกฤษสายฮา ปราบมังกร</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & ReactDOM CDN -->
+    <script
+            src="https://unpkg.com/react@18/umd/react.production.min.js"
+            crossorigin
+    ></script>
+    <script
+            src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"
+            crossorigin
+    ></script>
+    <!-- Babel Standalone CDN -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        @keyframes float {
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes shake {
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+            20%,
+            60% {
+                transform: translateX(-6px);
+            }
+            40%,
+            80% {
+                transform: translateX(6px);
+            }
+        }
+
+        .animate-shake {
+            animation: shake 0.3s ease-in-out;
+        }
+
+        @keyframes toastSlideFade {
+            0% {
+                opacity: 0;
+                transform: translateY(-12px) scale(0.96);
+            }
+            12% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            82% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-12px) scale(0.96);
+            }
+        }
+
+        .animate-toast-slide {
+            animation: toastSlideFade 3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .rainbow-text {
+            background: linear-gradient(
+                    90deg,
+                    #f43f5e,
+                    #f59e0b,
+                    #10b981,
+                    #06b6d4,
+                    #8b5cf6,
+                    #ec4899
+            );
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body
+        class="bg-slate-50 text-slate-800 antialiased min-h-screen selection:bg-blue-100 selection:text-blue-900"
+>
+<div id="root"></div>
+
+<script type="text/babel">
+    const {useState, useEffect, useRef, useCallback} = React;
+
+    // --- SVG Icons Component ---
+    const Icon = ({name, className = "w-4 h-4"}) => {
+        const svgProps = {
+            xmlns         : "http://www.w3.org/2000/svg",
+            viewBox       : "0 0 24 24",
+            fill          : "none",
+            stroke        : "currentColor",
+            strokeWidth   : "2",
+            strokeLinecap : "round",
+            strokeLinejoin: "round",
+            className,
+        };
+
+        switch (name) {
+            case "swords":
+                return (
+                    <svg {...svgProps}>
+                        <polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/>
+                        <line x1="13" y1="19" x2="19" y2="13"/>
+                        <line x1="16" y1="16" x2="20" y2="20"/>
+                        <line x1="19" y1="21" x2="21" y2="19"/>
+                        <polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/>
+                        <line x1="5" y1="14" x2="9" y2="18"/>
+                        <line x1="7" y1="17" x2="4" y2="20"/>
+                        <line x1="3" y1="19" x2="5" y2="21"/>
+                    </svg>
+                );
+            case "shield":
+                return (
+                    <svg {...svgProps}>
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                );
+            case "zap":
+                return (
+                    <svg {...svgProps}>
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                    </svg>
+                );
+            case "flame":
+                return (
+                    <svg {...svgProps}>
+                        <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+                    </svg>
+                );
+            case "trophy":
+                return (
+                    <svg {...svgProps}>
+                        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+                        <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+                        <path d="M4 22h16"/>
+                        <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+                        <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+                        <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/>
+                    </svg>
+                );
+            case "bag":
+                return (
+                    <svg {...svgProps}>
+                        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                        <path d="M16 10a4 4 0 0 1-8 0"/>
+                    </svg>
+                );
+            case "coins":
+                return (
+                    <svg {...svgProps}>
+                        <circle cx="8" cy="8" r="6"/>
+                        <path d="M18 8c0 3.31-2.69 6-6 6"/>
+                        <path d="M22 12c0 3.31-2.69 6-6 6"/>
+                        <path d="M22 16c0 3.31-2.69 6-6 6"/>
+                    </svg>
+                );
+            case "award":
+                return (
+                    <svg {...svgProps}>
+                        <circle cx="12" cy="8" r="7"/>
+                        <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>
+                    </svg>
+                );
+            case "heart":
+                return (
+                    <svg {...svgProps}>
+                        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+                    </svg>
+                );
+            case "volume":
+                return (
+                    <svg {...svgProps}>
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+                    </svg>
+                );
+            case "volume-x":
+                return (
+                    <svg {...svgProps}>
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                        <line x1="22" y1="9" x2="16" y2="15"/>
+                        <line x1="16" y1="9" x2="22" y2="15"/>
+                    </svg>
+                );
+            case "languages":
+                return (
+                    <svg {...svgProps}>
+                        <path d="m5 8 6 6"/>
+                        <path d="m4 14 6-6 2-3"/>
+                        <path d="M2 5h12"/>
+                        <path d="M7 2h1"/>
+                        <path d="m22 22-5-10-5 10"/>
+                        <path d="M14 18h6"/>
+                    </svg>
+                );
+            case "check":
+                return (
+                    <svg {...svgProps}>
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                        <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                );
+            case "book":
+                return (
+                    <svg {...svgProps}>
+                        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
+                    </svg>
+                );
+            case "sparkles":
+                return (
+                    <svg {...svgProps}>
+                        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                    </svg>
+                );
+            case "alert-triangle":
+                return (
+                    <svg {...svgProps}>
+                        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                        <line x1="12" y1="9" x2="12" y2="13"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                );
+            case "x":
+                return (
+                    <svg {...svgProps}>
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                );
+            case "user":
+                return (
+                    <svg {...svgProps}>
+                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                );
+            case "history":
+                return (
+                    <svg {...svgProps}>
+                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                        <path d="M3 3v5h5"/>
+                        <path d="M12 7v5l4 2"/>
+                    </svg>
+                );
+            case "rotate-ccw":
+                return (
+                    <svg {...svgProps}>
+                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                        <path d="M3 3v5h5"/>
+                    </svg>
+                );
+            case "bot":
+                return (
+                    <svg {...svgProps}>
+                        <rect width="18" height="12" x="3" y="6" rx="2"/>
+                        <path d="M9 11h.01"/>
+                        <path d="M15 11h.01"/>
+                        <path d="M12 2v4"/>
+                        <path d="M4 12H2"/>
+                        <path d="M22 12h-2"/>
+                    </svg>
+                );
+            case "send":
+                return (
+                    <svg {...svgProps}>
+                        <line x1="22" y1="2" x2="11" y2="13"/>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                    </svg>
+                );
+            case "info":
+                return (
+                    <svg {...svgProps}>
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="16" x2="12" y2="12"/>
+                        <line x1="12" y1="8" x2="12.01" y2="8"/>
+                    </svg>
+                );
+            case "external-link":
+                return (
+                    <svg {...svgProps}>
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                        <polyline points="15 3 21 3 21 9"/>
+                        <line x1="10" y1="14" x2="21" y2="3"/>
+                    </svg>
+                );
+            case "shuffle":
+                return (
+                    <svg {...svgProps}>
+                        <path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.8-1.1 2-1.7 3.3-1.7H22"/>
+                        <path d="m18 2 4 4-4 4"/>
+                        <path d="M2 6h1.9c1.5 0 2.9.9 3.6 2.2"/>
+                        <path d="M22 18h-5.9c-1.3 0-2.5-.6-3.3-1.7l-.5-.8"/>
+                        <path d="m18 14 4 4-4 4"/>
+                    </svg>
+                );
+            default:
+                return (
+                    <svg {...svgProps}>
+                        <circle cx="12" cy="12" r="10"/>
+                    </svg>
+                );
+        }
+    };
+
+    // --- SoundSynthesizer (Web Audio API) ---
+    class SoundFX {
+        constructor() {
+            this.ctx = null;
+            this.enabled = true;
+            this.soundProfile = "mechanical";
+        }
+
+        initCtx() {
+            if (!this.ctx && typeof window !== "undefined") {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (AudioCtx) this.ctx = new AudioCtx();
+            }
+            if (this.ctx && this.ctx.state === "suspended") {
+                this.ctx.resume();
+            }
+        }
+
+        playTones(tones) {
+            if (!this.enabled) return;
+            this.initCtx();
+            if (!this.ctx) return;
+            const now = this.ctx.currentTime;
+
+            tones.forEach(
+                ({
+                     type = "sine",
+                     frequency,
+                     endFrequency,
+                     volume,
+                     duration,
+                     delay = 0,
+                 }) => {
+                    const startTime = now + delay;
+                    const endTime = startTime + duration;
+
+                    try {
+                        const oscillator = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        oscillator.type = type;
+                        oscillator.frequency.setValueAtTime(frequency, startTime);
+                        if (endFrequency) {
+                            oscillator.frequency.exponentialRampToValueAtTime(
+                                endFrequency,
+                                endTime,
+                            );
+                        }
+                        gain.gain.setValueAtTime(volume, startTime);
+                        gain.gain.linearRampToValueAtTime(0.0001, endTime);
+                        oscillator.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        oscillator.start(startTime);
+                        oscillator.stop(endTime);
+                    } catch (error) {
+                        console.error("Failed to play sound effect:", error);
+                    }
+                },
+            );
+        }
+
+        playKeyClick(profile = this.soundProfile) {
+            if (!this.enabled) return;
+            let tones;
+            if (profile === "mechanical") {
+                tones = [
+                    {
+                        type        : "triangle",
+                        frequency   : 1400 + Math.random() * 200,
+                        endFrequency: 250,
+                        volume      : 0.25,
+                        duration    : 0.05,
+                    },
+                    {
+                        frequency   : 450 + Math.random() * 100,
+                        endFrequency: 120,
+                        volume      : 0.3,
+                        duration    : 0.06,
+                    },
+                ];
+            } else if (profile === "bubble") {
+                tones = [
+                    {
+                        frequency   : 900 + Math.random() * 200,
+                        endFrequency: 320,
+                        volume      : 0.28,
+                        duration    : 0.06,
+                    },
+                ];
+            } else if (profile === "typewriter") {
+                tones = [
+                    {
+                        type        : "square",
+                        frequency   : 1800 + Math.random() * 300,
+                        endFrequency: 180,
+                        volume      : 0.18,
+                        duration    : 0.045,
+                    },
+                ];
+            } else {
+                tones = [
+                    {
+                        frequency   : 950 + Math.random() * 150,
+                        endFrequency: 250,
+                        volume      : 0.25,
+                        duration    : 0.05,
+                    },
+                ];
+            }
+
+            this.playTones(tones);
+        }
+
+        playWordSuccessSound() {
+            this.playTones(
+                [659.25, 880.0].map((frequency, index) => ({
+                    frequency,
+                    volume  : 0.22,
+                    duration: 0.12,
+                    delay   : index * 0.05,
+                })),
+            );
+        }
+
+        playErrorSound() {
+            this.playTones([
+                {
+                    type        : "sawtooth",
+                    frequency   : 140,
+                    endFrequency: 80,
+                    volume      : 0.15,
+                    duration    : 0.1,
+                },
+            ]);
+        }
+
+        playHitSound() {
+            this.playTones([
+                {
+                    type        : "triangle",
+                    frequency   : 350,
+                    endFrequency: 60,
+                    volume      : 0.2,
+                    duration    : 0.15,
+                },
+            ]);
+        }
+
+        playSentenceSuccessSound() {
+            this.playTones(
+                [523.25, 659.25, 783.99].map((frequency, index) => ({
+                    frequency,
+                    volume  : 0.25,
+                    duration: 0.22,
+                    delay   : index * 0.07,
+                })),
+            );
+        }
+
+        playVictorySound() {
+            this.playTones(
+                [523.25, 659.25, 783.99, 1046.5].map((frequency, index) => ({
+                    frequency,
+                    volume  : 0.28,
+                    duration: 0.25,
+                    delay   : index * 0.08,
+                })),
+            );
+        }
+    }
+
+    const soundFX = new SoundFX();
+
+    // --- Speech TTS Helper ---
+    const speakText = (text) => {
+        if (typeof window !== "undefined" && "speechSynthesis" in window) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = "en-US";
+            utterance.rate = 0.92;
+            window.speechSynthesis.speak(utterance);
+        }
+    };
+
+    const STORAGE_KEYS = {
+        stats  : "typing_quest_stats",
+        history: "typing_quest_history",
+    };
+
+    const DEFAULT_STATS = {
+        characterClass      : "Tech Bard",
+        avatar              : "🎸",
+        level               : 1,
+        xp                  : 0,
+        maxXp               : 200,
+        currentHp           : 100,
+        maxHp               : 100,
+        gold                : 50,
+        wpm                 : 0,
+        accuracy            : 100,
+        totalTypedChars     : 0,
+        completedQuestsCount: 0,
+    };
+
+    function loadStoredJson(key, fallback) {
+        try {
+            const savedValue = localStorage.getItem(key);
+            return savedValue ? JSON.parse(savedValue) : fallback;
+        } catch (error) {
+            console.error(`Failed to load ${key} from localStorage:`, error);
+            return fallback;
+        }
+    }
+
+    function saveStoredJson(key, value) {
+        try {
+            localStorage.setItem(key, JSON.stringify(value));
+        } catch (error) {
+            console.error(`Failed to save ${key} to localStorage:`, error);
+        }
+    }
+
+    // --- 108 Master Sentences & Translations Bank ---
+    const MASTER_SENTENCES_108 = [
+        // Category 1: Daily & Coffee Shop Talk (1-15)
+        {
+            sentence   :
+                "Hey! Can I grab an iced americano with oat milk to go, please?",
+            translation:
+                "เฮ้! ขอรับอเมริกาโน่เย็นนมโอ๊ตแบบใส่แก้วกลับบ้านหน่อยครับ/ค่ะ",
+        },
+        {
+            sentence   :
+                "I'm gonna be running late for my morning meeting if I don't hurry.",
+            translation: "ฉันกำลังจะไปประชุมตอนเช้าสายแน่ๆ ถ้าไม่รีบตอนนี้",
+        },
+        {
+            sentence   : "Thanks a bunch! You really saved my day. Catch you later!",
+            translation: "ขอบคุณมากๆ นะ! คุณช่วยชีวิตฉันไว้แท้ๆ แล้วเจอกันนะ!",
+        },
+        {
+            sentence   : "Could I get an extra espresso shot in my latte, please?",
+            translation: "ขอเพิ่มเอสเปรสโซ่อีกช็อตในลาเต้หน่อยได้ไหมครับ/ค่ะ?",
+        },
+        {
+            sentence   : "Do you have any dairy-free options for the pastry today?",
+            translation: "วันนี้มีเบเกอรี่แบบไม่มีส่วนผสมของนมไหมครับ/ค่ะ?",
+        },
+        {
+            sentence   :
+                "Let's grab a quick bite before our afternoon training session.",
+            translation:
+                "หาอะไรทานรองท้องเร็วๆ ก่อนเข้าคลาสฝึกอบรมช่วงบ่ายกันเถอะ",
+        },
+        {
+            sentence   : "How is your morning going so far? Pretty busy as usual?",
+            translation: "เช้านี้เป็นอย่างไรบ้างครับ/ค่ะ? ยุ่งเหมือนเดิมเลยไหม?",
+        },
+        {
+            sentence   :
+                "I need a big cup of coffee to kickstart my Monday morning.",
+            translation:
+                "ฉันต้องการกาแฟแก้วใหญ่เพื่อเริ่มเช้าวันจันทร์อย่างสดชื่น",
+        },
+        {
+            sentence   : "Could you pass me the sugar and a napkin, please?",
+            translation: "ช่วยส่งน้ำตาลกับกระดาษทิชชู่ให้ฉันหน่อยได้ไหมครับ/ค่ะ?",
+        },
+        {
+            sentence   : "The WiFi here is surprisingly fast and reliable today.",
+            translation:
+                "อินเทอร์เน็ตไร้สายที่นี่เร็วและเสถียรดีมากอย่างไม่น่าเชื่อวันนี้",
+        },
+        {
+            sentence   :
+                "I usually prefer cold brew over traditional hot drip coffee.",
+            translation:
+                "ปกติแล้วฉันชอบกาแฟโคลด์บรูว์มากกว่ากาแฟดริปร้อนแบบดั้งเดิม",
+        },
+        {
+            sentence   : "Mind if I sit here? All the other tables are taken.",
+            translation: "ขออนุญาตนั่งตรงนี้ได้ไหมครับ/ค่ะ? โต๊ะอื่นเต็มหมดแล้ว",
+        },
+        {
+            sentence   : "Let's catch up properly over lunch this coming weekend.",
+            translation:
+                "ไว้เรามานั่งคุยอัปเดตชีวิตกันแบบจริงจังช่วงมื้อเที่ยงเสาร์อาทิตย์นี้นะ",
+        },
+        {
+            sentence   : "Take your time, there is absolutely no rush at all.",
+            translation: "ตามสบายเลยนะ ไม่ต้องรีบร้อนเลยสักนิด",
+        },
+        {
+            sentence   : "Have a wonderful rest of your day and drive safely!",
+            translation: "ขอให้เป็นวันที่ดีตลอดทั้งวัน และขับรถอย่างปลอดภัยนะ!",
+        },
+
+        // Category 2: Tech, Software & Workplace (16-30)
+        {
+            sentence   :
+                "Lowkey, I think this legacy codebase has a memory leak in production.",
+            translation:
+                "ลึกๆ แล้วฉันคิดว่าโค้ดชุดนี้แอบมีปัญหาหน่วยความจำรั่วบนระบบจริงอยู่แน่ๆ",
+        },
+        {
+            sentence   :
+                "No cap, our firewall just blocked a massive brute-force attack from sector seven.",
+            translation:
+                "เรื่องจริงไม่ได้โม้เลย! ไฟร์วอลล์ของเราเพิ่งบล็อกการโจมตีระลอกใหญ่ไป",
+        },
+        {
+            sentence   :
+                "Hit me up on Slack when you finish refactoring the API endpoints.",
+            translation:
+                "ทักมาหาฉันทาง Slack ได้เลยนะเมื่อคุณปรับปรุงโครงสร้าง API เสร็จแล้ว",
+        },
+        {
+            sentence   :
+                "Please make sure to push your latest commits to the dev branch.",
+            translation: "อย่าลืมพุชโค้ดล่าสุดของคุณขึ้นบรันช์พัฒนาด้วยล่ะ",
+        },
+        {
+            sentence   :
+                "We need to schedule a quick sync meeting regarding the new release.",
+            translation:
+                "เราต้องนัดประชุมอัปเดตสั้นๆ เกี่ยวกับการปล่อยอัปเดตเวอร์ชันใหม่",
+        },
+        {
+            sentence   :
+                "The server deployment went smoothly without any downtime at all.",
+            translation:
+                "การปรับใช้ระบบบนเซิร์ฟเวอร์ผ่านไปได้อย่างราบรื่นโดยไม่มีระบบล่มเลย",
+        },
+        {
+            sentence   :
+                "Can you double-check the database query performance before pushing?",
+            translation:
+                "ช่วยตรวจสอบประสิทธิภาพคำสั่งคิวรีฐานข้อมูลอีกครั้งก่อนพุชได้ไหม?",
+        },
+        {
+            sentence   :
+                "Let's automate our test suite to catch bugs early in CI/CD.",
+            translation:
+                "มาทำระบบทดสอบอัตโนมัติเพื่อตรวจจับบั๊กตั้งแต่เนิ่นๆ ใน CI/CD กันเถอะ",
+        },
+        {
+            sentence   :
+                "I'll review your pull request as soon as I finish this standup.",
+            translation:
+                "ฉันจะเข้าไปตรวจรีวิว Pull Request ของคุณทันทีที่ประชุมเสร็จ",
+        },
+        {
+            sentence   :
+                "Our team is adopting Agile methodology to improve workflow efficiency.",
+            translation:
+                "ทีมของเรากำลังนำแนวคิด Agile มาใช้เพื่อเพิ่มประสิทธิภาพการทำงาน",
+        },
+        {
+            sentence   :
+                "The cloud infrastructure automatically scales based on user traffic spikes.",
+            translation:
+                "ระบบคลาวด์จะปรับขยายขนาดเครื่องอัตโนมัติตามปริมาณผู้ใช้งานที่สูงขึ้น",
+        },
+        {
+            sentence   :
+                "Always write clean documentation for external developers to integrate easily.",
+            translation:
+                "เขียนเอกสารประกอบโค้ดให้สะอาดเรียบร้อยเสมอเพื่อให้คนอื่นเชื่อมต่อง่าย",
+        },
+        {
+            sentence   : "We should refactor this component to reduce render time.",
+            translation:
+                "เราควรปรับปรุงคอมโพเนนต์นี้เพื่อลดเวลาในการแสดงผลหน้าเว็บ",
+        },
+        {
+            sentence   :
+                "Cybersecurity is our top priority for protecting user personal data.",
+            translation:
+                "ความปลอดภัยทางไซเบอร์คือความสำคัญสูงสุดในการปกป้องข้อมูลผู้ใช้",
+        },
+        {
+            sentence   :
+                "Keep up the great work! The client was super impressed with the demo.",
+            translation:
+                "ทำได้เยี่ยมมาก! ลูกค้าประทับใจกับการสาธิตตัวอย่างระบบมากเลย",
+        },
+
+        // Category 3: Business, Negotiation & Career (31-45)
+        {
+            sentence   :
+                "Look, that counteroffer was completely out of line and you know it.",
+            translation:
+                "ฟังนะ ข้อเสนอโต้ตอบอันนั้นมันเกินไปและล้ำเส้นมาก คุณก็รู้ดี",
+        },
+        {
+            sentence   :
+                "I'm down for the contract, but hands down we need better terms.",
+            translation:
+                "ฉันพร้อมจะเซ็นสัญญาอยู่แล้ว แต่แน่นอนที่สุดว่าเราต้องการข้อตกลงที่ดีกว่านี้",
+        },
+        {
+            sentence   :
+                "Don't ghost me when the deal closes tomorrow morning, bet?",
+            translation:
+                "อย่าแอบหายตัวเงียบไปล่ะตอนที่ดีลจบลงพรุ่งนี้เช้า ตกลงไหม?",
+        },
+        {
+            sentence   :
+                "We need to align our business strategic goals before the quarter ends.",
+            translation:
+                "เราต้องปรับเป้าหมายกลยุทธ์ทางธุรกิจให้ตรงกันก่อนจบไตรมาสนี้",
+        },
+        {
+            sentence   :
+                "The annual budget proposal has been approved by the board.",
+            translation:
+                "ข้อเสนองบประมาณประจำปีได้รับการอนุมัติจากคณะกรรมการแล้ว",
+        },
+        {
+            sentence   :
+                "Let's negotiate a win-win scenario for both involved parties.",
+            translation: "มาเจรจาหาทางออกที่ได้ประโยชน์ร่วมกันทั้งสองฝ่ายกันเถอะ",
+        },
+        {
+            sentence   :
+                "We must diversify our investment portfolio to mitigate financial risk.",
+            translation:
+                "เราต้องกระจายความเสี่ยงในพอร์ตการลงทุนเพื่อลดความเสี่ยงทางการเงิน",
+        },
+        {
+            sentence   :
+                "Our quarter three revenue target exceeded market expectations by fifteen percent.",
+            translation:
+                "รายได้ไตรมาสที่สามของเราสูงกว่าเป้าที่ตลาดคาดการณ์ไว้ถึง 15%",
+        },
+        {
+            sentence   :
+                "Efficiency and innovation are key drivers for long-term growth.",
+            translation:
+                "ประสิทธิภาพและนวัตกรรมคือฟันเฟืองสำคัญสู่การเติบโตอย่างยั่งยืน",
+        },
+        {
+            sentence   :
+                "Please submit your monthly expense reports by Friday afternoon.",
+            translation: "กรุณาส่งรายงานค่าใช้จ่ายประจำเดือนภายในวันศุกร์บ่ายนี้",
+        },
+        {
+            sentence   :
+                "Networking at industry conferences opens up amazing new career opportunities.",
+            translation:
+                "การสร้างเครือข่ายในงานสัมมนาช่วยเปิดโอกาสทางอาชีพใหม่ๆ อย่างน่าทึ่ง",
+        },
+        {
+            sentence   :
+                "Clear communication reduces misunderstandings in international team collaborations.",
+            translation:
+                "การสื่อสารที่ชัดเจนช่วยลดความเข้าใจผิดในการทำงานร่วมกับทีมต่างชาติ",
+        },
+        {
+            sentence   :
+                "We are seeking a proactive candidate with strong leadership skills.",
+            translation: "เรากำลังมองหาผู้สมัครเชิงรุกที่มีทักษะความเป็นผู้นำสูง",
+        },
+        {
+            sentence   :
+                "The contract terms are non-negotiable after formal signatures.",
+            translation:
+                "เงื่อนไขในสัญญาไม่สามารถต่อรองได้อีกหลังจากลงนามเป็นทางการแล้ว",
+        },
+        {
+            sentence   :
+                "Success comes from consistent effort and willingness to learn constantly.",
+            translation:
+                "ความสำเร็จมาจากความพยายามสม่ำเสมอและความพร้อมที่จะเรียนรู้ตลอดเวลา",
+        },
+
+        // Category 4: Slang, Gen-Z & Pop Culture (46-60)
+        {
+            sentence   : "That new movie trailer was lowkey mind-blowing, no cap!",
+            translation:
+                "ตัวอย่างหนังเรื่องใหม่นั้นโคตรจะสุดยอดเลย เรื่องจริงไม่ได้โม้!",
+        },
+        {
+            sentence   :
+                "Honestly, her fashion style is giving effortless aesthetic vibes.",
+            translation: "เอาจริงนะ สไตล์การแต่งตัวของเธอให้ฟีลสวยชิลๆ สบายตามาก",
+        },
+        {
+            sentence   : "Bet! Let us meet up at the mall after our online class.",
+            translation: "จัดไป! ไว้เจอกันที่ห้างหลังเลิกเรียนออนไลน์นะ",
+        },
+        {
+            sentence   :
+                "He completely ghosted the group chat after we asked about his homework.",
+            translation:
+                "เขาแอบเงียบหายไปจากแชทกลุ่มเลยหลังจากพวกเราถามเรื่องการบ้าน",
+        },
+        {
+            sentence   :
+                "That soundtrack is an absolute banger, I put it on repeat all day.",
+            translation: "เพลงประกอบนั้นมันส์สุดๆ ฉันเปิดฟังวนไปทั้งวันเลย",
+        },
+        {
+            sentence   : "Don't spill the tea before everyone joins the video call!",
+            translation:
+                "อย่าเพิ่งเม้าท์หรือปล่อยข่าวหลุดก่อนที่ทุกคนจะเข้าสายวิดีโอคุยนะ!",
+        },
+        {
+            sentence   :
+                "That meme went viral on social media within just a few hours.",
+            translation:
+                "มีมนั้นกลายเป็นไวรัลบนโซเชียลมีเดียในเวลาเพียงไม่กี่ชั่วโมง",
+        },
+        {
+            sentence   :
+                "Keep it lowkey for now until we officially announce the news.",
+            translation:
+                "เก็บเป็นความลับเงียบๆ ไว้ก่อนจนกว่าเราจะประกาศข่าวเป็นทางการ",
+        },
+        {
+            sentence   :
+                "You ate that performance up and left zero crumbs, honestly!",
+            translation: "คุณแสดงโชว์นั้นได้ปังมาก เก็บเรียบทุกเม็ดจริงๆ พูดตรงๆ",
+        },
+        {
+            sentence   : "It is the vibe for me, super cozy and relaxed atmosphere.",
+            translation: "บรรยากาศมันได้มาก อบอุ่นและผ่อนคลายสุดๆ",
+        },
+        {
+            sentence   :
+                "Big W for the team after winning the championship trophy tonight!",
+            translation: "ชัยชนะครั้งใหญ่ของทีมหลังจากคว้าถ้วยแชมเปียนชิพคืนนี้!",
+        },
+        {
+            sentence   :
+                "I am so done with drama, just living my best peaceful life.",
+            translation:
+                "ฉันพอแล้วกับเรื่องดราม่า ขอใช้ชีวิตอย่างสงบและมีความสุขดีกว่า",
+        },
+        {
+            sentence   :
+                "Slay all day with confidence and positive energy everywhere you go!",
+            translation:
+                "ปังสุดๆ ตลอดวันด้วยความมั่นใจและพลังบวกในทุกๆ ที่ที่ไป!",
+        },
+        {
+            sentence   : "Real ones always stick around when times get tough.",
+            translation:
+                "เพื่อนแท้จะอยู่เคียงข้างเสมอเมื่อต้องเผชิญช่วงเวลาที่ยากลำบาก",
+        },
+        {
+            sentence   :
+                "No flex, but I solved that hard puzzle in under two minutes.",
+            translation:
+                "ไม่อยากจะอวดนะ แต่ฉันแก้ปริศนายากนั้นได้ในเวลาไม่ถึงสองนาที",
+        },
+
+        // Category 5: Travel, Hotel & Flights (61-75)
+        {
+            sentence   :
+                "Excuse me, where is the nearest boarding gate for international flights?",
+            translation:
+                "ขอโทษนะครับ/ค่ะ ประตูขึ้นเครื่องเที่ยวบินระหว่างประเทศที่ใกล้ที่สุดอยู่ไหน?",
+        },
+        {
+            sentence   : "I would like to check in for my flight to Tokyo, please.",
+            translation: "ฉันต้องการเช็กอินสำหรับเที่ยวบินไปโตเกียวครับ/ค่ะ",
+        },
+        {
+            sentence   :
+                "Could I please request a window seat near the front of the plane?",
+            translation: "ขอที่นั่งติดหน้าต่างช่วงหน้าเครื่องบินได้ไหมครับ/ค่ะ?",
+        },
+        {
+            sentence   :
+                "My luggage was delayed, where can I file a baggage claim report?",
+            translation:
+                "กระเป๋าเดินทางของฉันล่าช้า ฉันแจ้งเรื่องยื่นเคลมสัมภาระได้ที่ไหน?",
+        },
+        {
+            sentence   : "How far is the hotel from the downtown shopping district?",
+            translation:
+                "โรงแรมอยู่ห่างจากย่านช้อปปิ้งใจกลางเมืองแค่ไหนครับ/ค่ะ?",
+        },
+        {
+            sentence   :
+                "Do you offer complimentary breakfast and free shuttle service?",
+            translation: "ทางโรงแรมมีบริการอาหารเช้าและรถรับส่งฟรีไหมครับ/ค่ะ?",
+        },
+        {
+            sentence   :
+                "Could we get extra towels and pillows sent up to room 402?",
+            translation:
+                "ขอผ้าขนหนูและหมอนเพิ่มส่งขึ้นมาที่ห้อง 402 ได้ไหมครับ/ค่ะ?",
+        },
+        {
+            sentence   : "What time is the mandatory check-out tomorrow morning?",
+            translation:
+                "เวลาเช็กเอาต์ของโรงแรมพรุ่งนี้เช้าคือช่วงกี่โมงครับ/ค่ะ?",
+        },
+        {
+            sentence   :
+                "Is there a local night market within walking distance from here?",
+            translation:
+                "มีตลาดนัดกลางคืนท้องถิ่นในระยะที่สามารถเดินไปได้จากตรงนี้ไหม?",
+        },
+        {
+            sentence   :
+                "Could you recommend any authentic local traditional restaurants nearby?",
+            translation:
+                "ช่วยแนะนำร้านอาหารพื้นเมืองรสชาติดั้งเดิมแถวนี้หน่อยได้ไหมครับ/ค่ะ?",
+        },
+        {
+            sentence   :
+                "I would like to extend my stay for two more nights, please.",
+            translation: "ฉันต้องการขอขยายเวลาเข้าพักเพิ่มอีกสองคืนครับ/ค่ะ",
+        },
+        {
+            sentence   :
+                "How much is the taxi fare from the airport to the city center?",
+            translation:
+                "ค่าแท็กซี่จากสนามบินไปใจกลางเมืองประมาณเท่าไหร่ครับ/ค่ะ?",
+        },
+        {
+            sentence   :
+                "Always keep your passport and valuables in a secure pocket.",
+            translation: "เก็บพาสปอร์ตและของมีค่าไว้ในกระเป๋าที่ปลอดภัยเสมอ",
+        },
+        {
+            sentence   :
+                "Traveling expands your mindset and introduces you to amazing cultures.",
+            translation:
+                "การท่องเที่ยวช่วยเปิดโลกทัศน์และเปิดรับวัฒนธรรมที่น่าทึ่ง",
+        },
+        {
+            sentence   :
+                "Have a safe flight and enjoy your wonderful vacation trip!",
+            translation: "ขอให้เดินทางโดยสวัสดิภาพและสนุกกับทริปพักผ่อนนะ!",
+        },
+
+        // Category 6: Food, Cooking & Dining (76-85)
+        {
+            sentence   :
+                "Table for two, please! Do we need a reservation for tonight?",
+            translation: "ขอโต๊ะสำหรับสองท่านครับ/ค่ะ! คืนนี้ต้องจองล่วงหน้าไหม?",
+        },
+        {
+            sentence   :
+                "Could we please see the dessert and drink menu after our meal?",
+            translation:
+                "ทานอาหารเสร็จแล้ว ขอรับเมนูของหวานและเครื่องดื่มหน่อยได้ไหม?",
+        },
+        {
+            sentence   :
+                "I am allergic to peanuts, could you double-check with the chef?",
+            translation:
+                "ฉันแพ้ถั่วลิสง ช่วยตรวจสอบกับเชฟให้แน่ใจหน่อยได้ไหมครับ/ค่ะ?",
+        },
+        {
+            sentence   :
+                "The steak was cooked to absolute perfection, medium rare as requested.",
+            translation:
+                "สเต็กปรุงมาได้อย่างสมบูรณ์แบบ มีเดียมแรร์ตามที่สั่งเป๊ะ",
+        },
+        {
+            sentence   :
+                "Could we get the bill split between three credit cards, please?",
+            translation: "ขอเช็กบิลโดยแยกจ่ายผ่านบัตรเครดิตสามใบได้ไหมครับ/ค่ะ?",
+        },
+        {
+            sentence   :
+                "This spicy soup has a wonderful depth of natural savory flavor.",
+            translation: "ต้มยำรสเผ็ดนี้มีรสชาติกลมกล่อมลึกซึ้งน่าประทับใจมาก",
+        },
+        {
+            sentence   :
+                "Fresh ingredients make all the difference in authentic home cooking.",
+            translation:
+                "วัตถุดิบที่สดใหม่สร้างความแตกต่างอย่างสิ้นเชิงในการทำอาหาร home-cooked",
+        },
+        {
+            sentence   :
+                "Would you like some homemade iced tea or fresh lemon soda?",
+            translation: "รับชาเย็นโฮมเมดหรือน้ำมะนาวโซดาชื่นใจเพิ่มไหมครับ/ค่ะ?",
+        },
+        {
+            sentence   :
+                "Save some room for dessert because the molten chocolate cake is legendary.",
+            translation:
+                "เหลือท้องไว้ทานของหวานด้วยนะ เพราะเค้กช็อกโกแลตลาวาที่นี่เด็ดมาก",
+        },
+        {
+            sentence   :
+                "Bon appétit! Enjoy this delicious feast with your family and friends!",
+            translation:
+                "ทานให้อร่อยนะ! ขอให้มีความสุขกับมื้ออาหารแสนอร่อยกับครอบครัวและเพื่อนๆ!",
+        },
+
+        // Category 7: Gaming, Esports & Entertainment (86-95)
+        {
+            sentence   : "GG WP! That last team fight in the dragon pit was insane!",
+            translation: "GG WP! ไฟต์ทีมสุดท้ายตรงรังมังกรนั่นมันส์สุดๆ ไปเลย!",
+        },
+        {
+            sentence   :
+                "Focus the enemy carry first before they unleash their ultimate skill!",
+            translation:
+                "โฟกัสตัวทำดาเมจหลักฝั่งตรงข้ามก่อนที่เขาจะกดใช้อัลติเมท!",
+        },
+        {
+            sentence   :
+                "Need backup at mid lane right now, the enemy jungler is ganking!",
+            translation:
+                "ต้องการการสนับสนุนที่เลนกลางด่วนๆ ป่าฝั่งตรงข้ามกำลังจะมาแก๊งแล้ว!",
+        },
+        {
+            sentence   :
+                "My ping is spiking so high, I am experiencing major lag input.",
+            translation:
+                "ค่าปิงของฉันพุ่งสูงมาก ตอนนี้เจอปัญหากดแล้วดีเลย์อย่างหนัก",
+        },
+        {
+            sentence   :
+                "Nice clutch play! You saved the round with two seconds remaining!",
+            translation:
+                "เล่นคลัตช์ได้เยี่ยมมาก! คุณช่วยเซฟรอบนี้ไว้ได้ในเวลาสองวินาทีสุดท้าย!",
+        },
+        {
+            sentence   :
+                "Equip your legendary armor to boost critical damage and movement speed.",
+            translation:
+                "สวมชุดเกราะระดับตำนานเพื่อเพิ่มพลังโจมตีคริติคอลและความเร็วในการเคลื่อนที่",
+        },
+        {
+            sentence   :
+                "Join our guild discord server to participate in weekend raid events.",
+            translation:
+                "เข้าร่วมดิสคอร์ดกิลด์ของเราเพื่อร่วมกิจกรรมเรดในวันเสาร์อาทิตย์",
+        },
+        {
+            sentence   :
+                "Practice your touch typing mechanics to execute skill combos faster.",
+            translation:
+                "ฝึกทักษะการพิมพ์สัมผัสเพื่อกดคีย์บอร์ดใช้สกิลคอมโบได้เร็วขึ้น",
+        },
+        {
+            sentence   :
+                "Streamers interact with their live chat audience to build a strong community.",
+            translation:
+                "สตรีมเมอร์พูดคุยกับผู้ชมในแชทสดเพื่อสร้างคอมมูนิตี้ที่เหนียวแน่น",
+        },
+        {
+            sentence   :
+                "Level up your character stats to unlock exclusive end-game achievements.",
+            translation:
+                "อัปเลเวลค่าพลังตัวละครเพื่อปลดล็อกความสำเร็จระดับเอ็นด์เกมสุดเอ็กซ์คลูซีฟ",
+        },
+
+        // Category 8: Education, Academic & Grammar (96-108)
+        {
+            sentence   :
+                "They're going to their house over there, whether you like it or not!",
+            translation:
+                "พวกเขากำลังเดินทางไปยังบ้านของพวกเขาตรงโน้น ไม่ว่าคุณจะชอบหรือไม่ก็ตาม!",
+        },
+        {
+            sentence   :
+                "I swear we locked the main vault, but its door seems to lose its seal.",
+            translation:
+                "ฉันสาบานได้เลยว่าเราล็อกห้องนิรภัยหลักแล้ว แต่ประตูดูเหมือนลืมล็อก",
+        },
+        {
+            sentence   :
+                "Double-check your spelling before casting the critical strike spell!",
+            translation:
+                "ตรวจสอบการสะกดคำของคุณซ้ำอีกรอบก่อนจะร่ายเวทโจมตีรุนแรง!",
+        },
+        {
+            sentence   :
+                "Practice makes perfect when learning any new language or skill.",
+            translation:
+                "การฝึกฝนอย่างสม่ำเสมอสร้างความเชี่ยวชาญสมบูรณ์แบบในการเรียนรู้",
+        },
+        {
+            sentence   :
+                "Consistency in daily study yields long-term fluency and confidence.",
+            translation:
+                "ความสม่ำเสมอในการเรียนรู้ทุกวันส่งผลให้เกิดความคล่องแคล่วและมั่นใจ",
+        },
+        {
+            sentence   :
+                "Mastering touch typing increases your workplace productivity significantly.",
+            translation:
+                "การพิมพ์สัมผัสได้อย่างเชี่ยวชาญช่วยเพิ่มประสิทธิภาพการทำงานอย่างมาก",
+        },
+        {
+            sentence   :
+                "Pay attention to context clues when encountering unfamiliar vocabulary.",
+            translation: "สังเกตบริบทแวดล้อมเมื่อเจอคำศัพท์ที่ไม่คุ้นเคย",
+        },
+        {
+            sentence   :
+                "Reading English books and news regularly expands your passive vocabulary.",
+            translation:
+                "การอ่านหนังสือและข่าวภาษาอังกฤษเป็นประจำช่วยเพิ่มคลังคำศัพท์",
+        },
+        {
+            sentence   :
+                "Don't be afraid of making mistakes, they are valuable learning opportunities.",
+            translation:
+                "อย่ากลัวการทำผิดพลาด เพราะมันคือโอกาสการเรียนรู้ที่มีค่าอย่างยิ่ง",
+        },
+        {
+            sentence   :
+                "Active listening and daily speaking practice improve pronunciation skills rapidly.",
+            translation:
+                "การตั้งใจฟังและการฝึกพูดทุกวันช่วยพัฒนาการออกเสียงได้อย่างรวดเร็ว",
+        },
+        {
+            sentence   :
+                "Grammar rules provide a solid framework for effective communication.",
+            translation:
+                "กฎไวยากรณ์มอบโครงสร้างที่มั่นคงสำหรับการสื่อสารที่มีประสิทธิภาพ",
+        },
+        {
+            sentence   :
+                "Set achievable daily typing goals to track your growth step by step.",
+            translation:
+                "ตั้งเป้าหมายการพิมพ์ประจำวันที่จับต้องได้เพื่อติดตามการเติบโตทีละขั้น",
+        },
+        {
+            sentence   :
+                "Unleash lightning speed typing to conquer every challenge with confidence!",
+            translation:
+                "ปลดปล่อยความเร็วการพิมพ์ปานสายฟ้าเพื่อพิชิตทุกความท้าทายด้วยความมั่นใจ!",
+        },
+    ];
+
+    // --- Default Quests Data ---
+    const DEFAULT_QUESTS = [
+        {
+            id                  : "quest_108_master",
+            title               : "🎯 คลัง 108 ประโยคฝึกพิมพ์เร็ว (108 Master Sentence Pool)",
+            category            : "Full 108 Sentence Practice",
+            difficultyLabel     : "Master 108",
+            description         :
+                "คลังรวม 108 ประโยคภาษาอังกฤษแบบครบครัน ครอบคลุมชีวิตประจำวัน เทค ธุรกิจ สแลง และไวยากรณ์ เหมาะสำหรับการสุ่มฝึกพิมพ์แบบจุใจ!",
+            sentences           : MASTER_SENTENCES_108.map((s) => s.sentence),
+            sentenceTranslations: MASTER_SENTENCES_108.map((s) => s.translation),
+            slangHighlights     : [
+                {
+                    term       : "108 Sentences",
+                    meaningThai:
+                        "คลัง 108 ประโยคฝึกพิมพ์ภาษาอังกฤษครอบคลุมทุกระดับและหมวดหมู่",
+                },
+                {
+                    term       : "Randomizer Mode",
+                    meaningThai:
+                        "โหมดสุ่มลำดับประโยคไม่ซ้ำเพื่อการฝึกฝนทักษะอย่างสมบูรณ์แบบ",
+                },
+            ],
+            completionBonusGold : 500,
+            completionBonusXP   : 1000,
+            enemyName           : "108 Master Dragon Lord",
+            enemyAvatar         : "👑",
+            enemyHP             : 500,
+            maxEnemyHP          : 500,
+            targetWpm           : 40,
+        },
+        {
+            id                  : "quest_cafe",
+            title               : "ภารกิจสั่งกาแฟยามเช้า (Coffee Shop Small Talk)",
+            category            : "Casual Conversation",
+            difficultyLabel     : "Easy",
+            description         :
+                "ฝึกสั่งกาแฟและบทสนทนาประจำวันในคาเฟ่ต่างประเทศ พร้อมสแลงยอดฮิตที่เจ้าของภาษาใช้จริง",
+            sentences           : [
+                "Hey! Can I grab an iced americano with oat milk to go, please?",
+                "I'm gonna be running late for my morning meeting if I don't hurry.",
+                "Thanks a bunch! You really saved my day. Catch you later!",
+            ],
+            sentenceTranslations: [
+                "เฮ้! ขอรับอเมริกาโน่เย็น/ลาเต้นมโอ๊ตแบบใส่แก้วกลับบ้านหน่อยครับ/ค่ะ",
+                "ฉันกำลังจะไปประชุมตอนเช้าสายแน่ๆ ถ้าไม่รีบตอนนี้",
+                "ขอบคุณมากๆ นะ! คุณช่วยชีวิตฉันไว้แท้ๆ แล้วเจอกันนะ!",
+            ],
+            slangHighlights     : [
+                {
+                    term        : "grab",
+                    meaningThai : "ซื้อ / หยิบ (ใช้แทน buy ในภาษากันเอง)",
+                    exampleUsage: "Let's grab a coffee before the seminar.",
+                },
+                {
+                    term        : "running late",
+                    meaningThai : "กำลังจะไปสาย",
+                    exampleUsage: "Sorry I'm running late, traffic is awful.",
+                },
+                {
+                    term        : "Catch you later",
+                    meaningThai : "ไว้เจอกันใหม่นะ",
+                    exampleUsage: "Got to run now, catch you later!",
+                },
+            ],
+            typosToFix          : [
+                {
+                    wrongWord  : "latte",
+                    correctWord: "latté",
+                    explanation:
+                        "สังเกตการสะกดภาษาอังกฤษบางคำที่ยืมมาจากภาษาอิตาลีหรือฝรั่งเศส",
+                },
+            ],
+            completionBonusGold : 50,
+            completionBonusXP   : 100,
+            enemyName           : "Coffee Goblin Barista",
+            enemyAvatar         : "☕",
+            enemyHP             : 90,
+            maxEnemyHP          : 90,
+            targetWpm           : 25,
+        },
+        {
+            id                  : "quest_tech_meeting",
+            title               : "ประชุมระดมสมองสายเทค (Tech Startup Standup)",
+            category            : "Workplace & Tech Slang",
+            difficultyLabel     : "Medium",
+            description         :
+                "ฝึกพิมพ์ศัพท์เทคนิค สแลงออฟฟิศยุคใหม่ และการโต้ตอบในทีมพัฒนาซอฟต์แวร์",
+            sentences           : [
+                "Lowkey, I think this legacy codebase has a memory leak in production.",
+                "No cap, our firewall just blocked a massive brute-force attack from sector seven.",
+                "Hit me up on Slack when you finish refactoring the API endpoints.",
+            ],
+            sentenceTranslations: [
+                "ลึกๆ แล้วฉันคิดว่าโค้ดชุดนี้แอบมีปัญหาหน่วยความจำรั่วบนระบบจริงอยู่แน่ๆ",
+                "เรื่องจริงไม่ได้โม้เลย! ไฟร์วอลล์ของเราเพิ่งบล็อกการโจมตีแบบสุ่มรหัสผ่านระลอกใหญ่จากเขตเจ็ดไป",
+                "ทักมาหาฉันทาง Slack ได้เลยนะเมื่อคุณปรับปรุงโครงสร้าง API เสร็จแล้ว",
+            ],
+            slangHighlights     : [
+                {
+                    term        : "lowkey",
+                    meaningThai : "แอบ... / ลึกๆ แล้ว (ไม่อยากเปิดเผยโฉ่งฉ่าง)",
+                    exampleUsage: "I lowkey enjoy working on weekends.",
+                },
+                {
+                    term        : "no cap",
+                    meaningThai : "ไม่ได้โม้ / เรื่องจริงนะไม่ติงตัง",
+                    exampleUsage: "This new framework is ridiculously fast, no cap!",
+                },
+                {
+                    term        : "Hit me up",
+                    meaningThai : "ทักมาหา / ติดต่อมา",
+                    exampleUsage: "Hit me up if you need help with deployment.",
+                },
+            ],
+            typosToFix          : [
+                {
+                    wrongWord  : "recieve",
+                    correctWord: "receive",
+                    explanation:
+                        "กฎ 'I before E except after C' เช่น receive, ceiling",
+                },
+            ],
+            completionBonusGold : 80,
+            completionBonusXP   : 180,
+            enemyName           : "Bug Hydra Dragon",
+            enemyAvatar         : "🐉",
+            enemyHP             : 120,
+            maxEnemyHP          : 120,
+            targetWpm           : 35,
+        },
+        {
+            id                  : "quest_business_deal",
+            title               : "เจรจาต่อรองสัญญาธุรกิจ (Salary & Contract Negotiation)",
+            category            : "Business Negotiation",
+            difficultyLabel     : "Hard",
+            description         :
+                "ยกระดับการพิมพ์ภาษาอังกฤษระดับผู้บริหาร การต่อรองราคาแบบสุภาพแต่เด็ดขาด",
+            sentences           : [
+                "Look, that counteroffer was completely out of line and you know it.",
+                "I'm down for the contract, but hands down we need better terms.",
+                "Don't ghost me when the deal closes tomorrow morning, bet?",
+            ],
+            sentenceTranslations: [
+                "ฟังนะ ข้อเสนอโต้ตอบอันนั้นมันเกินไปและล้ำเส้นมาก คุณก็รู้ดี",
+                "ฉันพร้อมจะเซ็นสัญญาอยู่แล้ว แต่แน่นอนที่สุดว่าเราต้องการข้อตกลงที่ดีกว่านี้",
+                "อย่าแอบหายตัวเงียบไปล่ะตอนที่ดีลจบลงพรุ่งนี้เช้า ตกลงไหม?",
+            ],
+            slangHighlights     : [
+                {
+                    term        : "out of line",
+                    meaningThai : "เกินไป / ไม่เหมาะสม / ล้ำเส้น",
+                    exampleUsage:
+                        "His comment during the presentation was out of line.",
+                },
+                {
+                    term        : "I'm down",
+                    meaningThai : "เอาด้วย / ตกลง / พร้อมลุย",
+                    exampleUsage: "Who wants pizza? - I'm down!",
+                },
+                {
+                    term        : "ghost",
+                    meaningThai : "หายเงียบ / เงียบหายไปเลยไม่ตอบกลับ",
+                    exampleUsage:
+                        "The client ghosted us after receiving the proposal.",
+                },
+            ],
+            typosToFix          : [
+                {
+                    wrongWord  : "definately",
+                    correctWord: "definitely",
+                    explanation: "ลงท้ายด้วย -itely เสมอ ไม่ใช่ -ately",
+                },
+            ],
+            completionBonusGold : 120,
+            completionBonusXP   : 250,
+            enemyName           : "Greedy Contract Shadow",
+            enemyAvatar         : "🕵️‍♂️",
+            enemyHP             : 150,
+            maxEnemyHP          : 150,
+            targetWpm           : 45,
+        },
+        {
+            id                  : "quest_boss_dragon",
+            title               : "ศึกมังกรสะกดคำพิฆาต (The Grammar Dragon Lord)",
+            category            : "Boss Battle & Confusables",
+            difficultyLabel     : "Boss",
+            description         :
+                "เผชิญหน้าบอสใหญ่ด้วยคำสับสนที่คนสะกดผิดบ่อยที่สุด เช่น They're / Their / There",
+            sentences           : [
+                "They're going to their house over there, whether you like it or not!",
+                "I swear we locked the main vault, but its door seems to lose its seal.",
+                "Double-check your spelling before casting the critical strike spell!",
+                "Unleash lightning speed typing to defeat the dragon once and for all!",
+            ],
+            sentenceTranslations: [
+                "พวกเขากำลังเดินทางไปยังบ้านของพวกเขาตรงโน้น ไม่ว่าคุณจะชอบหรือไม่ก็ตาม!",
+                "ฉันสาบานได้เลยว่าเราล็อกห้องนิรภัยหลักแล้ว แต่ดูเหมือนว่าจะไม่ได้ล็อกจริงๆ",
+                "ตรวจสอบการสะกดคำของคุณซ้ำอีกรอบก่อนจะร่ายเวทโจมตีรุนแรง!",
+                "ปลดปล่อยการพิมพ์เร็วปานสายฟ้าเพื่อกำจัดมังกรลงให้ได้เด็ดขาด!",
+            ],
+            slangHighlights     : [
+                {
+                    term        : "They're / Their / There",
+                    meaningThai :
+                        "พวกเขากำลัง (They are) / ของพวกเขา (Possessive) / ที่นั่น (Location)",
+                    exampleUsage: "They're putting their bags over there.",
+                },
+                {
+                    term        : "Its / It's",
+                    meaningThai : "It's = It is | Its = ของมัน (แสดงความเป็นเจ้าของ)",
+                    exampleUsage: "It's clear that the dog lost its collar.",
+                },
+            ],
+            typosToFix          : [
+                {
+                    wrongWord  : "seperate",
+                    correctWord: "separate",
+                    explanation: "มี 'a' สองตัวตรงกลาง sep-a-rate",
+                },
+            ],
+            completionBonusGold : 250,
+            completionBonusXP   : 500,
+            enemyName           : "Shadow Dragon Ignis",
+            enemyAvatar         : "🐲",
+            enemyHP             : 200,
+            maxEnemyHP          : 200,
+            targetWpm           : 50,
+        },
+    ];
+
+    // --- Foreign Language Quests Dictionary ---
+    const FOREIGN_LANG_QUESTS = {
+        es: {
+            id                  : "quest_lang_es",
+            title               : "🇪🇸 ภารกิจฝึกพิมพ์ภาษาสเปน (Spanish Practice Quest)",
+            category            : "Foreign Language - Spanish",
+            difficultyLabel     : "Spanish Mode",
+            description         :
+                "ฝึกพิมพ์ประโยคสนทนาและคำศัพท์ภาษาสเปนยอดฮิต พร้อมคำแปลภาษาไทย",
+            sentences           : [
+                "¡Hola! ¿Cómo estás hoy? Espero que tengas un buen día.",
+                "Me gustaría pedir un café con leche y un croissant, por favor.",
+                "La práctica constante es la clave para dominar un nuevo idioma.",
+                "Muchas gracias por tu ayuda y apoyo en este proyecto.",
+            ],
+            sentenceTranslations: [
+                "สวัสดี! วันนี้เป็นอย่างไรบ้าง? ขอให้เป็นวันที่ดีนะ",
+                "ฉันอยากจะสั่งกาแฟใส่นมและครัวซองต์หนึ่งชิ้นครับ/ค่ะ",
+                "การฝึกฝนอย่างสม่ำเสมอคือหัวใจสำคัญในการเชี่ยวชาญภาษาใหม่",
+                "ขอบคุณมากสำหรับความช่วยเหลือและสนับสนุนในโครงการนี้",
+            ],
+            slangHighlights     : [
+                {term: "¡Hola! ¿Cómo estás?", meaningThai: "สวัสดี! สบายดีไหม?"},
+                {term: "Por favor / Gracias", meaningThai: "กรุณา / ขอบคุณ"},
+            ],
+            completionBonusGold : 150,
+            completionBonusXP   : 300,
+            enemyName           : "Matador Dragon 🇪🇸",
+            enemyAvatar         : "💃",
+            enemyHP             : 120,
+            maxEnemyHP          : 120,
+            targetWpm           : 30,
+        },
+        zh: {
+            id                  : "quest_lang_zh",
+            title               : "🇨🇳 ภารกิจฝึกพิมพ์ภาษาจีน (Chinese Pinyin Quest)",
+            category            : "Foreign Language - Chinese",
+            difficultyLabel     : "Chinese Mode",
+            description         : "ฝึกพิมพ์พินอินภาษาจีนพร้อมประโยคสนทนาพิกเซลพื้นฐาน",
+            sentences           : [
+                "Nǐ hǎo! Hěn gāoxìng rènshí nǐ. Jīntiān tiānqì hěn hǎo.",
+                "Wǒ xiǎng yào yī bēi kāfēi, xièxiè nǐ de bāngzhù.",
+                "Rènzhēn pínyīn kěyǐ tígāo nǐ de dǎzì shùdù.",
+                "Zhù nǐ jīntiān guò dé kāixīn, míngtiān jiàn!",
+            ],
+            sentenceTranslations: [
+                "สวัสดี! ยินดีที่ได้รู้จัก วันนี้อากาศดีมาก",
+                "ฉันอยากได้กาแฟหนึ่งแก้ว ขอบคุณสำหรับความช่วยเหลือ",
+                "ตั้งใจฝึกพินอินสามารถเพิ่มความเร็วในการพิมพ์ได้",
+                "ขอให้วันนี้มีความสุข แล้วพบกันพรุ่งนี้!",
+            ],
+            slangHighlights     : [
+                {term: "Nǐ hǎo (你好)", meaningThai: "สวัสดี"},
+                {term: "Xièxiè (谢谢)", meaningThai: "ขอบคุณ"},
+            ],
+            completionBonusGold : 150,
+            completionBonusXP   : 300,
+            enemyName           : "Panda Guardian 🇨🇳",
+            enemyAvatar         : "🐼",
+            enemyHP             : 120,
+            maxEnemyHP          : 120,
+            targetWpm           : 30,
+        },
+        ja: {
+            id                  : "quest_lang_ja",
+            title               : "🇯🇵 ภารกิจฝึกพิมพ์ภาษาญี่ปุ่น (Japanese Romaji Quest)",
+            category            : "Foreign Language - Japanese",
+            difficultyLabel     : "Japanese Mode",
+            description         : "ฝึกพิมพ์โรมาจิภาษาญี่ปุ่นประโยคยอดนิยมในการสนทนา",
+            sentences           : [
+                "Konnichiwa! Ogenki desu ka? Kyou mo ganbatte kudasai.",
+                "Kouhii to keeki wo hitotsu tsutsu onegaishimasu.",
+                "Mainichi no taipu renshuu ga joudatsu no chikamichi desu.",
+                "Arigatou gozaimashita! Mata aishoou.",
+            ],
+            sentenceTranslations: [
+                "สวัสดีครับ/ค่ะ สบายดีไหม? วันนี้ก็พยายามเข้านะ",
+                "ขอกาแฟและเค้กอย่างละหนึ่งครับ/ค่ะ",
+                "การฝึกพิมพ์ทุกวันคือทางลัดสู่ความเก่ง",
+                "ขอบคุณมากครับ/ค่ะ แล้วพบกันใหม่นะ",
+            ],
+            slangHighlights     : [
+                {term: "Konnichiwa (こんにちは)", meaningThai: "สวัสดีตอนบ่าย"},
+                {term: "Ganbatte (頑張って)", meaningThai: "พยายามเข้านะ!"},
+            ],
+            completionBonusGold : 150,
+            completionBonusXP   : 300,
+            enemyName           : "Samurai Kitsune 🇯🇵",
+            enemyAvatar         : "🦊",
+            enemyHP             : 120,
+            maxEnemyHP          : 120,
+            targetWpm           : 30,
+        },
+        ko: {
+            id                  : "quest_lang_ko",
+            title               : "🇰🇷 ภารกิจฝึกพิมพ์ภาษาเกาหลี (Korean Typing Quest)",
+            category            : "Foreign Language - Korean",
+            difficultyLabel     : "Korean Mode",
+            description         : "ฝึกพิมพ์ประโยคคำอ่านภาษาเกาหลีในชีวิตประจำวัน",
+            sentences           : [
+                "Annyeonghaseyo! Oneul harudo haengbokkago jeulgeopge bonaeseeyo.",
+                "Aiseu amerikano han jan juseyo, gamsahabnida.",
+                "Maeil meoil tajayeonseub-eul hamyeon taja sognoga ppallajimnida.",
+                "Jeongmal gamsahabnida! Daume tto man nayo.",
+            ],
+            sentenceTranslations: [
+                "สวัสดีครับ/ค่ะ ขอให้วันนี้มีความสุขและสนุกสนานนะ",
+                "ขออเมริกาโน่เย็นหนึ่งแก้วครับ/ค่ะ ขอบคุณครับ/ค่ะ",
+                "หากฝึกพิมพ์ทุกๆ วัน ความเร็วการพิมพ์จะเร็วขึ้น",
+                "ขอบคุณมากจริงๆ ครับ/ค่ะ ไว้พบกันใหม่ครั้งหน้า",
+            ],
+            slangHighlights     : [
+                {term: "Annyeonghaseyo (안녕하세요)", meaningThai: "สวัสดี"},
+                {term: "Gamsahabnida (감사합니다)", meaningThai: "ขอบคุณ"},
+            ],
+            completionBonusGold : 150,
+            completionBonusXP   : 300,
+            enemyName           : "K-Pop Pixel Tiger 🇰🇷",
+            enemyAvatar         : "🐯",
+            enemyHP             : 120,
+            maxEnemyHP          : 120,
+            targetWpm           : 30,
+        },
+        de: {
+            id                  : "quest_lang_de",
+            title               : "🇩🇪 ภารกิจฝึกพิมพ์ภาษาเยอรมัน (German Typing Quest)",
+            category            : "Foreign Language - German",
+            difficultyLabel     : "German Mode",
+            description         : "ฝึกพิมพ์ประโยคภาษาเยอรมันพื้นฐานและคำทักทายประจำวัน",
+            sentences           : [
+                "Guten Tag! Wie geht es Ihnen heute? Ich hoffe, alles ist gut.",
+                "Ich möchte bitte einen Kaffee und ein Stück Kuchen bestellen.",
+                "Übung macht den Meister beim Erlernen einer neuen Sprache.",
+                "Vielen Dank für Ihre Hilfe und einen schönen Tag noch!",
+            ],
+            sentenceTranslations: [
+                "สวัสดี! วันนี้คุณเป็นอย่างไรบ้าง? หวังว่าทุกอย่างจะดีนะ",
+                "ฉันอยากจะสั่งกาแฟหนึ่งแก้วและเค้กหนึ่งชิ้นครับ/ค่ะ",
+                "การฝึกฝนทำให้เกิดความเชี่ยวชาญในการเรียนภาษาใหม่",
+                "ขอบคุณมากสำหรับความช่วยเหลือ และขอให้เป็นวันที่ดี!",
+            ],
+            slangHighlights     : [
+                {term: "Guten Tag", meaningThai: "สวัสดี"},
+                {term: "Vielen Dank", meaningThai: "ขอบคุณมาก"},
+            ],
+            completionBonusGold : 150,
+            completionBonusXP   : 300,
+            enemyName           : "Bavarian Eagle 🇩🇪",
+            enemyAvatar         : "🦅",
+            enemyHP             : 120,
+            maxEnemyHP          : 120,
+            targetWpm           : 30,
+        },
+        fr: {
+            id                  : "quest_lang_fr",
+            title               : "🇫🇷 ภารกิจฝึกพิมพ์ภาษาฝรั่งเศส (French Typing Quest)",
+            category            : "Foreign Language - French",
+            difficultyLabel     : "French Mode",
+            description         : "ฝึกพิมพ์ประโยคภาษาฝรั่งเศสนุ่มนวลสวยงาม",
+            sentences           : [
+                "Bonjour! Comment allez-vous aujourd'hui? Passez une bonne journée.",
+                "Je voudrais un café au lait et un croissant, s'il vous plaît.",
+                "La pratique quotidienne est le secret pour améliorer sa vitesse.",
+                "Merci beaucoup pour votre soutien et à bientôt!",
+            ],
+            sentenceTranslations: [
+                "สวัสดี! วันนี้คุณเป็นอย่างไรบ้าง? ขอให้เป็นวันที่ดี",
+                "ฉันขอกาแฟใส่นมและครัวซองต์หนึ่งชิ้นครับ/ค่ะ",
+                "การฝึกฝนทุกวันคือความลับในการเพิ่มความเร็ว",
+                "ขอบคุณมากสำหรับการสนับสนุน แล้วพบกันเร็วๆ นี้!",
+            ],
+            slangHighlights     : [
+                {term: "Bonjour", meaningThai: "สวัสดี"},
+                {term: "S'il vous plaît", meaningThai: "ได้โปรด / กรุณา"},
+            ],
+            completionBonusGold : 150,
+            completionBonusXP   : 300,
+            enemyName           : "French Rooster 🇫🇷",
+            enemyAvatar         : "🐓",
+            enemyHP             : 120,
+            maxEnemyHP          : 120,
+            targetWpm           : 30,
+        },
+        it: {
+            id                  : "quest_lang_it",
+            title               : "🇮🇹 ภารกิจฝึกพิมพ์ภาษาอิตาลี (Italian Typing Quest)",
+            category            : "Foreign Language - Italian",
+            difficultyLabel     : "Italian Mode",
+            description         : "ฝึกพิมพ์ประโยคภาษาอิตาลีมีจังหวะสดใส",
+            sentences           : [
+                "Ciao! Come stai oggi? Spero che tu stia passando una bella giornata.",
+                "Vorrei ordinare un espresso e un cornetto, per favore.",
+                "La pratica costante rende perfette le tue capacità di scrittura.",
+                "Grazie mille per il tuo aiuto e a presto!",
+            ],
+            sentenceTranslations: [
+                "สวัสดี! วันนี้เป็นอย่างไรบ้าง? หวังว่าจะเป็นวันที่ดีนะ",
+                "ฉันอยากสั่งเอสเปรสโซ่และครัวซองต์หนึ่งชิ้นครับ/ค่ะ",
+                "การฝึกฝนอย่างสม่ำเสมอทำให้ทักษะการพิมพ์สมบูรณ์แบบ",
+                "ขอบคุณมากสำหรับความช่วยเหลือ แล้วพบกันเร็วๆ นี้!",
+            ],
+            slangHighlights     : [
+                {term: "Ciao!", meaningThai: "สวัสดี / ลาก่อน"},
+                {term: "Grazie mille", meaningThai: "ขอบคุณมากๆ"},
+            ],
+            completionBonusGold : 150,
+            completionBonusXP   : 300,
+            enemyName           : "Venetian Lion 🇮🇹",
+            enemyAvatar         : "🦁",
+            enemyHP             : 120,
+            maxEnemyHP          : 120,
+            targetWpm           : 30,
+        },
+        ar: {
+            id                  : "quest_lang_ar",
+            title               : "🇸🇦 ภารกิจฝึกพิมพ์ภาษาอาหรับ (Arabic Typing Quest)",
+            category            : "Foreign Language - Arabic",
+            difficultyLabel     : "Arabic Mode",
+            description         : "ฝึกพิมพ์ประโยคคำอ่านภาษาอาหรับสไตล์ตะวันออกกลาง",
+            sentences           : [
+                "Marhaban! Kayfa haluka al-yawm? Atamanna laka yawman sa'idan.",
+                "Uridu finjan qahwah ma'a al-haleeb, shukran jazeelan.",
+                "Al-mumarasah al-yawmiyyah hiya sirru an-najah fi at-tayeeb.",
+                "Shukran jazeelan 'ala musa'adatika wa ilal-liqa' qareeban!",
+            ],
+            sentenceTranslations: [
+                "สวัสดี! วันนี้คุณสบายดีไหม? ขอให้เป็นวันที่สดใสนะ",
+                "ฉันต้องการกาแฟใส่นมหนึ่งแก้ว ขอบคุณมากครับ/ค่ะ",
+                "การฝึกฝนทุกวันคือความลับของความสำเร็จในการพิมพ์",
+                "ขอบคุณมากสำหรับความช่วยเหลือ แล้วพบกันใหม่เร็วๆ นี้!",
+            ],
+            slangHighlights     : [
+                {term: "Marhaban (مرحبا)", meaningThai: "สวัสดี"},
+                {term: "Shukran (شكرا)", meaningThai: "ขอบคุณ"},
+            ],
+            completionBonusGold : 150,
+            completionBonusXP   : 300,
+            enemyName           : "Desert Falcon 🇸🇦",
+            enemyAvatar         : "🦅",
+            enemyHP             : 120,
+            maxEnemyHP          : 120,
+            targetWpm           : 30,
+        },
+    };
+
+    const CLASSES = [
+        {
+            id    : "bard",
+            name  : "Tech Bard",
+            avatar: "🎸",
+            desc  : "ถนัดพิมพ์สแลงและประโยคยาว พลังทำลายคอมโบสูง",
+            perk  : "+15% Gold จากทุกเควส",
+        },
+        {
+            id    : "paladin",
+            name  : "Cyber Paladin",
+            avatar: "🛡️",
+            desc  : "ถนัดพิมพ์คำยาก มีเกราะป้องกันความผิดพลาด",
+            perk  : "เกราะฟื้นฟู HP +20",
+        },
+        {
+            id    : "hacker",
+            name  : "Rogue Hacker",
+            avatar: "🗡️",
+            desc  : "พิมพ์เร็วปานสายฟ้า โจมตีมังกรติด Critical บ่อย",
+            perk  : "บวกพลังโจมตีคำวิกฤต +30%",
+        },
+        {
+            id    : "ninja",
+            name  : "Shadow Ninja",
+            avatar: "🥷",
+            desc  : "ความแม่นยำสูงสุด สมาธิแน่วแน่ไม่หลุดโฟกัส",
+            perk  : "ลดดาเมจเมื่อพิมพ์ผิด 50%",
+        },
+    ];
+
+    const INITIAL_SHOP_ITEMS = [
+        {
+            id           : "potion",
+            name         : "Health Potion (น้ำยาเพิ่มเลือด)",
+            nameEn       : "Health Elixir",
+            icon         : "🧪",
+            description  : "ฟื้นฟู HP ให้ตัวละครทันที 50 หน่วยระหว่างพิมพ์ต่อสู้",
+            descriptionEn: "Instantly restores 50 HP during typing battles",
+            cost         : 30,
+            quantity     : 2,
+        },
+        {
+            id           : "keyboard",
+            name         : "Mechanical Keyboard Pro",
+            nameEn       : "Mechanical Keyboard Pro",
+            icon         : "⌨️",
+            description  : "เพิ่มอัตราความแม่นยำในการตีมังกรและเพิ่ม Gold 10%",
+            descriptionEn: "Boosts accuracy against bosses and grants +10% Gold",
+            cost         : 100,
+            quantity     : 0,
+        },
+        {
+            id           : "rgb_mat",
+            name         : "RGB Desk Mat (แผ่นรองเมาส์ไฟเรืองแสง)",
+            nameEn       : "RGB Gaming Desk Mat",
+            icon         : "🌈",
+            description  : "เพิ่มสมาธิ ลดความเสียหายเมื่อพิมพ์ผิดลง 20%",
+            descriptionEn:
+                "Enhances focus and reduces typo damage penalty by 20%",
+            cost         : 150,
+            quantity     : 0,
+        },
+        {
+            id           : "gm_amulet",
+            name         : "GM Amulet (เครื่องราง AI GM)",
+            nameEn       : "AI GM Master Amulet",
+            icon         : "📿",
+            description  : "ปลดล็อกคำแนะนำพิเศษจาก AI Game Master",
+            descriptionEn: "Unlocks exclusive guidance from the AI Game Master",
+            cost         : 200,
+            quantity     : 0,
+        },
+    ];
+
+    // --- Donate Modal Component (Global / PromptPay & Buy Me a Coffee) ---
+    function DonateModal({lang, onClose}) {
+        const isEn = lang === "en";
+        return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fade-in">
+                <div className="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 shadow-xl relative text-slate-800 text-center">
+                    <button
+                        onClick={onClose}
+                        className="absolute top-4 right-4 p-2 rounded-full bg-slate-100 text-slate-500 hover:text-slate-800 transition cursor-pointer"
+                    >
+                        <Icon name="x" className="w-5 h-5"/>
+                    </button>
+
+                    <div className="w-14 h-14 bg-amber-100 border border-amber-200 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-3 shadow-xs">
+                        ☕
+                    </div>
+
+                    <h3 className="text-xl font-extrabold text-slate-900 mb-1">
+                        {isEn
+                            ? "Support the Developer"
+                            : "สนับสนุนผู้พัฒนา (Support Developer)"}
+                    </h3>
+                    <p className="text-xs text-slate-500 mb-5 leading-relaxed">
+                        {isEn
+                            ? "If you enjoy English Typing Quest RPG, consider buying the developer a coffee!"
+                            : "เลี้ยงกาแฟผู้พัฒนาเพื่อเป็นกำลังใจในการพัฒนาฟีเจอร์ใหม่ๆ และปรับปรุงเกมให้ดียิ่งขึ้น!"}
+                    </p>
+
+                    {isEn ? (
+                        <div className="space-y-3 mb-5">
+                            <a
+                                href="https://buymeacoffee.com"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full py-3 px-4 rounded-2xl bg-amber-400 hover:bg-amber-500 text-amber-950 font-extrabold text-xs transition flex items-center justify-center gap-2 shadow-md cursor-pointer"
+                            >
+                                <span className="text-lg">☕</span> Buy Me a Coffee
+                            </a>
+                            <a
+                                href="https://paypal.me"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full py-3 px-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs transition flex items-center justify-center gap-2 shadow-md cursor-pointer"
+                            >
+                                <span className="text-lg">💳</span> Support via PayPal
+                            </a>
+                            <div className="p-3 bg-amber-50 border border-amber-200/80 rounded-2xl text-[11px] text-amber-900 font-medium leading-relaxed">
+                                "Support the developer! ☕ Every coffee fuels new dungeons,
+                                quests, AI personas, and typing features. Thank you so
+                                much!"
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="space-y-4 mb-5">
+                            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col items-center">
+                                <div className="w-40 h-40 bg-white border border-slate-200 rounded-xl p-2 flex flex-col items-center justify-center shadow-xs mb-2">
+                                    <div className="text-center font-bold text-xs text-blue-900 mb-1">
+                                        PROMPTPAY QR
+                                    </div>
+                                    <div className="w-28 h-28 bg-slate-900 rounded-lg flex items-center justify-center text-white text-3xl font-mono">
+                                        📱
+                                    </div>
+                                </div>
+                                <span className="text-xs font-mono font-bold text-slate-700">
+                      PromptPay: 081-234-5678
+                    </span>
+                                <span className="text-[10px] text-slate-400">
+                      ชื่อบัญชี: English Typing Quest Dev
+                    </span>
+                            </div>
+                            <p className="text-xs text-slate-600 font-medium italic">
+                                ขอบคุณทุกๆ การสนับสนุนเพื่อเป็นค่าขนม/ค่ากาแฟผู้พัฒนาครับ!
+                                ☕✨
+                            </p>
+                        </div>
+                    )}
+
+                    <button
+                        onClick={onClose}
+                        className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
+                    >
+                        {isEn ? "Close Window" : "ปิดหน้าต่าง"}
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    // --- Main App ---
+    function App() {
+        const [lang, setLang] = useState("en"); // 'en' or 'th' (Default: ENG)
+        const [activeTab, setActiveTab] = useState("arena");
+        const [quests, setQuests] = useState(DEFAULT_QUESTS);
+        const [selectedQuestId, setSelectedQuestId] = useState("quest_cafe");
+
+        const [stats, setStats] = useState(() =>
+            loadStoredJson(STORAGE_KEYS.stats, DEFAULT_STATS),
+        );
+        const [history, setHistory] = useState(() =>
+            loadStoredJson(STORAGE_KEYS.history, []),
+        );
+
+        const [shopItems, setShopItems] = useState(INITIAL_SHOP_ITEMS);
+        const [showClassModal, setShowClassModal] = useState(false);
+        const [showGmChat, setShowGmChat] = useState(false);
+        const [showDonateModal, setShowDonateModal] = useState(false);
+        const [showInfoModal, setShowInfoModal] = useState(false);
+        const [toastMessage, setToastMessage] = useState(null);
+
+        const showToast = (msg) => {
+            setToastMessage(msg);
+            setTimeout(() => {
+                setToastMessage((prev) => (prev === msg ? null : prev));
+            }, 3500);
+        };
+
+        const handleSelectLangMode = (langItem) => {
+            const questData = FOREIGN_LANG_QUESTS[langItem.code];
+            if (questData) {
+                setQuests((prevQuests) => {
+                    const exists = prevQuests.some((q) => q.id === questData.id);
+                    if (!exists) {
+                        return [questData, ...prevQuests];
+                    }
+                    return prevQuests;
+                });
+                setSelectedQuestId(questData.id);
+            }
+
+            try {
+                soundFX.playWordSuccessSound();
+            } catch (e) {
+            }
+
+            const notification =
+                      lang === "en"
+                          ? `🌐 Switched to ${langItem.nameEn} Mode!`
+                          : `🌐 สลับเป็นโหมดฝึกภาษา${langItem.nameTh} เรียบร้อย!`;
+            showToast(notification);
+
+            setShowInfoModal(false);
+        };
+
+        useEffect(() => {
+            saveStoredJson(STORAGE_KEYS.stats, stats);
+        }, [stats]);
+
+        useEffect(() => {
+            saveStoredJson(STORAGE_KEYS.history, history);
+        }, [history]);
+
+        const activeQuest =
+                  quests.find((q) => q.id === selectedQuestId) || quests[0];
+
+        const handleQuestComplete = (log) => {
+            try {
+                soundFX.playVictorySound();
+
+                const updatedHistory = [log, ...history];
+                setHistory(updatedHistory);
+
+                setStats((prev) => {
+                    const newXp = prev.xp + log.xpEarned;
+                    let newLevel = prev.level;
+                    let newMaxXp = prev.maxXp;
+                    if (newXp >= prev.maxXp) {
+                        newLevel += 1;
+                        newMaxXp = Math.round(prev.maxXp * 1.5);
+                    }
+                    const totalQuests = (prev.completedQuestsCount || 0) + 1;
+                    const avgWpm = Math.round(
+                        ((prev.wpm || 0) * (prev.completedQuestsCount || 0) + log.wpm) /
+                        totalQuests,
+                    );
+                    const avgAcc = Math.round(
+                        ((prev.accuracy || 100) * (prev.completedQuestsCount || 0) +
+                            log.accuracy) /
+                        totalQuests,
+                    );
+                    const newTotalTyped =
+                              (prev.totalTypedChars || 0) + (log.totalChars || 0);
+
+                    const updatedStats = {
+                        ...prev,
+                        gold                : prev.gold + log.goldEarned,
+                        xp                  : newXp,
+                        level               : newLevel,
+                        maxXp               : newMaxXp,
+                        wpm                 : avgWpm,
+                        accuracy            : avgAcc,
+                        totalTypedChars     : newTotalTyped,
+                        completedQuestsCount: totalQuests,
+                        currentHp           : prev.maxHp,
+                    };
+
+                    // Explicit synchronous localStorage save for maximum reliability
+                    try {
+                        saveStoredJson(STORAGE_KEYS.stats, updatedStats);
+                        saveStoredJson(STORAGE_KEYS.history, updatedHistory);
+                    } catch (err) {
+                        console.error(
+                            "LocalStorage save error in handleQuestComplete:",
+                            err,
+                        );
+                    }
+
+                    return updatedStats;
+                });
+            } catch (error) {
+                console.error("Error during finish game logic:", error);
+                alert("เกิดข้อผิดพลาดในการอัปเดตสถิติการเล่น กรุณาลองใหม่อีกครั้ง");
+            }
+        };
+
+        const handleBuyItem = (itemId, cost) => {
+            if (stats.gold < cost) return;
+            soundFX.playKeyClick();
+            setStats((prev) => ({...prev, gold: prev.gold - cost}));
+            setShopItems((prev) =>
+                prev.map((item) =>
+                    item.id === itemId
+                        ? {...item, quantity: item.quantity + 1}
+                        : item,
+                ),
+            );
+        };
+
+        const handleSelectClass = (className, avatar) => {
+            setStats((prev) => ({...prev, characterClass: className, avatar}));
+        };
+
+        const handleAddGeneratedQuest = (newQuest) => {
+            setQuests((prev) => [newQuest, ...prev]);
+            setSelectedQuestId(newQuest.id);
+            setActiveTab("arena");
+        };
+
+        return (
+            <div className="max-w-6xl mx-auto px-3 py-4 sm:p-6 space-y-5">
+                {/* Top Header Banner: Pure HTML & CSS (No external image dependency) */}
+                <div
+                    style={{
+                        background    : "#fcf4ff",
+                        borderRadius  : "16px",
+                        padding       : "16px",
+                        textAlign     : "center",
+                        display       : "flex",
+                        flexDirection : "column",
+                        alignItems    : "center",
+                        justifyContent: "center",
+                        gap           : "8px",
+                        width         : "100%",
+                        boxSizing     : "border-box",
+                        border        : "1px solid #f0d5fa",
+                        boxShadow     : "0 2px 8px rgba(236, 72, 153, 0.05)",
+                    }}
+                >
+                    <h1
+                        style={{
+                            fontSize      : "clamp(1.5rem, 5vw, 2.5rem)",
+                            fontWeight    : "900",
+                            letterSpacing : "-0.025em",
+                            margin        : 0,
+                            lineHeight    : "1.2",
+                            fontFamily    : "monospace, system-ui, sans-serif",
+                            display       : "flex",
+                            alignItems    : "center",
+                            justifyContent: "center",
+                            gap           : "8px",
+                            flexWrap      : "nowrap",
+                        }}
+                    >
+                <span
+                    style={{WebkitTextFillColor: "initial", color: "initial"}}
+                >
+                  🐼
+                </span>
+                        <span
+                            style={{
+                                background          :
+                                    "linear-gradient(45deg, #ff595e, #ffca3a, #8ac926, #1982c4, #6a4c93)",
+                                WebkitBackgroundClip: "text",
+                                WebkitTextFillColor : "transparent",
+                                display             : "inline-block",
+                            }}
+                        >
+                  Typing Quest
+                </span>
+                        <span
+                            style={{WebkitTextFillColor: "initial", color: "initial"}}
+                        >
+                  ⌨️
+                </span>
+                    </h1>
+                    <div
+                        style={{
+                            display       : "flex",
+                            alignItems    : "center",
+                            justifyContent: "center",
+                            gap           : "6px",
+                            flexWrap      : "wrap",
+                        }}
+                    >
+                <span
+                    style={{
+                        color        : "#7c3aed",
+                        fontWeight   : "700",
+                        fontSize     : "12px",
+                        letterSpacing: "0.02em",
+                    }}
+                >
+                  {lang === "en"
+                      ? "⚡ Master Your Typing Skills"
+                      : "⚡ ฝึกพิมพ์เร็ว พัฒนาทักษะการพิมพ์ • Master Your Typing Skills"}
+                </span>
+                    </div>
+                </div>
+
+                {/* Top Navigation & Character Bar */}
+                <header className="bg-white border border-slate-200/80 rounded-3xl p-4 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
+                        <div
+                            onClick={() => setShowClassModal(true)}
+                            className="flex items-center gap-2.5 px-3 py-1.5 rounded-2xl bg-blue-50/90 border border-blue-200 text-blue-700 font-extrabold text-xs shadow-2xs cursor-pointer hover:bg-blue-100 transition group"
+                            title={
+                                lang === "en"
+                                    ? "Click to change RPG class"
+                                    : "คลิกเพื่อเปลี่ยนอาชีพ"
+                            }
+                        >
+                  <span className="text-xl leading-none group-hover:scale-110 transition-transform">
+                    {stats.avatar}
+                  </span>
+                            <span className="bg-blue-100 text-blue-800 px-2.5 py-1 rounded-xl border border-blue-200 font-bold text-xs">
+                    Lv.{stats.level} {stats.characterClass}
+                  </span>
+                        </div>
+
+                        <div className="flex items-center gap-2 md:hidden">
+                            {/* Language Switcher Mobile */}
+                            <div className="bg-slate-100 p-1 rounded-xl border border-slate-200 flex items-center gap-0.5 font-bold text-xs">
+                                <button
+                                    type="button"
+                                    onClick={() => setLang("th")}
+                                    className={`px-2 py-0.5 rounded-lg transition cursor-pointer ${
+                                        lang === "th"
+                                            ? "bg-white text-blue-700 shadow-2xs"
+                                            : "text-slate-500"
+                                    }`}
+                                >
+                                    🇹🇭
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setLang("en")}
+                                    className={`px-2 py-0.5 rounded-lg transition cursor-pointer ${
+                                        lang === "en"
+                                            ? "bg-white text-blue-700 shadow-2xs"
+                                            : "text-slate-500"
+                                    }`}
+                                >
+                                    🇬🇧
+                                </button>
+                            </div>
+                            {/* Info / Developer Button Mobile */}
+                            <button
+                                type="button"
+                                onClick={() => setShowInfoModal(true)}
+                                className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 border border-purple-200 flex items-center justify-center cursor-pointer hover:bg-purple-100 transition shadow-2xs"
+                                title={
+                                    lang === "en"
+                                        ? "About Project & Developer"
+                                        : "เกี่ยวกับโครงการและผู้พัฒนา"
+                                }
+                            >
+                                <Icon name="info" className="w-4 h-4"/>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Navigation Tabs */}
+                    <div className="flex items-center gap-1 bg-slate-100 p-1.5 rounded-2xl border border-slate-200/80 w-full md:w-auto justify-center">
+                        <button
+                            onClick={() => setActiveTab("arena")}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                                activeTab === "arena"
+                                    ? "bg-white text-blue-600 shadow-xs"
+                                    : "text-slate-600 hover:text-slate-900"
+                            }`}
+                        >
+                            <Icon name="swords" className="w-4 h-4"/>{" "}
+                            {lang === "en" ? "Typing Arena" : "สนามพิมพ์ (Arena)"}
+                        </button>
+                        <button
+                            onClick={() => setShowGmChat(true)}
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer text-slate-600 hover:text-slate-900 hover:bg-white/60"
+                        >
+                            <Icon name="bot" className="w-4 h-4 text-blue-600"/>{" "}
+                            {lang === "en" ? "Chat AI" : "Chat AI"}
+                        </button>
+                    </div>
+
+                    {/* Right Controls: Language Toggle + Info Placeholder */}
+                    <div className="hidden md:flex items-center gap-2">
+                        {/* Language Switcher 🇹🇭 / 🇬🇧 */}
+                        <div className="bg-slate-100 p-1 rounded-2xl border border-slate-200/80 flex items-center gap-1 font-bold text-xs">
+                            <button
+                                type="button"
+                                onClick={() => setLang("th")}
+                                className={`px-2.5 py-1 rounded-xl transition cursor-pointer flex items-center gap-1 ${
+                                    lang === "th"
+                                        ? "bg-white text-blue-700 shadow-2xs font-extrabold"
+                                        : "text-slate-500 hover:text-slate-800"
+                                }`}
+                            >
+                                🇹🇭 <span>TH</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setLang("en")}
+                                className={`px-2.5 py-1 rounded-xl transition cursor-pointer flex items-center gap-1 ${
+                                    lang === "en"
+                                        ? "bg-white text-blue-700 shadow-2xs font-extrabold"
+                                        : "text-slate-500 hover:text-slate-800"
+                                }`}
+                            >
+                                🇬🇧 <span>EN</span>
+                            </button>
+                        </div>
+
+                        {/* Info / Developer Button */}
+                        <button
+                            type="button"
+                            onClick={() => setShowInfoModal(true)}
+                            className="w-9 h-9 rounded-2xl bg-purple-50 text-purple-600 border border-purple-200/80 flex items-center justify-center cursor-pointer hover:bg-purple-100 transition shadow-2xs"
+                            title={
+                                lang === "en"
+                                    ? "About Project & Developer"
+                                    : "เกี่ยวกับโครงการและผู้พัฒนา"
+                            }
+                        >
+                            <Icon name="info" className="w-4 h-4"/>
+                        </button>
+                    </div>
+                </header>
+
+                {/* Quest Selector Bar */}
+                {activeTab === "arena" && (
+                    <div className="bg-white border border-slate-200/80 rounded-2xl p-3 shadow-xs flex items-center gap-2 overflow-x-auto">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider px-2 shrink-0">
+                  {lang === "en" ? "Select Quest:" : "เลือกเควส:"}
+                </span>
+                        {quests.map((q) => {
+                            const isSelected = q.id === selectedQuestId;
+                            return (
+                                <button
+                                    key={q.id}
+                                    onClick={() => setSelectedQuestId(q.id)}
+                                    className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition cursor-pointer border ${
+                                        isSelected
+                                            ? "bg-blue-50 border-blue-300 text-blue-700 shadow-2xs font-bold"
+                                            : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
+                                    }`}
+                                >
+                                    {q.enemyAvatar} {q.title}
+                                </button>
+                            );
+                        })}
+                    </div>
+                )}
+
+                {/* Tab Views */}
+                <main>
+                    {activeTab === "arena" && (
+                        <TypingArenaView
+                            quest={activeQuest}
+                            stats={stats}
+                            lang={lang}
+                            onQuestComplete={handleQuestComplete}
+                            onOpenGmChat={() => setShowGmChat(true)}
+                            onQuestRetry={() => {
+                            }}
+                        />
+                    )}
+                    {activeTab === "shop" && (
+                        <ShopView
+                            stats={stats}
+                            items={shopItems}
+                            lang={lang}
+                            onBuyItem={handleBuyItem}
+                        />
+                    )}
+                    {activeTab === "stats" && (
+                        <StatsView stats={stats} history={history} lang={lang}/>
+                    )}
+                </main>
+
+                {/* Toast Notification */}
+                {toastMessage && (
+                    <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 pointer-events-none px-4 max-w-sm w-full animate-bounce-short">
+                        <div className="bg-slate-900/95 text-white font-mono text-xs sm:text-sm font-extrabold px-4 py-3 rounded-2xl border-2 border-purple-400 shadow-2xl flex items-center justify-center gap-2.5 backdrop-blur-xs text-center">
+                            <span className="text-base shrink-0">✨</span>
+                            <span>{toastMessage}</span>
+                        </div>
+                    </div>
+                )}
+
+                {/* Modals */}
+                {showClassModal && (
+                    <ClassModal
+                        stats={stats}
+                        lang={lang}
+                        onSelectClass={handleSelectClass}
+                        onClose={() => setShowClassModal(false)}
+                    />
+                )}
+                {showGmChat && (
+                    <GmChatModal
+                        lang={lang}
+                        onGenerateQuest={handleAddGeneratedQuest}
+                        onClose={() => setShowGmChat(false)}
+                    />
+                )}
+                {showDonateModal && (
+                    <DonateModal
+                        lang={lang}
+                        onClose={() => setShowDonateModal(false)}
+                    />
+                )}
+                {showInfoModal && (
+                    <InfoModal
+                        lang={lang}
+                        onClose={() => setShowInfoModal(false)}
+                        onSelectLangMode={handleSelectLangMode}
+                    />
+                )}
+            </div>
+        );
+    }
+
+    // --- Typing Arena View Component ---
+    function shuffleSentencePairs(sentences, translations) {
+        const pairs = sentences.map((sentence, index) => ({
+            sentence,
+            translation: translations[index] || "",
+        }));
+
+        for (let index = pairs.length - 1; index > 0; index--) {
+            const swapIndex = Math.floor(Math.random() * (index + 1));
+            [pairs[index], pairs[swapIndex]] = [pairs[swapIndex], pairs[index]];
+        }
+
+        return {
+            sentences   : pairs.map((pair) => pair.sentence),
+            translations: pairs.map((pair) => pair.translation),
+        };
+    }
+
+    function getQuestSentenceSet(quest, use108Pool, shouldShuffle) {
+        const sentences = use108Pool
+            ? MASTER_SENTENCES_108.map(({sentence}) => sentence)
+            : [...(quest.sentences || [])];
+        const translations = use108Pool
+            ? MASTER_SENTENCES_108.map(({translation}) => translation)
+            : [...(quest.sentenceTranslations || [])];
+
+        return shouldShuffle && sentences.length > 1
+            ? shuffleSentencePairs(sentences, translations)
+            : {sentences, translations};
+    }
+
+    function createTranslationsMap(translations) {
+        return translations.reduce((map, translation, index) => {
+            map[index] = translation;
+            return map;
+        }, {});
+    }
+
+    function TypingArenaView({
+                                 quest,
+                                 stats,
+                                 lang,
+                                 onQuestComplete,
+                                 onOpenGmChat,
+                                 onQuestRetry,
+                             }) {
+        const isEn = lang === "en";
+        const [currentSentenceIdx, setCurrentSentenceIdx] = useState(0);
+        const [typedInput, setTypedInput] = useState("");
+        const [totalErrors, setTotalErrors] = useState(0);
+        const [totalCorrectChars, setTotalCorrectChars] = useState(0);
+        const [combo, setCombo] = useState(0);
+        const [enemyHp, setEnemyHp] = useState(quest.enemyHP);
+        const [playerHp, setPlayerHp] = useState(stats.currentHp);
+        const [startTime, setStartTime] = useState(null);
+        const [elapsedSec, setElapsedSec] = useState(0);
+        const [isCompleted, setIsCompleted] = useState(false);
+        const [isFailed, setIsFailed] = useState(false);
+        const [autoTTS, setAutoTTS] = useState(true);
+        const [sfxEnabled, setSfxEnabled] = useState(true);
+        const [soundProfile, setSoundProfile] = useState("mechanical"); // mechanical, bubble, typewriter, digital
+        const [isRandomized, setIsRandomized] = useState(false);
+        const [use108Pool, setUse108Pool] = useState(false);
+        const [activeSentences, setActiveSentences] = useState(
+            quest.sentences || [],
+        );
+        const [activeTranslations, setActiveTranslations] = useState(
+            quest.sentenceTranslations || [],
+        );
+        const [translationsMap, setTranslationsMap] = useState({});
+        const [lastCompletedSentenceToast, setLastCompletedSentenceToast] =
+                  useState(null);
+        const [selectedSlang, setSelectedSlang] = useState(null);
+        const [selectedTypo, setSelectedTypo] = useState(null);
+
+        const inputRef = useRef(null);
+        const currentSentence = activeSentences[currentSentenceIdx] || "";
+
+        const resetBattleState = useCallback(
+            (sentenceSet, playerHealth) => {
+                setActiveSentences(sentenceSet.sentences);
+                setActiveTranslations(sentenceSet.translations);
+                setTranslationsMap(createTranslationsMap(sentenceSet.translations));
+                setCurrentSentenceIdx(0);
+                setTypedInput("");
+                setTotalErrors(0);
+                setTotalCorrectChars(0);
+                setCombo(0);
+                setEnemyHp(quest.enemyHP);
+                setPlayerHp(playerHealth);
+                setStartTime(null);
+                setElapsedSec(0);
+                setIsCompleted(false);
+                setIsFailed(false);
+                setLastCompletedSentenceToast(null);
+            },
+            [quest.enemyHP],
+        );
+
+        useEffect(() => {
+            const sentenceSet = getQuestSentenceSet(
+                quest,
+                use108Pool,
+                isRandomized || use108Pool,
+            );
+            resetBattleState(sentenceSet, stats.currentHp);
+
+            if (sentenceSet.translations.length === 0) {
+                sentenceSet.sentences.forEach(async (sentence, index) => {
+                    try {
+                        const res = await fetch("/api/translate-sentence", {
+                            method : "POST",
+                            headers: {"Content-Type": "application/json"},
+                            body   : JSON.stringify({sentence}),
+                        });
+                        const data = await res.json();
+                        if (data.success && data.translation) {
+                            setTranslationsMap((prev) => ({
+                                ...prev,
+                                [index]: data.translation,
+                            }));
+                        }
+                    } catch (e) {
+                    }
+                });
+            }
+        }, [quest, isRandomized, use108Pool, resetBattleState]);
+
+        const handleReshuffleNow = () => {
+            const sentenceSet = getQuestSentenceSet(quest, use108Pool, true);
+            resetBattleState(sentenceSet, stats.currentHp);
+        };
+
+        useEffect(() => {
+            let interval;
+            if (startTime && !isCompleted && !isFailed) {
+                interval = setInterval(() => {
+                    setElapsedSec(Math.floor((Date.now() - startTime) / 1000));
+                }, 1000);
+            }
+            return () => clearInterval(interval);
+        }, [startTime, isCompleted, isFailed]);
+
+        // Auto fade-out Success Toast Notification after 3 seconds
+        useEffect(() => {
+            if (lastCompletedSentenceToast) {
+                const timer = setTimeout(() => {
+                    setLastCompletedSentenceToast(null);
+                }, 3000);
+                return () => clearTimeout(timer);
+            }
+        }, [lastCompletedSentenceToast]);
+
+        const currentWpm =
+                  elapsedSec > 0
+                      ? Math.round(totalCorrectChars / 5 / (elapsedSec / 60))
+                      : 0;
+        const totalTypedAttempts = totalCorrectChars + totalErrors;
+        const currentAccuracy =
+                  totalTypedAttempts > 0
+                      ? Math.round((totalCorrectChars / totalTypedAttempts) * 100)
+                      : 100;
+
+        const handleInputChange = (e) => {
+            if (isCompleted || isFailed) return;
+            soundFX.initCtx();
+            const val = e.target.value;
+            if (!startTime) setStartTime(Date.now());
+
+            if (val.length < typedInput.length) {
+                setTypedInput(val);
+                return;
+            }
+
+            const lastChar = val[val.length - 1];
+            const expectedChar = currentSentence[val.length - 1];
+
+            if (lastChar === expectedChar) {
+                setTotalCorrectChars((prev) => prev + 1);
+                setCombo((prev) => prev + 1);
+                setTypedInput(val);
+
+                // Check sentence completion
+                if (val === currentSentence) {
+                    soundFX.playSentenceSuccessSound();
+                    const newHp = Math.max(0, enemyHp - 30);
+                    setEnemyHp(newHp);
+
+                    if (autoTTS) speakText(currentSentence);
+
+                    const curTranslation =
+                              translationsMap[currentSentenceIdx] ||
+                              activeTranslations?.[currentSentenceIdx] ||
+                              "";
+                    const isLastSentence =
+                              currentSentenceIdx + 1 >= activeSentences.length;
+
+                    if (!isLastSentence) {
+                        setLastCompletedSentenceToast({
+                            id             : Date.now(),
+                            isQuestComplete: false,
+                            title          : isEn
+                                ? "🎉 Sentence Cleared!"
+                                : "🎉 พิมพ์ประโยคสำเร็จ!",
+                            sub            : isEn
+                                ? `+20 XP | Speed & Accuracy Bonus!`
+                                : `+20 XP | 🇹🇭 ${curTranslation || "สะสมโบนัสความเร็ว"}`,
+                            sentence       : currentSentence,
+                        });
+
+                        setTimeout(() => {
+                            setCurrentSentenceIdx((prev) => prev + 1);
+                            setTypedInput("");
+                        }, 400);
+                    } else {
+                        handleVictory(totalCorrectChars + 1, totalErrors);
+                    }
+                } else if (lastChar === " ") {
+                    soundFX.playWordSuccessSound();
+                } else {
+                    soundFX.playKeyClick(soundProfile);
+                }
+            } else {
+                soundFX.playErrorSound();
+                setTotalErrors((prev) => prev + 1);
+                setCombo(0);
+            }
+        };
+
+        const handleVictory = (
+            finalCorrect = totalCorrectChars,
+            finalErr     = totalErrors,
+        ) => {
+            setIsCompleted(true);
+            soundFX.playVictorySound();
+            const totalTime = elapsedSec > 0 ? elapsedSec : 1;
+            const finalWpm = Math.round(finalCorrect / 5 / (totalTime / 60));
+            const totalAttempts = finalCorrect + finalErr;
+            const finalAcc =
+                      totalAttempts > 0
+                          ? Math.round((finalCorrect / totalAttempts) * 100)
+                          : 100;
+
+            setLastCompletedSentenceToast({
+                id             : Date.now(),
+                isQuestComplete: true,
+                title          : isEn ? "🎉 Quest Cleared!" : "🎉 เคลียร์เควสสำเร็จ!",
+                sub            : isEn
+                    ? `+${quest.completionBonusGold} Gold | +${quest.completionBonusXP} XP | ⚡ ${finalWpm} WPM`
+                    : `+${quest.completionBonusGold} Gold | +${quest.completionBonusXP} XP | ⚡ ${finalWpm} WPM`,
+            });
+
+            onQuestComplete({
+                questId     : quest.id,
+                questTitle  : quest.title,
+                wpm         : finalWpm,
+                accuracy    : finalAcc,
+                totalChars  : finalCorrect,
+                goldEarned  : quest.completionBonusGold,
+                xpEarned    : quest.completionBonusXP,
+                totalTimeSec: totalTime,
+                timestamp   : new Date().toLocaleTimeString([], {
+                    hour  : "2-digit",
+                    minute: "2-digit",
+                }),
+            });
+        };
+
+        return (
+            <div className="space-y-5">
+                {/* Battle Arena Header: Single Ad Space #1 Banner */}
+                <div className="bg-slate-50/90 border-2 border-dashed border-slate-300 rounded-2xl p-3.5 flex flex-col items-center justify-center text-center shadow-2xs min-h-[72px] relative overflow-hidden group hover:border-blue-400 transition w-full">
+                    <div className="text-xs font-bold text-slate-600 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        [{" "}
+                        {isEn
+                            ? "Ad Space #1 - Adsterra Banner 320x50"
+                            : "พื้นที่โฆษณาที่ 1 - Adsterra Banner 320x50"}{" "}
+                        ]
+                    </div>
+                    <span className="text-[10px] text-slate-400 mt-0.5 font-mono">
+                {isEn
+                    ? "(Supported placeholder for Adsterra 320x50 / 468x60 ad banner code)"
+                    : "(พื้นที่รองรับโค้ดโฆษณา Adsterra 320x50 / 468x60)"}
+              </span>
+                </div>
+
+                {/* Translation & Audio Toolbar */}
+                <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div className="flex items-start gap-3">
+                        <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 shrink-0 mt-0.5">
+                            <Icon name="languages" className="w-5 h-5"/>
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                      {isEn
+                          ? `Typing Speed Mode (English) - Sentence ${currentSentenceIdx + 1}/${activeSentences.length}`
+                          : `คำแปลภาษาไทย (ประโยคที่ ${currentSentenceIdx + 1}/${activeSentences.length})`}
+                    </span>
+                                <span
+                                    className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${
+                                        isEn
+                                            ? "bg-blue-50 border-blue-200 text-blue-700"
+                                            : "bg-emerald-50 border-emerald-200 text-emerald-700"
+                                    }`}
+                                >
+                      {isEn ? "ENGLISH FOCUS" : "THAI TRANSLATION"}
+                    </span>
+                                {use108Pool ? (
+                                    <span className="text-[10px] px-2 py-0.5 rounded-full font-extrabold bg-amber-100 border border-amber-300 text-amber-800 animate-pulse">
+                        🌐 {isEn ? "108 SENTENCES POOL" : "คลังรวม 108 ประโยค"}
+                      </span>
+                                ) : (
+                                    isRandomized && (
+                                        <span className="text-[10px] px-2 py-0.5 rounded-full font-extrabold bg-purple-50 border border-purple-200 text-purple-700 animate-pulse">
+                          🔀 {isEn ? "RANDOM ORDER" : "สุ่มลำดับ"}
+                        </span>
+                                    )
+                                )}
+                            </div>
+                            <p className="text-sm font-semibold text-slate-800 leading-snug mt-0.5">
+                                {isEn
+                                    ? "Focus on English letter sequence & typing velocity. Thai translation hidden in EN mode."
+                                    : translationsMap[currentSentenceIdx] ||
+                                    activeTranslations?.[currentSentenceIdx] ||
+                                    "กำลังโหลดคำแปลภาษาไทย..."}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 flex-wrap">
+                        <button
+                            type="button"
+                            onClick={() => speakText(currentSentence)}
+                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs transition cursor-pointer"
+                        >
+                            <Icon name="volume" className="w-4 h-4"/>
+                            <span>{isEn ? "Listen Audio" : "ฟังเสียงอ่าน"}</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => setAutoTTS(!autoTTS)}
+                            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-semibold transition cursor-pointer ${
+                                autoTTS
+                                    ? "bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100"
+                                    : "bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100"
+                            }`}
+                        >
+                            <Icon
+                                name={autoTTS ? "volume" : "volume-x"}
+                                className="w-3.5 h-3.5"
+                            />
+                            <span>{autoTTS ? "Auto TTS: ON" : "Auto TTS: OFF"}</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => {
+                                const nextVal = !sfxEnabled;
+                                setSfxEnabled(nextVal);
+                                soundFX.enabled = nextVal;
+                            }}
+                            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-semibold transition cursor-pointer ${
+                                sfxEnabled
+                                    ? "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
+                                    : "bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100"
+                            }`}
+                            title={
+                                isEn
+                                    ? "Toggle sound effects"
+                                    : "เปิด/ปิด เสียงแจ้งเตือนการพิมพ์"
+                            }
+                        >
+                            <Icon
+                                name={sfxEnabled ? "zap" : "volume-x"}
+                                className="w-3.5 h-3.5"
+                            />
+                            <span>
+                    {sfxEnabled
+                        ? isEn
+                            ? "SFX: ON"
+                            : "เสียงแจ้งเตือน: เปิด"
+                        : isEn
+                            ? "SFX: OFF"
+                            : "เสียงแจ้งเตือน: ปิด"}
+                  </span>
+                        </button>
+
+                        {sfxEnabled && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const profiles = [
+                                        "mechanical",
+                                        "bubble",
+                                        "typewriter",
+                                        "digital",
+                                    ];
+                                    const nextIdx =
+                                              (profiles.indexOf(soundProfile) + 1) % profiles.length;
+                                    const nextProfile = profiles[nextIdx];
+                                    setSoundProfile(nextProfile);
+                                    soundFX.playKeyClick(nextProfile);
+                                }}
+                                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-sky-200 bg-sky-50 text-sky-800 hover:bg-sky-100 text-xs font-bold transition cursor-pointer shadow-2xs"
+                                title={
+                                    isEn
+                                        ? "Switch typing sound effect style"
+                                        : "เปลี่ยนสไตล์เสียงพิมพ์"
+                                }
+                            >
+                    <span>
+                      {soundProfile === "mechanical" && "⌨️ Mechanical"}
+                        {soundProfile === "bubble" && "🫧 Bubble Pop"}
+                        {soundProfile === "typewriter" && "📜 Typewriter"}
+                        {soundProfile === "digital" && "⚡ Digital Crisp"}
+                    </span>
+                            </button>
+                        )}
+
+                        <button
+                            type="button"
+                            onClick={() => setIsRandomized(!isRandomized)}
+                            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-semibold transition cursor-pointer ${
+                                isRandomized
+                                    ? "bg-purple-50 border-purple-200 text-purple-700 font-bold shadow-2xs hover:bg-purple-100"
+                                    : "bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100"
+                            }`}
+                            title={
+                                isEn
+                                    ? "Toggle random sentence order"
+                                    : "เปิด/ปิด การสุ่มลำดับประโยค"
+                            }
+                        >
+                            <Icon name="shuffle" className="w-3.5 h-3.5"/>
+                            <span>
+                    {isRandomized
+                        ? isEn
+                            ? "Random: ON"
+                            : "สุ่มประโยค: เปิด"
+                        : isEn
+                            ? "Random: OFF"
+                            : "สุ่มประโยค: ปิด"}
+                  </span>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => {
+                                const nextVal = !use108Pool;
+                                setUse108Pool(nextVal);
+                                if (nextVal) setIsRandomized(true);
+                            }}
+                            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-semibold transition cursor-pointer ${
+                                use108Pool
+                                    ? "bg-amber-100 border-amber-300 text-amber-900 font-bold shadow-2xs hover:bg-amber-200"
+                                    : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
+                            }`}
+                            title={
+                                isEn
+                                    ? "Toggle full 108 sentence pool practice"
+                                    : "เปิด/ปิด การสุ่มฝึกจากคลังรวม 108 ประโยค"
+                            }
+                        >
+                            <Icon
+                                name="sparkles"
+                                className="w-3.5 h-3.5 text-amber-600"
+                            />
+                            <span>
+                    {use108Pool
+                        ? isEn
+                            ? "108 Pool: ON"
+                            : "คลัง 108: เปิด"
+                        : isEn
+                            ? "108 Pool: OFF"
+                            : "คลัง 108: ปิด"}
+                  </span>
+                        </button>
+
+                        {(isRandomized || use108Pool) && (
+                            <button
+                                type="button"
+                                onClick={handleReshuffleNow}
+                                className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl bg-purple-100 hover:bg-purple-200 text-purple-800 font-bold text-xs transition cursor-pointer border border-purple-300 shadow-2xs"
+                                title={
+                                    isEn
+                                        ? "Reshuffle sentences now"
+                                        : "สุ่มลำดับประโยคใหม่ทันที"
+                                }
+                            >
+                                <Icon name="rotate-ccw" className="w-3.5 h-3.5"/>
+                                <span>{isEn ? "Reshuffle" : "สุ่มใหม่"}</span>
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                {/* Success Toast Notification (Auto fade-out after 3s) */}
+                {lastCompletedSentenceToast && (
+                    <div className="pointer-events-none relative z-20 w-full animate-toast-slide">
+                        <div className="pointer-events-auto bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 text-white rounded-2xl p-3.5 shadow-lg border border-emerald-300/40 flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3 min-w-0">
+                                <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center shrink-0 text-lg shadow-inner">
+                                    {lastCompletedSentenceToast.isQuestComplete ? "🏆" : "🎉"}
+                                </div>
+                                <div className="min-w-0">
+                                    <p className="font-extrabold text-sm text-white flex items-center gap-2">
+                                        <span>{lastCompletedSentenceToast.title}</span>
+                                        {lastCompletedSentenceToast.isQuestComplete && (
+                                            <span className="bg-amber-300 text-amber-950 text-[10px] px-2 py-0.5 rounded-full font-black uppercase">
+                            CLEARED
+                          </span>
+                                        )}
+                                    </p>
+                                    <p className="text-xs text-emerald-100 font-medium truncate mt-0.5">
+                                        {lastCompletedSentenceToast.sub}
+                                    </p>
+                                </div>
+                            </div>
+                            {lastCompletedSentenceToast.sentence && (
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        speakText(lastCompletedSentenceToast.sentence)
+                                    }
+                                    className="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white font-bold text-xs rounded-xl transition flex items-center gap-1.5 shrink-0 cursor-pointer backdrop-blur-xs"
+                                >
+                                    <Icon name="volume" className="w-3.5 h-3.5"/>
+                                    <span className="hidden sm:inline">
+                        {isEn ? "Listen Again" : "ฟังอีกครั้ง"}
+                      </span>
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* Interactive Typing Box */}
+                <div
+                    onClick={() => inputRef.current?.focus()}
+                    className="bg-white border-2 border-slate-300 focus-within:border-blue-500 rounded-3xl p-6 sm:p-8 shadow-sm cursor-text relative transition-all"
+                >
+                    <input
+                        ref={inputRef}
+                        type="text"
+                        value={typedInput}
+                        onFocus={() => soundFX.initCtx()}
+                        onKeyDown={() => soundFX.initCtx()}
+                        onChange={handleInputChange}
+                        className="opacity-0 absolute inset-0 w-full h-full cursor-text"
+                        autoFocus
+                    />
+
+                    <div className="font-mono text-xl sm:text-2xl leading-relaxed tracking-wide select-none break-words min-h-[72px]">
+                        {currentSentence.split("").map((char, i) => {
+                            let charClass = "text-slate-400";
+                            if (i < typedInput.length) {
+                                charClass =
+                                    typedInput[i] === char
+                                        ? "text-emerald-600 font-bold bg-emerald-50 rounded"
+                                        : "text-rose-600 font-bold bg-rose-100 rounded underline decoration-rose-500";
+                            } else if (i === typedInput.length) {
+                                charClass =
+                                    "text-blue-600 font-bold underline bg-blue-100/70 animate-pulse rounded";
+                            }
+                            return (
+                                <span key={i} className={charClass}>
+                      {char}
+                    </span>
+                            );
+                        })}
+                    </div>
+
+                    {/* Stats Bar under typing box */}
+                    <div className="mt-6 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-4 text-xs font-mono font-bold">
+                        <div className="flex items-center gap-4">
+                  <span className="text-blue-600 flex items-center gap-1">
+                    <Icon name="zap" className="w-4 h-4"/> {currentWpm} WPM
+                  </span>
+                            <span className="text-emerald-600 flex items-center gap-1">
+                    <Icon name="trophy" className="w-4 h-4"/> {currentAccuracy}
+                                % Accuracy
+                  </span>
+                            <span className="text-amber-600 flex items-center gap-1">
+                    <Icon name="flame" className="w-4 h-4"/> {combo} Combo
+                  </span>
+                        </div>
+                        <span className="text-slate-400 font-sans font-normal text-[11px]">
+                  {isEn
+                      ? "Click here to start typing immediately"
+                      : "คลิกที่นี่เพื่อเริ่มพิมพ์ได้ทันที"}
+                </span>
+                    </div>
+                </div>
+
+                {/* Virtual Keyboard */}
+                <VirtualKeyboard
+                    activeKey={currentSentence[typedInput.length] || ""}
+                    onKeyPress={(key) => {
+                        const fakeEvent = {target: {value: typedInput + key}};
+                        handleInputChange(fakeEvent);
+                    }}
+                />
+
+                {/* Slang & Typo Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs">
+                        <h4 className="font-bold text-slate-800 text-xs mb-3 flex items-center gap-2">
+                            <Icon name="book" className="w-4 h-4 text-blue-600"/>
+                            {isEn
+                                ? "Key Slang & Idioms in Quest"
+                                : "สแลง & คำศัพท์น่ารู้ประจำเควส"}
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                            {quest.slangHighlights.map((s, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => setSelectedSlang(s)}
+                                    className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold transition cursor-pointer"
+                                >
+                                    💡 {s.term}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {quest.typosToFix && quest.typosToFix.length > 0 && (
+                        <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs">
+                            <h4 className="font-bold text-slate-800 text-xs mb-3 flex items-center gap-2">
+                                <Icon
+                                    name="alert-triangle"
+                                    className="w-4 h-4 text-rose-500"
+                                />
+                                {isEn
+                                    ? "Common Misspellings to Avoid"
+                                    : "จุดสะกดผิดระวังตกม้าตาย"}
+                            </h4>
+                            <div className="flex flex-wrap gap-2">
+                                {quest.typosToFix.map((t, idx) => (
+                                    <button
+                                        key={idx}
+                                        onClick={() => setSelectedTypo(t)}
+                                        className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition cursor-pointer"
+                                    >
+                                        ⚠️ {t.wrongWord} ➔ {t.correctWord}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Slang Modal */}
+                <SlangModal
+                    slang={selectedSlang}
+                    typo={selectedTypo}
+                    onClose={() => {
+                        setSelectedSlang(null);
+                        setSelectedTypo(null);
+                    }}
+                />
+
+                {/* Victory Modal */}
+                {isCompleted && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
+                        <div className="bg-white border border-slate-200 rounded-3xl max-w-lg w-full p-6 text-center shadow-2xl relative overflow-hidden text-slate-800">
+                            <div className="w-16 h-16 bg-gradient-to-tr from-amber-400 to-yellow-300 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg text-3xl animate-bounce">
+                                🏆
+                            </div>
+                            <h3 className="text-2xl font-extrabold text-slate-900 mb-0.5">
+                                {isEn
+                                    ? "Quest Cleared Perfectly!"
+                                    : "พิมพ์สำเร็จครบทุกประโยค!"}
+                            </h3>
+                            <p className="text-xs text-slate-500 mb-5">{quest.title}</p>
+
+                            <div className="grid grid-cols-2 gap-2.5 mb-5 text-left font-mono text-xs">
+                                <div className="bg-slate-50 border border-slate-200 p-3 rounded-2xl">
+                      <span className="text-slate-500 block mb-0.5 text-[10px] uppercase font-bold">
+                        {isEn ? "Average WPM" : "WPM เฉลี่ย"}
+                      </span>
+                                    <span className="text-lg font-extrabold text-blue-600">
+                        {currentWpm} WPM
+                      </span>
+                                </div>
+                                <div className="bg-slate-50 border border-slate-200 p-3 rounded-2xl">
+                      <span className="text-slate-500 block mb-0.5 text-[10px] uppercase font-bold">
+                        {isEn ? "Accuracy Rate" : "ความแม่นยำ"}
+                      </span>
+                                    <span className="text-lg font-extrabold text-emerald-600">
+                        {currentAccuracy}%
+                      </span>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-2.5">
+                                <button
+                                    onClick={() =>
+                                        resetBattleState(
+                                            {
+                                                sentences   : activeSentences,
+                                                translations: activeTranslations,
+                                            },
+                                            stats.currentHp,
+                                        )
+                                    }
+                                    className="flex-1 py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
+                                >
+                                    {isEn ? "Replay Quest" : "เล่นซ้ำอีกรอบ"}
+                                </button>
+                                <button
+                                    onClick={onOpenGmChat}
+                                    className="flex-1 py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition shadow-md shadow-blue-600/20 cursor-pointer"
+                                >
+                                    {isEn ? "Request AI Quest" : "ขอเควสใหม่จาก AI GM"}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+    }
+
+    // --- Shop View Component ---
+    function ShopView({stats, items, lang, onBuyItem}) {
+        const isEn = lang === "en";
+        return (
+            <div className="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-xs space-y-6">
+                <div className="flex justify-between items-center border-b border-slate-200 pb-4">
+                    <div>
+                        <h2 className="font-bold text-lg text-slate-900">
+                            {isEn
+                                ? "RPG Armory & Item Shop"
+                                : "ร้านค้าไอเทม (RPG Armory)"}
+                        </h2>
+                        <p className="text-xs text-slate-500">
+                            {isEn
+                                ? "Purchase health potions and gold multiplier buffs"
+                                : "ซื้อไอเทมฟื้นฟู HP และเพิ่มโบนัสเหรียญ Gold"}
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 px-4 py-2 rounded-2xl text-amber-800 font-mono font-bold text-sm">
+                        <Icon name="coins" className="w-5 h-5 text-amber-500"/>
+                        <span>{stats.gold} Gold</span>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {items.map((item) => {
+                        const canAfford = stats.gold >= item.cost;
+                        const itemName = isEn && item.nameEn ? item.nameEn : item.name;
+                        const itemDesc =
+                                  isEn && item.descriptionEn
+                                      ? item.descriptionEn
+                                      : item.description;
+
+                        return (
+                            <div
+                                key={item.id}
+                                className="bg-slate-50 border border-slate-200/80 hover:border-amber-400 rounded-2xl p-5 flex flex-col justify-between transition shadow-xs"
+                            >
+                                <div>
+                                    <div className="flex items-center justify-between mb-3">
+                        <span className="text-3xl bg-white p-2.5 rounded-2xl border border-slate-200 shadow-xs">
+                          {item.icon}
+                        </span>
+                                        <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-white border border-slate-200 text-slate-600">
+                          {isEn
+                              ? `Owned: ${item.quantity}`
+                              : `มีในคลัง: ${item.quantity}`}
+                        </span>
+                                    </div>
+                                    <h3 className="font-bold text-slate-900 text-sm mb-1">
+                                        {itemName}
+                                    </h3>
+                                    <p className="text-xs text-slate-500 leading-relaxed mb-4">
+                                        {itemDesc}
+                                    </p>
+                                </div>
+                                <div className="pt-3 border-t border-slate-200 flex items-center justify-between">
+                      <span className="text-amber-600 font-mono font-bold text-sm flex items-center gap-1">
+                        <Icon name="coins" className="w-4 h-4 text-amber-500"/>{" "}
+                          {item.cost}
+                      </span>
+                                    <button
+                                        onClick={() =>
+                                            canAfford && onBuyItem(item.id, item.cost)
+                                        }
+                                        disabled={!canAfford}
+                                        className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
+                                            canAfford
+                                                ? "bg-amber-600 hover:bg-amber-700 text-white shadow-xs"
+                                                : "bg-slate-200 text-slate-400 cursor-not-allowed"
+                                        }`}
+                                    >
+                                        <Icon name="bag" className="w-3.5 h-3.5"/>{" "}
+                                        {isEn ? "Buy Item" : "ซื้อไอเทม"}
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    }
+
+    // --- Stats View Component ---
+    function StatsView({stats, history, lang}) {
+        const isEn = lang === "en";
+        return (
+            <div className="space-y-6">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="bg-white border border-slate-200/80 p-4 rounded-2xl shadow-xs">
+                        <div className="flex items-center gap-2 text-xs font-semibold text-blue-600 mb-1">
+                            <Icon name="zap" className="w-4 h-4"/> Average WPM
+                        </div>
+                        <span className="text-2xl font-bold font-mono text-slate-900">
+                  {stats.wpm}
+                </span>
+                    </div>
+                    <div className="bg-white border border-slate-200/80 p-4 rounded-2xl shadow-xs">
+                        <div className="flex items-center gap-2 text-xs font-semibold text-emerald-600 mb-1">
+                            <Icon name="trophy" className="w-4 h-4"/> Accuracy Rate
+                        </div>
+                        <span className="text-2xl font-bold font-mono text-slate-900">
+                  {stats.accuracy}%
+                </span>
+                    </div>
+                    <div className="bg-white border border-slate-200/80 p-4 rounded-2xl shadow-xs">
+                        <div className="flex items-center gap-2 text-xs font-semibold text-amber-600 mb-1">
+                            <Icon name="award" className="w-4 h-4"/> Quests Cleared
+                        </div>
+                        <span className="text-2xl font-bold font-mono text-slate-900">
+                  {stats.completedQuestsCount}
+                </span>
+                    </div>
+                    <div className="bg-white border border-slate-200/80 p-4 rounded-2xl shadow-xs">
+                        <div className="flex items-center gap-2 text-xs font-semibold text-rose-600 mb-1">
+                            <Icon name="shield" className="w-4 h-4"/> Total Typed
+                        </div>
+                        <span className="text-2xl font-bold font-mono text-slate-900">
+                  {stats.totalTypedChars}
+                </span>
+                    </div>
+                </div>
+
+                <div className="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-xs">
+                    <h3 className="font-bold text-slate-900 text-sm mb-4 flex items-center gap-2">
+                        <Icon name="history" className="w-4 h-4 text-blue-600"/>
+                        {isEn
+                            ? "Recent Battle & Typing History (Battle Logs)"
+                            : "ประวัติการต่อสู้พิมพ์ล่าสุด (Battle Logs)"}
+                    </h3>
+                    {history.length === 0 ? (
+                        <p className="text-xs text-slate-400 italic py-6 text-center">
+                            {isEn
+                                ? "No battle logs recorded yet. Start your first quest!"
+                                : "ยังไม่มีประวัติการพิมพ์ เริ่มต้นพิมพ์เควสแรกได้เลย!"}
+                        </p>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse text-xs">
+                                <thead>
+                                <tr className="border-b border-slate-200 text-slate-500 font-mono uppercase">
+                                    <th className="py-2.5 px-3 font-semibold">
+                                        {isEn ? "Quest" : "เควส"}
+                                    </th>
+                                    <th className="py-2.5 px-3 font-semibold">WPM</th>
+                                    <th className="py-2.5 px-3 font-semibold">
+                                        {isEn ? "Accuracy" : "ความแม่นยำ"}
+                                    </th>
+                                    <th className="py-2.5 px-3 font-semibold">
+                                        {isEn ? "Duration" : "เวลาที่ใช้"}
+                                    </th>
+                                    <th className="py-2.5 px-3 font-semibold">Gold</th>
+                                    <th className="py-2.5 px-3 font-semibold">
+                                        {isEn ? "Time" : "เวลา"}
+                                    </th>
+                                </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100 font-mono">
+                                {history.map((h, idx) => (
+                                    <tr key={idx} className="hover:bg-slate-50 transition">
+                                        <td className="py-3 px-3 font-sans font-medium text-slate-800">
+                                            {h.questTitle}
+                                        </td>
+                                        <td className="py-3 px-3 text-blue-600 font-bold">
+                                            {h.wpm} WPM
+                                        </td>
+                                        <td className="py-3 px-3 text-emerald-600 font-bold">
+                                            {h.accuracy}%
+                                        </td>
+                                        <td className="py-3 px-3 text-slate-500">
+                                            {h.totalTimeSec}s
+                                        </td>
+                                        <td className="py-3 px-3 text-amber-600 font-bold">
+                                            +{h.goldEarned}
+                                        </td>
+                                        <td className="py-3 px-3 text-slate-400 text-[10px]">
+                                            {h.timestamp}
+                                        </td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    }
+
+    // --- Class Selector Modal ---
+    function ClassModal({stats, lang, onSelectClass, onClose}) {
+        const isEn = lang === "en";
+        return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fade-in">
+                <div className="bg-white border border-slate-200 rounded-3xl max-w-xl w-full p-6 shadow-xl relative text-slate-800">
+                    <button
+                        onClick={onClose}
+                        className="absolute top-4 right-4 p-2 rounded-full bg-slate-100 text-slate-500 hover:text-slate-800 transition cursor-pointer"
+                    >
+                        <Icon name="x" className="w-5 h-5"/>
+                    </button>
+                    <h3 className="text-xl font-bold flex items-center gap-2 mb-1 text-slate-900">
+                        <Icon name="user" className="w-5 h-5 text-blue-600"/>{" "}
+                        {isEn ? "Select RPG Class" : "เลือกอาชีพประจำตัว (RPG Class)"}
+                    </h3>
+                    <p className="text-xs text-slate-500 mb-5">
+                        {isEn
+                            ? "Choose your preferred character archetype. Each class unlocks special typing perks and battle bonuses."
+                            : "เลือกสายอาชีพที่คุณชื่นชอบ แต่ละอาชีพมีสกิลและโบนัสพิเศษเฉพาะตัว"}
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {CLASSES.map((cls) => {
+                            const isSelected = stats.characterClass === cls.name;
+                            return (
+                                <div
+                                    key={cls.id}
+                                    onClick={() => {
+                                        onSelectClass(cls.name, cls.avatar);
+                                        onClose();
+                                    }}
+                                    className={`p-4 rounded-2xl border cursor-pointer transition flex flex-col justify-between ${
+                                        isSelected
+                                            ? "bg-blue-50/50 border-blue-500 ring-2 ring-blue-500/20 shadow-xs"
+                                            : "bg-slate-50 border-slate-200/80 hover:border-blue-300"
+                                    }`}
+                                >
+                                    <div>
+                                        <div className="flex items-center gap-3 mb-2">
+                          <span className="text-3xl bg-white p-2 rounded-xl border border-slate-200 shadow-xs">
+                            {cls.avatar}
+                          </span>
+                                            <div>
+                                                <h4 className="font-bold text-sm text-slate-900">
+                                                    {cls.name}
+                                                </h4>
+                                                {isSelected && (
+                                                    <span className="text-[10px] text-blue-600 font-bold uppercase">
+                                {isEn ? "Current Class" : "อาชีพปัจจุบัน"}
+                              </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <p className="text-xs text-slate-500 leading-relaxed mb-3">
+                                            {cls.desc}
+                                        </p>
+                                    </div>
+                                    <div className="bg-indigo-50 border border-indigo-200/80 p-2 rounded-xl text-[11px] text-indigo-900 font-medium flex items-center gap-1.5">
+                                        <Icon
+                                            name="sparkles"
+                                            className="w-3.5 h-3.5 text-amber-500 shrink-0"
+                                        />
+                                        <span>{cls.perk}</span>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // --- AI Chatbot Modal with Persona Selection ---
+    function GmChatModal({lang, onGenerateQuest, onClose}) {
+        const isEn = lang === "en";
+        const [activePersona, setActivePersona] = useState("gm"); // 'gm', 'girlfriend', 'bestie'
+        const [messages, setMessages] = useState([
+            {
+                sender : "bot",
+                persona: "gm",
+                text   : isEn
+                    ? "Greetings adventurer! 🎮 I'm your AI Game Master for English typing dungeons. What quest or slang topic shall we build today?"
+                    : "สวัสดีนักเดินทาง! 🎮 ข้าคือ AI Game Master ประจำดันเจี้ยนภาษาอังกฤษ อยากให้ข้าสร้างเควสพิมพ์สแลงประเภทไหนบอกได้เลย!",
+            },
+        ]);
+        const [inputMsg, setInputMsg] = useState("");
+        const [loading, setLoading] = useState(false);
+
+        const personas = [
+            {
+                id         : "gm",
+                name       : isEn ? "AI Game Master" : "AI Game Master",
+                icon       : "🎮",
+                subtitle   : isEn
+                    ? "Dungeon quests & typing battles"
+                    : "เน้นสร้างเควสลุยดันเจี้ยน",
+                badgeBg    : "bg-blue-50 border-blue-200 text-blue-700",
+                headerBg   : "bg-blue-600",
+                bgActive   : "bg-blue-600 text-white shadow-sm border-blue-600",
+                bgInactive :
+                    "bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200",
+                greeting   : isEn
+                    ? "Greetings adventurer! 🎮 I'm your AI Game Master for English typing dungeons. Tell me what quest topic you'd like to conquer!"
+                    : "สวัสดีนักเดินทาง! 🎮 ข้าคือ AI Game Master ประจำดันเจี้ยนภาษาอังกฤษ อยากให้ข้าสร้างเควสพิมพ์สแลงประเภทไหนบอกได้เลย!",
+                placeholder: isEn
+                    ? "Ask AI GM or generate a new quest..."
+                    : "ถาม AI GM หรือสั่งสร้างเควสลุยดันเจี้ยน...",
+            },
+            {
+                id         : "girlfriend",
+                name       : isEn ? "Girlfriend (Cute Tutor)" : "แฟนสาว (Girlfriend)",
+                icon       : "💖",
+                subtitle   : isEn
+                    ? "Sweet encouraging chats & cute English vocab"
+                    : "เน้นคุยอ้อน ให้กำลังใจ & ติวคำศัพท์",
+                badgeBg    : "bg-pink-50 border-pink-200 text-pink-700",
+                headerBg   : "bg-pink-500",
+                bgActive   : "bg-pink-500 text-white shadow-sm border-pink-500",
+                bgInactive :
+                    "bg-pink-50/70 hover:bg-pink-100 text-pink-800 border-pink-200",
+                greeting   : isEn
+                    ? "Hey sweetie! 💕 Are you feeling tired today? Want to chat or learn cute English phrases together? I'm always here for you! 🥰"
+                    : "เค้ามาแล้วค่ะตัวเอง! 💕 วันนี้เหนื่อยไหมคะ? อยากคุยเล่น หรืออยากให้เค้าช่วยติวศัพท์ภาษาอังกฤษหวานๆ คำไหน บอกเค้าได้เลยน้าา 🥰",
+                placeholder: isEn
+                    ? "Message your girlfriend or ask for sweet words..."
+                    : "ทักแฟนสาว หรือชวนคุยอ้อนๆ...",
+            },
+            {
+                id         : "bestie",
+                name       : isEn ? "Bestie (Gen-Z Buddy)" : "เพื่อนสนิท (Bestie)",
+                icon       : "👫",
+                subtitle   : isEn
+                    ? "Banters, slang & Gen-Z vibes"
+                    : "เน้นคุยเล่นกวนๆ & สแลง Gen-Z",
+                badgeBg    : "bg-amber-50 border-amber-200 text-amber-800",
+                headerBg   : "bg-amber-500",
+                bgActive   : "bg-amber-500 text-white shadow-sm border-amber-500",
+                bgInactive :
+                    "bg-amber-50/70 hover:bg-amber-100 text-amber-900 border-amber-200",
+                greeting   : isEn
+                    ? "Yo bro! 😎 Ready to level up your English typing or drop some fresh Gen-Z slang? Let's get it, no cap fr fr! 🔥"
+                    : "ว่าไงมึง! 😎 วันนี้มีอะไรให้กูช่วยติวภาษาอังกฤษป่าววะ? หรือจะมาคุยเล่นกวนๆ จัดมาเลยเพื่อน! No cap fr fr 🔥",
+                placeholder: isEn
+                    ? "Talk to your bestie or learn Gen-Z slang..."
+                    : "ทักเพื่อนสนิท หรือชวนคุยเล่นกวนๆ...",
+            },
+        ];
+
+        const currentPersonaConfig =
+                  personas.find((p) => p.id === activePersona) || personas[0];
+
+        const handleSelectPersona = (personaId) => {
+            if (personaId === activePersona) return;
+            setActivePersona(personaId);
+            const targetP = personas.find((p) => p.id === personaId);
+            if (targetP) {
+                setMessages((prev) => [
+                    ...prev,
+                    {
+                        sender: "system",
+                        text  : isEn
+                            ? `--- Switched Role to ${targetP.icon} ${targetP.name} ---`
+                            : `--- เปลี่ยนบทบาทเป็น ${targetP.icon} ${targetP.name} ---`,
+                    },
+                    {
+                        sender : "bot",
+                        persona: personaId,
+                        text   : targetP.greeting,
+                    },
+                ]);
+            }
+        };
+
+        const getPersonaMockReply = (personaId, text) => {
+            const lower = text.toLowerCase().trim();
+
+            if (
+                personaId === "girlfriend" ||
+                lower.includes("แฟน") ||
+                lower.includes("gf") ||
+                lower.includes("girlfriend")
+            ) {
+                if (
+                    lower.includes("hello") ||
+                    lower.includes("hi") ||
+                    lower.includes("หวัดดี") ||
+                    lower.includes("สวัสดี")
+                ) {
+                    return isEn
+                        ? "Hey sweetie! 💕 I missed you so much! How's your English typing going today? You're doing amazing! 🥰"
+                        : "หวัดดีค่ะตัวเอง! 💕 คิดถึงเค้าอยู่พอดีเลย~ วันนี้เรียนพิมพ์ภาษาอังกฤษไปถึงไหนแล้วคะ? 'I missed you so much!' (คิดถึงตัวเองมากๆ เลยน้าา 🥰)";
+                }
+                if (
+                    lower.includes("vocab") ||
+                    lower.includes("learn") ||
+                    lower.includes("สอน") ||
+                    lower.includes("คำ")
+                ) {
+                    return isEn
+                        ? "Of course honey! 💕 Here's a cute phrase for you: 'You make my heart skip a beat!' (You make me super happy!). Sweet, right? 💖"
+                        : "ได้เลยค่ะตัวเอง! 💕 เค้าขอเสนอคำว่า 'Sweetheart' (หวานใจ) กับ 'You make my heart skip a beat' (ตัวเองทำให้เค้าหัวใจเต้นผิดจังหวะเลยน้า) 💖 น่ารักไหมคะ?";
+                }
+                return isEn
+                    ? "Aww you're the sweetest! 💕 I'll always be right here cheering for you! 'I'm always here for you!' 🥰"
+                    : "น่ารักที่สุดเลยค่ะตัวเอง~ 💕 เค้าพร้อมคุยและคอยอยู่ข้างๆ ให้กำลังใจตัวเองเสมอเลยน้า 'I'm always here for you!' 🥰";
+            }
+
+            if (
+                personaId === "bestie" ||
+                lower.includes("เพื่อน") ||
+                lower.includes("bestie") ||
+                lower.includes("bro")
+            ) {
+                if (
+                    lower.includes("hello") ||
+                    lower.includes("hi") ||
+                    lower.includes("หวัดดี") ||
+                    lower.includes("สวัสดี")
+                ) {
+                    return isEn
+                        ? "What's popping bro! 😎 Ready to crush some WPM records today? Let me know if you need any slick slang!"
+                        : "เฮ้ยว่าไงมึง! 😎 ช่วงนี้เป็นไงบ้างวะ? 'What's popping, bro?' แปลว่า มีไรเด็ดๆ ป่าวเพื่อน! มาฝึกพิมพ์ภาษาอังกฤษกับกูก่อนเร็ว!";
+                }
+                return isEn
+                    ? "That's hilarious fr fr! 😂 Keep grinding bro, you're becoming a legendary typist! 🔥"
+                    : "5555 โคตรปั่นเลยมึง! 😂 'That's so hilarious fr!' (โคตรฮาเรื่องจริงว่ะเพื่อน) คุยกับมึงละบันเทิงจริง!";
+            }
+
+            // Default GM
+            return isEn
+                ? "Greetings adventurer! 🎮 Ready to tackle new typing quests or ask about English idioms? Let's conquer the boss!"
+                : "สวัสดีนักเดินทาง! 🎮 ข้าพร้อมนำทางในดันเจี้ยนฝึกพิมพ์ภาษาอังกฤษ ขอเควสใหม่หรือถามสแลงที่สงสัยได้เลย!";
+        };
+
+        const handleSend = async (customPrompt) => {
+            const msgToSend = customPrompt || inputMsg;
+            if (!msgToSend.trim()) return;
+
+            let currentPersona = activePersona;
+            const lower = msgToSend.toLowerCase();
+            if (lower.includes("ทักแฟนสาว") || lower.includes("girlfriend")) {
+                currentPersona = "girlfriend";
+                setActivePersona("girlfriend");
+            } else if (lower.includes("ทักเพื่อน") || lower.includes("bestie")) {
+                currentPersona = "bestie";
+                setActivePersona("bestie");
+            }
+
+            const newMsgs = [...messages, {sender: "user", text: msgToSend}];
+            setMessages(newMsgs);
+            if (!customPrompt) setInputMsg("");
+            setLoading(true);
+
+            try {
+                const res = await fetch("/api/gm/chat", {
+                    method : "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body   : JSON.stringify({
+                        message : msgToSend,
+                        messages: newMsgs,
+                        persona : currentPersona,
+                        lang    : lang || "th",
+                    }),
+                });
+                const data = await res.json();
+                if (data.reply) {
+                    setMessages((prev) => [
+                        ...prev,
+                        {sender: "bot", persona: currentPersona, text: data.reply},
+                    ]);
+                } else {
+                    const mockReply = getPersonaMockReply(currentPersona, msgToSend);
+                    setMessages((prev) => [
+                        ...prev,
+                        {sender: "bot", persona: currentPersona, text: mockReply},
+                    ]);
+                }
+            } catch (e) {
+                const mockReply = getPersonaMockReply(currentPersona, msgToSend);
+                setMessages((prev) => [
+                    ...prev,
+                    {sender: "bot", persona: currentPersona, text: mockReply},
+                ]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        const handleBuildCustomQuest = async (topic) => {
+            try {
+                const res = await fetch("/api/gm/generate-quest", {
+                    method : "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body   : JSON.stringify({topic}),
+                });
+                const data = await res.json();
+                if (data.quest) {
+                    onGenerateQuest(data.quest);
+                    onClose();
+                }
+            } catch (e) {
+                const localQuest = {
+                    id                  : "quest_ai_" + Date.now(),
+                    title               : `เควสพิเศษ: ${topic}`,
+                    category            : topic,
+                    difficultyLabel     : "Medium",
+                    description         : `เควสที่สร้างขึ้นเป็นพิเศษในหัวข้อ ${topic}`,
+                    sentences           : [
+                        "Honestly, this AI generated typing quest is lowkey legendary.",
+                        "Let's level up our English vocabulary and defeat the boss together!",
+                        "No cap, typing fast while learning slang is the ultimate combo.",
+                    ],
+                    sentenceTranslations: [
+                        "เอาตรงๆ นะ เควสพิมพ์ที่ AI สร้างขึ้นอันนี้คือโคตรจะตำนานเลย",
+                        "มาอัปเลเวลคลังคำศัพท์ภาษาอังกฤษและปราบบอสไปด้วยกันเถอะ!",
+                        "ไม่ได้โม้เลย การพิมพ์เร็วพร้อมเรียนรู้คำสแลงคือคอมโบที่เลอค่าที่สุด",
+                    ],
+                    slangHighlights     : [
+                        {
+                            term        : "legendary",
+                            meaningThai : "เก่งระดับตำนาน / สุดยอดมากๆ",
+                            exampleUsage: "That play was legendary!",
+                        },
+                    ],
+                    completionBonusGold : 100,
+                    completionBonusXP   : 200,
+                    enemyName           : "AI Cyber Sprite",
+                    enemyAvatar         : "🤖",
+                    enemyHP             : 110,
+                    maxEnemyHP          : 110,
+                    targetWpm           : 35,
+                };
+                onGenerateQuest(localQuest);
+                onClose();
+            }
+        };
+
+        // ฟังก์ชันจัดการเมื่อคลิกเลือกธีม
+        function selectTheme(event, themeName) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            // ป้องกันการกดซ้ำขณะรอ AI ตอบ
+            if (window.isAITyping || loading) return;
+
+            // 1. แสดงข้อความของ User ในช่อง Chat
+            setMessages((prev) => [
+                ...prev,
+                {sender: "user", text: `เลือก ${themeName}`},
+            ]);
+
+            // 2. ล็อกสถานะรอ AI
+            window.isAITyping = true;
+            setLoading(true);
+
+            // 3. ส่งคำสั่งไปยัง AI (จำลองหรือต่อ API จริง)
+            handleBuildCustomQuest(themeName).finally(() => {
+                window.isAITyping = false;
+                setLoading(false);
+            });
+        }
+
+        return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fade-in">
+                <div className="bg-white border border-slate-200 rounded-3xl max-w-xl w-full p-5 sm:p-6 shadow-xl relative flex flex-col h-[580px]">
+                    {/* Close Button */}
+                    <button
+                        onClick={onClose}
+                        className="absolute top-4 right-4 p-2 rounded-full bg-slate-100 text-slate-500 hover:text-slate-800 transition cursor-pointer z-10"
+                    >
+                        <Icon name="x" className="w-5 h-5"/>
+                    </button>
+
+                    {/* Chat Header */}
+                    <div className="flex items-center gap-3 pb-3 border-b border-slate-200 pr-10">
+                        <div
+                            className={`w-10 h-10 rounded-2xl text-white flex items-center justify-center font-bold text-xl shadow-xs transition-all ${currentPersonaConfig.headerBg}`}
+                        >
+                            {currentPersonaConfig.icon}
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
+                                <span>{currentPersonaConfig.name}</span>
+                                <span
+                                    className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${currentPersonaConfig.badgeBg}`}
+                                >
+                      {currentPersonaConfig.icon} Active
+                    </span>
+                            </h3>
+                            <p className="text-xs text-slate-500">
+                                {currentPersonaConfig.subtitle}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Role Selection Bar */}
+                    <div className="mt-3 pt-1">
+                        <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                            <Icon
+                                name="sparkles"
+                                className="w-3.5 h-3.5 text-amber-500"
+                            />{" "}
+                            เลือกบทบาท AI (Role Selection):
+                        </div>
+                        <div className="grid grid-cols-3 gap-2">
+                            {personas.map((p) => {
+                                const isSelected = p.id === activePersona;
+                                return (
+                                    <button
+                                        key={p.id}
+                                        type="button"
+                                        onClick={() => handleSelectPersona(p.id)}
+                                        className={`p-2 rounded-2xl border text-left transition cursor-pointer flex flex-col justify-between ${
+                                            isSelected
+                                                ? p.bgActive + " ring-2 ring-blue-400/50 shadow-sm"
+                                                : p.bgInactive
+                                        }`}
+                                    >
+                                        <div className="flex items-center gap-1.5 font-bold text-xs truncate">
+                                            <span>{p.icon}</span>
+                                            <span className="truncate">{p.name}</span>
+                                        </div>
+                                        <span className="text-[10px] block mt-0.5 opacity-80 truncate font-medium">
+                          {p.subtitle}
+                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Message List */}
+                    <div className="flex-1 overflow-y-auto my-3 space-y-2.5 pr-1 text-xs">
+                        {messages.map((m, idx) => {
+                            if (m.sender === "system") {
+                                return (
+                                    <div key={idx} className="text-center my-2">
+                        <span className="text-[11px] bg-slate-100 text-slate-600 px-3 py-1 rounded-full border border-slate-200 font-medium shadow-2xs">
+                          {m.text}
+                        </span>
+                                    </div>
+                                );
+                            }
+
+                            const isUser = m.sender === "user";
+                            const msgPersona = m.persona || activePersona;
+                            const personaObj =
+                                      personas.find((p) => p.id === msgPersona) ||
+                                      currentPersonaConfig;
+
+                            return (
+                                <div
+                                    key={idx}
+                                    className={`flex ${isUser ? "justify-end" : "justify-start"} items-start gap-2`}
+                                >
+                                    {!isUser && (
+                                        <div className="w-7 h-7 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-sm shrink-0 mt-0.5 shadow-2xs">
+                                            {personaObj.icon}
+                                        </div>
+                                    )}
+                                    <div
+                                        className={`max-w-[80%] p-3 rounded-2xl leading-relaxed ${
+                                            isUser
+                                                ? "bg-blue-600 text-white rounded-br-none shadow-xs"
+                                                : msgPersona === "girlfriend"
+                                                    ? "bg-pink-50 text-pink-950 border border-pink-200 rounded-bl-none shadow-xs font-medium"
+                                                    : msgPersona === "bestie"
+                                                        ? "bg-amber-50 text-amber-950 border border-amber-200 rounded-bl-none shadow-xs font-medium"
+                                                        : "bg-slate-100 text-slate-800 border border-slate-200/80 rounded-bl-none shadow-2xs"
+                                        }`}
+                                    >
+                                        {m.text}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                        {loading && (
+                            <div className="flex items-center gap-2 text-slate-400 italic text-center justify-center py-2">
+                                <span className="animate-spin">✨</span>{" "}
+                                {currentPersonaConfig.name} กำลังพิมพ์คำตอบ...
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Footer Quick Prompts & Input */}
+                    <div className="space-y-2.5">
+                        {/* Persona-specific quick suggestion pills */}
+                        <div className="flex flex-wrap gap-1.5">
+                            {activePersona === "gm" && (
+                                <>
+                                    <button
+                                        onClick={(e) =>
+                                            selectTheme(e, "Gaming & Esports Slang")
+                                        }
+                                        className="text-[11px] bg-blue-50 hover:bg-blue-100 text-blue-700 px-2.5 py-1 rounded-xl border border-blue-200 font-medium cursor-pointer"
+                                    >
+                                        🎮 ธีม Gaming & Esports
+                                    </button>
+                                    <button
+                                        onClick={(e) =>
+                                            selectTheme(e, "Hollywood Movies & Pop Culture")
+                                        }
+                                        className="text-[11px] bg-purple-50 hover:bg-purple-100 text-purple-700 px-2.5 py-1 rounded-xl border border-purple-200 font-medium cursor-pointer"
+                                    >
+                                        🎬 ธีม หนังฮอลลีวูด
+                                    </button>
+                                    <button
+                                        onClick={(e) =>
+                                            selectTheme(e, "Travel & Flight Booking")
+                                        }
+                                        className="text-[11px] bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-xl border border-emerald-200 font-medium cursor-pointer"
+                                    >
+                                        ✈️ ธีม ท่องเที่ยวต่างประเทศ
+                                    </button>
+                                </>
+                            )}
+                            {activePersona === "girlfriend" && (
+                                <>
+                                    <button
+                                        onClick={() => handleSend("ทักแฟนสาว")}
+                                        className="text-[11px] bg-pink-50 hover:bg-pink-100 text-pink-700 px-2.5 py-1 rounded-xl border border-pink-200 font-medium cursor-pointer"
+                                    >
+                                        💖 ทักแฟนสาว
+                                    </button>
+                                    <button
+                                        onClick={() =>
+                                            handleSend("สอนคำศัพท์ภาษาอังกฤษน่ารักๆ หน่อยค่ะ")
+                                        }
+                                        className="text-[11px] bg-pink-50 hover:bg-pink-100 text-pink-700 px-2.5 py-1 rounded-xl border border-pink-200 font-medium cursor-pointer"
+                                    >
+                                        💕 สอนคำศัพท์ภาษาอังกฤษน่ารักๆ
+                                    </button>
+                                    <button
+                                        onClick={() => handleSend("ขอคำให้กำลังใจหน่อยค่ะ")}
+                                        className="text-[11px] bg-pink-50 hover:bg-pink-100 text-pink-700 px-2.5 py-1 rounded-xl border border-pink-200 font-medium cursor-pointer"
+                                    >
+                                        🌸 ขอคำให้กำลังใจหน่อยน้า
+                                    </button>
+                                </>
+                            )}
+                            {activePersona === "bestie" && (
+                                <>
+                                    <button
+                                        onClick={() => handleSend("ทักเพื่อนสนิท")}
+                                        className="text-[11px] bg-amber-50 hover:bg-amber-100 text-amber-800 px-2.5 py-1 rounded-xl border border-amber-200 font-medium cursor-pointer"
+                                    >
+                                        👫 ทักเพื่อนสนิท
+                                    </button>
+                                    <button
+                                        onClick={() =>
+                                            handleSend("สอนสแลงวัยรุ่น Gen-Z กวนๆ หน่อยเพื่อน")
+                                        }
+                                        className="text-[11px] bg-amber-50 hover:bg-amber-100 text-amber-800 px-2.5 py-1 rounded-xl border border-amber-200 font-medium cursor-pointer"
+                                    >
+                                        🔥 สอนสแลง Gen-Z กวนๆ
+                                    </button>
+                                    <button
+                                        onClick={() => handleSend("ขอคำศัพท์ไว้ขิงเพื่อน")}
+                                        className="text-[11px] bg-amber-50 hover:bg-amber-100 text-amber-800 px-2.5 py-1 rounded-xl border border-amber-200 font-medium cursor-pointer"
+                                    >
+                                        😂 ขอคำศัพท์ไว้ขิงเพื่อน
+                                    </button>
+                                </>
+                            )}
+                        </div>
+
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                value={inputMsg}
+                                onChange={(e) => setInputMsg(e.target.value)}
+                                onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                                placeholder={currentPersonaConfig.placeholder}
+                                className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-blue-500"
+                            />
+                            <button
+                                onClick={() => handleSend()}
+                                className={`text-white px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer shadow-xs ${
+                                    activePersona === "girlfriend"
+                                        ? "bg-pink-500 hover:bg-pink-600"
+                                        : activePersona === "bestie"
+                                            ? "bg-amber-500 hover:bg-amber-600"
+                                            : "bg-blue-600 hover:bg-blue-700"
+                                }`}
+                            >
+                                <Icon name="send" className="w-3.5 h-3.5"/> ส่ง
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // --- Virtual Keyboard ---
+    function VirtualKeyboard({activeKey, onKeyPress}) {
+        const rows = [
+            ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
+            ["a", "s", "d", "f", "g", "h", "j", "k", "l"],
+            ["z", "x", "c", "v", "b", "n", "m"],
+            ["Space"],
+        ];
+        const normalizedTarget =
+                  activeKey === " "
+                      ? "Space"
+                      : activeKey
+                          ? activeKey.toLowerCase()
+                          : "";
+
+        return (
+            <div className="bg-slate-100 border border-slate-200/80 rounded-2xl p-3 sm:p-4 shadow-xs max-w-2xl mx-auto my-2">
+                <div className="text-[11px] font-medium text-slate-500 mb-2 flex justify-between items-center px-1">
+              <span>
+                ⌨️ แป้นพิมพ์เสมือน (Touch Typing Guide & Clickable Keys)
+              </span>
+                    {normalizedTarget && (
+                        <span className="text-blue-600 font-bold">
+                  กดปุ่ม:{" "}
+                            <span className="bg-blue-50 px-2 py-0.5 border border-blue-200 rounded uppercase font-mono">
+                    {normalizedTarget}
+                  </span>
+                </span>
+                    )}
+                </div>
+                <div className="flex flex-col gap-1.5 items-center">
+                    {rows.map((row, rIdx) => (
+                        <div
+                            key={rIdx}
+                            className="flex gap-1 sm:gap-1.5 justify-center"
+                        >
+                            {row.map((k) => {
+                                const isSpace = k === "Space";
+                                const isTarget = isSpace
+                                    ? normalizedTarget === "space"
+                                    : normalizedTarget === k;
+                                return (
+                                    <button
+                                        key={k}
+                                        type="button"
+                                        onClick={() => onKeyPress(isSpace ? " " : k)}
+                                        className={`font-mono text-xs font-bold rounded-lg transition duration-150 flex items-center justify-center select-none cursor-pointer ${
+                                            isSpace
+                                                ? "w-48 sm:w-64 h-9"
+                                                : "w-7 sm:w-10 h-8 sm:h-9"
+                                        } ${
+                                            isTarget
+                                                ? "bg-blue-600 text-white shadow-md scale-110 ring-2 ring-blue-400 animate-pulse font-extrabold"
+                                                : "bg-white hover:bg-slate-50 active:bg-blue-50 border border-slate-200 text-slate-800 shadow-xs"
+                                        }`}
+                                    >
+                                        {k.toUpperCase()}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
+    // --- About / Info Modal Component ---
+    function InfoModal({lang, onClose, onSelectLangMode}) {
+        const isEn = lang === "en";
+        return (
+            <div
+                className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fade-in"
+                onClick={(e) => {
+                    if (e.target === e.currentTarget) onClose();
+                }}
+            >
+                <div className="bg-white/95 border-2 border-purple-200/90 rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl relative text-slate-800 overflow-hidden transform transition-all">
+                    {/* Header */}
+                    <div className="flex items-center justify-between border-b border-purple-100 pb-3.5 mb-4">
+                        <div className="flex items-center gap-2.5">
+                            <div className="w-10 h-10 rounded-2xl bg-purple-100 border border-purple-200 flex items-center justify-center text-purple-700 text-lg shadow-2xs font-mono font-bold shrink-0">
+                                ℹ️
+                            </div>
+                            <div>
+                                <h2 className="text-base sm:text-lg font-extrabold text-slate-900 font-mono">
+                                    {isEn ? "About Project" : "เกี่ยวกับโครงการ (About)"}
+                                </h2>
+                                <p className="text-[11px] text-purple-600 font-semibold">
+                                    Pixel Typing Adventure
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="p-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition cursor-pointer"
+                            title={isEn ? "Close" : "ปิด"}
+                        >
+                            <Icon name="x" className="w-5 h-5"/>
+                        </button>
+                    </div>
+
+                    {/* Main Content Box */}
+                    <div className="space-y-3">
+                        <div className="bg-gradient-to-br from-purple-50/90 via-pink-50/60 to-amber-50/90 border border-purple-200/80 rounded-2xl p-3.5 shadow-2xs">
+                            <div className="flex items-center justify-between mb-2.5 px-0.5">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-base">🌐</span>
+                                    <h3 className="font-extrabold text-slate-900 text-xs sm:text-sm font-mono">
+                                        {isEn
+                                            ? "Foreign Language Modes"
+                                            : "โหมดฝึกภาษาต่างประเทศ"}
+                                    </h3>
+                                </div>
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-700 font-mono">
+                      8 Languages
+                    </span>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2">
+                                {[
+                                    {
+                                        code  : "es",
+                                        flag  : "🇪🇸",
+                                        nameTh: "สเปน",
+                                        nameEn: "Spanish",
+                                    },
+                                    {
+                                        code  : "zh",
+                                        flag  : "🇨🇳",
+                                        nameTh: "จีน",
+                                        nameEn: "Chinese",
+                                    },
+                                    {
+                                        code  : "ja",
+                                        flag  : "🇯🇵",
+                                        nameTh: "ญี่ปุ่น",
+                                        nameEn: "Japanese",
+                                    },
+                                    {
+                                        code  : "ko",
+                                        flag  : "🇰🇷",
+                                        nameTh: "เกาหลี",
+                                        nameEn: "Korean",
+                                    },
+                                    {
+                                        code  : "de",
+                                        flag  : "🇩🇪",
+                                        nameTh: "เยอรมัน",
+                                        nameEn: "German",
+                                    },
+                                    {
+                                        code  : "fr",
+                                        flag  : "🇫🇷",
+                                        nameTh: "ฝรั่งเศส",
+                                        nameEn: "French",
+                                    },
+                                    {
+                                        code  : "it",
+                                        flag  : "🇮🇹",
+                                        nameTh: "อิตาลี",
+                                        nameEn: "Italian",
+                                    },
+                                    {
+                                        code  : "ar",
+                                        flag  : "🇸🇦",
+                                        nameTh: "อาหรับ",
+                                        nameEn: "Arabic",
+                                    },
+                                ].map((langItem, idx) => (
+                                    <button
+                                        key={idx}
+                                        type="button"
+                                        onClick={() =>
+                                            onSelectLangMode && onSelectLangMode(langItem)
+                                        }
+                                        className="flex items-center gap-2 bg-white/90 border border-purple-100 rounded-xl p-2 shadow-2xs hover:border-purple-300 hover:bg-purple-50/90 transition cursor-pointer text-left active:scale-98"
+                                    >
+                        <span className="text-lg leading-none shrink-0">
+                          {langItem.flag}
+                        </span>
+                                        <div className="min-w-0 flex-1">
+                                            <p className="text-xs font-bold text-slate-800 leading-tight truncate">
+                                                {langItem.nameTh}
+                                            </p>
+                                            <p className="text-[10px] text-purple-600 font-semibold truncate">
+                                                {langItem.nameEn}
+                                            </p>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                                <span className="text-2xl">🎨</span>
+                                <div>
+                      <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                        {isEn ? "Developer" : "พัฒนาโดย"}
+                      </span>
+                                    <a
+                                        href="https://rabbit-rapper.itch.io"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-xs font-bold text-purple-700 hover:text-purple-900 hover:underline flex items-center gap-1 font-mono mt-0.5"
+                                    >
+                                        rabbit-rapper.itch.io ↗
+                                    </a>
+                                </div>
+                            </div>
+                            <a
+                                href="https://rabbit-rapper.itch.io"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-xs transition flex items-center gap-1.5 shrink-0"
+                            >
+                                <span>Itch.io</span>
+                                <Icon name="external-link" className="w-3.5 h-3.5"/>
+                            </a>
+                        </div>
+                    </div>
+
+                    {/* Bottom Action Button */}
+                    <div className="mt-5 pt-3 border-t border-slate-100 flex justify-end">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold transition shadow-xs cursor-pointer flex items-center justify-center gap-2"
+                        >
+                            <Icon name="x" className="w-4 h-4"/>
+                            <span>{isEn ? "Close" : "ปิดหน้าต่าง"}</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // --- Slang Modal ---
+    function SlangModal({slang, typo, onClose}) {
+        if (!slang && !typo) return null;
+        return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fade-in">
+                <div className="bg-white border border-slate-200 rounded-3xl max-w-lg w-full p-6 shadow-xl relative text-slate-800 overflow-hidden">
+                    <button
+                        onClick={onClose}
+                        className="absolute top-4 right-4 p-2 rounded-full bg-slate-100 text-slate-500 hover:text-slate-800 transition cursor-pointer"
+                    >
+                        <Icon name="x" className="w-5 h-5"/>
+                    </button>
+
+                    {slang && (
+                        <div>
+                            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-blue-600 mb-1">
+                                <Icon name="book" className="w-4 h-4"/> Slang & Idiom
+                                Mastery
+                            </div>
+                            <div className="flex items-baseline justify-between mb-3 border-b border-slate-200 pb-3">
+                                <h3 className="text-2xl font-bold font-mono text-slate-900">
+                                    "{slang.term}"
+                                </h3>
+                                <button
+                                    onClick={() => speakText(slang.term)}
+                                    className="flex items-center gap-1 text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-lg hover:bg-blue-100 transition cursor-pointer font-medium"
+                                >
+                                    <Icon name="volume" className="w-3.5 h-3.5"/>{" "}
+                                    อ่านออกเสียง
+                                </button>
+                            </div>
+                            <div className="space-y-3">
+                                <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4">
+                      <span className="text-xs font-semibold text-slate-500 block mb-1">
+                        ความหมายภาษาไทย:
+                      </span>
+                                    <p className="text-base text-slate-900 font-medium leading-relaxed">
+                                        {slang.meaningThai}
+                                    </p>
+                                </div>
+                                {slang.exampleUsage && (
+                                    <div className="bg-indigo-50 border border-indigo-200/80 rounded-2xl p-4">
+                        <span className="text-xs font-semibold text-indigo-800 block mb-1">
+                          ตัวอย่างประโยคโต้ตอบจริง:
+                        </span>
+                                        <p className="text-sm font-mono text-indigo-950 italic">
+                                            "{slang.exampleUsage}"
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {typo && (
+                        <div className="mt-4 border-t border-slate-200 pt-4">
+                            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-rose-600 mb-2">
+                                <Icon name="alert-triangle" className="w-4 h-4"/>{" "}
+                                จุดสะกดผิดที่พบบ่อย
+                            </div>
+                            <div className="grid grid-cols-2 gap-3 mb-3">
+                                <div className="bg-rose-50 border border-rose-200 p-3 rounded-2xl text-center">
+                      <span className="text-[10px] text-rose-600 font-semibold block uppercase">
+                        มักเขียนผิดเป็น ❌
+                      </span>
+                                    <span className="text-base font-mono line-through text-rose-700 font-bold">
+                        {typo.wrongWord}
+                      </span>
+                                </div>
+                                <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-2xl text-center">
+                      <span className="text-[10px] text-emerald-600 font-semibold block uppercase">
+                        วิธีที่ถูกต้อง ✅
+                      </span>
+                                    <span className="text-base font-mono text-emerald-700 font-bold flex items-center justify-center gap-1">
+                        <Icon
+                            name="check"
+                            className="w-4 h-4 text-emerald-600"
+                        />{" "}
+                                        {typo.correctWord}
+                      </span>
+                                </div>
+                            </div>
+                            <p className="text-xs text-slate-600">{typo.explanation}</p>
+                        </div>
+                    )}
+
+                    <div className="mt-6 flex justify-end">
+                        <button
+                            onClick={onClose}
+                            className="px-5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition cursor-pointer"
+                        >
+                            เข้าใจแล้ว
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Render App
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App/>);
+</script>
+</body>
+</html>
